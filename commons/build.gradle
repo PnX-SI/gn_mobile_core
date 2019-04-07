@@ -1,0 +1,48 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+version = "0.0.1"
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode updateVersionCode(module.name)
+        versionName version
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        debug {
+            versionNameSuffix "." + getVersionCode(module.name) + "-DEV"
+        }
+        release {
+            versionNameSuffix "." + getVersionCode(module.name)
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    androidExtensions {
+        experimental = true
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha03'
+    api 'androidx.room:room-runtime:2.1.0-alpha05'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'androidx.test:core:1.1.0'
+    testImplementation 'org.mockito:mockito-core:2.25.0'
+    testImplementation 'org.robolectric:robolectric:4.2'
+    androidTestImplementation 'androidx.test:runner:1.1.2-alpha02'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha02'
+}

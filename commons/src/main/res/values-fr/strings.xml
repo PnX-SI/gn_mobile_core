@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="storage_status_mounted">monté (accès complet)</string>
+    <string name="storage_status_mounted_ro">monté (lecture seule)</string>
+    <string name="storage_status_unmounted">démonté</string>
+    <string name="storage_size_b">%1.0f o</string>
+    <string name="storage_size_kb">%1.1f Ko</string>
+    <string name="storage_size_mb">%1.1f Mo</string>
+    <string name="storage_size_gb">%1.1f Go</string>
+
+</resources>
