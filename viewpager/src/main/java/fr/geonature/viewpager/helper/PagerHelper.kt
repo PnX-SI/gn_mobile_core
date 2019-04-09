@@ -11,14 +11,14 @@ import fr.geonature.viewpager.model.Pager
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class PagerHelper internal constructor(private val mContext: Context) {
+class PagerHelper(private val context: Context) {
 
     private val pagerJsonReader: PagerJsonReader = PagerJsonReader()
     private val pagerJsonWriter: PagerJsonWriter = PagerJsonWriter()
 
     fun load(pagerId: Long): Pager {
         // read input as JSON from shared preferences
-        val json = PreferenceManager.getDefaultSharedPreferences(mContext)
+        val json = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(getPagerPreferenceKey(pagerId), null)
 
         return if (TextUtils.isEmpty(json)) {
@@ -35,20 +35,20 @@ class PagerHelper internal constructor(private val mContext: Context) {
             Log.w(TAG, "failed to save pager metadata $pager")
         }
 
-        PreferenceManager.getDefaultSharedPreferences(mContext)
+        PreferenceManager.getDefaultSharedPreferences(context)
                 .edit()
                 .putString(getPagerPreferenceKey(pager.id), pagerAsJson)
                 .apply()
     }
 
     fun delete(pagerId: Long) {
-        PreferenceManager.getDefaultSharedPreferences(mContext)
+        PreferenceManager.getDefaultSharedPreferences(context)
                 .edit()
                 .remove(getPagerPreferenceKey(pagerId))
                 .apply()
     }
 
-    internal fun getPagerPreferenceKey(pagerId: Long): String? {
+    private fun getPagerPreferenceKey(pagerId: Long): String? {
         return "KEY_PAGER_$pagerId"
     }
 

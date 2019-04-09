@@ -76,7 +76,6 @@ class PagerJsonReader {
 
                     when (jsonToken) {
                         JsonToken.NULL -> reader.nextNull()
-
                         JsonToken.BEGIN_ARRAY -> {
                             reader.beginArray()
 
