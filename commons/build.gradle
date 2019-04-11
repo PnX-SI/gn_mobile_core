@@ -2,10 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-version = "0.0.1"
+version = "0.0.2"
 
 android {
     compileSdkVersion 28
+
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 28
@@ -13,6 +14,7 @@ android {
         versionName version
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         debug {
             versionNameSuffix "." + getVersionCode(module.name) + "-DEV"
@@ -23,9 +25,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    androidExtensions {
-        experimental = true
-    }
+
     testOptions {
         unitTests {
             includeAndroidResources = true

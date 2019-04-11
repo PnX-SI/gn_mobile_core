@@ -1,12 +1,12 @@
 package fr.geonature.commons.data
 
 import android.database.Cursor
+import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import kotlinx.android.parcel.Parcelize
 
 /**
  * Describes an input observer.
@@ -14,14 +14,14 @@ import kotlinx.android.parcel.Parcelize
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @Entity(tableName = InputObserver.TABLE_NAME)
-@Parcelize
 data class InputObserver(
 
     /**
      * The unique ID of the input observer.
      */
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(index = true,
-                                                 name = COLUMN_ID) var id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(
+        index = true, name = COLUMN_ID
+    ) var id: Long,
     /**
      * The last name of the input observer.
      */
@@ -30,7 +30,22 @@ data class InputObserver(
     /**
      * The first name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?) : Parcelable {
+    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?
+) : Parcelable {
+
+    private constructor(source: Parcel) : this(
+        source.readLong(), source.readString(), source.readString()
+    )
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    override fun writeToParcel(dest: Parcel?, flags: Int) {
+        dest?.writeLong(id)
+        dest?.writeString(lastname)
+        dest?.writeString(firstname)
+    }
 
     companion object {
 
@@ -66,9 +81,24 @@ data class InputObserver(
                 return null
             }
 
-            return InputObserver(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LASTNAME)),
-                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FIRSTNAME)))
+            return InputObserver(
+                cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LASTNAME)),
+                cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FIRSTNAME))
+            )
         }
+
+        @JvmField
+        val CREATOR: Parcelable.Creator<InputObserver> =
+            object : Parcelable.Creator<InputObserver> {
+
+                override fun createFromParcel(source: Parcel): InputObserver {
+                    return InputObserver(source)
+                }
+
+                override fun newArray(size: Int): Array<InputObserver?> {
+                    return arrayOfNulls(size)
+                }
+            }
     }
 }
