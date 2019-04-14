@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">ViewPager</string>
+    <string name="app_name" translatable="false">ViewPager</string>
+
+    <string name="button_pager_previous">Previous</string>
+    <string name="button_pager_next">Next</string>
+    <string name="button_pager_finish">Finish</string>
+
 </resources>

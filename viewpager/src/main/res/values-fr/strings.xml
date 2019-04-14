@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="button_pager_previous">Précédent</string>
+    <string name="button_pager_next">Suivant</string>
+    <string name="button_pager_finish">Terminer</string>
+
+</resources>

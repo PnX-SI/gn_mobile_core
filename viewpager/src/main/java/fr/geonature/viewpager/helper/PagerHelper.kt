@@ -19,33 +19,35 @@ class PagerHelper(private val context: Context) {
     fun load(pagerId: Long): Pager {
         // read input as JSON from shared preferences
         val json = PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(getPagerPreferenceKey(pagerId), null)
+            .getString(getPagerPreferenceKey(pagerId),
+                       null)
 
         return if (TextUtils.isEmpty(json)) {
             Pager(pagerId)
         }
         else pagerJsonReader.read(json) ?: return Pager(pagerId)
-
     }
 
     fun save(pager: Pager) {
         val pagerAsJson = pagerJsonWriter.write(pager)
 
         if (TextUtils.isEmpty(pagerAsJson)) {
-            Log.w(TAG, "failed to save pager metadata $pager")
+            Log.w(TAG,
+                  "failed to save pager metadata $pager")
         }
 
         PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putString(getPagerPreferenceKey(pager.id), pagerAsJson)
-                .apply()
+            .edit()
+            .putString(getPagerPreferenceKey(pager.id),
+                       pagerAsJson)
+            .apply()
     }
 
     fun delete(pagerId: Long) {
         PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .remove(getPagerPreferenceKey(pagerId))
-                .apply()
+            .edit()
+            .remove(getPagerPreferenceKey(pagerId))
+            .apply()
     }
 
     private fun getPagerPreferenceKey(pagerId: Long): String? {

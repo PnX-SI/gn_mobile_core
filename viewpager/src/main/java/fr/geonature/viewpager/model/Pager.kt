@@ -2,7 +2,10 @@ package fr.geonature.viewpager.model
 
 import android.os.Parcel
 import android.os.Parcelable
-import java.util.*
+import java.util.ArrayDeque
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.Deque
 
 /**
  * Describes a Pager metadata:
@@ -30,7 +33,8 @@ class Pager : Parcelable {
         position = source.readInt()
 
         val navigationHistoryList = ArrayList<Int>()
-        source.readList(navigationHistoryList, Long::class.java.classLoader)
+        source.readList(navigationHistoryList,
+                        Long::class.java.classLoader)
 
         history.addAll(navigationHistoryList)
     }
@@ -39,9 +43,8 @@ class Pager : Parcelable {
         return 0
     }
 
-    override fun writeToParcel(
-            dest: Parcel,
-            flags: Int) {
+    override fun writeToParcel(dest: Parcel,
+                               flags: Int) {
 
         dest.writeLong(id)
         dest.writeInt(size)
@@ -76,7 +79,8 @@ class Pager : Parcelable {
         return if (position != pager.position) {
             false
         }
-        else Arrays.equals(history.toTypedArray(), pager.history.toTypedArray())
+        else Arrays.equals(history.toTypedArray(),
+                           pager.history.toTypedArray())
     }
 
     override fun hashCode(): Int {
