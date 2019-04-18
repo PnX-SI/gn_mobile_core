@@ -50,7 +50,7 @@ class PagerHelper(private val context: Context) {
             .apply()
     }
 
-    private fun getPagerPreferenceKey(pagerId: Long): String? {
+    fun getPagerPreferenceKey(pagerId: Long): String? {
         return "KEY_PAGER_$pagerId"
     }
 
