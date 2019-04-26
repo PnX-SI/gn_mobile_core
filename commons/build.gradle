@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-version = "0.0.2"
+version = "0.0.3"
 
 android {
     compileSdkVersion 28
@@ -38,11 +38,11 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha04'
-    api 'androidx.room:room-runtime:2.1.0-alpha06'
+    api 'androidx.room:room-runtime:2.1.0-alpha07'
     testImplementation 'junit:junit:4.12'
     testImplementation 'androidx.test:core:1.1.0'
     testImplementation 'org.mockito:mockito-core:2.25.0'
     testImplementation 'org.robolectric:robolectric:4.2'
-    androidTestImplementation 'androidx.test:runner:1.2.0-alpha03'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha03'
+    androidTestImplementation 'androidx.test:runner:1.2.0-alpha04'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha04'
 }
