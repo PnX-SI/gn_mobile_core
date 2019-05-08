@@ -1,0 +1,45 @@
+= Synchronization workflow
+
+[plantuml, images/sync, png]
+....
+participant "mobile/sync" as sync << mobile >>
+participant "GeoNature" as gn
+
+activate sync
+
+group Fetch common configuration data
+  sync -> gn ++ : **GET** : /sync
+  gn -> sync -- : **200** : settings
+  sync -> sync : update //settings.json//
+end
+
+group Fetch common data
+  sync -> gn ++ : **GET** : /observers
+  gn -> sync -- : **200** : [observer]
+  sync -> sync : update //observer// table
+  sync -> gn ++ : **GET** : /taxa
+  gn -> sync -- : **200** : [taxon]
+  sync -> sync : update //taxon// table
+end
+
+...
+
+group Fetch data for each module
+  sync -> sync: fetch registered modules
+  note left : read from\n""settings.json""
+
+  loop ["for each registered module"]
+    sync -> gn ++ : **GET** : /module/sync
+    gn -> sync -- : **200** : settings
+    sync -> sync : update //module/settings.json//
+    sync -> gn ++ : **GET** : /module/xxx
+    gn -> sync -- : **200** : [xxx]
+    sync -> sync : update //xxx// table
+  end
+
+end
+
+deactivate sync
+
+....
+
