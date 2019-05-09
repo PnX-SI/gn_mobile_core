@@ -1,6 +1,6 @@
 = Synchronization workflow
 
-[plantuml, images/sync, png]
+[plantuml, images/sync, svg]
 ....
 participant "mobile/sync" as sync << mobile >>
 participant "GeoNature" as gn
