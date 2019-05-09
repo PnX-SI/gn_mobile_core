@@ -19,9 +19,9 @@ data class InputObserver(
     /**
      * The unique ID of the input observer.
      */
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(
-        index = true, name = COLUMN_ID
-    ) var id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(index = true,
+                                                 name = COLUMN_ID) var id: Long,
+
     /**
      * The last name of the input observer.
      */
@@ -30,18 +30,18 @@ data class InputObserver(
     /**
      * The first name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?
-) : Parcelable {
+    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?) : Parcelable {
 
-    private constructor(source: Parcel) : this(
-        source.readLong(), source.readString(), source.readString()
-    )
+    private constructor(source: Parcel) : this(source.readLong(),
+                                               source.readString(),
+                                               source.readString())
 
     override fun describeContents(): Int {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
+    override fun writeToParcel(dest: Parcel?,
+                               flags: Int) {
         dest?.writeLong(id)
         dest?.writeString(lastname)
         dest?.writeString(firstname)
@@ -81,11 +81,9 @@ data class InputObserver(
                 return null
             }
 
-            return InputObserver(
-                cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LASTNAME)),
-                cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FIRSTNAME))
-            )
+            return InputObserver(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LASTNAME)),
+                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FIRSTNAME)))
         }
 
         @JvmField
