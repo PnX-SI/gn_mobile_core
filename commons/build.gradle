@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-version = "0.0.3"
+version = "0.0.4"
 
 android {
     compileSdkVersion 28
@@ -43,6 +43,6 @@ dependencies {
     testImplementation 'androidx.test:core:1.1.0'
     testImplementation 'org.mockito:mockito-core:2.25.0'
     testImplementation 'org.robolectric:robolectric:4.2'
-    androidTestImplementation 'androidx.test:runner:1.2.0-alpha04'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha04'
+    androidTestImplementation 'androidx.test:runner:1.2.0-alpha05'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha05'
 }
