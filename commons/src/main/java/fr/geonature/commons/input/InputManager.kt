@@ -32,6 +32,13 @@ class InputManager(private val application: Application,
     private val inputJsonReader: InputJsonReader = InputJsonReader(inputJsonReaderListener)
     private val inputJsonWriter: InputJsonWriter = InputJsonWriter(inputJsonWriterListener)
 
+    /**
+     * Reads [AbstractInput] from given ID.
+     *
+     * @param id The [AbstractInput] ID to read. If omitted, read the current saved [AbstractInput].
+     *
+     * @return [AbstractInput] or `null` if not found
+     */
     suspend fun readInput(id: Long? = null): AbstractInput? = withContext(IO) {
         val inputPreferenceKey =
             buildInputPreferenceKey(id ?: preferenceManager.getLong(KEY_PREFERENCE_CURRENT_INPUT,
@@ -46,10 +53,20 @@ class InputManager(private val application: Application,
         inputJsonReader.read(inputAsJson)
     }
 
+    /**
+     * Reads the current [AbstractInput].
+     *
+     * @return [AbstractInput] or `null` if not found
+     */
     suspend fun readCurrentInput(): AbstractInput? {
         return readInput()
     }
 
+    /**
+     * Saves the given [AbstractInput] and sets it as default current [AbstractInput].
+     *
+     * @return `true` if the given [AbstractInput] has been successfully saved, `false` otherwise
+     */
     suspend fun saveInput(input: AbstractInput): Boolean = withContext(IO) {
         val inputAsJson = inputJsonWriter.write(input)
 
@@ -65,6 +82,13 @@ class InputManager(private val application: Application,
         preferenceManager.contains(buildInputPreferenceKey(input.id))
     }
 
+    /**
+     * Deletes [AbstractInput] from given ID.
+     *
+     * @param id the [AbstractInput] ID to delete
+     *
+     * @return `true` if the given [AbstractInput] has been successfully deleted, `false` otherwise
+     */
     suspend fun deleteInput(id: Long): Boolean = withContext(IO) {
         preferenceManager.edit()
             .remove(buildInputPreferenceKey(id))
@@ -79,6 +103,13 @@ class InputManager(private val application: Application,
         !preferenceManager.contains(buildInputPreferenceKey(id))
     }
 
+    /**
+     * Exports [AbstractInput] from given ID as `JSON` file.
+     *
+     * @param id the [AbstractInput] ID to export
+     *
+     * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
+     */
     suspend fun exportInput(id: Long): Boolean = coroutineScope {
         val inputToExport = withContext(Dispatchers.Default) { readInput(id) } ?: return@coroutineScope false
 
