@@ -1,9 +1,13 @@
 package fr.geonature.commons.util
 
-import org.junit.Assert.*
+import fr.geonature.commons.util.IsoDateUtils.toDate
+import fr.geonature.commons.util.IsoDateUtils.toIsoDateString
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.TimeZone
 
 /**
  * Unit test for [IsoDateUtils].
@@ -13,16 +17,24 @@ import java.util.*
 class IsoDateUtilsTest {
 
     @Test
-    fun toDate() {
-        assertNull(IsoDateUtils.toDate(null))
-        assertNull(IsoDateUtils.toDate(""))
-        assertNull(IsoDateUtils.toDate("no_such_valid_date"))
+    fun testToDate() {
+        assertNull(toDate(null))
+        assertNull(toDate(""))
+        assertNull(toDate("no_such_valid_date"))
 
-        val isoDate = IsoDateUtils.toDate("2016-10-28T08:15:00Z")
+        val isoDate = toDate("2016-10-28T08:15:00Z")
         assertNotNull(isoDate)
 
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         sdf.timeZone = TimeZone.getTimeZone("UTC")
-        assertEquals("2016-10-28T08:15:00", sdf.format(isoDate))
+        assertEquals("2016-10-28T08:15:00",
+                     sdf.format(isoDate))
+    }
+
+    @Test
+    fun testToIsoDateString() {
+        assertNull(toIsoDateString(null))
+        assertEquals("2016-10-28T08:15:00Z",
+                     toIsoDateString(toDate("2016-10-28T08:15:00Z")))
     }
 }

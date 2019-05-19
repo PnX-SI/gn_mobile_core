@@ -20,10 +20,29 @@ class InputObserverTest {
 
     @Test
     fun testEquals() {
-        assertEquals(
-            InputObserver(1234, "lastname", "firstname"),
-            InputObserver(1234, "lastname", "firstname")
-        )
+        assertEquals(InputObserver(1234,
+                                   "lastname",
+                                   "firstname"),
+                     InputObserver(1234,
+                                   "lastname",
+                                   "firstname"))
+    }
+
+    @Test
+    fun testBuilder() {
+        // given an InputObserver instance from its builder
+        val inputObserver = InputObserver.Builder()
+            .id(1234)
+            .lastname("lastname")
+            .firstname("firstname")
+            .build()
+
+        // then
+        assertNotNull(inputObserver)
+        assertEquals(InputObserver(1234,
+                                   "lastname",
+                                   "firstname"),
+                     inputObserver)
     }
 
     @Test
@@ -42,22 +61,29 @@ class InputObserverTest {
 
         // then
         assertNotNull(inputObserver)
-        assertEquals(InputObserver(1234, "lastname", "firstname"), inputObserver)
+        assertEquals(InputObserver(1234,
+                                   "lastname",
+                                   "firstname"),
+                     inputObserver)
     }
 
     @Test
     fun testParcelable() {
         // given InputObserver
-        val inputObserver = InputObserver(1234, "lastname", "firstname")
+        val inputObserver = InputObserver(1234,
+                                          "lastname",
+                                          "firstname")
 
         // when we obtain a Parcel object to write the InputObserver instance to it
         val parcel = Parcel.obtain()
-        inputObserver.writeToParcel(parcel, 0)
+        inputObserver.writeToParcel(parcel,
+                                    0)
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(inputObserver, InputObserver.CREATOR.createFromParcel(parcel))
+        assertEquals(inputObserver,
+                     InputObserver.CREATOR.createFromParcel(parcel))
     }
 }

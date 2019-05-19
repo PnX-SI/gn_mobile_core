@@ -37,6 +37,11 @@ data class Taxon(
      */
     @ColumnInfo(name = COLUMN_HERITAGE) var heritage: Boolean) : Parcelable {
 
+    private constructor(builder: Builder) : this(builder.id!!,
+                                                 builder.name,
+                                                 builder.description,
+                                                 builder.heritage)
+
     private constructor(source: Parcel) : this(source.readLong(),
                                                source.readString(),
                                                source.readString(),
@@ -52,6 +57,23 @@ data class Taxon(
         dest?.writeString(name)
         dest?.writeString(description)
         dest?.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
+    }
+
+    data class Builder(var id: Long? = null,
+                       var name: String? = null,
+                       var description: String? = null,
+                       var heritage: Boolean = false) {
+        fun id(id: Long) = apply { this.id = id }
+        fun name(name: String?) = apply { this.name = name }
+        fun description(description: String?) = apply { this.description = description }
+        fun heritage(heritage: Boolean) = apply { this.heritage = heritage }
+
+        @Throws(java.lang.IllegalArgumentException::class)
+        fun build(): Taxon {
+            if (id == null) throw IllegalArgumentException("Taxon with null ID is not allowed")
+
+            return Taxon(this)
+        }
     }
 
     companion object {
@@ -85,7 +107,8 @@ data class Taxon(
             return Taxon(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
                          cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)),
                          cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
-                         cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HERITAGE))?.toBoolean() ?: false)
+                         cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HERITAGE))?.toBoolean()
+                             ?: false)
         }
 
         @Suppress("unused")

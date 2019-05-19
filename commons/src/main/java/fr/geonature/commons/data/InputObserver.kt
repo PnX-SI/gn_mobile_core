@@ -32,6 +32,10 @@ data class InputObserver(
      */
     @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?) : Parcelable {
 
+    private constructor(builder: Builder) : this(builder.id!!,
+                                                 builder.lastname,
+                                                 builder.firstname)
+
     private constructor(source: Parcel) : this(source.readLong(),
                                                source.readString(),
                                                source.readString())
@@ -45,6 +49,21 @@ data class InputObserver(
         dest?.writeLong(id)
         dest?.writeString(lastname)
         dest?.writeString(firstname)
+    }
+
+    data class Builder(var id: Long? = null,
+                       var lastname: String? = null,
+                       var firstname: String? = null) {
+        fun id(id: Long) = apply { this.id = id }
+        fun lastname(lastname: String?) = apply { this.lastname = lastname }
+        fun firstname(firstname: String?) = apply { this.firstname = firstname }
+
+        @Throws(java.lang.IllegalArgumentException::class)
+        fun build() : InputObserver {
+            if (id == null) throw IllegalArgumentException("InputObserver with null ID is not allowed")
+
+            return InputObserver(this)
+        }
     }
 
     companion object {

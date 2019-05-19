@@ -9,7 +9,11 @@ import fr.geonature.commons.model.MountPoint
 import fr.geonature.commons.util.StringUtils.isEmpty
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.*
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.HashSet
+import java.util.Scanner
+import java.util.TreeSet
 
 /**
  * Class helper about [MountPoint].
@@ -33,16 +37,19 @@ object MountPointUtils {
                                         MountPoint.StorageType.INTERNAL)
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "internal storage from API: $mountPoint")
+                Log.d(TAG,
+                      "internal storage from API: $mountPoint")
             }
 
             return mountPoint
         }
 
-        val mountPoint = MountPoint(externalStorage!!, MountPoint.StorageType.INTERNAL)
+        val mountPoint = MountPoint(externalStorage!!,
+                                    MountPoint.StorageType.INTERNAL)
 
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "internal storage from system environment: $mountPoint")
+            Log.d(TAG,
+                  "internal storage from system environment: $mountPoint")
         }
 
         return mountPoint
@@ -59,7 +66,8 @@ object MountPointUtils {
      *
      * @see .getMountPoints
      */
-    fun getExternalStorage(context: Context, vararg storageStates: String): MountPoint? {
+    fun getExternalStorage(context: Context,
+                           vararg storageStates: String): MountPoint? {
         val mountPoints = getMountPoints(context)
         val mountPointIterator = mountPoints.iterator()
         var externalMountPoint: MountPoint? = null
@@ -67,8 +75,7 @@ object MountPointUtils {
         while (mountPointIterator.hasNext() && externalMountPoint == null) {
             val mountPoint = mountPointIterator.next()
             val checkStorageState =
-                storageStates.isEmpty() || Arrays.asList(*storageStates).contains(
-                    mountPoint.getStorageState())
+                storageStates.isEmpty() || Arrays.asList(*storageStates).contains(mountPoint.getStorageState())
             externalMountPoint =
                 if (mountPoint.storageType == MountPoint.StorageType.EXTERNAL && checkStorageState) mountPoint
                 else null
@@ -76,10 +83,12 @@ object MountPointUtils {
 
         if (BuildConfig.DEBUG) {
             if (externalMountPoint == null) {
-                Log.d(TAG, "external storage not found")
+                Log.d(TAG,
+                      "external storage not found")
             }
             else {
-                Log.d(TAG, "external storage found: $externalMountPoint")
+                Log.d(TAG,
+                      "external storage found: $externalMountPoint")
             }
         }
 
@@ -167,7 +176,8 @@ object MountPointUtils {
      * @return a human representation of the storage size
      */
 
-    fun formatStorageSize(context: Context, storageSize: Long): String {
+    fun formatStorageSize(context: Context,
+                          storageSize: Long): String {
         var storageSuffix = "b"
         var formattedStorageSize = storageSize.toFloat()
 
@@ -186,14 +196,16 @@ object MountPointUtils {
             }
         }
 
-        val stringResource =
-            context.resources.getIdentifier("storage_size_$storageSuffix", "string",
-                                            context.packageName)
+        val stringResource = context.resources.getIdentifier("storage_size_$storageSuffix",
+                                                             "string",
+                                                             context.packageName)
 
         return if (stringResource == 0) {
-            context.getString(R.string.storage_size_kb, storageSize / 1024f)
+            context.getString(R.string.storage_size_kb,
+                              storageSize / 1024f)
         }
-        else context.getString(stringResource, formattedStorageSize)
+        else context.getString(stringResource,
+                               formattedStorageSize)
     }
 
     /**
@@ -204,9 +216,11 @@ object MountPointUtils {
      *
      * @return a human representation of the storage status
      */
-    fun formatStorageStatus(context: Context, status: String): String {
-        val stringResource =
-            context.resources.getIdentifier("storage_status_$status", "string", context.packageName)
+    fun formatStorageStatus(context: Context,
+                            status: String): String {
+        val stringResource = context.resources.getIdentifier("storage_status_$status",
+                                                             "string",
+                                                             context.packageName)
 
         return if (stringResource == 0) {
             context.getString(R.string.storage_status_unmounted)
@@ -234,7 +248,8 @@ object MountPointUtils {
                 }
 
                 val path = file.absolutePath
-                val mountPoint = buildMountPoint(path.substring(0, path.indexOf("/Android")),
+                val mountPoint = buildMountPoint(path.substring(0,
+                                                                path.indexOf("/Android")),
                                                  if (firstPrimaryStorage) MountPoint.StorageType.INTERNAL else MountPoint.StorageType.EXTERNAL)
 
                 if (mountPoint !== null) {
@@ -277,7 +292,8 @@ object MountPointUtils {
 
                     if (mountPoint != null) {
                         if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "mount point found from system environment: $mountPoint")
+                            Log.d(TAG,
+                                  "mount point found from system environment: $mountPoint")
                         }
 
                         mountPoints.add(mountPoint)
@@ -287,7 +303,8 @@ object MountPointUtils {
             }
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "mount points found from system environment: " + mountPoints.size)
+                Log.d(TAG,
+                      "mount points found from system environment: " + mountPoints.size)
             }
 
             return mountPoints
@@ -322,8 +339,8 @@ object MountPointUtils {
                                 MountPoint.StorageType.INTERNAL
                             line.contains("external") -> storageType =
                                 MountPoint.StorageType.EXTERNAL
-                            line.contains("usb")      -> storageType = MountPoint.StorageType.USB
-                            else                      -> // storage type not found from line comment. Continue anyway
+                            line.contains("usb") -> storageType = MountPoint.StorageType.USB
+                            else -> // storage type not found from line comment. Continue anyway
                                 storageType = null
                         }
                     }
@@ -352,7 +369,8 @@ object MountPointUtils {
                             .toTypedArray()
 
                         if (tokens.size >= 3) {
-                            val mountPoint = buildMountPoint(tokens[2], storageType)
+                            val mountPoint = buildMountPoint(tokens[2],
+                                                             storageType)
 
                             if (mountPoint != null) {
                                 mountPoints.add(mountPoint)
@@ -364,11 +382,13 @@ object MountPointUtils {
                 scanner.close()
             }
             catch (fnfe: FileNotFoundException) {
-                Log.w(TAG, fnfe.message)
+                Log.w(TAG,
+                      fnfe.message)
             }
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "mount points found from 'vold.fstab': " + mountPoints.size)
+                Log.d(TAG,
+                      "mount points found from 'vold.fstab': " + mountPoints.size)
             }
 
             return mountPoints
@@ -397,8 +417,8 @@ object MountPointUtils {
                             .toTypedArray()
 
                         if (tokens.size >= 2) {
-                            val mountPoint =
-                                buildMountPoint(tokens[1], MountPoint.StorageType.EXTERNAL)
+                            val mountPoint = buildMountPoint(tokens[1],
+                                                             MountPoint.StorageType.EXTERNAL)
 
                             if (mountPoint != null) {
                                 mountPoints.add(mountPoint)
@@ -410,29 +430,36 @@ object MountPointUtils {
                 scanner.close()
             }
             catch (fnfe: FileNotFoundException) {
-                Log.w(TAG, fnfe.message)
+                Log.w(TAG,
+                      fnfe.message)
             }
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "mount points found from '/proc/mounts': " + mountPoints.size)
+                Log.d(TAG,
+                      "mount points found from '/proc/mounts': " + mountPoints.size)
             }
 
             return mountPoints
         }
 
-    private fun buildMountPoint(mountPath: File, storageType: MountPoint.StorageType): MountPoint? {
+    private fun buildMountPoint(mountPath: File,
+                                storageType: MountPoint.StorageType): MountPoint? {
         if (!mountPath.isDirectory) {
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "failed to build mount point from '$mountPath'")
+                Log.d(TAG,
+                      "failed to build mount point from '$mountPath'")
             }
 
             return null
         }
 
-        return MountPoint(mountPath.absolutePath, storageType)
+        return MountPoint(mountPath.absolutePath,
+                          storageType)
     }
 
-    private fun buildMountPoint(mountPath: String, storageType: MountPoint.StorageType): MountPoint? {
-        return buildMountPoint(File(mountPath), storageType)
+    private fun buildMountPoint(mountPath: String,
+                                storageType: MountPoint.StorageType): MountPoint? {
+        return buildMountPoint(File(mountPath),
+                               storageType)
     }
 }
