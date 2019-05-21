@@ -3,7 +3,6 @@ package fr.geonature.commons.input.io
 import android.util.JsonWriter
 import android.util.Log
 import fr.geonature.commons.input.AbstractInput
-import fr.geonature.commons.util.IsoDateUtils
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
@@ -70,8 +69,6 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
             .value(input.id)
         writer.name("module")
             .value(input.module)
-        writer.name("date")
-            .value(IsoDateUtils.toIsoDateString(input.date))
 
         onInputJsonWriterListener.writeAdditionalInputData(writer,
                                                            input)
