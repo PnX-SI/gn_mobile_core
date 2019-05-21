@@ -88,6 +88,10 @@ abstract class AbstractInput(
         this.date = date ?: Date()
     }
 
+    fun getPrimaryObserverId(): Long? {
+        return this.inputObserverIds.firstOrNull()
+    }
+
     fun getInputObserverIds(): Set<Long> {
         return this.inputObserverIds
     }

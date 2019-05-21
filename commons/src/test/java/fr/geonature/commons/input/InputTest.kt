@@ -5,6 +5,7 @@ import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.util.IsoDateUtils
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -29,6 +30,30 @@ class InputTest {
         // then
         assertEquals(IsoDateUtils.toDate("2016-10-28T08:15:00Z"),
                      input.date)
+    }
+
+    @Test
+    fun testGetPrimaryInputObserver() {
+        // given an empty Input
+        val input = DummyInput()
+
+        // then
+        assertNull(input.getPrimaryObserverId())
+
+        // when adding some input observers
+        input.setInputObservers(listOf(InputObserver(4,
+                                                     "",
+                                                     ""),
+                                       InputObserver(3,
+                                                     "",
+                                                     ""),
+                                       InputObserver(5,
+                                                     "",
+                                                     "")))
+
+        // then
+        assertEquals(4L,
+                     input.getPrimaryObserverId())
     }
 
     @Test
