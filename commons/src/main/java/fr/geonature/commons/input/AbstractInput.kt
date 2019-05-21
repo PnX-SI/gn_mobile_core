@@ -88,15 +88,29 @@ abstract class AbstractInput(
         this.date = date ?: Date()
     }
 
+    /**
+     * Gets the primary input observer.
+     */
     fun getPrimaryObserverId(): Long? {
         return this.inputObserverIds.firstOrNull()
     }
 
-    fun getInputObserverIds(): Set<Long> {
+    /**
+     * Gets all input observers (i.e. the primary input observer at first position, then others).
+     */
+    fun getAllInputObserverIds(): Set<Long> {
         return this.inputObserverIds
     }
 
-    fun clearInputObservers() {
+    /**
+     * Gets only selected input observers without the primary input observer.
+     */
+    fun getInputObserverIds(): Set<Long> {
+        return this.inputObserverIds.drop(1)
+            .toSet()
+    }
+
+    fun clearAllInputObservers() {
         this.inputObserverIds.clear()
     }
 
@@ -110,7 +124,7 @@ abstract class AbstractInput(
         this.inputObserverIds.addAll(inputObservers)
     }
 
-    fun setInputObservers(inputObservers: List<InputObserver>) {
+    fun setAllInputObservers(inputObservers: List<InputObserver>) {
         val primaryInputObserver = this.inputObserverIds.firstOrNull()
 
         this.inputObserverIds.clear()

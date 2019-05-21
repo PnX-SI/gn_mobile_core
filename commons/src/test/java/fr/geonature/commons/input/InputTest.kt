@@ -6,6 +6,7 @@ import fr.geonature.commons.util.IsoDateUtils
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -41,19 +42,59 @@ class InputTest {
         assertNull(input.getPrimaryObserverId())
 
         // when adding some input observers
-        input.setInputObservers(listOf(InputObserver(4,
-                                                     "",
-                                                     ""),
-                                       InputObserver(3,
-                                                     "",
-                                                     ""),
-                                       InputObserver(5,
-                                                     "",
-                                                     "")))
+        input.setAllInputObservers(listOf(InputObserver(4,
+                                                        "",
+                                                        ""),
+                                          InputObserver(3,
+                                                        "",
+                                                        ""),
+                                          InputObserver(5,
+                                                        "",
+                                                        "")))
 
         // then
         assertEquals(4L,
                      input.getPrimaryObserverId())
+    }
+
+    @Test
+    fun testGetInputObservers() {
+        // given an empty Input
+        val input = DummyInput()
+
+        // then
+        assertNull(input.getPrimaryObserverId())
+        assertTrue(input.getAllInputObserverIds().isEmpty())
+        assertTrue(input.getInputObserverIds().isEmpty())
+
+        // when setting the primary input observer
+        input.setPrimaryInputObserver(InputObserver(6,
+                                                    "",
+                                                    ""))
+
+        // then
+        assertEquals(6L,
+                     input.getPrimaryObserverId())
+        assertArrayEquals(longArrayOf(6),
+                          input.getAllInputObserverIds().toLongArray())
+        assertTrue(input.getInputObserverIds().isEmpty())
+
+        // when adding some input observers
+        input.also {
+            it.addInputObserverId(3L)
+            it.addInputObserverId(4L)
+        }
+
+        // then
+        assertEquals(6L,
+                     input.getPrimaryObserverId())
+        assertArrayEquals(longArrayOf(6,
+                                      3,
+                                      4),
+                          input.getAllInputObserverIds().toLongArray())
+        assertArrayEquals(longArrayOf(3,
+                                      4),
+                          input.getInputObserverIds().toLongArray())
     }
 
     @Test
@@ -68,23 +109,23 @@ class InputTest {
 
         // then
         assertArrayEquals(longArrayOf(1),
-                          input.getInputObserverIds().toLongArray())
+                          input.getAllInputObserverIds().toLongArray())
 
         // when adding additional input observers
-        input.setInputObservers(listOf(InputObserver(2,
-                                                     "",
-                                                     "")))
+        input.setAllInputObservers(listOf(InputObserver(2,
+                                                        "",
+                                                        "")))
 
         // then
         assertArrayEquals(longArrayOf(1,
                                       2),
-                          input.getInputObserverIds().toLongArray())
+                          input.getAllInputObserverIds().toLongArray())
 
         // when adding additional input observers first and then setting the primary input observer
-        input.clearInputObservers()
-        input.setInputObservers(listOf(InputObserver(6,
-                                                     "",
-                                                     "")))
+        input.clearAllInputObservers()
+        input.setAllInputObservers(listOf(InputObserver(6,
+                                                        "",
+                                                        "")))
         input.setPrimaryInputObserver(InputObserver(5,
                                                     "",
                                                     ""))
@@ -92,22 +133,22 @@ class InputTest {
         // then
         assertArrayEquals(longArrayOf(5,
                                       6),
-                          input.getInputObserverIds().toLongArray())
+                          input.getAllInputObserverIds().toLongArray())
     }
 
     @Test
-    fun testSetInputObserver() {
+    fun testSetAllInputObserver() {
         // given an Input with existing input observers
         val input = DummyInput()
-        input.setInputObservers(listOf(InputObserver(4,
-                                                     "",
-                                                     ""),
-                                       InputObserver(3,
-                                                     "",
-                                                     ""),
-                                       InputObserver(5,
-                                                     "",
-                                                     "")))
+        input.setAllInputObservers(listOf(InputObserver(4,
+                                                        "",
+                                                        ""),
+                                          InputObserver(3,
+                                                        "",
+                                                        ""),
+                                          InputObserver(5,
+                                                        "",
+                                                        "")))
 
         // when setting primary input observer
         input.setPrimaryInputObserver(InputObserver(1,
@@ -119,39 +160,39 @@ class InputTest {
                                       4,
                                       3,
                                       5),
-                          input.getInputObserverIds().toLongArray())
+                          input.getAllInputObserverIds().toLongArray())
 
         // when adding additional input observers with one duplicate
-        input.setInputObservers(listOf(InputObserver(8,
-                                                     "",
-                                                     ""),
-                                       InputObserver(1,
-                                                     "",
-                                                     ""),
-                                       InputObserver(6,
-                                                     "",
-                                                     "")))
+        input.setAllInputObservers(listOf(InputObserver(8,
+                                                        "",
+                                                        ""),
+                                          InputObserver(1,
+                                                        "",
+                                                        ""),
+                                          InputObserver(6,
+                                                        "",
+                                                        "")))
 
         // then
         assertArrayEquals(longArrayOf(1,
                                       8,
                                       6),
-                          input.getInputObserverIds().toLongArray())
+                          input.getAllInputObserverIds().toLongArray())
     }
 
     @Test
     fun testAddInputObserverId() {
         // given an Input with existing input observers
         val input = DummyInput()
-        input.setInputObservers(listOf(InputObserver(4,
-                                                     "",
-                                                     ""),
-                                       InputObserver(3,
-                                                     "",
-                                                     ""),
-                                       InputObserver(5,
-                                                     "",
-                                                     "")))
+        input.setAllInputObservers(listOf(InputObserver(4,
+                                                        "",
+                                                        ""),
+                                          InputObserver(3,
+                                                        "",
+                                                        ""),
+                                          InputObserver(5,
+                                                        "",
+                                                        "")))
 
         // when adding existing input observer
         input.addInputObserverId(4)
@@ -160,7 +201,7 @@ class InputTest {
         assertArrayEquals(longArrayOf(4,
                                       3,
                                       5),
-                          input.getInputObserverIds().toLongArray())
+                          input.getAllInputObserverIds().toLongArray())
 
         // when adding new input observer
         input.addInputObserverId(7)
@@ -170,7 +211,7 @@ class InputTest {
                                       3,
                                       5,
                                       7),
-                          input.getInputObserverIds().toLongArray())
+                          input.getAllInputObserverIds().toLongArray())
     }
 
     @Test
@@ -200,12 +241,12 @@ class InputTest {
             id = 1234
             date = Calendar.getInstance()
                 .time
-            setInputObservers(listOf(InputObserver(1,
-                                                   "",
-                                                   ""),
-                                     InputObserver(2,
-                                                   "",
-                                                   "")))
+            setAllInputObservers(listOf(InputObserver(1,
+                                                      "",
+                                                      ""),
+                                        InputObserver(2,
+                                                      "",
+                                                      "")))
             setInputTaxa(listOf(DummyInputTaxon().apply { id = 1 }))
         }
 
