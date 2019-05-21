@@ -115,6 +115,60 @@ class InputTest {
     }
 
     @Test
+    fun testAddInputObserverId() {
+        // given an Input with existing input observers
+        val input = DummyInput()
+        input.setInputObservers(listOf(InputObserver(4,
+                                                     "",
+                                                     ""),
+                                       InputObserver(3,
+                                                     "",
+                                                     ""),
+                                       InputObserver(5,
+                                                     "",
+                                                     "")))
+
+        // when adding existing input observer
+        input.addInputObserverId(4)
+
+        // then
+        assertArrayEquals(longArrayOf(4,
+                                      3,
+                                      5),
+                          input.getInputObserverIds().toLongArray())
+
+        // when adding new input observer
+        input.addInputObserverId(7)
+
+        // then
+        assertArrayEquals(longArrayOf(4,
+                                      3,
+                                      5,
+                                      7),
+                          input.getInputObserverIds().toLongArray())
+    }
+
+    @Test
+    fun testAddInputTaxon() {
+        // given an Input with no input taxa
+        val input = DummyInput()
+
+        // when adding new input taxon
+        input.addInputTaxon(DummyInputTaxon().apply { id = 2 })
+
+        // then
+        assertArrayEquals(longArrayOf(2),
+                          input.getInputTaxa().map { it.id }.toLongArray())
+
+        // when adding existing input taxon
+        input.addInputTaxon(DummyInputTaxon().apply { id = 2 })
+
+        // then
+        assertArrayEquals(longArrayOf(2),
+                          input.getInputTaxa().map { it.id }.toLongArray())
+    }
+
+    @Test
     fun testParcelable() {
         // given an Input
         val input = DummyInput().apply {

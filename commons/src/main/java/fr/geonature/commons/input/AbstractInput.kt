@@ -118,6 +118,10 @@ abstract class AbstractInput(
         this.inputObserverIds.addAll(inputObservers.map { inputObserver -> inputObserver.id })
     }
 
+    fun addInputObserverId(id: Long) {
+        this.inputObserverIds.add(id)
+    }
+
     fun getInputTaxa(): List<AbstractInputTaxon> {
         return ArrayList(this.inputTaxa.values)
     }
@@ -128,6 +132,10 @@ abstract class AbstractInput(
         for (inputTaxon in inputTaxa) {
             this.inputTaxa[inputTaxon.id] = inputTaxon
         }
+    }
+
+    fun addInputTaxon(inputTaxon: AbstractInputTaxon) {
+        this.inputTaxa[inputTaxon.id] = inputTaxon
     }
 
     abstract fun getTaxaFromParcel(source: Parcel): List<AbstractInputTaxon>
