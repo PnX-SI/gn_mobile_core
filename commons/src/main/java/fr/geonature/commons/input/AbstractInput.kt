@@ -114,14 +114,18 @@ abstract class AbstractInput(
         this.inputObserverIds.clear()
     }
 
-    fun setPrimaryInputObserver(inputObserver: InputObserver) {
+    fun setPrimaryInputObserverId(id: Long) {
         val inputObservers = this.inputObserverIds.toMutableList()
             .apply {
                 add(0,
-                    inputObserver.id)
+                    id)
             }
         this.inputObserverIds.clear()
         this.inputObserverIds.addAll(inputObservers)
+    }
+
+    fun setPrimaryInputObserver(inputObserver: InputObserver) {
+        setPrimaryInputObserverId(inputObserver.id)
     }
 
     fun setAllInputObservers(inputObservers: List<InputObserver>) {

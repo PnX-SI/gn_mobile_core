@@ -126,9 +126,7 @@ class InputTest {
         input.setAllInputObservers(listOf(InputObserver(6,
                                                         "",
                                                         "")))
-        input.setPrimaryInputObserver(InputObserver(5,
-                                                    "",
-                                                    ""))
+        input.setPrimaryInputObserverId(5)
 
         // then
         assertArrayEquals(longArrayOf(5,
