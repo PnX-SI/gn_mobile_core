@@ -22,13 +22,21 @@ class IsoDateUtilsTest {
         assertNull(toDate(""))
         assertNull(toDate("no_such_valid_date"))
 
-        val isoDate = toDate("2016-10-28T08:15:00Z")
+        val isoDateTime = toDate("2016-10-28T08:15:00Z")
+        assertNotNull(isoDateTime)
+
+        val sdfDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        sdfDateTime.timeZone = TimeZone.getTimeZone("UTC")
+        assertEquals("2016-10-28T08:15:00",
+                     sdfDateTime.format(isoDateTime))
+
+        val isoDate = toDate("2016-10-28")
         assertNotNull(isoDate)
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        sdf.timeZone = TimeZone.getTimeZone("UTC")
-        assertEquals("2016-10-28T08:15:00",
-                     sdf.format(isoDate))
+        val sdfDate = SimpleDateFormat("yyyy-MM-dd")
+        sdfDate.timeZone = TimeZone.getTimeZone("UTC")
+        assertEquals("2016-10-28",
+                     sdfDate.format(isoDate))
     }
 
     @Test

@@ -15,10 +15,13 @@ import java.util.TimeZone
 object IsoDateUtils {
 
     @SuppressLint("SimpleDateFormat")
-    private val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    private val sdfDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    @SuppressLint("SimpleDateFormat")
+    private val sdfDate = SimpleDateFormat("yyyy-MM-dd")
 
     init {
-        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        sdfDateTime.timeZone = TimeZone.getTimeZone("UTC")
+        sdfDate.timeZone = TimeZone.getTimeZone("UTC")
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -26,10 +29,15 @@ object IsoDateUtils {
         if (isEmpty(str)) return null
 
         return try {
-            sdf.parse(str)
+            sdfDateTime.parse(str)
         }
         catch (pe: ParseException) {
-            null
+            try {
+                sdfDate.parse(str)
+            }
+            catch (pe: ParseException) {
+                return null
+            }
         }
     }
 
@@ -37,6 +45,6 @@ object IsoDateUtils {
     fun toIsoDateString(date: Date?): String? {
         if (date == null) return null
 
-        return sdf.format(date)
+        return sdfDateTime.format(date)
     }
 }
