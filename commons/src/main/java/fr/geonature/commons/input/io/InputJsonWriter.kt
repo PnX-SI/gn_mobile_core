@@ -15,6 +15,23 @@ import java.io.Writer
  */
 class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterListener) {
 
+    private var indent: String = ""
+
+    /**
+     * Sets the indentation string to be repeated for each level of indentation in the encoded document.
+     * If `indent.isEmpty()` the encoded document will be compact.
+     * Otherwise the encoded document will be more human-readable.
+     *
+     * @param indent a string containing only whitespace.
+     *
+     * @return InputJsonWriter fluent interface
+     */
+    fun setIndent(indent: String): InputJsonWriter {
+        this.indent = indent
+
+        return this
+    }
+
     /**
      * Convert the given [AbstractInput] as `JSON` string.
      *
@@ -54,6 +71,7 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
     fun write(out: Writer,
               input: AbstractInput) {
         val writer = JsonWriter(out)
+        writer.setIndent(this.indent)
         writeInput(writer,
                    input)
         writer.flush()
