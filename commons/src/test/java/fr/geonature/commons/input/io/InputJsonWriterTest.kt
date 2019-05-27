@@ -10,8 +10,9 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito
+import org.mockito.Mockito.atMost
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 
@@ -41,17 +42,18 @@ class InputJsonWriterTest {
         val input = DummyInput().apply { id = 1234 }
 
         // when write this Input as JSON string
-        val json = inputJsonWriter.setIndent("  ").write(input)
+        val json = inputJsonWriter.setIndent("  ")
+            .write(input)
 
         // then
         assertNotNull(json)
 
         // then
-        Mockito.verify(onInputJsonWriterListener,
-                       Mockito.atMost(1))
-            .writeAdditionalInputData(any(JsonWriter::class.java),
-                                      any(DummyInput::class.java))
+        verify(onInputJsonWriterListener,
+               atMost(1)).writeAdditionalInputData(any(JsonWriter::class.java),
+                                                   any(DummyInput::class.java))
 
-        assertEquals(FixtureHelper.getFixture("input_empty.json"), json)
+        assertEquals(FixtureHelper.getFixture("input_empty.json"),
+                     json)
     }
 }

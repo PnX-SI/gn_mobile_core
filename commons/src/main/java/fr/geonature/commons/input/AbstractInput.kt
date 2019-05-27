@@ -5,6 +5,7 @@ import android.os.Parcelable
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.util.IsoDateUtils.toDate
 import java.util.ArrayList
+import java.util.Calendar
 import java.util.Date
 import java.util.TreeMap
 
@@ -20,7 +21,7 @@ abstract class AbstractInput(
      */
     var module: String) : Parcelable {
 
-    var id: Long = 0
+    var id: Long = generateId()
     var date: Date = Date()
     private val inputObserverIds: MutableSet<Long> = mutableSetOf()
     private val inputTaxa: MutableMap<Long, AbstractInputTaxon> = TreeMap()
@@ -161,4 +162,27 @@ abstract class AbstractInput(
     }
 
     abstract fun getTaxaFromParcel(source: Parcel): List<AbstractInputTaxon>
+
+    /**
+     * Generates a pseudo unique ID. The value is the number of seconds since Jan. 1, 2016, midnight.
+     *
+     * @return an unique ID
+     */
+    private fun generateId(): Long {
+        val now = Calendar.getInstance()
+        now.set(Calendar.MILLISECOND,
+                0)
+
+        val start = Calendar.getInstance()
+        start.set(2016,
+                  Calendar.JANUARY,
+                  1,
+                  0,
+                  0,
+                  0)
+        start.set(Calendar.MILLISECOND,
+                  0)
+
+        return (now.timeInMillis - start.timeInMillis) / 1000
+    }
 }

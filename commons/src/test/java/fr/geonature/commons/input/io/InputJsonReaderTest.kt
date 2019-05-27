@@ -5,9 +5,9 @@ import fr.geonature.commons.FixtureHelper.getFixture
 import fr.geonature.commons.MockitoKotlinHelper.any
 import fr.geonature.commons.MockitoKotlinHelper.eq
 import fr.geonature.commons.input.DummyInput
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,7 +50,7 @@ class InputJsonReaderTest {
         val input = inputJsonReader.read("")
 
         // then
-        Assert.assertNull(input)
+        assertNull(input)
     }
 
     @Test

@@ -21,6 +21,15 @@ import java.util.Calendar
 class InputTest {
 
     @Test
+    fun testHasDefaultId() {
+        // given an empty Input
+        val input = DummyInput()
+
+        // then
+        assertTrue(input.id > 0)
+    }
+
+    @Test
     fun testSetDate() {
         // given an empty Input
         val input = DummyInput()
