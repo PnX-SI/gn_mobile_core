@@ -7,7 +7,6 @@ import fr.geonature.commons.util.IsoDateUtils.toDate
 import java.util.ArrayList
 import java.util.Calendar
 import java.util.Date
-import java.util.TreeMap
 
 /**
  * Describes a current input.
@@ -24,7 +23,8 @@ abstract class AbstractInput(
     var id: Long = generateId()
     var date: Date = Date()
     private val inputObserverIds: MutableSet<Long> = mutableSetOf()
-    private val inputTaxa: MutableMap<Long, AbstractInputTaxon> = TreeMap()
+    private val inputTaxa: MutableMap<Long, AbstractInputTaxon> = LinkedHashMap()
+    private var currentSelectedInputTaxonId: Long? = null
 
     constructor(source: Parcel) : this(source.readString()!!) {
         this.id = source.readLong()
@@ -159,6 +159,23 @@ abstract class AbstractInput(
 
     fun addInputTaxon(inputTaxon: AbstractInputTaxon) {
         this.inputTaxa[inputTaxon.id] = inputTaxon
+        this.currentSelectedInputTaxonId = inputTaxon.id
+    }
+
+    fun getCurrentSelectedInputTaxon(): AbstractInputTaxon? {
+        return this.inputTaxa[this.currentSelectedInputTaxonId]
+    }
+
+    fun setCurrentSelectedInputTaxonId(inputTaxonId: Long) {
+        this.currentSelectedInputTaxonId = inputTaxonId
+    }
+
+    fun getLastAddedInputTaxon(): AbstractInputTaxon? {
+        if (this.inputTaxa.isEmpty()) {
+            return null
+        }
+
+        return this.inputTaxa[this.inputTaxa.keys.last()]
     }
 
     abstract fun getTaxaFromParcel(source: Parcel): List<AbstractInputTaxon>

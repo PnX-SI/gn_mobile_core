@@ -242,6 +242,61 @@ class InputTest {
     }
 
     @Test
+    fun testCurrentSelectedInputTaxon() {
+        // given an Input with no input data
+        val input = DummyInput()
+
+        // when fetching the current selected input taxon
+        // then
+        assertNull(input.getCurrentSelectedInputTaxon())
+
+        // when setting the current selected input taxon with non existing input taxon id
+        input.setCurrentSelectedInputTaxonId(2L)
+
+        // then
+        assertNull(input.getCurrentSelectedInputTaxon())
+
+        // when adding some input Taxa
+        input.apply {
+            addInputTaxon(DummyInputTaxon().apply { id = 2 })
+            addInputTaxon(DummyInputTaxon().apply { id = 4 })
+            addInputTaxon(DummyInputTaxon().apply { id = 3 })
+        }
+
+        // then
+        assertEquals(3L,
+                     input.getCurrentSelectedInputTaxon()?.id)
+
+        // when setting the current selected input taxon
+        input.setCurrentSelectedInputTaxonId(4L)
+
+        //then
+        assertEquals(4L,
+                     input.getCurrentSelectedInputTaxon()?.id)
+    }
+
+    @Test
+    fun testLastAddedInputTaxon() {
+        // given an Input with no input data
+        val input = DummyInput()
+
+        // when fetching the last added input taxon
+        // then
+        assertNull(input.getLastAddedInputTaxon())
+
+        // when adding some input taxa
+        input.apply {
+            addInputTaxon(DummyInputTaxon().apply { id = 2 })
+            addInputTaxon(DummyInputTaxon().apply { id = 4 })
+            addInputTaxon(DummyInputTaxon().apply { id = 3 })
+        }
+
+        // then
+        assertEquals(3L,
+                     input.getLastAddedInputTaxon()?.id)
+    }
+
+    @Test
     fun testParcelable() {
         // given an Input
         val input = DummyInput().apply {
