@@ -40,13 +40,13 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.1"
 
-    implementation 'androidx.appcompat:appcompat:1.1.0-alpha05'
+    implementation 'androidx.appcompat:appcompat:1.1.0-beta01'
     api 'androidx.room:room-runtime:2.1.0-rc01'
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'androidx.test:core:1.1.0'
+    testImplementation 'androidx.test:core:1.2.0'
     testImplementation 'org.mockito:mockito-core:2.27.0'
     testImplementation 'org.robolectric:robolectric:4.2'
-    androidTestImplementation 'androidx.test:runner:1.2.0-beta01'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-beta01'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
