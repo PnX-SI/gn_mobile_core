@@ -242,6 +242,32 @@ class InputTest {
     }
 
     @Test
+    fun testRemoveInputTaxon() {
+        // given an Input with some input taxa
+        val input = DummyInput().apply {
+            addInputTaxon(DummyInputTaxon().apply { id = 2 })
+            addInputTaxon(DummyInputTaxon().apply { id = 4 })
+            addInputTaxon(DummyInputTaxon().apply { id = 3 })
+        }
+
+        // when remove input taxon different from current selected input taxon
+        input.removeInputTaxon(4)
+
+        // then
+        assertEquals(3L, input.getCurrentSelectedInputTaxon()?.id)
+        assertArrayEquals(longArrayOf(2, 3),
+                          input.getInputTaxa().map { it.id }.toLongArray())
+
+        // when remove the current selected input taxon
+        input.removeInputTaxon(3)
+
+        // then
+        assertNull(input.getCurrentSelectedInputTaxon()?.id)
+        assertArrayEquals(longArrayOf(2),
+                          input.getInputTaxa().map { it.id }.toLongArray())
+    }
+
+    @Test
     fun testCurrentSelectedInputTaxon() {
         // given an Input with no input data
         val input = DummyInput()

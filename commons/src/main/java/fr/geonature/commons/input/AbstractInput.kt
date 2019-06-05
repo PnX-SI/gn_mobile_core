@@ -162,6 +162,14 @@ abstract class AbstractInput(
         this.currentSelectedInputTaxonId = inputTaxon.id
     }
 
+    fun removeInputTaxon(inputTaxonId: Long) {
+        this.inputTaxa.remove(inputTaxonId)
+
+        if (this.currentSelectedInputTaxonId == inputTaxonId) {
+            this.currentSelectedInputTaxonId = null
+        }
+    }
+
     fun getCurrentSelectedInputTaxon(): AbstractInputTaxon? {
         return this.inputTaxa[this.currentSelectedInputTaxonId]
     }
