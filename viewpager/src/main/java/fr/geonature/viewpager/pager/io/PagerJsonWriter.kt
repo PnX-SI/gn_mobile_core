@@ -1,8 +1,8 @@
-package fr.geonature.viewpager.helper
+package fr.geonature.viewpager.pager.io
 
 import android.util.JsonWriter
 import android.util.Log
-import fr.geonature.viewpager.model.Pager
+import fr.geonature.viewpager.pager.Pager
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer

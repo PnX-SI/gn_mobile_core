@@ -1,4 +1,4 @@
-package fr.geonature.viewpager.model
+package fr.geonature.viewpager.pager
 
 import android.os.Parcel
 import org.junit.Assert.assertEquals
@@ -28,12 +28,14 @@ class PagerTest {
 
         // when we obtain a Parcel object to write the Pager instance to it
         val parcel = Parcel.obtain()
-        pager.writeToParcel(parcel, 0)
+        pager.writeToParcel(parcel,
+                            0)
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(pager, Pager.CREATOR.createFromParcel(parcel))
+        assertEquals(pager,
+                     Pager.createFromParcel(parcel))
     }
 }
