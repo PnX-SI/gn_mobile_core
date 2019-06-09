@@ -29,10 +29,10 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class InputJsonReaderTest {
 
-    private lateinit var inputJsonReader: InputJsonReader
+    private lateinit var inputJsonReader: InputJsonReader<DummyInput>
 
     @Mock
-    private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener
+    private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>
 
     @Before
     fun setUp() {

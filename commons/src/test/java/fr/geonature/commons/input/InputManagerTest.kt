@@ -27,25 +27,25 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class InputManagerTest {
 
-    private lateinit var inputManager: InputManager
+    private lateinit var inputManager: InputManager<DummyInput>
 
     @Mock
-    private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener
+    private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>
 
-    private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener
+    private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>
 
     @Before
     fun setUp() {
         initMocks(this)
 
-        onInputJsonReaderListener = object : InputJsonReader.OnInputJsonReaderListener {
-            override fun createInput(): AbstractInput {
+        onInputJsonReaderListener = object : InputJsonReader.OnInputJsonReaderListener<DummyInput> {
+            override fun createInput(): DummyInput {
                 return DummyInput()
             }
 
             override fun readAdditionalInputData(reader: JsonReader,
                                                  keyName: String,
-                                                 input: AbstractInput) {
+                                                 input: DummyInput) {
             }
         }
 

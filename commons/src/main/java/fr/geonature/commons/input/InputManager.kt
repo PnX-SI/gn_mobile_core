@@ -24,20 +24,20 @@ import java.io.Writer
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class InputManager(private val application: Application,
-                   inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener,
-                   inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener) {
+class InputManager<T : AbstractInput>(private val application: Application,
+                                      inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<T>,
+                                      inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<T>) {
 
     private val preferenceManager = PreferenceManager.getDefaultSharedPreferences(application)
-    private val inputJsonReader: InputJsonReader = InputJsonReader(inputJsonReaderListener)
-    private val inputJsonWriter: InputJsonWriter = InputJsonWriter(inputJsonWriterListener)
+    private val inputJsonReader: InputJsonReader<T> = InputJsonReader(inputJsonReaderListener)
+    private val inputJsonWriter: InputJsonWriter<T> = InputJsonWriter(inputJsonWriterListener)
 
     /**
      * Reads all [AbstractInput]s.
      *
      * @return A list of [AbstractInput]s
      */
-    suspend fun readInputs(): List<AbstractInput> = withContext(IO) {
+    suspend fun readInputs(): List<T> = withContext(IO) {
         preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }
             .values.mapNotNull { if (it is String && !isEmpty(it)) inputJsonReader.read(it) else null }
             .sortedBy { it.id }
@@ -50,7 +50,7 @@ class InputManager(private val application: Application,
      *
      * @return [AbstractInput] or `null` if not found
      */
-    suspend fun readInput(id: Long? = null): AbstractInput? = withContext(IO) {
+    suspend fun readInput(id: Long? = null): T? = withContext(IO) {
         val inputPreferenceKey =
             buildInputPreferenceKey(id ?: preferenceManager.getLong(KEY_PREFERENCE_CURRENT_INPUT,
                                                                     0))
@@ -69,7 +69,7 @@ class InputManager(private val application: Application,
      *
      * @return [AbstractInput] or `null` if not found
      */
-    suspend fun readCurrentInput(): AbstractInput? {
+    suspend fun readCurrentInput(): T? {
         return readInput()
     }
 
@@ -78,7 +78,7 @@ class InputManager(private val application: Application,
      *
      * @return `true` if the given [AbstractInput] has been successfully saved, `false` otherwise
      */
-    suspend fun saveInput(input: AbstractInput): Boolean = withContext(IO) {
+    suspend fun saveInput(input: T): Boolean = withContext(IO) {
         val inputAsJson = inputJsonWriter.write(input)
 
         if (isEmpty(inputAsJson)) return@withContext false
