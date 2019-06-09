@@ -3,10 +3,10 @@ package fr.geonature.commons.input
 import android.app.Application
 import android.util.JsonReader
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import fr.geonature.commons.MockitoKotlinHelper.any
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -16,8 +16,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.doReturn
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 
@@ -34,25 +32,64 @@ class InputManagerTest {
     @Mock
     private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener
 
-    @Mock
     private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener
 
     @Before
     fun setUp() {
         initMocks(this)
 
-        doReturn(DummyInput()).`when`(onInputJsonReaderListener)
-            .createInput()
-        `when`(onInputJsonReaderListener.readAdditionalInputData(any(JsonReader::class.java),
-                                                                 any(String::class.java),
-                                                                 any(DummyInput::class.java))).then {
-            (it.getArgument(0) as JsonReader).skipValue()
+        onInputJsonReaderListener = object : InputJsonReader.OnInputJsonReaderListener {
+            override fun createInput(): AbstractInput {
+                return DummyInput()
+            }
+
+            override fun readAdditionalInputData(reader: JsonReader,
+                                                 keyName: String,
+                                                 input: AbstractInput) {
+            }
         }
 
         val application = getApplicationContext<Application>()
         inputManager = InputManager(application,
                                     onInputJsonReaderListener,
                                     onInputJsonWriterListener)
+    }
+
+    @Test
+    fun testReadUndefinedInputs() {
+        // when reading non existing inputs
+        val noSuchInputs = runBlocking { inputManager.readInputs() }
+
+        // then
+        assertTrue(noSuchInputs.isEmpty())
+    }
+
+    @Test
+    fun testSaveAndReadInputs() {
+        // given some inputs to save and read
+        val input1 = DummyInput().apply { id = 1234 }
+        val input2 = DummyInput().apply { id = 1235 }
+        val input3 = DummyInput().apply { id = 1236 }
+
+        val saved = runBlocking {
+            val s1 = inputManager.saveInput(input1)
+            val s2 = inputManager.saveInput(input2)
+            val s3 = inputManager.saveInput(input3)
+
+            s1 && s2 && s3
+        }
+
+        // then
+        assertTrue(saved)
+
+        // when reading these inputs from manager
+        val inputs = runBlocking { inputManager.readInputs() }
+
+        // then
+        assertArrayEquals(arrayOf(input1.id,
+                                  input2.id,
+                                  input3.id),
+                          inputs.map { it.id }.toTypedArray())
     }
 
     @Test

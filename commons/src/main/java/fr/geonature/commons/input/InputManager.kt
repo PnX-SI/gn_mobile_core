@@ -1,11 +1,11 @@
 package fr.geonature.commons.input
 
 import android.app.Application
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import fr.geonature.commons.util.FileUtils
-import fr.geonature.commons.util.StringUtils
+import fr.geonature.commons.util.StringUtils.isEmpty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.coroutineScope
@@ -33,6 +33,17 @@ class InputManager(private val application: Application,
     private val inputJsonWriter: InputJsonWriter = InputJsonWriter(inputJsonWriterListener)
 
     /**
+     * Reads all [AbstractInput]s.
+     *
+     * @return A list of [AbstractInput]s
+     */
+    suspend fun readInputs(): List<AbstractInput> = withContext(IO) {
+        preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }
+            .values.mapNotNull { if (it is String && !isEmpty(it)) inputJsonReader.read(it) else null }
+            .sortedBy { it.id }
+    }
+
+    /**
      * Reads [AbstractInput] from given ID.
      *
      * @param id The [AbstractInput] ID to read. If omitted, read the current saved [AbstractInput].
@@ -46,7 +57,7 @@ class InputManager(private val application: Application,
         val inputAsJson = preferenceManager.getString(inputPreferenceKey,
                                                       null)
 
-        if (StringUtils.isEmpty(inputAsJson)) {
+        if (isEmpty(inputAsJson)) {
             return@withContext null
         }
 
@@ -70,7 +81,7 @@ class InputManager(private val application: Application,
     suspend fun saveInput(input: AbstractInput): Boolean = withContext(IO) {
         val inputAsJson = inputJsonWriter.write(input)
 
-        if (StringUtils.isEmpty(inputAsJson)) return@withContext false
+        if (isEmpty(inputAsJson)) return@withContext false
 
         preferenceManager.edit()
             .putString(buildInputPreferenceKey(input.id),
@@ -111,7 +122,8 @@ class InputManager(private val application: Application,
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
     suspend fun exportInput(id: Long): Boolean = coroutineScope {
-        val inputToExport = withContext(Dispatchers.Default) { readInput(id) } ?: return@coroutineScope false
+        val inputToExport =
+            withContext(Dispatchers.Default) { readInput(id) } ?: return@coroutineScope false
 
         val exported = withContext(IO) {
             inputJsonWriter.write(getInputExportWriter(inputToExport),
