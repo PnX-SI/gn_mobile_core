@@ -49,6 +49,17 @@ class AppSettingsManagerTest {
     }
 
     @Test
+    fun testGetAppSettingsFilename() {
+        // when getting the app settings filename
+        val appSettingsFilename = appSettingsManager.getAppSettingsFilename()
+
+        // then
+        assertNotNull(appSettingsFilename)
+        assertEquals("settings_test.json",
+                     appSettingsFilename)
+    }
+
+    @Test
     fun testReadUndefinedAppSettings() {
         // when reading undefined AppSettings
         var noSuchAppSettings = runBlocking { appSettingsManager.loadAppSettings() }

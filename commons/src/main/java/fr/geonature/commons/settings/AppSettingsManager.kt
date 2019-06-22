@@ -36,6 +36,12 @@ class AppSettingsManager<T : IAppSettings>(private val application: Application,
         }
     }
 
+    fun getAppSettingsFilename(): String {
+        val packageName = application.packageName
+
+        return "settings_${packageName.substring(packageName.lastIndexOf('.') + 1)}.json"
+    }
+
     /**
      * Loads [IAppSettings] from `JSON` file.
      *
@@ -63,11 +69,9 @@ class AppSettingsManager<T : IAppSettings>(private val application: Application,
     }
 
     internal fun getAppSettingsAsFile(): File {
-        val packageName = application.packageName
-
         return getFile(getRootFolder(application,
                                      INTERNAL),
-                       "settings_${packageName.substring(packageName.lastIndexOf('.') + 1)}.json")
+                       getAppSettingsFilename())
     }
 
     companion object {
