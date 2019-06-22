@@ -52,10 +52,10 @@ class AppSettingsJsonReader<T : IAppSettings>(private val onAppSettingsJsonReade
             IllegalArgumentException::class)
     fun read(reader: Reader): T {
         val jsonReader = JsonReader(reader)
-        val pager = read(jsonReader)
+        val appSettings = read(jsonReader)
         jsonReader.close()
 
-        return pager
+        return appSettings
     }
 
     /**
