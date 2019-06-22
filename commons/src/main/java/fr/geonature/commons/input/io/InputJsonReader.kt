@@ -77,7 +77,6 @@ class InputJsonReader<T : AbstractInput>(private val onInputJsonReaderListener: 
         return input
     }
 
-
     /**
      * Callback used by [InputJsonReader].
      *
