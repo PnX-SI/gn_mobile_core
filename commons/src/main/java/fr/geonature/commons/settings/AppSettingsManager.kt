@@ -3,7 +3,7 @@ package fr.geonature.commons.settings
 import android.app.Application
 import android.util.Log
 import fr.geonature.commons.model.MountPoint.StorageType.INTERNAL
-import fr.geonature.commons.settings.io.AppSettingsReader
+import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import fr.geonature.commons.util.FileUtils.getFile
 import fr.geonature.commons.util.FileUtils.getRootFolder
 import kotlinx.coroutines.Dispatchers.IO
@@ -22,10 +22,10 @@ import java.io.IOException
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class AppSettingsManager<T : IAppSettings>(private val application: Application,
-                                           onAppSettingsReaderListener: AppSettingsReader.OnAppSettingsReaderListener<T>) {
+                                           onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<T>) {
 
-    private val appSettingsReader: AppSettingsReader<T> =
-        AppSettingsReader(onAppSettingsReaderListener)
+    private val appSettingsJsonReader: AppSettingsJsonReader<T> =
+        AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     init {
         GlobalScope.launch(Main) {
@@ -51,7 +51,7 @@ class AppSettingsManager<T : IAppSettings>(private val application: Application,
         }
         else {
             try {
-                appSettingsReader.read(FileReader(settingsJsonFile))
+                appSettingsJsonReader.read(FileReader(settingsJsonFile))
             }
             catch (e: IOException) {
                 Log.w(TAG,

@@ -14,7 +14,7 @@ import java.io.StringReader
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSettingsReader<T : IAppSettings>(private val onAppSettingsReaderListener: OnAppSettingsReaderListener<T>) {
+class AppSettingsJsonReader<T : IAppSettings>(private val onAppSettingsJsonReaderListener: OnAppSettingsJsonReaderListener<T>) {
 
     /**
      * parse a `JSON` string to convert as [IAppSettings].
@@ -70,15 +70,15 @@ class AppSettingsReader<T : IAppSettings>(private val onAppSettingsReaderListene
     @Throws(IOException::class,
             IllegalArgumentException::class)
     private fun read(reader: JsonReader): T {
-        val appSettings = onAppSettingsReaderListener.createAppSettings()
+        val appSettings = onAppSettingsJsonReaderListener.createAppSettings()
 
         reader.beginObject()
 
         while (reader.hasNext()) {
             when (val keyName = reader.nextName()) {
-                else -> onAppSettingsReaderListener.readAdditionalAppSettingsData(reader,
-                                                                                  keyName,
-                                                                                  appSettings)
+                else -> onAppSettingsJsonReaderListener.readAdditionalAppSettingsData(reader,
+                                                                                      keyName,
+                                                                                      appSettings)
             }
         }
 
@@ -88,11 +88,11 @@ class AppSettingsReader<T : IAppSettings>(private val onAppSettingsReaderListene
     }
 
     /**
-     * Callback used by [AppSettingsReader].
+     * Callback used by [AppSettingsJsonReader].
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    interface OnAppSettingsReaderListener<T : IAppSettings> {
+    interface OnAppSettingsJsonReaderListener<T : IAppSettings> {
 
         /**
          * Returns a new instance of [IAppSettings].
@@ -120,6 +120,6 @@ class AppSettingsReader<T : IAppSettings>(private val onAppSettingsReaderListene
 
     companion object {
 
-        private val TAG = AppSettingsReader::class.java.name
+        private val TAG = AppSettingsJsonReader::class.java.name
     }
 }

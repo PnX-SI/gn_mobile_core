@@ -20,32 +20,32 @@ import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Unit tests about [AppSettingsReader].
+ * Unit tests about [AppSettingsJsonReader].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @RunWith(RobolectricTestRunner::class)
-class AppSettingsReaderTest {
+class AppSettingsJsonReaderTest {
 
-    private lateinit var appSettingsReader: AppSettingsReader<DummyAppSettings>
+    private lateinit var appSettingsJsonReader: AppSettingsJsonReader<DummyAppSettings>
 
     @Mock
-    private lateinit var onAppSettingsReaderListener: AppSettingsReader.OnAppSettingsReaderListener<DummyAppSettings>
+    private lateinit var onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
 
     @Before
     fun setUp() {
         initMocks(this)
 
-        doReturn(DummyAppSettings()).`when`(onAppSettingsReaderListener)
+        doReturn(DummyAppSettings()).`when`(onAppSettingsJsonJsonReaderListener)
             .createAppSettings()
 
-        appSettingsReader = spy(AppSettingsReader(onAppSettingsReaderListener))
+        appSettingsJsonReader = spy(AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener))
     }
 
     @Test
     fun testReadAppSettingsFromInvalidJsonString() {
         // when read an invalid JSON as Input
-        val appSettings = appSettingsReader.read("")
+        val appSettings = appSettingsJsonReader.read("")
 
         // then
         assertNull(appSettings)
@@ -53,9 +53,9 @@ class AppSettingsReaderTest {
 
     @Test
     fun testReadAppSettingsFromJsonString() {
-        `when`(onAppSettingsReaderListener.readAdditionalAppSettingsData(MockitoKotlinHelper.any(JsonReader::class.java),
-                                                                         MockitoKotlinHelper.eq("attribute"),
-                                                                         MockitoKotlinHelper.any(DummyAppSettings::class.java))).then {
+        `when`(onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(MockitoKotlinHelper.any(JsonReader::class.java),
+                                                                                 MockitoKotlinHelper.eq("attribute"),
+                                                                                 MockitoKotlinHelper.any(DummyAppSettings::class.java))).then {
             assertEquals("value",
                          (it.getArgument(0) as JsonReader).nextString())
         }
@@ -64,10 +64,10 @@ class AppSettingsReaderTest {
         val json = getFixture("settings_dummy.json")
 
         // when read the JSON as AppSettings
-        val appSettings = appSettingsReader.read(json)
+        val appSettings = appSettingsJsonReader.read(json)
 
         // then
-        verify(onAppSettingsReaderListener,
+        verify(onAppSettingsJsonJsonReaderListener,
                atMost(1)).readAdditionalAppSettingsData(MockitoKotlinHelper.any(JsonReader::class.java),
                                                         MockitoKotlinHelper.eq("attribute"),
                                                         MockitoKotlinHelper.any(DummyAppSettings::class.java))
