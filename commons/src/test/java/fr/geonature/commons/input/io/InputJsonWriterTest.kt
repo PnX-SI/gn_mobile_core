@@ -24,10 +24,10 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class InputJsonWriterTest {
 
-    private lateinit var inputJsonWriter: InputJsonWriter
+    private lateinit var inputJsonWriter: InputJsonWriter<DummyInput>
 
     @Mock
-    private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener
+    private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>
 
     @Before
     fun setUp() {

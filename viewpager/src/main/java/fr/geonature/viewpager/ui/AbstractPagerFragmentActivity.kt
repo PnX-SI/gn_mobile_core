@@ -9,8 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
 import fr.geonature.viewpager.BuildConfig
 import fr.geonature.viewpager.R
-import fr.geonature.viewpager.helper.PagerHelper
-import fr.geonature.viewpager.model.Pager
+import fr.geonature.viewpager.pager.Pager
+import fr.geonature.viewpager.pager.PagerManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.ArrayList
 
 /**
@@ -22,7 +25,7 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
                                                View.OnClickListener,
                                                ViewPager.OnPageChangeListener {
 
-    lateinit var pagerHelper: PagerHelper
+    lateinit var pagerManager: PagerManager
     lateinit var adapter: SimpleFragmentPagerAdapter
     lateinit var viewPager: EnablePagingViewPager
     lateinit var previousButton: Button
@@ -36,7 +39,7 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         setContentView(R.layout.activity_pager)
 
-        pagerHelper = PagerHelper(this)
+        pagerManager = PagerManager(application)
 
         adapter = SimpleFragmentPagerAdapter(this,
                                              supportFragmentManager)
@@ -45,76 +48,78 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         previousButton = findViewById(R.id.previousButton)
         nextButton = findViewById(R.id.nextButton)
-
-        if (intent.hasExtra(EXTRA_PAGER_ID)) {
-            pager = pagerHelper.load(intent.getLongExtra(EXTRA_PAGER_ID,
-                                                         0L))
-
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG,
-                      "onCreate, pager loaded: $pager")
-            }
-        }
-
-        if (pager == null) {
-            pager = if (savedInstanceState == null) Pager(0)
-            else savedInstanceState.getParcelable(KEY_PAGER)
-        }
-
-        if (pager == null) {
-            pager = Pager(0)
-        }
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
 
-        val indicator = findViewById<UnderlinePageIndicator>(R.id.indicator)
-        indicator.setViewPager(viewPager)
-        viewPager.addOnPageChangeListener(this)
+        GlobalScope.launch(Dispatchers.Main) {
+            if (intent.hasExtra(EXTRA_PAGER_ID)) {
+                pager = pagerManager.load(intent.getLongExtra(EXTRA_PAGER_ID,
+                                                              0L))
 
-        val pager = pager ?: return
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG,
+                          "onCreate, pager loaded: $pager")
+                }
+            }
 
-        if (savedInstanceState == null && pager.size == 0) {
-            pager.size = pagerFragments.size
-            pager.position = viewPager.currentItem
+            if (pager == null) {
+                pager = if (savedInstanceState == null) Pager()
+                else savedInstanceState.getParcelable(KEY_PAGER)
+            }
+
+            if (pager == null) {
+                pager = Pager()
+            }
+
+            val pager = pager ?: return@launch
+
+            val indicator = findViewById<UnderlinePageIndicator>(R.id.indicator)
+            indicator.setViewPager(viewPager)
+            viewPager.addOnPageChangeListener(this@AbstractPagerFragmentActivity)
+
+            if (savedInstanceState == null && pager.size == 0) {
+                pager.size = pagerFragments.size
+                pager.position = viewPager.currentItem
+            }
+
+            for (i in 0 until pagerFragments.size) {
+                var fragment = getPageFragment(i)
+
+                if (fragment == null) {
+                    // no fragment found through getSupportFragmentManager() so try to find it through getPagerFragments()
+                    fragment = ArrayList(pagerFragments.values)[i]
+                }
+
+                if (fragment == null) {
+                    Log.w(TAG,
+                          "onPostCreate: no fragment found at position $i")
+                }
+                else {
+                    adapter.fragments[fragment.getResourceTitle()] = (fragment as Fragment?)!!
+                }
+            }
+
+            adapter.notifyDataSetChanged()
+            viewPager.post {
+                restorePager = true
+                viewPager.currentItem = pager.position
+
+                if (pager.position == 0) {
+                    onPageSelected(viewPager.currentItem)
+                }
+            }
+
+            title = adapter.getPageTitle(viewPager.currentItem)
+
+            previousButton.isEnabled = viewPager.currentItem > 0
+            previousButton.visibility = if (viewPager.currentItem > 0) View.VISIBLE else View.INVISIBLE
+            previousButton.setOnClickListener(this@AbstractPagerFragmentActivity)
+
+            nextButton.isEnabled = false
+            nextButton.setOnClickListener(this@AbstractPagerFragmentActivity)
         }
-
-        for (i in 0 until pagerFragments.size) {
-            var fragment = getPageFragment(i)
-
-            if (fragment == null) {
-                // no fragment found through getSupportFragmentManager() so try to find it through getPagerFragments()
-                fragment = ArrayList(pagerFragments.values)[i]
-            }
-
-            if (fragment == null) {
-                Log.w(TAG,
-                      "onPostCreate: no fragment found at position $i")
-            }
-            else {
-                adapter.fragments[fragment.getResourceTitle()] = (fragment as Fragment?)!!
-            }
-        }
-
-        adapter.notifyDataSetChanged()
-        viewPager.post {
-            restorePager = true
-            viewPager.currentItem = pager.position
-
-            if (pager.position == 0) {
-                onPageSelected(viewPager.currentItem)
-            }
-        }
-
-        title = adapter.getPageTitle(viewPager.currentItem)
-
-        previousButton.isEnabled = viewPager.currentItem > 0
-        previousButton.visibility = if (viewPager.currentItem > 0) View.VISIBLE else View.INVISIBLE
-        previousButton.setOnClickListener(this)
-
-        nextButton.isEnabled = false
-        nextButton.setOnClickListener(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -147,7 +152,9 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         val pager = pager ?: return
 
         if (pager.id != 0L) {
-            pagerHelper.save(pager)
+            GlobalScope.launch(Dispatchers.Main) {
+                pagerManager.save(pager)
+            }
         }
     }
 
@@ -224,7 +231,7 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         nextButton.setText(if (position < adapter.count - 1) R.string.button_pager_next else R.string.button_pager_finish)
         nextButton.isEnabled = fragmentAtPosition == null || fragmentAtPosition.validate()
 
-        pager!!.position = position
+        pager?.position = position
     }
 
     fun validateCurrentPage() {
@@ -358,7 +365,7 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         private val TAG = AbstractPagerFragmentActivity::class.java.name
 
-        const val EXTRA_PAGER_ID = "EXTRA_PAGER_ID"
-        protected const val KEY_PAGER = "KEY_PAGER"
+        const val EXTRA_PAGER_ID = "extra_pager_id"
+        protected const val KEY_PAGER = "key_pager"
     }
 }

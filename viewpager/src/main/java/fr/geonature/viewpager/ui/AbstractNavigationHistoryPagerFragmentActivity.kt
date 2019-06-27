@@ -174,7 +174,7 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
             previousButton.isEnabled = position > 0
             previousButton.visibility = if (position > 0) View.VISIBLE else View.INVISIBLE
 
-            nextButton.setText(if (position < adapter.count - 1) fr.geonature.viewpager.R.string.button_pager_next else fr.geonature.viewpager.R.string.button_pager_finish)
+            nextButton.setText(if (position < adapter.count - 1) R.string.button_pager_next else R.string.button_pager_finish)
             nextButton.isEnabled = fragment == null || fragment.validate()
             nextButton.visibility = View.VISIBLE
         }
@@ -237,6 +237,6 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
 
         private val TAG = AbstractNavigationHistoryPagerFragmentActivity::class.java.name
 
-        private const val KEY_HISTORY_PREVIOUS = "KEY_HISTORY_PREVIOUS"
+        private const val KEY_HISTORY_PREVIOUS = "key_history_previous"
     }
 }

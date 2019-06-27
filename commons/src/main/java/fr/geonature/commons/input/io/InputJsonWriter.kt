@@ -13,7 +13,7 @@ import java.io.Writer
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  * @see InputJsonReader
  */
-class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterListener) {
+class InputJsonWriter<T : AbstractInput>(private val onInputJsonWriterListener: OnInputJsonWriterListener<T>) {
 
     private var indent: String = ""
 
@@ -26,7 +26,7 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
      *
      * @return InputJsonWriter fluent interface
      */
-    fun setIndent(indent: String): InputJsonWriter {
+    fun setIndent(indent: String): InputJsonWriter<T> {
         this.indent = indent
 
         return this
@@ -39,7 +39,7 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
      * @return a `JSON` string representation of the given [AbstractInput] or `null` if something goes wrong
      * @see .write
      */
-    fun write(input: AbstractInput?): String? {
+    fun write(input: T?): String? {
         if (input == null) {
             return null
         }
@@ -69,7 +69,7 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
      */
     @Throws(IOException::class)
     fun write(out: Writer,
-              input: AbstractInput) {
+              input: T) {
         val writer = JsonWriter(out)
         writer.setIndent(this.indent)
         writeInput(writer,
@@ -80,7 +80,7 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
 
     @Throws(IOException::class)
     private fun writeInput(writer: JsonWriter,
-                           input: AbstractInput) {
+                           input: T) {
         writer.beginObject()
 
         writer.name("id")
@@ -99,7 +99,7 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    interface OnInputJsonWriterListener {
+    interface OnInputJsonWriterListener<T : AbstractInput> {
 
         /**
          * Adding some additional data to write from the current [AbstractInput].
@@ -110,7 +110,7 @@ class InputJsonWriter(private val onInputJsonWriterListener: OnInputJsonWriterLi
          */
         @Throws(IOException::class)
         fun writeAdditionalInputData(writer: JsonWriter,
-                                     input: AbstractInput)
+                                     input: T)
     }
 
     companion object {

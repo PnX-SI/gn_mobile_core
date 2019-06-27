@@ -1,4 +1,4 @@
-package fr.geonature.viewpager.model
+package fr.geonature.viewpager.pager
 
 import android.os.Parcel
 import android.os.Parcelable
@@ -23,7 +23,7 @@ class Pager : Parcelable {
     var position: Int = 0
     val history: Deque<Int> = ArrayDeque()
 
-    constructor(id: Long) {
+    constructor(id: Long = 0) {
         this.id = id
     }
 
@@ -96,17 +96,13 @@ class Pager : Parcelable {
         return "Pager(id=$id, size=$size, position=$position, history=$history)"
     }
 
-    companion object {
+    companion object CREATOR : Parcelable.Creator<Pager> {
+        override fun createFromParcel(source: Parcel): Pager {
+            return Pager(source)
+        }
 
-        @JvmField
-        val CREATOR: Parcelable.Creator<Pager> = object : Parcelable.Creator<Pager> {
-            override fun createFromParcel(source: Parcel): Pager {
-                return Pager(source)
-            }
-
-            override fun newArray(size: Int): Array<Pager?> {
-                return arrayOfNulls(size)
-            }
+        override fun newArray(size: Int): Array<Pager?> {
+            return arrayOfNulls(size)
         }
     }
 }

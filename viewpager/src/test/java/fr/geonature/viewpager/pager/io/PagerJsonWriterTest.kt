@@ -1,6 +1,6 @@
-package fr.geonature.viewpager.helper
+package fr.geonature.viewpager.pager.io
 
-import fr.geonature.viewpager.model.Pager
+import fr.geonature.viewpager.pager.Pager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -30,7 +30,8 @@ class PagerJsonWriterTest {
 
         // when write this pager as JSON string
         val writer = StringWriter()
-        pagerJsonWriter.write(writer, pager)
+        pagerJsonWriter.write(writer,
+                              pager)
 
         // then
         assertNotNull(writer.toString())
@@ -46,7 +47,8 @@ class PagerJsonWriterTest {
             .append('}')
             .toString()
 
-        assertEquals(expectedJsonString, writer.toString())
+        assertEquals(expectedJsonString,
+                     writer.toString())
     }
 
     @Test
@@ -62,7 +64,8 @@ class PagerJsonWriterTest {
 
         // when write this pager as JSON string
         val writer = StringWriter()
-        pagerJsonWriter.write(writer, pager)
+        pagerJsonWriter.write(writer,
+                              pager)
 
         // then
         assertNotNull(writer.toString())
@@ -78,6 +81,7 @@ class PagerJsonWriterTest {
             .append('}')
             .toString()
 
-        assertEquals(expectedJsonString, writer.toString())
+        assertEquals(expectedJsonString,
+                     writer.toString())
     }
 }

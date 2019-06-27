@@ -1,10 +1,10 @@
-package fr.geonature.viewpager.helper
+package fr.geonature.viewpager.pager.io
 
 import android.text.TextUtils.isEmpty
 import android.util.JsonReader
 import android.util.JsonToken
 import android.util.Log
-import fr.geonature.viewpager.model.Pager
+import fr.geonature.viewpager.pager.Pager
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -34,7 +34,8 @@ class PagerJsonReader {
             return read(StringReader(json))
         }
         catch (ioe: IOException) {
-            Log.w(TAG, ioe.message)
+            Log.w(TAG,
+                  ioe.message)
         }
 
         return null
@@ -65,16 +66,12 @@ class PagerJsonReader {
         reader.beginObject()
 
         while (reader.hasNext()) {
-            val keyName = reader.nextName()
-
-            when (keyName) {
+            when (reader.nextName()) {
                 "id" -> pager.id = reader.nextLong()
                 "size" -> pager.size = reader.nextInt()
                 "position" -> pager.position = reader.nextInt()
                 "history" -> {
-                    val jsonToken = reader.peek()
-
-                    when (jsonToken) {
+                    when (reader.peek()) {
                         JsonToken.NULL -> reader.nextNull()
                         JsonToken.BEGIN_ARRAY -> {
                             reader.beginArray()
@@ -85,8 +82,7 @@ class PagerJsonReader {
 
                             reader.endArray()
                         }
-                        else -> {
-                        }
+                        else -> reader.skipValue()
                     }
                 }
             }

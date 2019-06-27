@@ -12,7 +12,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.atMost
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.never
@@ -29,10 +29,10 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class InputJsonReaderTest {
 
-    private lateinit var inputJsonReader: InputJsonReader
+    private lateinit var inputJsonReader: InputJsonReader<DummyInput>
 
     @Mock
-    private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener
+    private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>
 
     @Before
     fun setUp() {
@@ -76,13 +76,12 @@ class InputJsonReaderTest {
 
     @Test
     fun testReadInput() {
-        Mockito.`when`(onInputJsonReaderListener.readAdditionalInputData(any(JsonReader::class.java),
-                                                                         eq("date"),
-                                                                         any(DummyInput::class.java)))
-            .then {
-                assertEquals("2016-10-28",
-                             (it.getArgument(0) as JsonReader).nextString())
-            }
+        `when`(onInputJsonReaderListener.readAdditionalInputData(any(JsonReader::class.java),
+                                                                 eq("date"),
+                                                                 any(DummyInput::class.java))).then {
+            assertEquals("2016-10-28",
+                         (it.getArgument(0) as JsonReader).nextString())
+        }
 
         // given an input file to read
         val json = getFixture("input_simple.json")

@@ -15,7 +15,7 @@ import java.io.StringReader
  *
  * @see InputJsonWriter
  */
-class InputJsonReader(private val onInputJsonReaderListener: OnInputJsonReaderListener) {
+class InputJsonReader<T : AbstractInput>(private val onInputJsonReaderListener: OnInputJsonReaderListener<T>) {
 
     /**
      * parse a `JSON` string to convert as [AbstractInput].
@@ -24,7 +24,7 @@ class InputJsonReader(private val onInputJsonReaderListener: OnInputJsonReaderLi
      * @return a [AbstractInput] instance from the `JSON` string or `null` if something goes wrong
      * @see .read
      */
-    fun read(json: String?): AbstractInput? {
+    fun read(json: String?): T? {
         if (StringUtils.isEmpty(json)) {
             return null
         }
@@ -48,7 +48,7 @@ class InputJsonReader(private val onInputJsonReaderListener: OnInputJsonReaderLi
      * @throws IOException if something goes wrong
      */
     @Throws(IOException::class)
-    fun read(reader: Reader): AbstractInput {
+    fun read(reader: Reader): T {
         val jsonReader = JsonReader(reader)
         val input = readInput(jsonReader)
         jsonReader.close()
@@ -57,7 +57,7 @@ class InputJsonReader(private val onInputJsonReaderListener: OnInputJsonReaderLi
     }
 
     @Throws(IOException::class)
-    private fun readInput(reader: JsonReader): AbstractInput {
+    private fun readInput(reader: JsonReader): T {
         val input = onInputJsonReaderListener.createInput()
 
         reader.beginObject()
@@ -77,20 +77,19 @@ class InputJsonReader(private val onInputJsonReaderListener: OnInputJsonReaderLi
         return input
     }
 
-
     /**
      * Callback used by [InputJsonReader].
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    interface OnInputJsonReaderListener {
+    interface OnInputJsonReaderListener<T : AbstractInput> {
 
         /**
          * Returns a new instance of [AbstractInput].
          *
          * @return new instance of [AbstractInput]
          */
-        fun createInput(): AbstractInput
+        fun createInput(): T
 
         /**
          * Reading some additional data to set to the given [AbstractInput].
@@ -103,7 +102,7 @@ class InputJsonReader(private val onInputJsonReaderListener: OnInputJsonReaderLi
         @Throws(IOException::class)
         fun readAdditionalInputData(reader: JsonReader,
                                     keyName: String,
-                                    input: AbstractInput)
+                                    input: T)
     }
 
     companion object {
