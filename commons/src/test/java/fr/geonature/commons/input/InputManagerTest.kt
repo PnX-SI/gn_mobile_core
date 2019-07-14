@@ -186,5 +186,8 @@ class InputManagerTest {
         // then
         assertTrue(saved)
         assertTrue(exported)
+
+        val noSuchInput = runBlocking { inputManager.readInput(input.id) }
+        assertNull(noSuchInput)
     }
 }

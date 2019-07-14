@@ -108,8 +108,7 @@ object FileUtils {
             getRootFolder(
                 context,
                 MountPoint.StorageType.INTERNAL),
-            "inputs",
-            context.packageName)
+            "inputs")
     }
 
     /**

@@ -6,14 +6,11 @@ import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import fr.geonature.commons.util.FileUtils
 import fr.geonature.commons.util.StringUtils.isEmpty
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
-import java.io.Writer
 
 /**
  * Manage [AbstractInput]:
@@ -51,9 +48,9 @@ class InputManager<T : AbstractInput>(private val application: Application,
      * @return [AbstractInput] or `null` if not found
      */
     suspend fun readInput(id: Long? = null): T? = withContext(IO) {
-        val inputPreferenceKey =
-            buildInputPreferenceKey(id ?: preferenceManager.getLong(KEY_PREFERENCE_CURRENT_INPUT,
-                                                                    0))
+        val inputPreferenceKey = buildInputPreferenceKey(id
+                                                             ?: preferenceManager.getLong(KEY_PREFERENCE_CURRENT_INPUT,
+                                                                                          0))
         val inputAsJson = preferenceManager.getString(inputPreferenceKey,
                                                       null)
 
@@ -121,19 +118,19 @@ class InputManager<T : AbstractInput>(private val application: Application,
      *
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
-    suspend fun exportInput(id: Long): Boolean = coroutineScope {
-        val inputToExport =
-            withContext(Dispatchers.Default) { readInput(id) } ?: return@coroutineScope false
+    suspend fun exportInput(id: Long): Boolean = withContext(IO) {
+        val inputToExport = readInput(id) ?: return@withContext false
 
-        val exported = withContext(IO) {
-            inputJsonWriter.write(getInputExportWriter(inputToExport),
-                                  inputToExport)
+        val inputExportFile = getInputExportFile(inputToExport)
+        inputJsonWriter.write(FileWriter(inputExportFile),
+                              inputToExport)
 
-            true
+        return@withContext if (inputExportFile.exists() && inputExportFile.length() > 0) {
+            deleteInput(id)
         }
-        val deleted = deleteInput(id)
-
-        return@coroutineScope deleted && exported
+        else {
+            false
+        }
     }
 
     private fun buildInputPreferenceKey(id: Long): String {
@@ -141,15 +138,12 @@ class InputManager<T : AbstractInput>(private val application: Application,
     }
 
     @Throws(IOException::class)
-    private fun getInputExportWriter(input: AbstractInput): Writer {
+    private fun getInputExportFile(input: AbstractInput): File {
         val inputDir = FileUtils.getInputsFolder(application)
-
         inputDir.mkdirs()
 
-        val inputFile = File(inputDir,
-                             "input_${input.module}_${input.id}.json")
-
-        return FileWriter(inputFile)
+        return File(inputDir,
+                    "input_${input.module}_${input.id}.json")
     }
 
     companion object {
