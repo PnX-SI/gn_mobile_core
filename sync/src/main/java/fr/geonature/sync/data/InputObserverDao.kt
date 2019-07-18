@@ -2,6 +2,8 @@ package fr.geonature.sync.data
 
 import android.database.Cursor
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.RawQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 import fr.geonature.commons.data.InputObserver
@@ -11,6 +13,9 @@ import fr.geonature.commons.data.InputObserver
  */
 @Dao
 interface InputObserverDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(vararg inputObservers: InputObserver)
 
     /**
      * Select observers from given query.

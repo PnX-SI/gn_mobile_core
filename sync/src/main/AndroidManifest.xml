@@ -5,6 +5,8 @@
     package="fr.geonature.sync"
     android:sharedUserId="@string/sharedUserId">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
