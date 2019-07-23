@@ -1,12 +1,14 @@
 package fr.geonature.sync.worker
 
 import android.content.Context
+import android.text.TextUtils
 import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.data.LocalDatabase
+import fr.geonature.sync.util.SettingsUtils
 
 /**
  * Local data synchronisation worker.
@@ -18,7 +20,13 @@ class SyncWorker(appContext: Context,
                                                           workerParams) {
 
     override fun doWork(): Result {
-        val geoNatureServiceClient = GeoNatureAPIClient.instance.value
+        val geoNatureServerUrl = SettingsUtils.getGeoNatureServerUrl(applicationContext)
+
+        if (TextUtils.isEmpty(geoNatureServerUrl)) {
+            return Result.failure()
+        }
+
+        val geoNatureServiceClient = GeoNatureAPIClient.instance(geoNatureServerUrl!!).value
         val response = geoNatureServiceClient.getUsers()
             .execute()
 

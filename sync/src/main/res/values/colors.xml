@@ -5,4 +5,7 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
 
+    <color name="bright_foreground_dark">@android:color/white</color>
+    <color name="bright_foreground_dark_disabled">#80ffffff</color>
+
 </resources>

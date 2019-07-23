@@ -12,7 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class GeoNatureAPIClient private constructor() {
+class GeoNatureAPIClient private constructor(baseUrl: String) {
     private val geoNatureService: GeoNatureService
 
     init {
@@ -27,7 +27,7 @@ class GeoNatureAPIClient private constructor() {
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://demo.geonature.fr/geonature/api/")
+            .baseUrl("$baseUrl/geonature/api/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -41,6 +41,6 @@ class GeoNatureAPIClient private constructor() {
 
     companion object {
 
-        val instance: Lazy<GeoNatureAPIClient> = lazy { GeoNatureAPIClient() }
+        fun instance(baseUrl: String): Lazy<GeoNatureAPIClient> = lazy { GeoNatureAPIClient(baseUrl.also { if (it.endsWith('/')) it.dropLast(1) }) }
     }
 }

@@ -9,7 +9,8 @@ import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.model.MountPoint
 import fr.geonature.sync.BuildConfig
-import fr.geonature.sync.util.FileUtils
+import fr.geonature.sync.util.FileUtils.getDatabaseFolder
+import fr.geonature.sync.util.FileUtils.getFile
 
 /**
  * The Room database.
@@ -58,10 +59,10 @@ abstract class LocalDatabase : RoomDatabase() {
         }
 
         private fun buildInstance(context: Context): LocalDatabase {
-            val localDatabase = FileUtils.getFile(FileUtils.getDatabaseFolder(context,
-                                                                              MountPoint.StorageType.INTERNAL),
+            val localDatabase = getFile(getDatabaseFolder(context,
+                                                          MountPoint.StorageType.INTERNAL),
                 // TODO: fetch database name from loaded settings
-                                                  "data.db")
+                                        "data.db")
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG,

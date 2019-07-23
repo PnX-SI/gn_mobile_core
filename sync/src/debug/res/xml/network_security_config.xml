@@ -2,7 +2,6 @@
 <!-- https://developer.android.com/training/articles/security-config -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">geonature.fr</domain>
     </domain-config>
 </network-security-config>

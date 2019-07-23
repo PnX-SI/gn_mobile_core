@@ -24,6 +24,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.settings.PreferencesActivity"
+            android:label="@string/activity_preferences_title">
+        </activity>
+        <activity
             android:name=".ui.observers.InputObserverListActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
