@@ -6,25 +6,25 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.RawQuery
 import androidx.sqlite.db.SupportSQLiteQuery
-import fr.geonature.commons.data.Taxon
+import fr.geonature.commons.data.TaxonArea
 
 /**
- * Data access object for [Taxon].
+ * Data access object for [TaxonArea].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @Dao
-interface TaxonDao {
+interface TaxonAreaDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(vararg taxa: Taxon)
+    fun insert(vararg taxa: TaxonArea)
 
     /**
-     * Select taxa from given query.
+     * Select taxa with area from given query.
      *
      * @param query the query
      *
-     * @return A [Cursor] of taxa
+     * @return A [Cursor] of taxa with areas
      */
     @RawQuery
     fun select(query: SupportSQLiteQuery): Cursor

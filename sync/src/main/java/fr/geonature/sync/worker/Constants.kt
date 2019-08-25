@@ -8,7 +8,7 @@ package fr.geonature.sync.worker
 object Constants {
 
     // The name of the synchronisation work
-    const val SYNC_WORK_NAME = "sync_work_name"
+    const val DATA_SYNC_WORK_NAME = "data_sync_work_name"
 
-    const val TAG_SYNC_OUTPUT = "tag_sync_output"
+    const val TAG_DATA_SYNC_OUTPUT = "tag_data_sync_output"
 }

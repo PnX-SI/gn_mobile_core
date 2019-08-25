@@ -5,12 +5,15 @@ import android.content.ContentValues
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
+import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQueryBuilder
+import fr.geonature.commons.data.AbstractTaxon
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Provider.AUTHORITY
 import fr.geonature.commons.data.Provider.checkReadPermission
 import fr.geonature.commons.data.Taxon
+import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.util.StringUtils
 
 /**
@@ -53,9 +56,7 @@ class MainContentProvider : ContentProvider() {
                 val appSyncDao = AppSyncDao(context)
                 val packageId = uri.lastPathSegment
 
-                if (StringUtils.isEmpty(packageId)) {
-                    throw IllegalArgumentException("Missing package ID for URI: $uri")
-                }
+                require(!StringUtils.isEmpty(packageId)) { "Missing package ID for URI: $uri" }
 
                 appSyncDao.findByPackageId(packageId!!)
             }
@@ -73,9 +74,8 @@ class MainContentProvider : ContentProvider() {
             }
 
             INPUT_OBSERVERS_IDS -> {
-                val selectedObserverIds =
-                    uri.lastPathSegment?.split(",")?.map { it.toLongOrNull() }?.filter { it != null }?.distinct()
-                        ?: listOf()
+                val selectedObserverIds = uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()
+                    ?: listOf()
 
                 val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
                     .columns(projection)
@@ -105,19 +105,69 @@ class MainContentProvider : ContentProvider() {
                     .columns(projection)
                     .selection(selection,
                                selectionArgs)
-                    .orderBy(sortOrder ?: "${Taxon.COLUMN_NAME} COLLATE NOCASE ASC")
+                    .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
 
                 LocalDatabase.getInstance(context)
                     .taxonDao()
                     .select(queryBuilder.create())
             }
 
+            TAXA_AREA -> {
+                val bindArgs = mutableListOf<Any>()
+
+                val defaultColumns = arrayOf(AbstractTaxon.COLUMN_ID,
+                                             AbstractTaxon.COLUMN_NAME,
+                                             AbstractTaxon.COLUMN_DESCRIPTION,
+                                             AbstractTaxon.COLUMN_HERITAGE,
+                                             TaxonArea.COLUMN_TAXON_ID,
+                                             TaxonArea.COLUMN_AREA_ID,
+                                             TaxonArea.COLUMN_COLOR,
+                                             TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
+                                             TaxonArea.COLUMN_LAST_UPDATED_AT)
+
+                val defaultProjection = projection
+                    ?: defaultColumns.asSequence().filter { column -> defaultColumns.any { it === column } }.map {
+                        when (it) {
+                            AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
+                            TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
+                            else -> it
+                        }
+                    }.joinToString(", ")
+
+                val filterOnArea = uri.lastPathSegment?.toLongOrNull()
+                val joinFilterOnAreaClause = if (filterOnArea == null) {
+                    ""
+                }
+                else {
+                    bindArgs.add(filterOnArea)
+                    "LEFT JOIN ${TaxonArea.TABLE_NAME} ta ON ta.${TaxonArea.COLUMN_TAXON_ID} = t.${AbstractTaxon.COLUMN_ID} AND ta.${TaxonArea.COLUMN_AREA_ID} = ?"
+                }
+
+                val whereClause = if (selection == null) "" else "WHERE $selection"
+                val orderBy = sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC"
+
+                val sql = """
+                    SELECT $defaultProjection
+                    FROM ${Taxon.TABLE_NAME} t
+                    $joinFilterOnAreaClause
+                    $whereClause
+                    ORDER BY $orderBy
+                    """
+
+                LocalDatabase.getInstance(context)
+                    .taxonAreaDao()
+                    .select(SimpleSQLiteQuery(sql,
+                                              bindArgs.also {
+                                                  it.addAll(selectionArgs?.asList() ?: emptyList())
+                                              }.toTypedArray()))
+            }
+
             TAXON_ID -> {
                 val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
                     .columns(projection)
-                    .selection("${Taxon.COLUMN_ID} = ?",
+                    .selection("${AbstractTaxon.COLUMN_ID} = ?",
                                arrayOf(uri.lastPathSegment?.toLongOrNull()))
-                    .orderBy(sortOrder ?: "${Taxon.COLUMN_NAME} COLLATE NOCASE ASC")
+                    .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
 
                 LocalDatabase.getInstance(context)
                     .taxonDao()
@@ -148,13 +198,14 @@ class MainContentProvider : ContentProvider() {
 
     companion object {
 
-        // used for the UriMacher
+        // used for the UriMatcher
         const val APP_SYNC_ID = 1
         const val INPUT_OBSERVERS = 10
         const val INPUT_OBSERVERS_IDS = 11
         const val INPUT_OBSERVER_ID = 12
         const val TAXA = 20
-        const val TAXON_ID = 21
+        const val TAXA_AREA = 21
+        const val TAXON_ID = 22
 
         /**
          * The URI matcher.
@@ -162,22 +213,25 @@ class MainContentProvider : ContentProvider() {
         @JvmStatic
         private val MATCHER = UriMatcher(UriMatcher.NO_MATCH).apply {
             addURI(AUTHORITY,
-                   AppSync.TABLE_NAME + "/*",
+                   "${AppSync.TABLE_NAME}/*",
                    APP_SYNC_ID)
             addURI(AUTHORITY,
                    InputObserver.TABLE_NAME,
                    INPUT_OBSERVERS)
             addURI(AUTHORITY,
-                   InputObserver.TABLE_NAME + "/*",
+                   "${InputObserver.TABLE_NAME}/*",
                    INPUT_OBSERVERS_IDS)
             addURI(AUTHORITY,
-                   InputObserver.TABLE_NAME + "/#",
+                   "${InputObserver.TABLE_NAME}/#",
                    INPUT_OBSERVER_ID)
             addURI(AUTHORITY,
                    Taxon.TABLE_NAME,
                    TAXA)
             addURI(AUTHORITY,
-                   Taxon.TABLE_NAME + "/#",
+                   "${Taxon.TABLE_NAME}/area/#",
+                   TAXA_AREA)
+            addURI(AUTHORITY,
+                   "${Taxon.TABLE_NAME}/#",
                    TAXON_ID)
         }
     }

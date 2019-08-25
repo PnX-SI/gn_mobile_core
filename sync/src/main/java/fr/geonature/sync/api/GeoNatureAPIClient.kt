@@ -1,5 +1,8 @@
 package fr.geonature.sync.api
 
+import com.google.gson.GsonBuilder
+import fr.geonature.sync.api.model.Taxref
+import fr.geonature.sync.api.model.TaxrefArea
 import fr.geonature.sync.api.model.User
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -27,9 +30,9 @@ class GeoNatureAPIClient private constructor(baseUrl: String) {
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("$baseUrl/geonature/api/")
+            .baseUrl("$baseUrl/")
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()))
             .build()
 
         geoNatureService = retrofit.create(GeoNatureService::class.java)
@@ -37,6 +40,14 @@ class GeoNatureAPIClient private constructor(baseUrl: String) {
 
     fun getUsers(): Call<List<User>> {
         return geoNatureService.getUsers()
+    }
+
+    fun getTaxref(): Call<List<Taxref>> {
+        return geoNatureService.getTaxref()
+    }
+
+    fun getTaxrefAreas(): Call<List<TaxrefArea>> {
+        return geoNatureService.getTaxrefAreas()
     }
 
     companion object {

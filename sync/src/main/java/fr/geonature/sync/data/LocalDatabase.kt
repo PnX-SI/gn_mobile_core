@@ -7,6 +7,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Taxon
+import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.model.MountPoint
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.util.FileUtils.getDatabaseFolder
@@ -17,8 +18,8 @@ import fr.geonature.sync.util.FileUtils.getFile
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Database(entities = [InputObserver::class, Taxon::class],
-          version = 3,
+@Database(entities = [InputObserver::class, Taxon::class, TaxonArea::class],
+          version = 4,
           exportSchema = false)
 abstract class LocalDatabase : RoomDatabase() {
 
@@ -28,9 +29,14 @@ abstract class LocalDatabase : RoomDatabase() {
     abstract fun inputObserverDao(): InputObserverDao
 
     /**
-     * @return The DAO for the 'taxon' table.
+     * @return The DAO for the 'taxa' table.
      */
     abstract fun taxonDao(): TaxonDao
+
+    /**
+     * @return The DAO for the 'taxa_area' table.
+     */
+    abstract fun taxonAreaDao(): TaxonAreaDao
 
     companion object {
 
@@ -61,7 +67,6 @@ abstract class LocalDatabase : RoomDatabase() {
         private fun buildInstance(context: Context): LocalDatabase {
             val localDatabase = getFile(getDatabaseFolder(context,
                                                           MountPoint.StorageType.INTERNAL),
-                // TODO: fetch database name from loaded settings
                                         "data.db")
 
             if (BuildConfig.DEBUG) {
@@ -72,6 +77,7 @@ abstract class LocalDatabase : RoomDatabase() {
             return Room.databaseBuilder(context.applicationContext,
                                         LocalDatabase::class.java,
                                         localDatabase.absolutePath)
+                .fallbackToDestructiveMigration()
                 .build()
         }
     }
