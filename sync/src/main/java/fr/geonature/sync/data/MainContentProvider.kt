@@ -2,6 +2,7 @@ package fr.geonature.sync.data
 
 import android.content.ContentProvider
 import android.content.ContentValues
+import android.content.Context
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
@@ -14,7 +15,7 @@ import fr.geonature.commons.data.Provider.AUTHORITY
 import fr.geonature.commons.data.Provider.checkReadPermission
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
-import fr.geonature.commons.util.StringUtils
+import fr.geonature.commons.data.TaxonWithArea
 
 /**
  * Default ContentProvider implementation.
@@ -30,11 +31,10 @@ class MainContentProvider : ContentProvider() {
     override fun getType(uri: Uri): String? {
         return when (MATCHER.match(uri)) {
             APP_SYNC_ID -> "vnd.android.cursor.item/" + AUTHORITY + "." + AppSync.TABLE_NAME
-            INPUT_OBSERVERS -> "vnd.android.cursor.dir/" + AUTHORITY + "." + InputObserver.TABLE_NAME
-            INPUT_OBSERVERS_IDS -> "vnd.android.cursor.dir/" + AUTHORITY + "." + InputObserver.TABLE_NAME
+            INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "vnd.android.cursor.dir/" + AUTHORITY + "." + InputObserver.TABLE_NAME
             INPUT_OBSERVER_ID -> "vnd.android.cursor.item/" + AUTHORITY + "." + InputObserver.TABLE_NAME
             TAXA -> "vnd.android.cursor.dir/" + AUTHORITY + "." + Taxon.TABLE_NAME
-            TAXON_ID -> "vnd.android.cursor.item/" + AUTHORITY + "." + Taxon.TABLE_NAME
+            TAXON_ID, TAXON_AREA_ID -> "vnd.android.cursor.item/" + AUTHORITY + "." + Taxon.TABLE_NAME
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -52,128 +52,37 @@ class MainContentProvider : ContentProvider() {
         }
 
         return when (MATCHER.match(uri)) {
-            APP_SYNC_ID -> {
-                val appSyncDao = AppSyncDao(context)
-                val packageId = uri.lastPathSegment
-
-                require(!StringUtils.isEmpty(packageId)) { "Missing package ID for URI: $uri" }
-
-                appSyncDao.findByPackageId(packageId!!)
-            }
-
-            INPUT_OBSERVERS -> {
-                val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
-                    .columns(projection)
-                    .selection(selection,
-                               selectionArgs)
-                    .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
-
-                LocalDatabase.getInstance(context)
-                    .inputObserverDao()
-                    .select(queryBuilder.create())
-            }
-
-            INPUT_OBSERVERS_IDS -> {
-                val selectedObserverIds = uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()
-                    ?: listOf()
-
-                val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
-                    .columns(projection)
-                    .selection("${InputObserver.COLUMN_ID} IN (${selectedObserverIds.joinToString(",")})",
-                               null)
-                    .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
-
-                LocalDatabase.getInstance(context)
-                    .inputObserverDao()
-                    .select(queryBuilder.create())
-            }
-
-            INPUT_OBSERVER_ID -> {
-                val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
-                    .columns(projection)
-                    .selection("${InputObserver.COLUMN_ID} = ?",
-                               arrayOf(uri.lastPathSegment?.toLongOrNull()))
-                    .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
-
-                LocalDatabase.getInstance(context)
-                    .inputObserverDao()
-                    .select(queryBuilder.create())
-            }
-
-            TAXA -> {
-                val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-                    .columns(projection)
-                    .selection(selection,
-                               selectionArgs)
-                    .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
-
-                LocalDatabase.getInstance(context)
-                    .taxonDao()
-                    .select(queryBuilder.create())
-            }
-
-            TAXA_AREA -> {
-                val bindArgs = mutableListOf<Any>()
-
-                val defaultColumns = arrayOf(AbstractTaxon.COLUMN_ID,
-                                             AbstractTaxon.COLUMN_NAME,
-                                             AbstractTaxon.COLUMN_DESCRIPTION,
-                                             AbstractTaxon.COLUMN_HERITAGE,
-                                             TaxonArea.COLUMN_TAXON_ID,
-                                             TaxonArea.COLUMN_AREA_ID,
-                                             TaxonArea.COLUMN_COLOR,
-                                             TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
-                                             TaxonArea.COLUMN_LAST_UPDATED_AT)
-
-                val defaultProjection = projection
-                    ?: defaultColumns.asSequence().filter { column -> defaultColumns.any { it === column } }.map {
-                        when (it) {
-                            AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
-                            TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
-                            else -> it
-                        }
-                    }.joinToString(", ")
-
-                val filterOnArea = uri.lastPathSegment?.toLongOrNull()
-                val joinFilterOnAreaClause = if (filterOnArea == null) {
-                    ""
-                }
-                else {
-                    bindArgs.add(filterOnArea)
-                    "LEFT JOIN ${TaxonArea.TABLE_NAME} ta ON ta.${TaxonArea.COLUMN_TAXON_ID} = t.${AbstractTaxon.COLUMN_ID} AND ta.${TaxonArea.COLUMN_AREA_ID} = ?"
-                }
-
-                val whereClause = if (selection == null) "" else "WHERE $selection"
-                val orderBy = sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC"
-
-                val sql = """
-                    SELECT $defaultProjection
-                    FROM ${Taxon.TABLE_NAME} t
-                    $joinFilterOnAreaClause
-                    $whereClause
-                    ORDER BY $orderBy
-                    """
-
-                LocalDatabase.getInstance(context)
-                    .taxonAreaDao()
-                    .select(SimpleSQLiteQuery(sql,
-                                              bindArgs.also {
-                                                  it.addAll(selectionArgs?.asList() ?: emptyList())
-                                              }.toTypedArray()))
-            }
-
-            TAXON_ID -> {
-                val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-                    .columns(projection)
-                    .selection("${AbstractTaxon.COLUMN_ID} = ?",
-                               arrayOf(uri.lastPathSegment?.toLongOrNull()))
-                    .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
-
-                LocalDatabase.getInstance(context)
-                    .taxonDao()
-                    .select(queryBuilder.create())
-            }
-
+            APP_SYNC_ID -> appSyncIdQuery(context,
+                                          uri)
+            INPUT_OBSERVERS -> inputObserversQuery(context,
+                                                   projection,
+                                                   selection,
+                                                   selectionArgs,
+                                                   sortOrder)
+            INPUT_OBSERVERS_IDS -> inputObserversIdsQuery(context,
+                                                          uri,
+                                                          projection,
+                                                          sortOrder)
+            INPUT_OBSERVER_ID -> inputObserverIdQuery(context,
+                                                      uri,
+                                                      projection)
+            TAXA -> taxaQuery(context,
+                              projection,
+                              selection,
+                              selectionArgs,
+                              sortOrder)
+            TAXA_AREA -> taxaAreaQuery(context,
+                                       uri,
+                                       projection,
+                                       selection,
+                                       selectionArgs,
+                                       sortOrder)
+            TAXON_ID -> taxonIdQuery(context,
+                                     uri,
+                                     projection)
+            TAXON_AREA_ID -> taxonAreaIdQuery(context,
+                                              uri,
+                                              projection)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -196,6 +105,186 @@ class MainContentProvider : ContentProvider() {
         throw NotImplementedError("'delete' operation not implemented")
     }
 
+    private fun appSyncIdQuery(context: Context,
+                               uri: Uri): Cursor {
+
+        val appSyncDao = AppSyncDao(context)
+        val packageId = uri.lastPathSegment
+
+        return appSyncDao.findByPackageId(packageId)
+    }
+
+    private fun inputObserversQuery(context: Context,
+                                    projection: Array<String>?,
+                                    selection: String?,
+                                    selectionArgs: Array<String>?,
+                                    sortOrder: String?): Cursor {
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
+            .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
+            .selection(selection,
+                       selectionArgs)
+            .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
+
+        return LocalDatabase.getInstance(context)
+            .inputObserverDao()
+            .select(queryBuilder.create())
+    }
+
+    private fun inputObserversIdsQuery(context: Context,
+                                       uri: Uri,
+                                       projection: Array<String>?,
+                                       sortOrder: String?): Cursor {
+
+        val selectedObserverIds = uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()
+            ?: listOf()
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
+            .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
+            .selection("${InputObserver.COLUMN_ID} IN (${selectedObserverIds.joinToString(",")})",
+                       null)
+            .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
+
+        return LocalDatabase.getInstance(context)
+            .inputObserverDao()
+            .select(queryBuilder.create())
+    }
+
+    private fun inputObserverIdQuery(context: Context,
+                                     uri: Uri,
+                                     projection: Array<String>?): Cursor {
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
+            .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
+            .selection("${InputObserver.COLUMN_ID} = ?",
+                       arrayOf(uri.lastPathSegment?.toLongOrNull()))
+
+        return LocalDatabase.getInstance(context)
+            .inputObserverDao()
+            .select(queryBuilder.create())
+    }
+
+    private fun taxaQuery(context: Context,
+                          projection: Array<String>?,
+                          selection: String?,
+                          selectionArgs: Array<String>?,
+                          sortOrder: String?): Cursor {
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
+            .columns(projection ?: AbstractTaxon.DEFAULT_PROJECTION)
+            .selection(selection,
+                       selectionArgs)
+            .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
+
+        return LocalDatabase.getInstance(context)
+            .taxonDao()
+            .select(queryBuilder.create())
+    }
+
+    private fun taxaAreaQuery(context: Context,
+                              uri: Uri,
+                              projection: Array<String>?,
+                              selection: String?,
+                              selectionArgs: Array<String>?,
+                              sortOrder: String?): Cursor {
+
+        val bindArgs = mutableListOf<Any?>()
+
+        val defaultProjection = projection
+            ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
+                when (it) {
+                    AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
+                    TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
+                    else -> it
+                }
+            }.joinToString(", ")
+
+        val filterOnArea = uri.lastPathSegment?.toLongOrNull()
+        val joinFilterOnAreaClause = if (filterOnArea == null) {
+            ""
+        }
+        else {
+            bindArgs.add(filterOnArea)
+            "LEFT JOIN ${TaxonArea.TABLE_NAME} ta ON ta.${TaxonArea.COLUMN_TAXON_ID} = t.${AbstractTaxon.COLUMN_ID} AND ta.${TaxonArea.COLUMN_AREA_ID} = ?"
+        }
+
+        val whereClause = if (selection == null) "" else "WHERE $selection"
+        val orderBy = sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC"
+
+        val sql = """
+            SELECT $defaultProjection
+            FROM ${Taxon.TABLE_NAME} t
+            $joinFilterOnAreaClause
+            $whereClause
+            ORDER BY $orderBy
+            """
+
+        return LocalDatabase.getInstance(context)
+            .taxonAreaDao()
+            .select(SimpleSQLiteQuery(sql,
+                                      bindArgs.also {
+                                          it.addAll(selectionArgs?.asList() ?: emptyList())
+                                      }.toTypedArray()))
+    }
+
+    private fun taxonIdQuery(context: Context,
+                             uri: Uri,
+                             projection: Array<String>?): Cursor {
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
+            .columns(projection ?: AbstractTaxon.DEFAULT_PROJECTION)
+            .selection("${AbstractTaxon.COLUMN_ID} = ?",
+                       arrayOf(uri.lastPathSegment?.toLongOrNull()))
+
+        return LocalDatabase.getInstance(context)
+            .taxonDao()
+            .select(queryBuilder.create())
+    }
+
+    private fun taxonAreaIdQuery(context: Context,
+                                 uri: Uri,
+                                 projection: Array<String>?): Cursor {
+        val bindArgs = mutableListOf<Any?>()
+
+        val defaultProjection = projection
+            ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
+                when (it) {
+                    AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
+                    TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
+                    else -> it
+                }
+            }.joinToString(", ")
+
+        val filterOnArea = uri.lastPathSegment?.toLongOrNull()
+        val joinFilterOnAreaClause = if (filterOnArea == null) {
+            ""
+        }
+        else {
+            bindArgs.add(filterOnArea)
+            "LEFT JOIN ${TaxonArea.TABLE_NAME} ta ON ta.${TaxonArea.COLUMN_TAXON_ID} = t.${AbstractTaxon.COLUMN_ID} AND ta.${TaxonArea.COLUMN_AREA_ID} = ?"
+        }
+
+        val taxonId = uri.pathSegments.asSequence()
+            .map { it.toLongOrNull() }
+            .filterNotNull()
+            .firstOrNull()
+        bindArgs.add(taxonId)
+
+        val whereClause = "WHERE ${AbstractTaxon.COLUMN_ID} = ?"
+
+        val sql = """
+            SELECT $defaultProjection
+            FROM ${Taxon.TABLE_NAME} t
+            $joinFilterOnAreaClause
+            $whereClause
+            """
+
+        return LocalDatabase.getInstance(context)
+            .taxonAreaDao()
+            .select(SimpleSQLiteQuery(sql,
+                                      bindArgs.toTypedArray()))
+    }
+
     companion object {
 
         // used for the UriMatcher
@@ -206,6 +295,7 @@ class MainContentProvider : ContentProvider() {
         const val TAXA = 20
         const val TAXA_AREA = 21
         const val TAXON_ID = 22
+        const val TAXON_AREA_ID = 23
 
         /**
          * The URI matcher.
@@ -233,6 +323,9 @@ class MainContentProvider : ContentProvider() {
             addURI(AUTHORITY,
                    "${Taxon.TABLE_NAME}/#",
                    TAXON_ID)
+            addURI(AUTHORITY,
+                   "${Taxon.TABLE_NAME}/#/area/#",
+                   TAXON_AREA_ID)
         }
     }
 }

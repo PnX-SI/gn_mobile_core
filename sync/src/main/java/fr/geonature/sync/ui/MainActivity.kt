@@ -7,22 +7,21 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.Pair
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import fr.geonature.sync.R
 import fr.geonature.sync.ui.home.HomeFragment
 import fr.geonature.sync.ui.settings.PreferencesActivity
-import fr.geonature.sync.viewmodel.SyncViewModel
+import fr.geonature.sync.viewmodel.DataSyncViewModel
 
 class MainActivity : AppCompatActivity(),
                      HomeFragment.OnHomeFragmentListener {
 
-    private lateinit var syncViewModel: SyncViewModel
+    private lateinit var dataSyncViewModel: DataSyncViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        syncViewModel = ViewModelProviders.of(this)
-            .get(SyncViewModel::class.java)
+        dataSyncViewModel = ViewModelProvider(this).get(DataSyncViewModel::class.java)
 
         // Display the fragment as the main content.
         supportFragmentManager.beginTransaction()
@@ -63,7 +62,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun startSync() {
-        syncViewModel.startSync()
+        dataSyncViewModel.startSync()
     }
 
     companion object {

@@ -60,9 +60,7 @@ class InputObserverListFragment : Fragment() {
 
                     return CursorLoader(requireContext(),
                                         buildUri(InputObserver.TABLE_NAME),
-                                        arrayOf(InputObserver.COLUMN_ID,
-                                                InputObserver.COLUMN_LASTNAME,
-                                                InputObserver.COLUMN_FIRSTNAME),
+                                        null,
                                         selections.first,
                                         selections.second,
                                         null)
@@ -144,21 +142,20 @@ class InputObserverListFragment : Fragment() {
         // we have a menu item to show in action bar
         setHasOptionsMenu(true)
 
-        adapter =
-            InputObserverRecyclerViewAdapter(object : InputObserverRecyclerViewAdapter.OnInputObserverRecyclerViewAdapterListener {
-                override fun onSelectedInputObservers(inputObservers: List<InputObserver>) {
-                    if (adapter.isSingleChoice()) {
-                        listener?.onSelectedInputObservers(inputObservers)
-                        return
-                    }
-
-                    updateActionMode(inputObservers)
+        adapter = InputObserverRecyclerViewAdapter(object : InputObserverRecyclerViewAdapter.OnInputObserverRecyclerViewAdapterListener {
+            override fun onSelectedInputObservers(inputObservers: List<InputObserver>) {
+                if (adapter.isSingleChoice()) {
+                    listener?.onSelectedInputObservers(inputObservers)
+                    return
                 }
 
-                override fun scrollToFirstSelectedItemPosition(position: Int) {
-                    recyclerView.smoothScrollToPosition(position)
-                }
-            })
+                updateActionMode(inputObservers)
+            }
+
+            override fun scrollToFirstSelectedItemPosition(position: Int) {
+                recyclerView.smoothScrollToPosition(position)
+            }
+        })
         adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 super.onChanged()
@@ -291,15 +288,13 @@ class InputObserverListFragment : Fragment() {
         }
 
         if (actionMode == null) {
-            actionMode =
-                (activity as AppCompatActivity?)?.startSupportActionMode(actionModeCallback)
+            actionMode = (activity as AppCompatActivity?)?.startSupportActionMode(actionModeCallback)
             actionMode?.setTitle(R.string.activity_observers_title)
         }
 
-        actionMode?.subtitle =
-            resources.getQuantityString(R.plurals.action_title_item_count_selected,
-                                        inputObservers.size,
-                                        inputObservers.size)
+        actionMode?.subtitle = resources.getQuantityString(R.plurals.action_title_item_count_selected,
+                                                           inputObservers.size,
+                                                           inputObservers.size)
     }
 
     /**
