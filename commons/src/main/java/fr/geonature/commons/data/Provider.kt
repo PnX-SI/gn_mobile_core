@@ -2,6 +2,7 @@ package fr.geonature.commons.data
 
 import android.content.Context
 import android.net.Uri
+import android.net.Uri.withAppendedPath
 import fr.geonature.commons.R
 
 /**
@@ -30,7 +31,7 @@ object Provider {
         val baseUri = Uri.parse("content://$AUTHORITY/$resource")
 
         return if (path.isEmpty()) baseUri
-        else Uri.withAppendedPath(baseUri,
-                                  path.joinToString("/"))
+        else withAppendedPath(baseUri,
+                              path.asSequence().filter { it.isNotBlank() }.joinToString("/"))
     }
 }
