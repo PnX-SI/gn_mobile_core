@@ -19,18 +19,22 @@ data class InputObserver(
     /**
      * The unique ID of the input observer.
      */
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(index = true,
-                                                 name = COLUMN_ID) var id: Long,
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(index = true,
+                name = COLUMN_ID)
+    var id: Long,
 
     /**
      * The last name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_LASTNAME) var lastname: String?,
+    @ColumnInfo(name = COLUMN_LASTNAME)
+    var lastname: String?,
 
     /**
      * The first name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?) : Parcelable {
+    @ColumnInfo(name = COLUMN_FIRSTNAME)
+    var firstname: String?) : Parcelable {
 
     private constructor(builder: Builder) : this(builder.id!!,
                                                  builder.lastname,
@@ -59,7 +63,7 @@ data class InputObserver(
         fun firstname(firstname: String?) = apply { this.firstname = firstname }
 
         @Throws(java.lang.IllegalArgumentException::class)
-        fun build() : InputObserver {
+        fun build(): InputObserver {
             if (id == null) throw IllegalArgumentException("InputObserver with null ID is not allowed")
 
             return InputObserver(this)
@@ -88,6 +92,10 @@ data class InputObserver(
          */
         const val COLUMN_FIRSTNAME = "firstname"
 
+        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
+                                         COLUMN_LASTNAME,
+                                         COLUMN_FIRSTNAME)
+
         /**
          * Create a new [InputObserver] from the specified [Cursor].
          *
@@ -106,16 +114,15 @@ data class InputObserver(
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<InputObserver> =
-            object : Parcelable.Creator<InputObserver> {
+        val CREATOR: Parcelable.Creator<InputObserver> = object : Parcelable.Creator<InputObserver> {
 
-                override fun createFromParcel(source: Parcel): InputObserver {
-                    return InputObserver(source)
-                }
-
-                override fun newArray(size: Int): Array<InputObserver?> {
-                    return arrayOfNulls(size)
-                }
+            override fun createFromParcel(source: Parcel): InputObserver {
+                return InputObserver(source)
             }
+
+            override fun newArray(size: Int): Array<InputObserver?> {
+                return arrayOfNulls(size)
+            }
+        }
     }
 }

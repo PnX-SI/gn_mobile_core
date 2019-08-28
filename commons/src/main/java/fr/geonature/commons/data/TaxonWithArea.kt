@@ -61,6 +61,9 @@ class TaxonWithArea : AbstractTaxon {
 
     companion object {
 
+        val DEFAULT_PROJECTION = arrayOf(*AbstractTaxon.DEFAULT_PROJECTION,
+                                         *TaxonArea.DEFAULT_PROJECTION)
+
         /**
          * Create a new [TaxonWithArea] from the specified [Cursor].
          *

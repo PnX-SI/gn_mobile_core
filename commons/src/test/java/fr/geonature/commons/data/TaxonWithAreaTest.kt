@@ -2,6 +2,7 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -126,5 +127,19 @@ class TaxonWithAreaTest {
         // then
         assertEquals(taxonWithArea,
                      TaxonWithArea.CREATOR.createFromParcel(parcel))
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        assertArrayEquals(arrayOf(AbstractTaxon.COLUMN_ID,
+                                  AbstractTaxon.COLUMN_NAME,
+                                  AbstractTaxon.COLUMN_DESCRIPTION,
+                                  AbstractTaxon.COLUMN_HERITAGE,
+                                  TaxonArea.COLUMN_TAXON_ID,
+                                  TaxonArea.COLUMN_AREA_ID,
+                                  TaxonArea.COLUMN_COLOR,
+                                  TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
+                                  TaxonArea.COLUMN_LAST_UPDATED_AT),
+                          TaxonWithArea.DEFAULT_PROJECTION)
     }
 }

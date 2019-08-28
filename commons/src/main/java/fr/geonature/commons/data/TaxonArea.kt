@@ -7,6 +7,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.TypeConverters
+import fr.geonature.commons.data.Converters.fromTimestamp
 import java.util.Date
 
 /**
@@ -73,6 +74,12 @@ data class TaxonArea(
         const val COLUMN_NUMBER_OF_OBSERVERS = "nb_observers"
         const val COLUMN_LAST_UPDATED_AT = "last_updated_at"
 
+        val DEFAULT_PROJECTION = arrayOf(COLUMN_TAXON_ID,
+                                         COLUMN_AREA_ID,
+                                         COLUMN_COLOR,
+                                         COLUMN_NUMBER_OF_OBSERVERS,
+                                         COLUMN_LAST_UPDATED_AT)
+
         /**
          * Create a new [TaxonArea] from the specified [Cursor].
          *
@@ -89,7 +96,7 @@ data class TaxonArea(
                              cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_AREA_ID)),
                              cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COLOR)),
                              cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NUMBER_OF_OBSERVERS)),
-                             Converters.fromTimestamp(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_LAST_UPDATED_AT))))
+                             fromTimestamp(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_LAST_UPDATED_AT))))
         }
 
         @JvmField

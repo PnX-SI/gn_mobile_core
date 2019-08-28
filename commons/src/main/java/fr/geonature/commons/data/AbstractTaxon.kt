@@ -96,5 +96,10 @@ abstract class AbstractTaxon : Parcelable {
         const val COLUMN_NAME = "name"
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_HERITAGE = "heritage"
+
+        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
+                                         COLUMN_NAME,
+                                         COLUMN_DESCRIPTION,
+                                         COLUMN_HERITAGE)
     }
 }
