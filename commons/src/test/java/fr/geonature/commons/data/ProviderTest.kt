@@ -26,5 +26,10 @@ class ProviderTest {
         assertEquals("content://${Provider.AUTHORITY}/taxa/area/123",
                      buildUri("taxa",
                               "area/${123}").toString())
+
+        assertEquals("content://${Provider.AUTHORITY}/taxa/area/123",
+                     buildUri("taxa",
+                              "area",
+                              123.toString()).toString())
     }
 }

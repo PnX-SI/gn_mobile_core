@@ -24,15 +24,13 @@ object Provider {
     /**
      * Build resource [Uri].
      */
-    fun buildUri(
-        resource: String,
-        path: String = ""): Uri {
+    fun buildUri(resource: String,
+                 vararg path: String): Uri {
 
         val baseUri = Uri.parse("content://$AUTHORITY/$resource")
 
         return if (path.isEmpty()) baseUri
-        else Uri.withAppendedPath(
-            baseUri,
-            path)
+        else Uri.withAppendedPath(baseUri,
+                                  path.joinToString("/"))
     }
 }
