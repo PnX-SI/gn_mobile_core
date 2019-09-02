@@ -1,7 +1,9 @@
 package fr.geonature.commons.input
 
+import android.app.Application
+import android.util.JsonReader
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import fr.geonature.commons.MainApplication
+import androidx.test.core.app.ApplicationProvider
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import fr.geonature.commons.observeOnce
@@ -14,7 +16,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.spy
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
@@ -31,36 +32,38 @@ class InputViewModelTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Mock
-    private lateinit var inputManager: InputManager<DummyInput>
-
-    @Mock
     private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>
 
     @Mock
     private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>
 
-    @Mock
-    private lateinit var application: MainApplication
-
     private lateinit var inputViewModel: DummyInputViewModel
-
 
     @Before
     fun setUp() {
         initMocks(this)
 
-        inputViewModel = spy(DummyInputViewModel(application,
+        onInputJsonReaderListener = object : InputJsonReader.OnInputJsonReaderListener<DummyInput> {
+            override fun createInput(): DummyInput {
+                return DummyInput()
+            }
+
+            override fun readAdditionalInputData(reader: JsonReader,
+                                                 keyName: String,
+                                                 input: DummyInput) {
+            }
+        }
+
+        inputViewModel = spy(DummyInputViewModel(ApplicationProvider.getApplicationContext(),
                                                  onInputJsonReaderListener,
                                                  onInputJsonWriterListener))
-        doReturn(inputManager).`when`(inputViewModel)
-            .inputManager
     }
 
     @Test
     fun testCreateFromFactory() {
         // given Factory
         val factory = InputViewModel.Factory {
-            DummyInputViewModel(application,
+            DummyInputViewModel(ApplicationProvider.getApplicationContext(),
                                 onInputJsonReaderListener,
                                 onInputJsonWriterListener)
         }
@@ -75,9 +78,6 @@ class InputViewModelTest {
     @Test
     fun testReadUndefinedInputs() {
         runBlocking {
-            doReturn(emptyList<DummyInput>()).`when`(inputManager)
-                .readInputs()
-
             inputViewModel.readInputs()
                 .observeOnce {
                     assertNotNull(it)
@@ -93,8 +93,7 @@ class InputViewModelTest {
             val existingInputs = listOf(DummyInput().apply { id = 1234 },
                                         DummyInput().apply { id = 1235 },
                                         DummyInput().apply { id = 1236 })
-            doReturn(existingInputs).`when`(inputManager)
-                .readInputs()
+            existingInputs.forEach { inputViewModel.inputManager.saveInput(it) }
 
             // then
             inputViewModel.readInputs()
@@ -106,7 +105,53 @@ class InputViewModelTest {
         }
     }
 
-    class DummyInputViewModel(application: MainApplication,
+    @Test
+    fun testDeleteInput() {
+        runBlocking {
+            // given existing inputs
+            val existingInputs = listOf(DummyInput().apply { id = 1234 },
+                                        DummyInput().apply { id = 1235 },
+                                        DummyInput().apply { id = 1236 })
+            existingInputs.forEach { inputViewModel.inputManager.saveInput(it) }
+
+            // when deleting input
+            inputViewModel.deleteInput(existingInputs[1])
+
+            // then
+            inputViewModel.readInputs()
+                .observeOnce { inputs ->
+                    assertNotNull(inputs)
+                    assertArrayEquals(existingInputs.filter { it.id != 1235L }.map { it.id }.toTypedArray(),
+                                      requireNotNull(inputs).map { it.id }.toTypedArray())
+                }
+        }
+    }
+
+    @Test
+    fun testDeleteAndRestoreInput() {
+        runBlocking {
+            // given existing inputs
+            val existingInputs = listOf(DummyInput().apply { id = 1234 },
+                                        DummyInput().apply { id = 1235 },
+                                        DummyInput().apply { id = 1236 })
+            existingInputs.forEach { inputViewModel.inputManager.saveInput(it) }
+
+            // when deleting input
+            inputViewModel.deleteInput(existingInputs[1])
+            // and restoring previously deleted input
+            inputViewModel.restoreDeletedInput()
+
+            // then
+            inputViewModel.readInputs()
+                .observeOnce { inputs ->
+                    assertNotNull(inputs)
+                    assertArrayEquals(existingInputs.map { it.id }.toTypedArray(),
+                                      requireNotNull(inputs).map { it.id }.toTypedArray())
+                }
+        }
+    }
+
+    class DummyInputViewModel(application: Application,
                               inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>,
                               inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>) : InputViewModel<DummyInput>(application,
                                                                                                                                            inputJsonReaderListener,
