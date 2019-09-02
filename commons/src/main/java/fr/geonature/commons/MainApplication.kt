@@ -12,7 +12,7 @@ class MainApplication : Application() {
     private var appSettings: IAppSettings? = null
 
     fun <T : IAppSettings> getAppSettings(): T? {
-        return appSettings as T?
+        @Suppress("UNCHECKED_CAST") return appSettings as T?
     }
 
     fun <T : IAppSettings> setAppSettings(appSettings: T) {

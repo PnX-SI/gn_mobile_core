@@ -6,19 +6,19 @@ import fr.geonature.commons.observeOnce
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.spy
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Unit tests about [AbstractAppSettingsViewModel].
+ * Unit tests about [AppSettingsViewModel].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
@@ -31,7 +31,10 @@ class AppSettingsViewModelTest {
     @Mock
     private lateinit var appSettingsManager: AppSettingsManager<DummyAppSettings>
 
-    private lateinit var appSettingsViewModel: AppSettingsViewModel
+    @Mock
+    private lateinit var onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
+
+    private lateinit var appSettingsViewModel: DummyAppSettingsViewModel
     private lateinit var application: MainApplication
 
     @Before
@@ -42,9 +45,22 @@ class AppSettingsViewModelTest {
         doReturn("fr.geonature.commons").`when`(application)
             .packageName
 
-        appSettingsViewModel = spy(AppSettingsViewModel(application))
+        appSettingsViewModel = spy(DummyAppSettingsViewModel(application,
+                                                             onAppSettingsJsonJsonReaderListener))
         doReturn(appSettingsManager).`when`(appSettingsViewModel)
             .appSettingsManager
+    }
+
+    @Test
+    fun testCreateFromFactory() {
+        // given Factory
+        val factory = AppSettingsViewModel.Factory { DummyAppSettingsViewModel(application, onAppSettingsJsonJsonReaderListener)}
+
+        // when create AppSettingsViewModel instance from this factory
+        val appSettingsViewModelFromFactory = factory.create(DummyAppSettingsViewModel::class.java)
+
+        // then
+        assertNotNull(appSettingsViewModelFromFactory)
     }
 
     @Test
@@ -81,10 +97,7 @@ class AppSettingsViewModelTest {
         }
     }
 
-    class AppSettingsViewModel(application: MainApplication) : AbstractAppSettingsViewModel<DummyAppSettings>(application) {
-
-        override fun getOnAppSettingsJsonReaderListener(): AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings> {
-            return Mockito.mock(AppSettingsJsonReader.OnAppSettingsJsonReaderListener::class.java) as AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
-        }
-    }
+    class DummyAppSettingsViewModel(application: MainApplication,
+                                    onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>) : AppSettingsViewModel<DummyAppSettings>(application,
+                                                                                                                                                                                           onAppSettingsJsonJsonReaderListener)
 }
