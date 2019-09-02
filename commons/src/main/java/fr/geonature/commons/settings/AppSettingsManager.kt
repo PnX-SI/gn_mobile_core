@@ -21,11 +21,10 @@ import java.io.IOException
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSettingsManager<T : IAppSettings>(private val application: Application,
+class AppSettingsManager<T : IAppSettings>(internal val application: Application,
                                            onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<T>) {
 
-    private val appSettingsJsonReader: AppSettingsJsonReader<T> =
-        AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
+    private val appSettingsJsonReader: AppSettingsJsonReader<T> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     init {
         GlobalScope.launch(Main) {
@@ -50,6 +49,9 @@ class AppSettingsManager<T : IAppSettings>(private val application: Application,
     suspend fun loadAppSettings(): T? = withContext(IO) {
         val settingsJsonFile = getAppSettingsAsFile()
 
+        Log.i(TAG,
+              "Loading settings from '${settingsJsonFile.absolutePath}'...")
+
         if (!settingsJsonFile.exists()) {
             Log.w(TAG,
                   "'${settingsJsonFile.absolutePath}' not found")
@@ -57,7 +59,12 @@ class AppSettingsManager<T : IAppSettings>(private val application: Application,
         }
         else {
             try {
-                appSettingsJsonReader.read(FileReader(settingsJsonFile))
+                val appSettings = appSettingsJsonReader.read(FileReader(settingsJsonFile))
+
+                Log.i(TAG,
+                      "Settings loaded")
+
+                appSettings
             }
             catch (e: IOException) {
                 Log.w(TAG,
