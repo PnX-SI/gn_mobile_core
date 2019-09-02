@@ -21,10 +21,10 @@ import java.io.IOException
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSettingsManager<T : IAppSettings>(internal val application: Application,
-                                           onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<T>) {
+class AppSettingsManager<AS : IAppSettings>(internal val application: Application,
+                                            onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>) {
 
-    private val appSettingsJsonReader: AppSettingsJsonReader<T> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
+    private val appSettingsJsonReader: AppSettingsJsonReader<AS> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     init {
         GlobalScope.launch(Main) {
@@ -46,7 +46,7 @@ class AppSettingsManager<T : IAppSettings>(internal val application: Application
      *
      * @return [IAppSettings] or `null` if not found
      */
-    suspend fun loadAppSettings(): T? = withContext(IO) {
+    suspend fun loadAppSettings(): AS? = withContext(IO) {
         val settingsJsonFile = getAppSettingsAsFile()
 
         Log.i(TAG,

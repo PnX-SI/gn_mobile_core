@@ -15,7 +15,7 @@ import java.io.StringReader
  *
  * @see InputJsonWriter
  */
-class InputJsonReader<T : AbstractInput>(private val onInputJsonReaderListener: OnInputJsonReaderListener<T>) {
+class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: OnInputJsonReaderListener<I>) {
 
     /**
      * parse a `JSON` string to convert as [AbstractInput].
@@ -24,7 +24,7 @@ class InputJsonReader<T : AbstractInput>(private val onInputJsonReaderListener: 
      * @return a [AbstractInput] instance from the `JSON` string or `null` if something goes wrong
      * @see .read
      */
-    fun read(json: String?): T? {
+    fun read(json: String?): I? {
         if (StringUtils.isEmpty(json)) {
             return null
         }
@@ -48,7 +48,7 @@ class InputJsonReader<T : AbstractInput>(private val onInputJsonReaderListener: 
      * @throws IOException if something goes wrong
      */
     @Throws(IOException::class)
-    fun read(reader: Reader): T {
+    fun read(reader: Reader): I {
         val jsonReader = JsonReader(reader)
         val input = readInput(jsonReader)
         jsonReader.close()
@@ -57,7 +57,7 @@ class InputJsonReader<T : AbstractInput>(private val onInputJsonReaderListener: 
     }
 
     @Throws(IOException::class)
-    private fun readInput(reader: JsonReader): T {
+    private fun readInput(reader: JsonReader): I {
         val input = onInputJsonReaderListener.createInput()
 
         reader.beginObject()

@@ -34,8 +34,8 @@ class AppSettingsViewModelTest {
     @Mock
     private lateinit var onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
 
-    private lateinit var appSettingsViewModel: DummyAppSettingsViewModel
     private lateinit var application: MainApplication
+    private lateinit var appSettingsViewModel: DummyAppSettingsViewModel
 
     @Before
     fun setUp() {
