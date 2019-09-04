@@ -106,6 +106,28 @@ class InputViewModelTest {
     }
 
     @Test
+    fun testSaveInput() {
+        runBlocking {
+            // given existing inputs
+            val existingInputs = listOf(DummyInput().apply { id = 1234 },
+                                        DummyInput().apply { id = 1235 },
+                                        DummyInput().apply { id = 1236 })
+            existingInputs.forEach { inputViewModel.inputManager.saveInput(it) }
+
+            // when adding new input
+            inputViewModel.saveInput(DummyInput().apply { id = 1237 })
+
+            //then
+            inputViewModel.readInputs()
+                .observeOnce { inputs ->
+                    assertNotNull(inputs)
+                    assertArrayEquals(arrayOf(*existingInputs.map { it.id }.toTypedArray(), 1237),
+                                      requireNotNull(inputs).map { it.id }.toTypedArray())
+                }
+        }
+    }
+
+    @Test
     fun testDeleteInput() {
         runBlocking {
             // given existing inputs

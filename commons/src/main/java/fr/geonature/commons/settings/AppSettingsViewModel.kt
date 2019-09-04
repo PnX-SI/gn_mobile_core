@@ -5,10 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import fr.geonature.commons.MainApplication
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
@@ -29,7 +28,7 @@ open class AppSettingsViewModel<AS : IAppSettings>(application: MainApplication,
     }
 
     private fun load() {
-        GlobalScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             val application = getApplication<MainApplication>()
 
             if (application.getAppSettings<AS>() == null) {

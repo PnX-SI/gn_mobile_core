@@ -6,10 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
@@ -32,11 +31,24 @@ open class InputViewModel<I : AbstractInput>(application: Application,
      * Reads all [AbstractInput]s.
      */
     fun readInputs(): LiveData<List<I>> {
-        GlobalScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             inputsLiveData.postValue(inputManager.readInputs())
         }
 
         return inputsLiveData
+    }
+
+    /**
+     * Saves the given [AbstractInput] and sets it as default current [AbstractInput].
+     */
+    fun saveInput(input: I) {
+        viewModelScope.launch {
+            val saved = inputManager.saveInput(input)
+
+            if (saved) {
+                inputsLiveData.postValue(inputManager.readInputs())
+            }
+        }
     }
 
     /**
@@ -45,7 +57,7 @@ open class InputViewModel<I : AbstractInput>(application: Application,
      * @param input the [AbstractInput] to delete
      */
     fun deleteInput(input: I) {
-        GlobalScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             val deleted = inputManager.deleteInput(input.id)
 
             if (deleted) {
@@ -61,7 +73,7 @@ open class InputViewModel<I : AbstractInput>(application: Application,
     fun restoreDeletedInput() {
         val selectedInputToRestore = selectedInputToDelete ?: return
 
-        GlobalScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             inputManager.saveInput(selectedInputToRestore)
             inputsLiveData.postValue(inputManager.readInputs())
             selectedInputToDelete = null
