@@ -1,12 +1,11 @@
 package fr.geonature.commons.settings
 
+import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import fr.geonature.commons.MainApplication
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import kotlinx.coroutines.launch
 
@@ -15,35 +14,18 @@ import kotlinx.coroutines.launch
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-open class AppSettingsViewModel<AS : IAppSettings>(application: MainApplication,
+open class AppSettingsViewModel<AS : IAppSettings>(application: Application,
                                                    onAppSettingsJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>) : AndroidViewModel(application) {
 
-    internal val appSettingsManager: AppSettingsManager<AS> = AppSettingsManager(application,
-                                                                                 onAppSettingsJsonReaderListener)
-    private val appSettingsLiveData: MutableLiveData<AS> = MutableLiveData()
+    internal val appSettingsManager: AppSettingsManager<AS> = AppSettingsManager.getInstance(application,
+                                                                                             onAppSettingsJsonReaderListener)
 
     fun getAppSettings(): LiveData<AS> {
-        load()
-        return appSettingsLiveData
-    }
-
-    private fun load() {
         viewModelScope.launch {
-            val application = getApplication<MainApplication>()
-
-            if (application.getAppSettings<AS>() == null) {
-                val appSettings = appSettingsManager.loadAppSettings()
-
-                if (appSettings != null) {
-                    application.setAppSettings(appSettings)
-                }
-
-                appSettingsLiveData.postValue(appSettings)
-            }
-            else {
-                appSettingsLiveData.postValue(application.getAppSettings())
-            }
+            appSettingsManager.loadAppSettings()
         }
+
+        return appSettingsManager.appSettings
     }
 
     /**

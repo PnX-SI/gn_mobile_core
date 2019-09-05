@@ -3,12 +3,13 @@ package fr.geonature.commons.input
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
@@ -20,11 +21,10 @@ open class InputViewModel<I : AbstractInput>(application: Application,
                                              inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
                                              inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>) : AndroidViewModel(application) {
 
-    internal val inputManager = InputManager(application,
-                                             inputJsonReaderListener,
-                                             inputJsonWriterListener)
+    internal val inputManager = InputManager.getInstance(application,
+                                                         inputJsonReaderListener,
+                                                         inputJsonWriterListener)
 
-    private val inputsLiveData: MutableLiveData<List<I>> = MutableLiveData()
     private var selectedInputToDelete: I? = null
 
     /**
@@ -32,22 +32,40 @@ open class InputViewModel<I : AbstractInput>(application: Application,
      */
     fun readInputs(): LiveData<List<I>> {
         viewModelScope.launch {
-            inputsLiveData.postValue(inputManager.readInputs())
+            inputManager.readInputs()
         }
 
-        return inputsLiveData
+        return inputManager.inputs
+    }
+
+    /**
+     * Reads [AbstractInput] from given ID.
+     *
+     * @param id The [AbstractInput] ID to read. If omitted, read the current saved [AbstractInput].
+     */
+    fun readInput(id: Long? = null): LiveData<I> {
+        viewModelScope.launch {
+            inputManager.readInput(id)
+        }
+
+        return inputManager.input
+    }
+
+    /**
+     * Reads the current [AbstractInput].
+     */
+    fun readCurrentInput(): LiveData<I> {
+        return readInput()
     }
 
     /**
      * Saves the given [AbstractInput] and sets it as default current [AbstractInput].
+     *
+     * @param input the [AbstractInput] to save
      */
     fun saveInput(input: I) {
-        viewModelScope.launch {
-            val saved = inputManager.saveInput(input)
-
-            if (saved) {
-                inputsLiveData.postValue(inputManager.readInputs())
-            }
+        GlobalScope.launch(Dispatchers.Main) {
+            inputManager.saveInput(input)
         }
     }
 
@@ -57,13 +75,19 @@ open class InputViewModel<I : AbstractInput>(application: Application,
      * @param input the [AbstractInput] to delete
      */
     fun deleteInput(input: I) {
-        viewModelScope.launch {
-            val deleted = inputManager.deleteInput(input.id)
+        GlobalScope.launch(Dispatchers.Main) {
+            inputManager.deleteInput(input.id)
+        }
+    }
 
-            if (deleted) {
-                selectedInputToDelete = input
-                inputsLiveData.postValue(inputManager.readInputs())
-            }
+    /**
+     * Exports [AbstractInput] from given ID as `JSON` file.
+     *
+     * @param id the [AbstractInput] ID to export
+     */
+    fun exportInput(id: Long) {
+        GlobalScope.launch(Dispatchers.Main) {
+            inputManager.exportInput(id)
         }
     }
 
@@ -75,7 +99,6 @@ open class InputViewModel<I : AbstractInput>(application: Application,
 
         viewModelScope.launch {
             inputManager.saveInput(selectedInputToRestore)
-            inputsLiveData.postValue(inputManager.readInputs())
             selectedInputToDelete = null
         }
     }

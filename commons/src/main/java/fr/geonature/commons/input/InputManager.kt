@@ -1,6 +1,8 @@
 package fr.geonature.commons.input
 
 import android.app.Application
+import android.content.SharedPreferences
+import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
@@ -21,13 +23,16 @@ import java.io.IOException
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class InputManager<I : AbstractInput>(private val application: Application,
-                                      inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
-                                      inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>) {
+class InputManager<I : AbstractInput> private constructor(internal val application: Application,
+                                                          inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
+                                                          inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>) {
 
-    private val preferenceManager = PreferenceManager.getDefaultSharedPreferences(application)
+    internal val preferenceManager: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
     private val inputJsonReader: InputJsonReader<I> = InputJsonReader(inputJsonReaderListener)
     private val inputJsonWriter: InputJsonWriter<I> = InputJsonWriter(inputJsonWriterListener)
+
+    val inputs: MutableLiveData<List<I>> = MutableLiveData()
+    val input: MutableLiveData<I> = MutableLiveData()
 
     /**
      * Reads all [AbstractInput]s.
@@ -38,6 +43,7 @@ class InputManager<I : AbstractInput>(private val application: Application,
         preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }
             .values.mapNotNull { if (it is String && !isEmpty(it)) inputJsonReader.read(it) else null }
             .sortedBy { it.id }
+            .also { inputs.postValue(it) }
     }
 
     /**
@@ -59,6 +65,7 @@ class InputManager<I : AbstractInput>(private val application: Application,
         }
 
         inputJsonReader.read(inputAsJson)
+            .also { input.postValue(it) }
     }
 
     /**
@@ -72,6 +79,8 @@ class InputManager<I : AbstractInput>(private val application: Application,
 
     /**
      * Saves the given [AbstractInput] and sets it as default current [AbstractInput].
+     *
+     * @param input the [AbstractInput] to save
      *
      * @return `true` if the given [AbstractInput] has been successfully saved, `false` otherwise
      */
@@ -88,6 +97,7 @@ class InputManager<I : AbstractInput>(private val application: Application,
             .apply()
 
         preferenceManager.contains(buildInputPreferenceKey(input.id))
+            .also { readInputs() }
     }
 
     /**
@@ -108,7 +118,7 @@ class InputManager<I : AbstractInput>(private val application: Application,
             }
             .apply()
 
-        !preferenceManager.contains(buildInputPreferenceKey(id))
+        !preferenceManager.contains(buildInputPreferenceKey(id)).also { readInputs() }
     }
 
     /**
@@ -149,5 +159,25 @@ class InputManager<I : AbstractInput>(private val application: Application,
     companion object {
         private const val KEY_PREFERENCE_INPUT = "key_preference_input"
         private const val KEY_PREFERENCE_CURRENT_INPUT = "key_preference_current_input"
+
+        @Volatile
+        private var INSTANCE: InputManager<*>? = null
+
+        /**
+         * Gets the singleton instance of [InputManager].
+         *
+         * @param application The main application context.
+         *
+         * @return The singleton instance of [InputManager].
+         */
+        @Suppress("UNCHECKED_CAST")
+        fun <I : AbstractInput> getInstance(application: Application,
+                                            inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
+                                            inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>): InputManager<I> = INSTANCE as InputManager<I>?
+            ?: synchronized(this) {
+                INSTANCE as InputManager<I>? ?: InputManager(application,
+                                                             inputJsonReaderListener,
+                                                             inputJsonWriterListener).also { INSTANCE = it }
+            }
     }
 }

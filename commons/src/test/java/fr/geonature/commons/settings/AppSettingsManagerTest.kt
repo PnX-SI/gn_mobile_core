@@ -3,8 +3,10 @@ package fr.geonature.commons.settings
 import android.app.Application
 import android.util.JsonReader
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import fr.geonature.commons.FixtureHelper
-import fr.geonature.commons.MockitoKotlinHelper
+import fr.geonature.commons.FixtureHelper.getFixtureAsFile
+import fr.geonature.commons.MockitoKotlinHelper.any
+import fr.geonature.commons.MockitoKotlinHelper.eq
+import fr.geonature.commons.observeOnce
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -13,9 +15,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.atMost
+import org.mockito.Mockito.atMostOnce
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
@@ -32,20 +32,30 @@ import java.io.File
 class AppSettingsManagerTest {
 
     private lateinit var appSettingsManager: AppSettingsManager<DummyAppSettings>
-
-    @Mock
     private lateinit var onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
 
     @Before
     fun setUp() {
         initMocks(this)
 
-        doReturn(DummyAppSettings()).`when`(onAppSettingsJsonJsonReaderListener)
-            .createAppSettings()
+        onAppSettingsJsonJsonReaderListener = spy(object : AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings> {
+            override fun createAppSettings(): DummyAppSettings {
+                return DummyAppSettings()
+            }
+
+            override fun readAdditionalAppSettingsData(reader: JsonReader,
+                                                       keyName: String,
+                                                       appSettings: DummyAppSettings) {
+                when (keyName) {
+                    "attribute" -> appSettings.attribute = reader.nextString()
+                    else -> reader.skipValue()
+                }
+            }
+        })
 
         val application = getApplicationContext<Application>()
-        appSettingsManager = spy(AppSettingsManager(application,
-                                                    onAppSettingsJsonJsonReaderListener))
+        appSettingsManager = spy(AppSettingsManager.getInstance(application,
+                                                                onAppSettingsJsonJsonReaderListener))
     }
 
     @Test
@@ -82,25 +92,25 @@ class AppSettingsManagerTest {
     @Test
     fun testReadAppSettings() {
         // given app settings to read
-        doReturn(FixtureHelper.getFixtureAsFile("settings_dummy.json")).`when`(appSettingsManager)
+        doReturn(getFixtureAsFile("settings_dummy.json")).`when`(appSettingsManager)
             .getAppSettingsAsFile()
-
-        `when`(onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(MockitoKotlinHelper.any(JsonReader::class.java),
-                                                                                 MockitoKotlinHelper.eq("attribute"),
-                                                                                 MockitoKotlinHelper.any(DummyAppSettings::class.java))).then {
-            assertEquals("value",
-                         (it.getArgument(0) as JsonReader).nextString())
-        }
 
         // when reading this file
         val appSettings = runBlocking { appSettingsManager.loadAppSettings() }
 
         // then
         verify(onAppSettingsJsonJsonReaderListener,
-               atMost(1)).readAdditionalAppSettingsData(MockitoKotlinHelper.any(JsonReader::class.java),
-                                                        MockitoKotlinHelper.eq("attribute"),
-                                                        MockitoKotlinHelper.any(DummyAppSettings::class.java))
+               atMostOnce()).readAdditionalAppSettingsData(any(JsonReader::class.java),
+                                                           eq("attribute"),
+                                                           any(DummyAppSettings::class.java))
 
         assertNotNull(appSettings)
+        assertEquals(DummyAppSettings("value"),
+                     appSettings)
+        appSettingsManager.appSettings.observeOnce {
+            assertNotNull(it)
+            assertEquals(appSettings,
+                         it)
+        }
     }
 }

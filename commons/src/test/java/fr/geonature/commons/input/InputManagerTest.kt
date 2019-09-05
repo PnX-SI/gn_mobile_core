@@ -50,9 +50,12 @@ class InputManagerTest {
         }
 
         val application = getApplicationContext<Application>()
-        inputManager = InputManager(application,
-                                    onInputJsonReaderListener,
-                                    onInputJsonWriterListener)
+        inputManager = InputManager.getInstance(application,
+                                                onInputJsonReaderListener,
+                                                onInputJsonWriterListener)
+        inputManager.preferenceManager.edit()
+            .clear()
+            .commit()
     }
 
     @Test

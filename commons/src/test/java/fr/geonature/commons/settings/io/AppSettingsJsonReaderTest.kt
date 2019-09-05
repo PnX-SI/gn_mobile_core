@@ -2,7 +2,8 @@ package fr.geonature.commons.settings.io
 
 import android.util.JsonReader
 import fr.geonature.commons.FixtureHelper.getFixture
-import fr.geonature.commons.MockitoKotlinHelper
+import fr.geonature.commons.MockitoKotlinHelper.any
+import fr.geonature.commons.MockitoKotlinHelper.eq
 import fr.geonature.commons.settings.DummyAppSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -53,9 +54,9 @@ class AppSettingsJsonReaderTest {
 
     @Test
     fun testReadAppSettingsFromJsonString() {
-        `when`(onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(MockitoKotlinHelper.any(JsonReader::class.java),
-                                                                                 MockitoKotlinHelper.eq("attribute"),
-                                                                                 MockitoKotlinHelper.any(DummyAppSettings::class.java))).then {
+        `when`(onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(any(JsonReader::class.java),
+                                                                                 eq("attribute"),
+                                                                                 any(DummyAppSettings::class.java))).then {
             assertEquals("value",
                          (it.getArgument(0) as JsonReader).nextString())
         }
@@ -68,9 +69,9 @@ class AppSettingsJsonReaderTest {
 
         // then
         verify(onAppSettingsJsonJsonReaderListener,
-               atMost(1)).readAdditionalAppSettingsData(MockitoKotlinHelper.any(JsonReader::class.java),
-                                                        MockitoKotlinHelper.eq("attribute"),
-                                                        MockitoKotlinHelper.any(DummyAppSettings::class.java))
+               atMost(1)).readAdditionalAppSettingsData(any(JsonReader::class.java),
+                                                        eq("attribute"),
+                                                        any(DummyAppSettings::class.java))
 
         assertNotNull(appSettings)
     }
