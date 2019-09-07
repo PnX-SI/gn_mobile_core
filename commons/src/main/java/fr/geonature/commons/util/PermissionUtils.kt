@@ -41,13 +41,11 @@ object PermissionUtils {
     /**
      * Determines whether the user have been granted a set of permissions.
      *
-     * @param context                       the current `Context`.
-     * @param onCheckSelfPermissionListener the callback to use to notify if these permissions was
-     * granted or not
-     * @param permissions                   a set of permissions being checked
+     * @param context the current `Context`.
+     * @param permissions a set of permissions being checked
      */
     fun checkSelfPermissions(context: Context,
-                             onCheckSelfPermissionListener: OnCheckSelfPermissionListener, @NonNull vararg permissions: String) {
+                             vararg permissions: String): Boolean {
         var granted = true
         val iterator = permissions.iterator()
 
@@ -56,7 +54,23 @@ object PermissionUtils {
                                                          iterator.next()) == PackageManager.PERMISSION_GRANTED
         }
 
-        if (granted) {
+        return granted
+    }
+
+    /**
+     * Determines whether the user have been granted a set of permissions.
+     *
+     * @param context                       the current `Context`.
+     * @param onCheckSelfPermissionListener the callback to use to notify if these permissions was
+     * granted or not
+     * @param permissions                   a set of permissions being checked
+     */
+    fun checkSelfPermissions(context: Context,
+                             onCheckSelfPermissionListener: OnCheckSelfPermissionListener,
+                             @NonNull
+                             vararg permissions: String) {
+        if (checkSelfPermissions(context,
+                                 *permissions)) {
             onCheckSelfPermissionListener.onPermissionsGranted()
         }
         else {
@@ -86,9 +100,8 @@ object PermissionUtils {
         val iterator = permissions.iterator()
 
         while (iterator.hasNext() && !shouldShowRequestPermissions) {
-            shouldShowRequestPermissions =
-                ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                                                                    iterator.next())
+            shouldShowRequestPermissions = ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                                                                                               iterator.next())
         }
 
         if (shouldShowRequestPermissions) {
@@ -131,8 +144,7 @@ object PermissionUtils {
         val iterator = permissions.iterator()
 
         while (iterator.hasNext() && !shouldShowRequestPermissions) {
-            shouldShowRequestPermissions =
-                fragment.shouldShowRequestPermissionRationale(iterator.next())
+            shouldShowRequestPermissions = fragment.shouldShowRequestPermissionRationale(iterator.next())
         }
 
         if (shouldShowRequestPermissions) {
