@@ -1,7 +1,6 @@
 package fr.geonature.commons.input
 
 import android.app.Application
-import android.util.JsonReader
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import fr.geonature.commons.input.io.InputJsonReader
@@ -16,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.spy
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
@@ -43,16 +43,8 @@ class InputViewModelTest {
     fun setUp() {
         initMocks(this)
 
-        onInputJsonReaderListener = object : InputJsonReader.OnInputJsonReaderListener<DummyInput> {
-            override fun createInput(): DummyInput {
-                return DummyInput()
-            }
-
-            override fun readAdditionalInputData(reader: JsonReader,
-                                                 keyName: String,
-                                                 input: DummyInput) {
-            }
-        }
+        doReturn(DummyInput()).`when`(onInputJsonReaderListener)
+            .createInput()
 
         inputViewModel = spy(DummyInputViewModel(ApplicationProvider.getApplicationContext(),
                                                  onInputJsonReaderListener,
@@ -121,7 +113,8 @@ class InputViewModelTest {
             inputViewModel.readInputs()
                 .observeOnce { inputs ->
                     assertNotNull(inputs)
-                    assertArrayEquals(arrayOf(*existingInputs.map { it.id }.toTypedArray(), 1237),
+                    assertArrayEquals(arrayOf(*existingInputs.map { it.id }.toTypedArray(),
+                                              1237),
                                       requireNotNull(inputs).map { it.id }.toTypedArray())
                 }
         }
