@@ -1,5 +1,6 @@
 package fr.geonature.commons.input
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
 import androidx.lifecycle.MutableLiveData
@@ -84,6 +85,7 @@ class InputManager<I : AbstractInput> private constructor(internal val applicati
      *
      * @return `true` if the given [AbstractInput] has been successfully saved, `false` otherwise
      */
+    @SuppressLint("ApplySharedPref")
     suspend fun saveInput(input: I): Boolean = withContext(IO) {
         val inputAsJson = inputJsonWriter.write(input)
 
@@ -94,7 +96,7 @@ class InputManager<I : AbstractInput> private constructor(internal val applicati
                        inputAsJson)
             .putLong(KEY_PREFERENCE_CURRENT_INPUT,
                      input.id)
-            .apply()
+            .commit()
 
         preferenceManager.contains(buildInputPreferenceKey(input.id))
             .also { readInputs() }
@@ -107,6 +109,7 @@ class InputManager<I : AbstractInput> private constructor(internal val applicati
      *
      * @return `true` if the given [AbstractInput] has been successfully deleted, `false` otherwise
      */
+    @SuppressLint("ApplySharedPref")
     suspend fun deleteInput(id: Long): Boolean = withContext(IO) {
         preferenceManager.edit()
             .remove(buildInputPreferenceKey(id))
@@ -116,9 +119,12 @@ class InputManager<I : AbstractInput> private constructor(internal val applicati
                     it.remove(KEY_PREFERENCE_CURRENT_INPUT)
                 }
             }
-            .apply()
+            .commit()
 
-        !preferenceManager.contains(buildInputPreferenceKey(id)).also { readInputs() }
+        !preferenceManager.contains(buildInputPreferenceKey(id)).also {
+            readInputs()
+            input.postValue(null)
+        }
     }
 
     /**

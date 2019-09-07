@@ -25,7 +25,7 @@ open class InputViewModel<I : AbstractInput>(application: Application,
                                                          inputJsonReaderListener,
                                                          inputJsonWriterListener)
 
-    private var selectedInputToDelete: I? = null
+    private var deletedInputToRestore: I? = null
 
     /**
      * Reads all [AbstractInput]s.
@@ -75,8 +75,22 @@ open class InputViewModel<I : AbstractInput>(application: Application,
      * @param input the [AbstractInput] to delete
      */
     fun deleteInput(input: I) {
-        GlobalScope.launch(Dispatchers.Main) {
-            inputManager.deleteInput(input.id)
+        viewModelScope.launch {
+            if (inputManager.deleteInput(input.id)) {
+                deletedInputToRestore = input
+            }
+        }
+    }
+
+    /**
+     * Restores previously deleted [AbstractInput].
+     */
+    fun restoreDeletedInput() {
+        val selectedInputToRestore = deletedInputToRestore ?: return
+
+        viewModelScope.launch {
+            inputManager.saveInput(selectedInputToRestore)
+            deletedInputToRestore = null
         }
     }
 
@@ -88,18 +102,6 @@ open class InputViewModel<I : AbstractInput>(application: Application,
     fun exportInput(id: Long) {
         GlobalScope.launch(Dispatchers.Main) {
             inputManager.exportInput(id)
-        }
-    }
-
-    /**
-     * Restores previously deleted [AbstractInput].
-     */
-    fun restoreDeletedInput() {
-        val selectedInputToRestore = selectedInputToDelete ?: return
-
-        viewModelScope.launch {
-            inputManager.saveInput(selectedInputToRestore)
-            selectedInputToDelete = null
         }
     }
 
