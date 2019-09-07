@@ -20,6 +20,10 @@ open class AppSettingsViewModel<AS : IAppSettings>(application: Application,
     internal val appSettingsManager: AppSettingsManager<AS> = AppSettingsManager.getInstance(application,
                                                                                              onAppSettingsJsonReaderListener)
 
+    fun getAppSettingsFilename(): String {
+        return appSettingsManager.getAppSettingsFilename()
+    }
+
     fun <T> getAppSettings(): LiveData<AS> {
         viewModelScope.launch {
             appSettingsManager.loadAppSettings()
