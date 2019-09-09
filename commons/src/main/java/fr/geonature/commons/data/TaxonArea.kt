@@ -3,11 +3,13 @@ package fr.geonature.commons.data
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.TypeConverters
 import fr.geonature.commons.data.Converters.fromTimestamp
+import fr.geonature.commons.util.get
 import java.util.Date
 
 /**
@@ -63,6 +65,8 @@ data class TaxonArea(
 
     companion object {
 
+        private val TAG = TaxonArea::class.java.name
+
         /**
          * The name of the 'taxa_area' table.
          */
@@ -92,11 +96,22 @@ data class TaxonArea(
                 return null
             }
 
-            return TaxonArea(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_TAXON_ID)),
-                             cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_AREA_ID)),
-                             cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COLOR)),
-                             cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NUMBER_OF_OBSERVERS)),
-                             fromTimestamp(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_LAST_UPDATED_AT))))
+            return try {
+                TaxonArea(requireNotNull(cursor.get(COLUMN_TAXON_ID)),
+                          requireNotNull(cursor.get(COLUMN_AREA_ID)),
+                          cursor.get(COLUMN_COLOR,
+                                     "#00000000"),
+                          requireNotNull(cursor.get(COLUMN_NUMBER_OF_OBSERVERS,
+                                                    0)),
+                          cursor.get(COLUMN_LAST_UPDATED_AT,
+                                     0L).run { if (this == 0L) null else fromTimestamp(this) })
+            }
+            catch (iae: IllegalArgumentException) {
+                Log.w(TAG,
+                      iae.message)
+
+                null
+            }
         }
 
         @JvmField

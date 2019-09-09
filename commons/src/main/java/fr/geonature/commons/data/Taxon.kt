@@ -3,7 +3,9 @@ package fr.geonature.commons.data
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
 import androidx.room.Entity
+import fr.geonature.commons.util.get
 
 /**
  * Describes a taxon.
@@ -25,6 +27,8 @@ class Taxon : AbstractTaxon {
 
     companion object {
 
+        private val TAG = Taxon::class.java.name
+
         /**
          * The name of the 'taxa' table.
          */
@@ -42,11 +46,19 @@ class Taxon : AbstractTaxon {
                 return null
             }
 
-            return Taxon(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                         cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)),
-                         cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
-                         cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HERITAGE))?.toBoolean()
-                             ?: false)
+            return try {
+                Taxon(requireNotNull(cursor.get(COLUMN_ID)),
+                      requireNotNull(cursor.get(COLUMN_NAME)),
+                      cursor.get(COLUMN_DESCRIPTION),
+                      requireNotNull(cursor.get(COLUMN_HERITAGE,
+                                                false)))
+            }
+            catch (iae: IllegalArgumentException) {
+                Log.w(TAG,
+                      iae.message)
+
+                null
+            }
         }
 
         @JvmField

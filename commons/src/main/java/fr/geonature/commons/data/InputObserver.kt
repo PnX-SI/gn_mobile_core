@@ -4,9 +4,11 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
+import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import fr.geonature.commons.util.get
 
 /**
  * Describes an input observer.
@@ -36,10 +38,6 @@ data class InputObserver(
     @ColumnInfo(name = COLUMN_FIRSTNAME)
     var firstname: String?) : Parcelable {
 
-    private constructor(builder: Builder) : this(builder.id!!,
-                                                 builder.lastname,
-                                                 builder.firstname)
-
     private constructor(source: Parcel) : this(source.readLong(),
                                                source.readString(),
                                                source.readString())
@@ -55,22 +53,9 @@ data class InputObserver(
         dest?.writeString(firstname)
     }
 
-    data class Builder(var id: Long? = null,
-                       var lastname: String? = null,
-                       var firstname: String? = null) {
-        fun id(id: Long) = apply { this.id = id }
-        fun lastname(lastname: String?) = apply { this.lastname = lastname }
-        fun firstname(firstname: String?) = apply { this.firstname = firstname }
-
-        @Throws(java.lang.IllegalArgumentException::class)
-        fun build(): InputObserver {
-            if (id == null) throw IllegalArgumentException("InputObserver with null ID is not allowed")
-
-            return InputObserver(this)
-        }
-    }
-
     companion object {
+
+        private val TAG = InputObserver::class.java.name
 
         /**
          * The name of the 'observers' table.
@@ -108,9 +93,17 @@ data class InputObserver(
                 return null
             }
 
-            return InputObserver(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LASTNAME)),
-                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FIRSTNAME)))
+            return try {
+                InputObserver(requireNotNull(cursor.get(COLUMN_ID)),
+                              cursor.get(COLUMN_LASTNAME),
+                              cursor.get(COLUMN_FIRSTNAME))
+            }
+            catch (iae: IllegalArgumentException) {
+                Log.w(TAG,
+                      iae.message)
+
+                null
+            }
         }
 
         @JvmField
