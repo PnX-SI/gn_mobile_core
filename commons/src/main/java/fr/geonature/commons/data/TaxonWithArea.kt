@@ -73,8 +73,13 @@ class TaxonWithArea : AbstractTaxon {
          */
         fun fromCursor(cursor: Cursor): TaxonWithArea? {
             val taxon = Taxon.fromCursor(cursor) ?: return null
+            val taxonArea = TaxonArea.fromCursor(cursor)
 
-            return TaxonWithArea(taxon).apply { taxonArea = TaxonArea.fromCursor(cursor) }
+            return TaxonWithArea(taxon).also {
+                if (taxon.id == taxonArea?.taxonId) {
+                    it.taxonArea = taxonArea
+                }
+            }
         }
 
         @JvmField
