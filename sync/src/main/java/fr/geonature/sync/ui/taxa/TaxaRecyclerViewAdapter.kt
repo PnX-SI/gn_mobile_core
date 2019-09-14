@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.l4digital.fastscroll.FastScroller
 import fr.geonature.commons.data.Taxon
+import fr.geonature.commons.data.TaxonWithArea
 import fr.geonature.sync.R
 
 /**
@@ -127,11 +128,11 @@ class TaxaRecyclerViewAdapter(private val listener: OnTaxaRecyclerViewAdapterLis
 
             cursor.moveToPosition(position)
 
-            val taxon = Taxon.fromCursor(cursor)
+            val taxon = TaxonWithArea.fromCursor(cursor)
 
             val previousTitle = if (position > 0) {
                 cursor.moveToPosition(position - 1)
-                Taxon.fromCursor(cursor)
+                TaxonWithArea.fromCursor(cursor)
                     ?.name?.elementAt(0)
                     .toString()
             }

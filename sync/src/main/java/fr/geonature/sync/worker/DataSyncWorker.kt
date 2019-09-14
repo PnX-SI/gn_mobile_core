@@ -33,7 +33,17 @@ class DataSyncWorker(appContext: Context,
 
         val syncInputObserversResult = syncInputObservers(geoNatureServiceClient)
 
-        return if (syncInputObserversResult is Result.Success) syncTaxa(geoNatureServiceClient) else syncInputObserversResult
+        if (syncInputObserversResult is Result.Failure) {
+            return syncInputObserversResult
+        }
+
+        val syncTaxonomyRanksResult = syncTaxonomyRanks(geoNatureServiceClient)
+
+        if (syncTaxonomyRanksResult is Result.Failure) {
+            return syncTaxonomyRanksResult
+        }
+
+        return syncTaxa(geoNatureServiceClient)
     }
 
     private fun syncInputObservers(geoNatureServiceClient: GeoNatureAPIClient): Result {
@@ -58,6 +68,27 @@ class DataSyncWorker(appContext: Context,
         LocalDatabase.getInstance(applicationContext)
             .inputObserverDao()
             .insert(*inputObservers)
+
+        return Result.success()
+    }
+
+    private fun syncTaxonomyRanks(geoNatureServiceClient: GeoNatureAPIClient): Result {
+        val taxonomyRanksResponse = geoNatureServiceClient.getTaxonomyRanks()
+            .execute()
+
+        if (!taxonomyRanksResponse.isSuccessful) {
+            return Result.failure()
+        }
+
+        val jsonString = taxonomyRanksResponse.body()?.string() ?: return Result.failure()
+        val taxonomy = TaxonomyJsonReader().read(jsonString)
+
+        Log.i(TAG,
+              "taxonomy to update: ${taxonomy.size}")
+
+        LocalDatabase.getInstance(applicationContext)
+            .taxonomyDao()
+            .insert(*taxonomy.toTypedArray())
 
         return Result.success()
     }

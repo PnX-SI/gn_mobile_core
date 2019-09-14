@@ -1,0 +1,62 @@
+{
+  "": [
+    ""
+  ],
+  "Plantae": [
+    "",
+    "Algues rouges",
+    "Algues vertes",
+    "Angiospermes",
+    "Autres",
+    "Fougères",
+    "Gymnospermes",
+    "Hépatiques et Anthocérotes",
+    "Mousses"
+  ],
+  "Bacteria": [
+    "",
+    "Autres"
+  ],
+  "Fungi": [
+    "",
+    "Autres",
+    "Lichens"
+  ],
+  "Animalia": [
+    "",
+    "Acanthocéphales",
+    "Amphibiens",
+    "Annélides",
+    "Arachnides",
+    "Ascidies",
+    "Autres",
+    "Bivalves",
+    "Céphalopodes",
+    "Crustacés",
+    "Entognathes",
+    "Gastéropodes",
+    "Hydrozoaires",
+    "Insectes",
+    "Mammifères",
+    "Myriapodes",
+    "Nématodes",
+    "Némertes",
+    "Octocoralliaires",
+    "Oiseaux",
+    "Plathelminthes",
+    "Poissons",
+    "Pycnogonides",
+    "Reptiles",
+    "Scléractiniaires"
+  ],
+  "Chromista": [
+    "",
+    "Algues brunes",
+    "Autres",
+    "Diatomées"
+  ],
+  "Protozoa": [
+    "",
+    "Autres"
+  ]
+}

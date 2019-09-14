@@ -16,6 +16,7 @@ import fr.geonature.commons.data.Provider.checkReadPermission
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.data.TaxonWithArea
+import fr.geonature.commons.data.Taxonomy
 
 /**
  * Default ContentProvider implementation.
@@ -30,11 +31,13 @@ class MainContentProvider : ContentProvider() {
 
     override fun getType(uri: Uri): String? {
         return when (MATCHER.match(uri)) {
-            APP_SYNC_ID -> "vnd.android.cursor.item/" + AUTHORITY + "." + AppSync.TABLE_NAME
-            INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "vnd.android.cursor.dir/" + AUTHORITY + "." + InputObserver.TABLE_NAME
-            INPUT_OBSERVER_ID -> "vnd.android.cursor.item/" + AUTHORITY + "." + InputObserver.TABLE_NAME
-            TAXA -> "vnd.android.cursor.dir/" + AUTHORITY + "." + Taxon.TABLE_NAME
-            TAXON_ID, TAXON_AREA_ID -> "vnd.android.cursor.item/" + AUTHORITY + "." + Taxon.TABLE_NAME
+            APP_SYNC_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${AppSync.TABLE_NAME}"
+            INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
+            INPUT_OBSERVER_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
+            TAXA -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
+            TAXON_ID, TAXON_AREA_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
+            TAXONOMY, TAXONOMY_KINGDOM -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
+            TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -83,6 +86,9 @@ class MainContentProvider : ContentProvider() {
             TAXON_AREA_ID -> taxonAreaIdQuery(context,
                                               uri,
                                               projection)
+            TAXONOMY, TAXONOMY_KINGDOM, TAXONOMY_KINGDOM_GROUP -> taxonomyQuery(context,
+                                                                                uri,
+                                                                                projection)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -209,7 +215,7 @@ class MainContentProvider : ContentProvider() {
         }
 
         val whereClause = if (selection == null) "" else "WHERE $selection"
-        val orderBy = sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC"
+        val orderBy = sortOrder ?: "t.${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC"
 
         val sql = """
             SELECT $defaultProjection
@@ -285,6 +291,27 @@ class MainContentProvider : ContentProvider() {
                                       bindArgs.toTypedArray()))
     }
 
+    private fun taxonomyQuery(context: Context,
+                              uri: Uri,
+                              projection: Array<String>?): Cursor {
+
+        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
+            .take(2)
+        val selection = if (lastPathSegments.isEmpty()) "" else if (lastPathSegments.size == 1) "${Taxonomy.COLUMN_KINGDOM} LIKE ?" else "${Taxonomy.COLUMN_KINGDOM} = ? AND ${Taxonomy.COLUMN_GROUP} LIKE ?"
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxonomy.TABLE_NAME)
+            .columns(projection ?: Taxonomy.DEFAULT_PROJECTION)
+
+        if (selection.isNotEmpty()) {
+            queryBuilder.selection(selection,
+                                   lastPathSegments.toTypedArray())
+        }
+
+        return LocalDatabase.getInstance(context)
+            .taxonomyDao()
+            .select(queryBuilder.create())
+    }
+
     companion object {
 
         // used for the UriMatcher
@@ -296,6 +323,12 @@ class MainContentProvider : ContentProvider() {
         const val TAXA_AREA = 21
         const val TAXON_ID = 22
         const val TAXON_AREA_ID = 23
+        const val TAXONOMY = 30
+        const val TAXONOMY_KINGDOM = 31
+        const val TAXONOMY_KINGDOM_GROUP = 32
+
+        const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
+        const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
 
         /**
          * The URI matcher.
@@ -326,6 +359,15 @@ class MainContentProvider : ContentProvider() {
             addURI(AUTHORITY,
                    "${Taxon.TABLE_NAME}/#/area/#",
                    TAXON_AREA_ID)
+            addURI(AUTHORITY,
+                   Taxonomy.TABLE_NAME,
+                   TAXONOMY)
+            addURI(AUTHORITY,
+                   "${Taxonomy.TABLE_NAME}/*",
+                   TAXONOMY_KINGDOM)
+            addURI(AUTHORITY,
+                   "${Taxonomy.TABLE_NAME}/*/*",
+                   TAXONOMY_KINGDOM_GROUP)
         }
     }
 }

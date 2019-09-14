@@ -3,13 +3,14 @@ package fr.geonature.sync.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import fr.geonature.sync.worker.Constants
 import fr.geonature.sync.worker.DataSyncWorker
-
 
 /**
  * Keeps track of sync operations.
@@ -29,5 +30,16 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
         // start the work
         continuation.enqueue()
+    }
+
+    /**
+     * Default Factory to use for [DataSyncViewModel].
+     *
+     * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+     */
+    class Factory(val creator: () -> DataSyncViewModel) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            @Suppress("UNCHECKED_CAST") return creator() as T
+        }
     }
 }

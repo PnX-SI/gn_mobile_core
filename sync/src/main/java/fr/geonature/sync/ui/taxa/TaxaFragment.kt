@@ -22,6 +22,7 @@ import androidx.loader.content.Loader
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import fr.geonature.commons.data.AbstractTaxon
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Provider.buildUri
 import fr.geonature.commons.data.Taxon
@@ -51,16 +52,14 @@ class TaxaFragment : Fragment() {
                                                                              null)
                     else {
                         val filter = "%${args.getString(KEY_FILTER)}%"
-                        Pair("(${Taxon.COLUMN_NAME} LIKE ?)",
+                        Pair("(${AbstractTaxon.COLUMN_NAME} LIKE ?)",
                              arrayOf(filter))
                     }
 
                     return CursorLoader(requireContext(),
-                                        buildUri(Taxon.TABLE_NAME),
-                                        arrayOf(Taxon.COLUMN_ID,
-                                                Taxon.COLUMN_NAME,
-                                                Taxon.COLUMN_HERITAGE,
-                                                Taxon.COLUMN_DESCRIPTION),
+                                        buildUri(Taxon.TABLE_NAME,
+                                                 "area/123"),
+                                        null,
                                         selections.first,
                                         selections.second,
                                         null)
@@ -77,7 +76,8 @@ class TaxaFragment : Fragment() {
                      false)
 
             if (data == null) {
-                Log.w(TAG, "Failed to load data from '${(loader as CursorLoader).uri}'")
+                Log.w(TAG,
+                      "Failed to load data from '${(loader as CursorLoader).uri}'")
 
                 return
             }
@@ -118,16 +118,15 @@ class TaxaFragment : Fragment() {
         // we have a menu item to show in action bar
         setHasOptionsMenu(true)
 
-        adapter =
-            TaxaRecyclerViewAdapter(object : TaxaRecyclerViewAdapter.OnTaxaRecyclerViewAdapterListener {
-                override fun onSelectedTaxon(taxon: Taxon) {
-                    listener?.onSelectedTaxon(taxon)
-                }
+        adapter = TaxaRecyclerViewAdapter(object : TaxaRecyclerViewAdapter.OnTaxaRecyclerViewAdapterListener {
+            override fun onSelectedTaxon(taxon: Taxon) {
+                listener?.onSelectedTaxon(taxon)
+            }
 
-                override fun scrollToFirstSelectedItemPosition(position: Int) {
-                    recyclerView.smoothScrollToPosition(position)
-                }
-            })
+            override fun scrollToFirstSelectedItemPosition(position: Int) {
+                recyclerView.smoothScrollToPosition(position)
+            }
+        })
         adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 super.onChanged()

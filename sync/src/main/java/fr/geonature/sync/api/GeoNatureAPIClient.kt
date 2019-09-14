@@ -5,6 +5,7 @@ import fr.geonature.sync.api.model.Taxref
 import fr.geonature.sync.api.model.TaxrefArea
 import fr.geonature.sync.api.model.User
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -48,6 +49,10 @@ class GeoNatureAPIClient private constructor(baseUrl: String) {
 
     fun getTaxrefAreas(): Call<List<TaxrefArea>> {
         return geoNatureService.getTaxrefAreas()
+    }
+
+    fun getTaxonomyRanks(): Call<ResponseBody> {
+        return geoNatureService.getTaxonomyRanks()
     }
 
     companion object {

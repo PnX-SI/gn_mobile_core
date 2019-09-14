@@ -21,7 +21,8 @@ class MainActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dataSyncViewModel = ViewModelProvider(this).get(DataSyncViewModel::class.java)
+        dataSyncViewModel = ViewModelProvider(this,
+                                              DataSyncViewModel.Factory { DataSyncViewModel(this.application) }).get(DataSyncViewModel::class.java)
 
         // Display the fragment as the main content.
         supportFragmentManager.beginTransaction()

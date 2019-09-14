@@ -8,6 +8,7 @@ import androidx.room.RoomDatabase
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
+import fr.geonature.commons.data.Taxonomy
 import fr.geonature.commons.model.MountPoint
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.util.FileUtils.getDatabaseFolder
@@ -18,8 +19,8 @@ import fr.geonature.sync.util.FileUtils.getFile
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Database(entities = [InputObserver::class, Taxon::class, TaxonArea::class],
-          version = 4,
+@Database(entities = [InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class],
+          version = 5,
           exportSchema = false)
 abstract class LocalDatabase : RoomDatabase() {
 
@@ -27,6 +28,11 @@ abstract class LocalDatabase : RoomDatabase() {
      * @return The DAO for the 'observers' table.
      */
     abstract fun inputObserverDao(): InputObserverDao
+
+    /**
+     * @return The DAO for the 'Taxonomy' table.
+     */
+    abstract fun taxonomyDao(): TaxonomyDao
 
     /**
      * @return The DAO for the 'taxa' table.
@@ -55,16 +61,11 @@ abstract class LocalDatabase : RoomDatabase() {
          *
          * @return The singleton instance of [LocalDatabase].
          */
-        @Synchronized
-        fun getInstance(context: Context): LocalDatabase {
-            if (INSTANCE == null) {
-                INSTANCE = buildInstance(context)
-            }
-
-            return INSTANCE!!
+        fun getInstance(context: Context): LocalDatabase = INSTANCE ?: synchronized(this) {
+            INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
         }
 
-        private fun buildInstance(context: Context): LocalDatabase {
+        private fun buildDatabase(context: Context): LocalDatabase {
             val localDatabase = getFile(getDatabaseFolder(context,
                                                           MountPoint.StorageType.INTERNAL),
                                         "data.db")
