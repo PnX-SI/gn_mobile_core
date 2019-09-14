@@ -14,7 +14,7 @@ import java.io.StringReader
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSettingsJsonReader<T : IAppSettings>(private val onAppSettingsJsonReaderListener: OnAppSettingsJsonReaderListener<T>) {
+class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonReaderListener: OnAppSettingsJsonReaderListener<AS>) {
 
     /**
      * parse a `JSON` string to convert as [IAppSettings].
@@ -23,7 +23,7 @@ class AppSettingsJsonReader<T : IAppSettings>(private val onAppSettingsJsonReade
      *
      * @return a [IAppSettings] instance from the `JSON` string or `null` if something goes wrong
      */
-    fun read(json: String?): T? {
+    fun read(json: String?): AS? {
         if (TextUtils.isEmpty(json)) {
             return null
         }
@@ -50,7 +50,7 @@ class AppSettingsJsonReader<T : IAppSettings>(private val onAppSettingsJsonReade
      */
     @Throws(IOException::class,
             IllegalArgumentException::class)
-    fun read(reader: Reader): T {
+    fun read(reader: Reader): AS {
         val jsonReader = JsonReader(reader)
         val appSettings = read(jsonReader)
         jsonReader.close()
@@ -69,7 +69,7 @@ class AppSettingsJsonReader<T : IAppSettings>(private val onAppSettingsJsonReade
      */
     @Throws(IOException::class,
             IllegalArgumentException::class)
-    private fun read(reader: JsonReader): T {
+    private fun read(reader: JsonReader): AS {
         val appSettings = onAppSettingsJsonReaderListener.createAppSettings()
 
         reader.beginObject()

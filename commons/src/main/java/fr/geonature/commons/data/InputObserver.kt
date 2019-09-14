@@ -4,9 +4,11 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
+import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import fr.geonature.commons.util.get
 
 /**
  * Describes an input observer.
@@ -19,22 +21,22 @@ data class InputObserver(
     /**
      * The unique ID of the input observer.
      */
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(index = true,
-                                                 name = COLUMN_ID) var id: Long,
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(index = true,
+                name = COLUMN_ID)
+    var id: Long,
 
     /**
      * The last name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_LASTNAME) var lastname: String?,
+    @ColumnInfo(name = COLUMN_LASTNAME)
+    var lastname: String?,
 
     /**
      * The first name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?) : Parcelable {
-
-    private constructor(builder: Builder) : this(builder.id!!,
-                                                 builder.lastname,
-                                                 builder.firstname)
+    @ColumnInfo(name = COLUMN_FIRSTNAME)
+    var firstname: String?) : Parcelable {
 
     private constructor(source: Parcel) : this(source.readLong(),
                                                source.readString(),
@@ -51,22 +53,9 @@ data class InputObserver(
         dest?.writeString(firstname)
     }
 
-    data class Builder(var id: Long? = null,
-                       var lastname: String? = null,
-                       var firstname: String? = null) {
-        fun id(id: Long) = apply { this.id = id }
-        fun lastname(lastname: String?) = apply { this.lastname = lastname }
-        fun firstname(firstname: String?) = apply { this.firstname = firstname }
-
-        @Throws(java.lang.IllegalArgumentException::class)
-        fun build() : InputObserver {
-            if (id == null) throw IllegalArgumentException("InputObserver with null ID is not allowed")
-
-            return InputObserver(this)
-        }
-    }
-
     companion object {
+
+        private val TAG = InputObserver::class.java.name
 
         /**
          * The name of the 'observers' table.
@@ -88,6 +77,10 @@ data class InputObserver(
          */
         const val COLUMN_FIRSTNAME = "firstname"
 
+        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
+                                         COLUMN_LASTNAME,
+                                         COLUMN_FIRSTNAME)
+
         /**
          * Create a new [InputObserver] from the specified [Cursor].
          *
@@ -100,22 +93,29 @@ data class InputObserver(
                 return null
             }
 
-            return InputObserver(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LASTNAME)),
-                                 cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FIRSTNAME)))
+            return try {
+                InputObserver(requireNotNull(cursor.get(COLUMN_ID)),
+                              cursor.get(COLUMN_LASTNAME),
+                              cursor.get(COLUMN_FIRSTNAME))
+            }
+            catch (iae: IllegalArgumentException) {
+                Log.w(TAG,
+                      iae.message)
+
+                null
+            }
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<InputObserver> =
-            object : Parcelable.Creator<InputObserver> {
+        val CREATOR: Parcelable.Creator<InputObserver> = object : Parcelable.Creator<InputObserver> {
 
-                override fun createFromParcel(source: Parcel): InputObserver {
-                    return InputObserver(source)
-                }
-
-                override fun newArray(size: Int): Array<InputObserver?> {
-                    return arrayOfNulls(size)
-                }
+            override fun createFromParcel(source: Parcel): InputObserver {
+                return InputObserver(source)
             }
+
+            override fun newArray(size: Int): Array<InputObserver?> {
+                return arrayOfNulls(size)
+            }
+        }
     }
 }

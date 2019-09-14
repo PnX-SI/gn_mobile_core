@@ -2,6 +2,7 @@ package fr.geonature.commons.data
 
 import android.content.Context
 import android.net.Uri
+import android.net.Uri.withAppendedPath
 import fr.geonature.commons.R
 
 /**
@@ -24,15 +25,13 @@ object Provider {
     /**
      * Build resource [Uri].
      */
-    fun buildUri(
-        resource: String,
-        path: String = ""): Uri {
+    fun buildUri(resource: String,
+                 vararg path: String): Uri {
 
         val baseUri = Uri.parse("content://$AUTHORITY/$resource")
 
         return if (path.isEmpty()) baseUri
-        else Uri.withAppendedPath(
-            baseUri,
-            path)
+        else withAppendedPath(baseUri,
+                              path.asSequence().filter { it.isNotBlank() }.joinToString("/"))
     }
 }

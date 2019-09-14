@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="activity_preferences_title">Paramètres</string>
+    <string name="activity_observers_title">Observateurs</string>
+
+    <string name="no_data">Aucune donnée</string>
+
+    <string name="action_settings">Paramètres</string>
+    <string name="action_search">Recherche</string>
+    <plurals name="action_title_item_count_selected">
+        <item quantity="one">%d sélectionné</item>
+        <item quantity="other">%d sélectionnés</item>
+    </plurals>
+
+</resources>

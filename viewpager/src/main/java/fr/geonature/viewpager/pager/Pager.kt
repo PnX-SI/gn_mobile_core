@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import java.util.ArrayDeque
 import java.util.ArrayList
-import java.util.Arrays
 import java.util.Deque
 
 /**
@@ -79,8 +78,7 @@ class Pager : Parcelable {
         return if (position != pager.position) {
             false
         }
-        else Arrays.equals(history.toTypedArray(),
-                           pager.history.toTypedArray())
+        else history.toTypedArray().contentEquals(pager.history.toTypedArray())
     }
 
     override fun hashCode(): Int {

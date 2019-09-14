@@ -2,7 +2,10 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
-import org.junit.Assert
+import fr.geonature.commons.data.Taxon.Companion.fromCursor
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
@@ -17,61 +20,113 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class TaxonTest {
 
-    fun testBuilder() {
-        // given a taxon instance from its builder
-        val taxon1 = Taxon.Builder()
-            .id(1234)
-            .name("taxon_01")
-            .description("desc")
-            .heritage(true)
-            .build()
+    @Test
+    fun testEquals() {
+        assertEquals(Taxon(1234,
+                           "taxon_01",
+                           "desc",
+                           true),
+                     Taxon(1234,
+                           "taxon_01",
+                           "desc",
+                           true))
 
-        // then
-        Assert.assertNotNull(taxon1)
-        Assert.assertEquals(Taxon(1234,
-                                  "taxon_01",
-                                  "desc",
-                                  true),
-                            taxon1)
+        assertEquals(Taxon(1234,
+                           "taxon_01",
+                           "desc"),
+                     Taxon(1234,
+                           "taxon_01",
+                           "desc"))
 
-        // given a taxon instance with default values from its builder
-        val taxon2 = Taxon.Builder()
-            .id(1235)
-            .name("taxon_02")
-            .build()
-
-        // then
-        Assert.assertNotNull(taxon2)
-        Assert.assertEquals(Taxon(1235,
-                                  "taxon_02",
-                                  null,
-                                  false),
-                            taxon2)
+        assertEquals(Taxon(1234,
+                           "taxon_01",
+                           null),
+                     Taxon(1234,
+                           "taxon_01",
+                           null))
     }
 
     @Test
-    fun testCreateFromCursor() {
+    fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Taxon.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(Taxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Taxon.COLUMN_DESCRIPTION)).thenReturn(2)
-        `when`(cursor.getColumnIndexOrThrow(Taxon.COLUMN_HERITAGE)).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(2)
+        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(3)
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("desc")
         `when`(cursor.getString(3)).thenReturn("True")
 
-        // when getting Taxon instance from Cursor
-        val taxon = Taxon.fromCursor(cursor)
+        // when getting a Taxon instance from Cursor
+        val taxon = fromCursor(cursor)
 
         // then
-        Assert.assertNotNull(taxon)
-        Assert.assertEquals(Taxon(1234,
-                                  "taxon_01",
-                                  "desc",
-                                  true),
-                            taxon)
+        assertNotNull(taxon)
+        assertEquals(Taxon(1234,
+                           "taxon_01",
+                           "desc",
+                           true),
+                     taxon)
+    }
+
+    @Test
+    fun testCreateFromPartialCursor() {
+        // given a mocked Cursor
+        val cursor = mock(Cursor::class.java)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
+        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
+        `when`(cursor.getLong(0)).thenReturn(1234)
+        `when`(cursor.getString(1)).thenReturn("taxon_01")
+        `when`(cursor.getString(2)).thenReturn(null)
+        `when`(cursor.getString(3)).thenReturn(null)
+
+        // when getting a Taxon instance from Cursor
+        val taxon = fromCursor(cursor)
+
+        // then
+        assertNotNull(taxon)
+        assertEquals(Taxon(1234,
+                           "taxon_01",
+                           null,
+                           false),
+                     taxon)
+    }
+
+    @Test
+    fun testCreateFromClosedCursor() {
+        // given a mocked Cursor
+        val cursor = mock(Cursor::class.java)
+        `when`(cursor.isClosed).thenReturn(true)
+
+        // when getting a Taxon instance from Cursor
+        val taxon = fromCursor(cursor)
+
+        // then
+        assertNull(taxon)
+    }
+
+    @Test
+    fun testCreateFromInvalidCursor() {
+        // given a mocked Cursor
+        val cursor = mock(Cursor::class.java)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenThrow(IllegalArgumentException::class.java)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenThrow(IllegalArgumentException::class.java)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
+        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
+        `when`(cursor.getLong(0)).thenReturn(0)
+        `when`(cursor.getString(1)).thenReturn(null)
+        `when`(cursor.getString(2)).thenReturn(null)
+        `when`(cursor.getString(3)).thenReturn(null)
+
+        // when getting a Taxon instance from Cursor
+        val taxon = fromCursor(cursor)
+
+        // then
+        assertNull(taxon)
     }
 
     @Test
@@ -91,7 +146,7 @@ class TaxonTest {
         parcel.setDataPosition(0)
 
         // then
-        Assert.assertEquals(taxon,
-                            Taxon.CREATOR.createFromParcel(parcel))
+        assertEquals(taxon,
+                     Taxon.CREATOR.createFromParcel(parcel))
     }
 }

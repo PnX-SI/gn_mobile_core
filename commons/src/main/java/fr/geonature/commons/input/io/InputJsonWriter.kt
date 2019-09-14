@@ -13,7 +13,7 @@ import java.io.Writer
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  * @see InputJsonReader
  */
-class InputJsonWriter<T : AbstractInput>(private val onInputJsonWriterListener: OnInputJsonWriterListener<T>) {
+class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: OnInputJsonWriterListener<I>) {
 
     private var indent: String = ""
 
@@ -26,7 +26,7 @@ class InputJsonWriter<T : AbstractInput>(private val onInputJsonWriterListener: 
      *
      * @return InputJsonWriter fluent interface
      */
-    fun setIndent(indent: String): InputJsonWriter<T> {
+    fun setIndent(indent: String): InputJsonWriter<I> {
         this.indent = indent
 
         return this
@@ -39,7 +39,7 @@ class InputJsonWriter<T : AbstractInput>(private val onInputJsonWriterListener: 
      * @return a `JSON` string representation of the given [AbstractInput] or `null` if something goes wrong
      * @see .write
      */
-    fun write(input: T?): String? {
+    fun write(input: I?): String? {
         if (input == null) {
             return null
         }
@@ -69,7 +69,7 @@ class InputJsonWriter<T : AbstractInput>(private val onInputJsonWriterListener: 
      */
     @Throws(IOException::class)
     fun write(out: Writer,
-              input: T) {
+              input: I) {
         val writer = JsonWriter(out)
         writer.setIndent(this.indent)
         writeInput(writer,
@@ -80,7 +80,7 @@ class InputJsonWriter<T : AbstractInput>(private val onInputJsonWriterListener: 
 
     @Throws(IOException::class)
     private fun writeInput(writer: JsonWriter,
-                           input: T) {
+                           input: I) {
         writer.beginObject()
 
         writer.name("id")

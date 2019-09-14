@@ -2,6 +2,8 @@ package fr.geonature.commons.input
 
 import android.app.Application
 import android.util.JsonReader
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
@@ -13,9 +15,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Mockito.atMost
+import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 
@@ -27,12 +32,21 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class InputManagerTest {
 
+    @get:Rule
+    val rule = InstantTaskExecutorRule()
+
     private lateinit var inputManager: InputManager<DummyInput>
 
     @Mock
     private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>
 
     private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>
+
+    @Mock
+    private lateinit var observerForListOfInputs: Observer<List<DummyInput>>
+
+    @Mock
+    private lateinit var observerForInput: Observer<DummyInput>
 
     @Before
     fun setUp() {
@@ -50,9 +64,15 @@ class InputManagerTest {
         }
 
         val application = getApplicationContext<Application>()
-        inputManager = InputManager(application,
-                                    onInputJsonReaderListener,
-                                    onInputJsonWriterListener)
+        inputManager = InputManager.getInstance(application,
+                                                onInputJsonReaderListener,
+                                                onInputJsonWriterListener)
+        inputManager.inputs.observeForever(observerForListOfInputs)
+        inputManager.input.observeForever(observerForInput)
+
+        inputManager.preferenceManager.edit()
+            .clear()
+            .commit()
     }
 
     @Test
@@ -90,6 +110,8 @@ class InputManagerTest {
                                   input2.id,
                                   input3.id),
                           inputs.map { it.id }.toTypedArray())
+
+        verify(observerForListOfInputs).onChanged(inputs)
     }
 
     @Test
@@ -141,6 +163,8 @@ class InputManagerTest {
                      currentInput!!.id)
         assertEquals(input.module,
                      currentInput.module)
+
+        verify(observerForInput).onChanged(readInput)
     }
 
     @Test
@@ -162,6 +186,9 @@ class InputManagerTest {
         val noSuchInput = runBlocking { inputManager.readInput(input.id) }
 
         assertNull(noSuchInput)
+
+        verify(observerForInput,
+               atMost(2)).onChanged(null)
     }
 
     @Test
@@ -186,5 +213,11 @@ class InputManagerTest {
         // then
         assertTrue(saved)
         assertTrue(exported)
+
+        val noSuchInput = runBlocking { inputManager.readInput(input.id) }
+        assertNull(noSuchInput)
+
+        verify(observerForListOfInputs).onChanged(emptyList())
+        verify(observerForInput).onChanged(null)
     }
 }

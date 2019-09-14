@@ -2,8 +2,10 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.InputObserver.Companion.fromCursor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
@@ -29,24 +31,7 @@ class InputObserverTest {
     }
 
     @Test
-    fun testBuilder() {
-        // given an InputObserver instance from its builder
-        val inputObserver = InputObserver.Builder()
-            .id(1234)
-            .lastname("lastname")
-            .firstname("firstname")
-            .build()
-
-        // then
-        assertNotNull(inputObserver)
-        assertEquals(InputObserver(1234,
-                                   "lastname",
-                                   "firstname"),
-                     inputObserver)
-    }
-
-    @Test
-    fun testCreateFromCursor() {
+    fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_ID)).thenReturn(0)
@@ -57,7 +42,7 @@ class InputObserverTest {
         `when`(cursor.getString(2)).thenReturn("firstname")
 
         // when getting InputObserver instance from Cursor
-        val inputObserver = InputObserver.fromCursor(cursor)
+        val inputObserver = fromCursor(cursor)
 
         // then
         assertNotNull(inputObserver)
@@ -65,6 +50,59 @@ class InputObserverTest {
                                    "lastname",
                                    "firstname"),
                      inputObserver)
+    }
+
+    @Test
+    fun testCreateFromPartialCursor() {
+        // given a mocked Cursor
+        val cursor = mock(Cursor::class.java)
+        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_ID)).thenReturn(0)
+        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_LASTNAME)).thenReturn(-1)
+        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_FIRSTNAME)).thenReturn(-1)
+        `when`(cursor.getLong(0)).thenReturn(1234)
+        `when`(cursor.getString(1)).thenReturn(null)
+        `when`(cursor.getString(2)).thenReturn(null)
+
+        // when getting InputObserver instance from Cursor
+        val inputObserver = fromCursor(cursor)
+
+        // then
+        assertNotNull(inputObserver)
+        assertEquals(InputObserver(1234,
+                                   null,
+                                   null),
+                     inputObserver)
+    }
+
+    @Test
+    fun testCreateFromClosedCursor() {
+        // given a mocked Cursor
+        val cursor = mock(Cursor::class.java)
+        `when`(cursor.isClosed).thenReturn(true)
+
+        // when getting InputObserver instance from Cursor
+        val inputObserver = fromCursor(cursor)
+
+        // then
+        assertNull(inputObserver)
+    }
+
+    @Test
+    fun testCreateFromInvalidCursor() {
+        // given a mocked Cursor
+        val cursor = mock(Cursor::class.java)
+        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_ID)).thenThrow(IllegalArgumentException::class.java)
+        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_LASTNAME)).thenReturn(-1)
+        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_FIRSTNAME)).thenReturn(-1)
+        `when`(cursor.getLong(0)).thenReturn(0)
+        `when`(cursor.getString(1)).thenReturn(null)
+        `when`(cursor.getString(2)).thenReturn(null)
+
+        // when getting InputObserver instance from Cursor
+        val inputObserver = fromCursor(cursor)
+
+        // then
+        assertNull(inputObserver)
     }
 
     @Test
