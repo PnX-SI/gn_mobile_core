@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
 import androidx.room.ColumnInfo
-import androidx.room.PrimaryKey
+import androidx.room.Embedded
 
 /**
  * Base taxon.
@@ -16,7 +16,6 @@ abstract class AbstractTaxon : Parcelable {
     /**
      * The unique ID of the taxon.
      */
-    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
     var id: Long
 
@@ -25,6 +24,9 @@ abstract class AbstractTaxon : Parcelable {
      */
     @ColumnInfo(name = COLUMN_NAME)
     var name: String
+
+    @Embedded
+    val taxonomy: Taxonomy
 
     /**
      * The description of the taxon.
@@ -40,16 +42,19 @@ abstract class AbstractTaxon : Parcelable {
 
     constructor(id: Long,
                 name: String,
+                taxonomy: Taxonomy,
                 description: String?,
                 heritage: Boolean = false) {
         this.id = id
         this.name = name
+        this.taxonomy = taxonomy
         this.description = description
         this.heritage = heritage
     }
 
     constructor(source: Parcel) : this(source.readLong(),
-                                       source.readString() ?: "",
+                                       source.readString()!!,
+                                       source.readParcelable(Taxonomy::class.java.classLoader)!!,
                                        source.readString(),
                                        source.readByte() == 1.toByte())
 
@@ -59,6 +64,7 @@ abstract class AbstractTaxon : Parcelable {
 
         if (id != other.id) return false
         if (name != other.name) return false
+        if (taxonomy != other.taxonomy) return false
         if (description != other.description) return false
         if (heritage != other.heritage) return false
 
@@ -68,9 +74,9 @@ abstract class AbstractTaxon : Parcelable {
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + name.hashCode()
+        result = 31 * result + taxonomy.hashCode()
         result = 31 * result + (description?.hashCode() ?: 0)
         result = 31 * result + heritage.hashCode()
-
         return result
     }
 
@@ -82,6 +88,7 @@ abstract class AbstractTaxon : Parcelable {
                                flags: Int) {
         dest?.writeLong(id)
         dest?.writeString(name)
+        dest?.writeParcelable(taxonomy, flags)
         dest?.writeString(description)
         dest?.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
     }
@@ -99,6 +106,7 @@ abstract class AbstractTaxon : Parcelable {
 
         val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
                                          COLUMN_NAME,
+                                         *Taxonomy.DEFAULT_PROJECTION,
                                          COLUMN_DESCRIPTION,
                                          COLUMN_HERITAGE)
     }

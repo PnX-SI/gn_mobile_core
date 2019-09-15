@@ -4,26 +4,27 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.commons.util.IsoDateUtils.toDate
-import java.util.*
+import java.util.Date
 
 /**
  * Synchronization status.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-data class AppSync(
-    var packageId: String?, var lastSync: Date? = null, var inputsToSynchronize: Int = 0
-) : Parcelable {
+data class AppSync(var packageId: String?,
+                   var lastSync: Date? = null,
+                   var inputsToSynchronize: Int = 0) : Parcelable {
 
-    private constructor(source: Parcel) : this(
-        source.readString(), source.readSerializable() as Date, source.readInt()
-    )
+    private constructor(source: Parcel) : this(source.readString(),
+                                               source.readSerializable() as Date,
+                                               source.readInt())
 
     override fun describeContents(): Int {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
+    override fun writeToParcel(dest: Parcel?,
+                               flags: Int) {
         dest?.writeString(packageId)
         dest?.writeSerializable(lastSync)
         dest?.writeInt(inputsToSynchronize)
@@ -49,14 +50,8 @@ data class AppSync(
             }
 
             val appSync = AppSync(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)))
-            appSync.lastSync = toDate(
-                cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LAST_SYNC))
-            )
-            appSync.inputsToSynchronize = cursor.getInt(
-                cursor.getColumnIndexOrThrow(
-                    COLUMN_INPUTS_TO_SYNCHRONIZE
-                )
-            )
+            appSync.lastSync = toDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LAST_SYNC)))
+            appSync.inputsToSynchronize = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INPUTS_TO_SYNCHRONIZE))
 
             return appSync
         }

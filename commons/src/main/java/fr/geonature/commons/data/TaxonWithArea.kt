@@ -15,10 +15,12 @@ class TaxonWithArea : AbstractTaxon {
 
     constructor(id: Long,
                 name: String,
+                taxonomy: Taxonomy,
                 description: String?,
                 heritage: Boolean = false,
                 taxonArea: TaxonArea?) : super(id,
                                                name,
+                                               taxonomy,
                                                description,
                                                heritage) {
         this.taxonArea = taxonArea
@@ -26,6 +28,7 @@ class TaxonWithArea : AbstractTaxon {
 
     constructor(taxon: Taxon) : super(taxon.id,
                                       taxon.name,
+                                      taxon.taxonomy,
                                       taxon.description,
                                       taxon.heritage)
 
