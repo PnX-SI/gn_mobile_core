@@ -10,7 +10,15 @@ import com.google.gson.annotations.SerializedName
 data class Taxref(
     @SerializedName("cd_nom")
     val id: Long,
+
     @SerializedName("cd_ref")
     val ref: Long,
+
     @SerializedName("lb_nom")
-    val name: String, val records: List<TaxrefArea> = emptyList())
+    val name: String,
+
+    @SerializedName("regne")
+    val kingdom: String,
+
+    @SerializedName("group2_inpn")
+    val group: String)

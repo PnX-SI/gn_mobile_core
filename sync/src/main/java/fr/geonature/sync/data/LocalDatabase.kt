@@ -20,7 +20,7 @@ import fr.geonature.sync.util.FileUtils.getFile
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @Database(entities = [InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class],
-          version = 5,
+          version = 6,
           exportSchema = false)
 abstract class LocalDatabase : RoomDatabase() {
 

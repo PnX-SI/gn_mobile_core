@@ -8,6 +8,7 @@ import androidx.work.WorkerParameters
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
+import fr.geonature.commons.data.Taxonomy
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.util.SettingsUtils
@@ -114,6 +115,8 @@ class DataSyncWorker(appContext: Context,
         val taxa = taxref.map {
             Taxon(it.id,
                   it.name,
+                  Taxonomy(it.kingdom,
+                           it.group),
                   null)
         }
             .toTypedArray()

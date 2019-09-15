@@ -69,6 +69,9 @@ class MainContentProvider : ContentProvider() {
             INPUT_OBSERVER_ID -> inputObserverIdQuery(context,
                                                       uri,
                                                       projection)
+            TAXONOMY, TAXONOMY_KINGDOM, TAXONOMY_KINGDOM_GROUP -> taxonomyQuery(context,
+                                                                                uri,
+                                                                                projection)
             TAXA -> taxaQuery(context,
                               projection,
                               selection,
@@ -86,9 +89,6 @@ class MainContentProvider : ContentProvider() {
             TAXON_AREA_ID -> taxonAreaIdQuery(context,
                                               uri,
                                               projection)
-            TAXONOMY, TAXONOMY_KINGDOM, TAXONOMY_KINGDOM_GROUP -> taxonomyQuery(context,
-                                                                                uri,
-                                                                                projection)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -170,6 +170,27 @@ class MainContentProvider : ContentProvider() {
             .select(queryBuilder.create())
     }
 
+    private fun taxonomyQuery(context: Context,
+                              uri: Uri,
+                              projection: Array<String>?): Cursor {
+
+        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
+            .take(2)
+        val selection = if (lastPathSegments.isEmpty()) "" else if (lastPathSegments.size == 1) "${Taxonomy.COLUMN_KINGDOM} LIKE ?" else "${Taxonomy.COLUMN_KINGDOM} = ? AND ${Taxonomy.COLUMN_GROUP} LIKE ?"
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxonomy.TABLE_NAME)
+            .columns(projection ?: Taxonomy.DEFAULT_PROJECTION)
+
+        if (selection.isNotEmpty()) {
+            queryBuilder.selection(selection,
+                                   lastPathSegments.toTypedArray())
+        }
+
+        return LocalDatabase.getInstance(context)
+            .taxonomyDao()
+            .select(queryBuilder.create())
+    }
+
     private fun taxaQuery(context: Context,
                           projection: Array<String>?,
                           selection: String?,
@@ -199,8 +220,8 @@ class MainContentProvider : ContentProvider() {
         val defaultProjection = projection
             ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
                 when (it) {
-                    AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
-                    TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
+                    in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
+                    in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
                     else -> it
                 }
             }.joinToString(", ")
@@ -255,8 +276,8 @@ class MainContentProvider : ContentProvider() {
         val defaultProjection = projection
             ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
                 when (it) {
-                    AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
-                    TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
+                    in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
+                    in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
                     else -> it
                 }
             }.joinToString(", ")
@@ -291,27 +312,6 @@ class MainContentProvider : ContentProvider() {
                                       bindArgs.toTypedArray()))
     }
 
-    private fun taxonomyQuery(context: Context,
-                              uri: Uri,
-                              projection: Array<String>?): Cursor {
-
-        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
-            .take(2)
-        val selection = if (lastPathSegments.isEmpty()) "" else if (lastPathSegments.size == 1) "${Taxonomy.COLUMN_KINGDOM} LIKE ?" else "${Taxonomy.COLUMN_KINGDOM} = ? AND ${Taxonomy.COLUMN_GROUP} LIKE ?"
-
-        val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxonomy.TABLE_NAME)
-            .columns(projection ?: Taxonomy.DEFAULT_PROJECTION)
-
-        if (selection.isNotEmpty()) {
-            queryBuilder.selection(selection,
-                                   lastPathSegments.toTypedArray())
-        }
-
-        return LocalDatabase.getInstance(context)
-            .taxonomyDao()
-            .select(queryBuilder.create())
-    }
-
     companion object {
 
         // used for the UriMatcher
@@ -319,13 +319,13 @@ class MainContentProvider : ContentProvider() {
         const val INPUT_OBSERVERS = 10
         const val INPUT_OBSERVERS_IDS = 11
         const val INPUT_OBSERVER_ID = 12
-        const val TAXA = 20
-        const val TAXA_AREA = 21
-        const val TAXON_ID = 22
-        const val TAXON_AREA_ID = 23
-        const val TAXONOMY = 30
-        const val TAXONOMY_KINGDOM = 31
-        const val TAXONOMY_KINGDOM_GROUP = 32
+        const val TAXONOMY = 20
+        const val TAXONOMY_KINGDOM = 21
+        const val TAXONOMY_KINGDOM_GROUP = 22
+        const val TAXA = 30
+        const val TAXA_AREA = 31
+        const val TAXON_ID = 32
+        const val TAXON_AREA_ID = 33
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
@@ -348,6 +348,12 @@ class MainContentProvider : ContentProvider() {
                    "${InputObserver.TABLE_NAME}/#",
                    INPUT_OBSERVER_ID)
             addURI(AUTHORITY,
+                   "${Taxonomy.TABLE_NAME}/*",
+                   TAXONOMY_KINGDOM)
+            addURI(AUTHORITY,
+                   "${Taxonomy.TABLE_NAME}/*/*",
+                   TAXONOMY_KINGDOM_GROUP)
+            addURI(AUTHORITY,
                    Taxon.TABLE_NAME,
                    TAXA)
             addURI(AUTHORITY,
@@ -362,12 +368,6 @@ class MainContentProvider : ContentProvider() {
             addURI(AUTHORITY,
                    Taxonomy.TABLE_NAME,
                    TAXONOMY)
-            addURI(AUTHORITY,
-                   "${Taxonomy.TABLE_NAME}/*",
-                   TAXONOMY_KINGDOM)
-            addURI(AUTHORITY,
-                   "${Taxonomy.TABLE_NAME}/*/*",
-                   TAXONOMY_KINGDOM_GROUP)
         }
     }
 }
