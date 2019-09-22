@@ -22,6 +22,7 @@ data class InputObserver(
      * The unique ID of the input observer.
      */
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = COLUMN_ID)
     var id: Long,
 
     /**

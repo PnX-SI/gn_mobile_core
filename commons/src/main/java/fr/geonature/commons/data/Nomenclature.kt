@@ -23,9 +23,9 @@ open class Nomenclature : Parcelable {
     /**
      * The unique ID of this nomenclature.
      */
-    @Suppress("PropertyName")
     @PrimaryKey(autoGenerate = true)
-    var _id: Long
+    @ColumnInfo(name = COLUMN_ID)
+    var id: Long
 
     @ColumnInfo(name = COLUMN_CODE)
     var code: String
@@ -48,7 +48,7 @@ open class Nomenclature : Parcelable {
                 hierarchy: String,
                 defaultLabel: String,
                 typeId: Long) {
-        this._id = id
+        this.id = id
         this.code = code
         this.hierarchy = hierarchy
         this.defaultLabel = defaultLabel
@@ -65,7 +65,7 @@ open class Nomenclature : Parcelable {
         if (this === other) return true
         if (other !is Nomenclature) return false
 
-        if (_id != other._id) return false
+        if (id != other.id) return false
         if (code != other.code) return false
         if (hierarchy != other.hierarchy) return false
         if (defaultLabel != other.defaultLabel) return false
@@ -75,7 +75,7 @@ open class Nomenclature : Parcelable {
     }
 
     override fun hashCode(): Int {
-        var result = _id.hashCode()
+        var result = id.hashCode()
         result = 31 * result + code.hashCode()
         result = 31 * result + hierarchy.hashCode()
         result = 31 * result + defaultLabel.hashCode()
@@ -90,7 +90,7 @@ open class Nomenclature : Parcelable {
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(_id)
+        dest?.writeLong(id)
         dest?.writeString(code)
         dest?.writeString(hierarchy)
         dest?.writeString(defaultLabel)

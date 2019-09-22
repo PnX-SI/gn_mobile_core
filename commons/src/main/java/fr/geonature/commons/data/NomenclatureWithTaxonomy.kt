@@ -26,7 +26,7 @@ class NomenclatureWithTaxonomy : Nomenclature {
         this.taxonony = taxonomy
     }
 
-    constructor(nomenclature: Nomenclature) : super(nomenclature._id,
+    constructor(nomenclature: Nomenclature) : super(nomenclature.id,
                                                     nomenclature.code,
                                                     nomenclature.hierarchy,
                                                     nomenclature.defaultLabel,
@@ -81,7 +81,7 @@ class NomenclatureWithTaxonomy : Nomenclature {
             val nomenclatureTaxonomy = NomenclatureTaxonomy.fromCursor(cursor)
 
             return NomenclatureWithTaxonomy(nomenclature).also {
-                if (nomenclature._id == nomenclatureTaxonomy?.nomenclatureId) {
+                if (nomenclature.id == nomenclatureTaxonomy?.nomenclatureId) {
                     it.taxonony = nomenclatureTaxonomy.taxonomy
                 }
             }

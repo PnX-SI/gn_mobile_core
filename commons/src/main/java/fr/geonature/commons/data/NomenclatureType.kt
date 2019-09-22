@@ -25,6 +25,7 @@ data class NomenclatureType(
      * The unique ID of this nomenclature type.
      */
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = COLUMN_ID)
     var id: Long,
 
     @ColumnInfo(name = COLUMN_MNEMONIC)
