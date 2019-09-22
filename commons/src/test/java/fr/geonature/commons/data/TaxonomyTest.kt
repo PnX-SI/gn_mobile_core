@@ -2,6 +2,7 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.Taxonomy.Companion.ANY
 import fr.geonature.commons.data.Taxonomy.Companion.fromCursor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -25,6 +26,49 @@ class TaxonomyTest {
                               "Ascidies"),
                      Taxonomy("Animalia",
                               "Ascidies"))
+    }
+
+    @Test
+    fun testSanitizeValues() {
+        assertEquals(Taxonomy(ANY,
+                              ANY),
+                     Taxonomy("",
+                              ""))
+
+        assertEquals(Taxonomy(ANY,
+                              ANY),
+                     Taxonomy("all",
+                              "all"))
+
+        assertEquals(Taxonomy("Animalia",
+                              ANY),
+                     Taxonomy("Animalia",
+                              "all"))
+
+        assertEquals(Taxonomy(ANY,
+                              ANY),
+                     Taxonomy("Autre",
+                              "Autre"))
+
+        assertEquals(Taxonomy(ANY,
+                              ANY),
+                     Taxonomy("Autres",
+                              "Autres"))
+
+        assertEquals(Taxonomy(ANY,
+                              ANY),
+                     Taxonomy("autres",
+                              "autre"))
+
+        assertEquals(Taxonomy(ANY,
+                              ANY),
+                     Taxonomy("AUTRES",
+                              "AUTRE"))
+
+        assertEquals(Taxonomy("Animalia",
+                              ANY),
+                     Taxonomy("Animalia",
+                              "autre"))
     }
 
     @Test

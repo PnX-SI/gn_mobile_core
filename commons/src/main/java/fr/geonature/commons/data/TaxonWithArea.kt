@@ -32,7 +32,7 @@ class TaxonWithArea : AbstractTaxon {
                                       taxon.description,
                                       taxon.heritage)
 
-    constructor(source: Parcel) : super(source) {
+    private constructor(source: Parcel) : super(source) {
         taxonArea = source.readParcelable(TaxonArea::class.java.classLoader)
     }
 

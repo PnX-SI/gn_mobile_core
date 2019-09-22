@@ -26,7 +26,7 @@ class Taxon : AbstractTaxon {
                                                    description,
                                                    heritage)
 
-    constructor(source: Parcel) : super(source)
+    private constructor(source: Parcel) : super(source)
 
     companion object {
 

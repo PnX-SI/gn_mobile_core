@@ -52,11 +52,11 @@ abstract class AbstractTaxon : Parcelable {
         this.heritage = heritage
     }
 
-    constructor(source: Parcel) : this(source.readLong(),
-                                       source.readString()!!,
-                                       source.readParcelable(Taxonomy::class.java.classLoader)!!,
-                                       source.readString(),
-                                       source.readByte() == 1.toByte())
+    internal constructor(source: Parcel) : this(source.readLong(),
+                                                source.readString()!!,
+                                                source.readParcelable(Taxonomy::class.java.classLoader)!!,
+                                                source.readString(),
+                                                source.readByte() == 1.toByte())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -88,7 +88,8 @@ abstract class AbstractTaxon : Parcelable {
                                flags: Int) {
         dest?.writeLong(id)
         dest?.writeString(name)
-        dest?.writeParcelable(taxonomy, flags)
+        dest?.writeParcelable(taxonomy,
+                              flags)
         dest?.writeString(description)
         dest?.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
     }
