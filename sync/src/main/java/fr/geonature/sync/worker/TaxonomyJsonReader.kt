@@ -2,7 +2,7 @@ package fr.geonature.sync.worker
 
 import android.text.TextUtils
 import android.util.JsonReader
-import android.util.JsonToken
+import android.util.JsonToken.BEGIN_ARRAY
 import android.util.JsonToken.NAME
 import android.util.Log
 import fr.geonature.commons.data.Taxonomy
@@ -60,6 +60,7 @@ class TaxonomyJsonReader {
     @Throws(IOException::class)
     private fun readTaxonomyAsMap(reader: JsonReader): List<Taxonomy> {
         val taxonomyAsMap = HashMap<String, MutableSet<String>>()
+        taxonomyAsMap[Taxonomy.ANY] = mutableSetOf(Taxonomy.ANY)
 
         reader.beginObject()
 
@@ -75,10 +76,10 @@ class TaxonomyJsonReader {
                     }
                     else {
                         kingdom = key
-                        taxonomyAsMap[kingdom!!] = mutableSetOf()
+                        taxonomyAsMap[kingdom!!] = mutableSetOf(Taxonomy.ANY)
                     }
                 }
-                JsonToken.BEGIN_ARRAY -> {
+                BEGIN_ARRAY -> {
                     if (TextUtils.isEmpty(kingdom)) {
                         reader.skipValue()
                     }
@@ -113,15 +114,30 @@ class TaxonomyJsonReader {
                 } ?: emptyList()
             }
             .filter { it.isNotEmpty() }
-            .flatMap { it.asSequence() }
+            .flatMap { it.asSequence().distinct() }
             .sortedWith(Comparator { o1, o2 ->
                 val kingdomCompare = o1.kingdom.compareTo(o2.kingdom)
 
                 if (kingdomCompare != 0) {
-                    kingdomCompare
+                    when {
+                        o1.kingdom == Taxonomy.ANY -> -1
+                        o2.kingdom == Taxonomy.ANY -> 1
+                        else -> kingdomCompare
+                    }
                 }
                 else {
-                    o1.group.compareTo(o2.group)
+                    val groupCompare = o1.group.compareTo(o2.group)
+
+                    if (groupCompare != 0) {
+                        when {
+                            o1.group == Taxonomy.ANY -> -1
+                            o2.group == Taxonomy.ANY -> 1
+                            else -> groupCompare
+                        }
+                    }
+                    else {
+                        groupCompare
+                    }
                 }
             })
             .toList()

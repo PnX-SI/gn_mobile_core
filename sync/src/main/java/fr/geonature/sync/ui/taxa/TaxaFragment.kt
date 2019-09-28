@@ -57,14 +57,12 @@ class TaxaFragment : Fragment() {
                     }
 
                     return CursorLoader(requireContext(),
-                                        buildUri(Taxon.TABLE_NAME,
-                                                 "area/123"),
+                                        buildUri(Taxon.TABLE_NAME),
                                         null,
                                         selections.first,
                                         selections.second,
                                         null)
                 }
-
                 else -> throw IllegalArgumentException()
             }
         }

@@ -11,6 +11,10 @@ import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import fr.geonature.commons.data.AbstractTaxon
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.InputObserver
+import fr.geonature.commons.data.Nomenclature
+import fr.geonature.commons.data.NomenclatureTaxonomy
+import fr.geonature.commons.data.NomenclatureType
+import fr.geonature.commons.data.NomenclatureWithTaxonomy
 import fr.geonature.commons.data.Provider.AUTHORITY
 import fr.geonature.commons.data.Provider.checkReadPermission
 import fr.geonature.commons.data.Taxon
@@ -38,6 +42,8 @@ class MainContentProvider : ContentProvider() {
             TAXON_ID, TAXON_AREA_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
             TAXONOMY, TAXONOMY_KINGDOM -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
             TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
+            NOMENCLATURE_TYPES -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${NomenclatureType.TABLE_NAME}"
+            NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Nomenclature.TABLE_NAME}"
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -89,6 +95,17 @@ class MainContentProvider : ContentProvider() {
             TAXON_AREA_ID -> taxonAreaIdQuery(context,
                                               uri,
                                               projection)
+            NOMENCLATURE_TYPES -> nomenclatureTypesQuery(context,
+                                                         projection,
+                                                         selection,
+                                                         selectionArgs,
+                                                         sortOrder)
+            NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> nomenclaturesByTaxonomyQuery(context,
+                                                                                                                           uri,
+                                                                                                                           projection,
+                                                                                                                           selection,
+                                                                                                                           selectionArgs,
+                                                                                                                           sortOrder)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -198,7 +215,7 @@ class MainContentProvider : ContentProvider() {
                           sortOrder: String?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns(projection ?: AbstractTaxon.DEFAULT_PROJECTION)
+            .columns((projection ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
             .selection(selection,
                        selectionArgs)
             .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
@@ -217,14 +234,16 @@ class MainContentProvider : ContentProvider() {
 
         val bindArgs = mutableListOf<Any?>()
 
-        val defaultProjection = projection
-            ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
+        val defaultProjection = (projection ?: TaxonWithArea.DEFAULT_PROJECTION).asSequence()
+            .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
+            .map {
                 when (it) {
                     in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
                     in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
                     else -> it
                 }
-            }.joinToString(", ")
+            }
+            .joinToString(", ")
 
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
         val joinFilterOnAreaClause = if (filterOnArea == null) {
@@ -244,7 +263,7 @@ class MainContentProvider : ContentProvider() {
             $joinFilterOnAreaClause
             $whereClause
             ORDER BY $orderBy
-            """
+            """.trimIndent()
 
         return LocalDatabase.getInstance(context)
             .taxonAreaDao()
@@ -259,7 +278,7 @@ class MainContentProvider : ContentProvider() {
                              projection: Array<String>?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns(projection ?: AbstractTaxon.DEFAULT_PROJECTION)
+            .columns((projection ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
             .selection("${AbstractTaxon.COLUMN_ID} = ?",
                        arrayOf(uri.lastPathSegment?.toLongOrNull()))
 
@@ -273,14 +292,16 @@ class MainContentProvider : ContentProvider() {
                                  projection: Array<String>?): Cursor {
         val bindArgs = mutableListOf<Any?>()
 
-        val defaultProjection = projection
-            ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
+        val defaultProjection = (projection ?: TaxonWithArea.DEFAULT_PROJECTION).asSequence()
+            .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
+            .map {
                 when (it) {
                     in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
                     in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
                     else -> it
                 }
-            }.joinToString(", ")
+            }
+            .joinToString(", ")
 
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
         val joinFilterOnAreaClause = if (filterOnArea == null) {
@@ -304,12 +325,101 @@ class MainContentProvider : ContentProvider() {
             FROM ${Taxon.TABLE_NAME} t
             $joinFilterOnAreaClause
             $whereClause
-            """
+            """.trimIndent()
 
         return LocalDatabase.getInstance(context)
             .taxonAreaDao()
             .select(SimpleSQLiteQuery(sql,
                                       bindArgs.toTypedArray()))
+    }
+
+    private fun nomenclatureTypesQuery(context: Context,
+                                       projection: Array<String>?,
+                                       selection: String?,
+                                       selectionArgs: Array<String>?,
+                                       sortOrder: String?): Cursor {
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(NomenclatureType.TABLE_NAME)
+            .columns(projection ?: NomenclatureType.DEFAULT_PROJECTION)
+            .selection(selection,
+                       selectionArgs)
+            .orderBy(sortOrder ?: "${NomenclatureType.COLUMN_MNEMONIC} COLLATE NOCASE ASC")
+
+        return LocalDatabase.getInstance(context)
+            .nomenclatureTypeDao()
+            .select(queryBuilder.create())
+    }
+
+    private fun nomenclaturesByTaxonomyQuery(context: Context,
+                                             uri: Uri,
+                                             projection: Array<String>?,
+                                             selection: String?,
+                                             selectionArgs: Array<String>?,
+                                             sortOrder: String?): Cursor {
+        val bindArgs = mutableListOf<Any?>()
+
+        val defaultProjection = (projection ?: arrayOf(*NomenclatureType.DEFAULT_PROJECTION,
+                                                       *NomenclatureWithTaxonomy.DEFAULT_PROJECTION)).asSequence()
+            .filter { column ->
+                arrayOf(*NomenclatureType.DEFAULT_PROJECTION,
+                        *NomenclatureWithTaxonomy.DEFAULT_PROJECTION).any { it === column }
+            }
+            .map {
+                when (it) {
+                    in NomenclatureType.DEFAULT_PROJECTION -> "nt.\"$it\""
+                    in Nomenclature.DEFAULT_PROJECTION -> "n.\"$it\""
+                    in Taxonomy.DEFAULT_PROJECTION -> "t.\"$it\""
+                    else -> it
+                }
+            }
+            .joinToString(", ")
+
+        val taxonomyTypeMnemonic = uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            .take(1)
+        val joinFilterOnNomenclatureTypeClause = if (taxonomyTypeMnemonic.isEmpty()) {
+            ""
+        }
+        else {
+            bindArgs.add(taxonomyTypeMnemonic)
+            """
+            JOIN ${NomenclatureType.TABLE_NAME} nty ON nty.${NomenclatureType.COLUMN_ID} = n.${Nomenclature.COLUMN_TYPE_ID} AND nty.${NomenclatureType.COLUMN_MNEMONIC} = ?
+            """.trimIndent()
+        }
+
+        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf("items") + 1)
+            .take(2)
+        val joinFilterOnTaxonomyClause = if (lastPathSegments.isEmpty()) {
+            ""
+        }
+        else {
+            bindArgs.addAll(lastPathSegments)
+
+            """
+            LEFT JOIN ${NomenclatureTaxonomy.TABLE_NAME} nta ON
+                nta.${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID} = n.${Nomenclature.COLUMN_ID}
+                AND (nta.${Taxonomy.COLUMN_KINGDOM} = t.${Taxonomy.COLUMN_KINGDOM} OR nta.${Taxonomy.COLUMN_KINGDOM} = "${Taxonomy.ANY}")
+                ${if (lastPathSegments.size == 2) "AND (nta.${Taxonomy.COLUMN_GROUP} = t.${Taxonomy.COLUMN_GROUP} OR nta.${Taxonomy.COLUMN_GROUP} = \"${Taxonomy.ANY}\")" else ""}
+            """.trimIndent()
+        }
+
+        val whereClause = if (selection == null) "" else "WHERE $selection"
+        val orderBy = sortOrder ?: "n.${Nomenclature.COLUMN_HIERARCHY} COLLATE NOCASE ASC"
+
+        val sql = """
+            SELECT $defaultProjection
+            FROM ${Nomenclature.TABLE_NAME} n
+            $joinFilterOnNomenclatureTypeClause
+            $joinFilterOnTaxonomyClause
+            $whereClause
+            ORDER BY $orderBy
+            """.trimIndent()
+
+        return LocalDatabase.getInstance(context)
+            .nomenclatureDao()
+            .select(SimpleSQLiteQuery(sql,
+                                      bindArgs.also {
+                                          it.addAll(selectionArgs?.asList() ?: emptyList())
+                                      }.toTypedArray()))
     }
 
     companion object {
@@ -326,6 +436,9 @@ class MainContentProvider : ContentProvider() {
         const val TAXA_AREA = 31
         const val TAXON_ID = 32
         const val TAXON_AREA_ID = 33
+        const val NOMENCLATURE_TYPES = 40
+        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 41
+        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 42
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
@@ -348,6 +461,9 @@ class MainContentProvider : ContentProvider() {
                    "${InputObserver.TABLE_NAME}/#",
                    INPUT_OBSERVER_ID)
             addURI(AUTHORITY,
+                   Taxonomy.TABLE_NAME,
+                   TAXONOMY)
+            addURI(AUTHORITY,
                    "${Taxonomy.TABLE_NAME}/*",
                    TAXONOMY_KINGDOM)
             addURI(AUTHORITY,
@@ -366,8 +482,14 @@ class MainContentProvider : ContentProvider() {
                    "${Taxon.TABLE_NAME}/#/area/#",
                    TAXON_AREA_ID)
             addURI(AUTHORITY,
-                   Taxonomy.TABLE_NAME,
-                   TAXONOMY)
+                   NomenclatureType.TABLE_NAME,
+                   NOMENCLATURE_TYPES)
+            addURI(AUTHORITY,
+                   "${NomenclatureType.TABLE_NAME}/*/items/*",
+                   NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM)
+            addURI(AUTHORITY,
+                   "${NomenclatureType.TABLE_NAME}/*/items/*/*",
+                   NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP)
         }
     }
 }

@@ -6,6 +6,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import fr.geonature.commons.data.InputObserver
+import fr.geonature.commons.data.Nomenclature
+import fr.geonature.commons.data.NomenclatureTaxonomy
+import fr.geonature.commons.data.NomenclatureType
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.data.Taxonomy
@@ -19,30 +22,45 @@ import fr.geonature.sync.util.FileUtils.getFile
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Database(entities = [InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class],
-          version = 6,
+@Database(entities = [InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class, NomenclatureType::class, Nomenclature::class, NomenclatureTaxonomy::class],
+          version = 12,
           exportSchema = false)
 abstract class LocalDatabase : RoomDatabase() {
 
     /**
-     * @return The DAO for the 'observers' table.
+     * @return The DAO for the [InputObserver.TABLE_NAME] table.
      */
     abstract fun inputObserverDao(): InputObserverDao
 
     /**
-     * @return The DAO for the 'Taxonomy' table.
+     * @return The DAO for the [Taxonomy.TABLE_NAME] table.
      */
     abstract fun taxonomyDao(): TaxonomyDao
 
     /**
-     * @return The DAO for the 'taxa' table.
+     * @return The DAO for the [Taxon.TABLE_NAME] table.
      */
     abstract fun taxonDao(): TaxonDao
 
     /**
-     * @return The DAO for the 'taxa_area' table.
+     * @return The DAO for the [TaxonArea.TABLE_NAME] table.
      */
     abstract fun taxonAreaDao(): TaxonAreaDao
+
+    /**
+     * @return The DAO for the [NomenclatureType.TABLE_NAME] table.
+     */
+    abstract fun nomenclatureTypeDao(): NomenclatureTypeDao
+
+    /**
+     * @return The DAO for the [Nomenclature.TABLE_NAME] table.
+     */
+    abstract fun nomenclatureDao(): NomenclatureDao
+
+    /**
+     * @return The DAO for the [NomenclatureTaxonomy.TABLE_NAME] table.
+     */
+    abstract fun nomenclatureTaxonomyDao(): NomenclatureTaxonomyDao
 
     companion object {
 

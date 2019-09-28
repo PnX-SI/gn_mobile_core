@@ -1,6 +1,7 @@
 package fr.geonature.sync.worker
 
 import android.app.Application
+import fr.geonature.commons.data.Taxonomy
 import fr.geonature.sync.FixtureHelper.getFixture
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNotNull
@@ -44,7 +45,9 @@ class TaxonomyJsonReaderTest {
 
         // then
         assertNotNull(taxonomy)
-        assertTrue(taxonomy.isEmpty())
+        assertArrayEquals(arrayOf(Taxonomy(Taxonomy.ANY,
+                                           Taxonomy.ANY)),
+                          taxonomy.toTypedArray())
     }
 
     @Test
@@ -57,14 +60,15 @@ class TaxonomyJsonReaderTest {
 
         // then
         assertNotNull(taxonomy)
-        assertArrayEquals(arrayOf("Animalia",
+        assertArrayEquals(arrayOf(Taxonomy.ANY,
+                                  "Animalia",
                                   "Bacteria",
                                   "Chromista",
                                   "Fungi",
                                   "Plantae",
                                   "Protozoa"),
                           taxonomy.map { it.kingdom }.distinct().toTypedArray())
-        assertArrayEquals(arrayOf("Autres",
+        assertArrayEquals(arrayOf(Taxonomy.ANY,
                                   "Lichens"),
                           taxonomy.asSequence().filter { it.kingdom == "Fungi" }.map { it.group }.toList().toTypedArray())
     }
