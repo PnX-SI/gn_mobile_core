@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
+import android.text.TextUtils
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import fr.geonature.commons.data.AbstractTaxon
@@ -215,7 +216,8 @@ class MainContentProvider : ContentProvider() {
                           sortOrder: String?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns((projection ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
+            .columns((projection
+                ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
             .selection(selection,
                        selectionArgs)
             .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
@@ -278,7 +280,8 @@ class MainContentProvider : ContentProvider() {
                              projection: Array<String>?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns((projection ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
+            .columns((projection
+                ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
             .selection("${AbstractTaxon.COLUMN_ID} = ?",
                        arrayOf(uri.lastPathSegment?.toLongOrNull()))
 
@@ -358,17 +361,16 @@ class MainContentProvider : ContentProvider() {
                                              sortOrder: String?): Cursor {
         val bindArgs = mutableListOf<Any?>()
 
-        val defaultProjection = (projection ?: arrayOf(*NomenclatureType.DEFAULT_PROJECTION,
-                                                       *NomenclatureWithTaxonomy.DEFAULT_PROJECTION)).asSequence()
+        val defaultProjection = (projection
+            ?: NomenclatureWithTaxonomy.DEFAULT_PROJECTION).asSequence()
             .filter { column ->
-                arrayOf(*NomenclatureType.DEFAULT_PROJECTION,
-                        *NomenclatureWithTaxonomy.DEFAULT_PROJECTION).any { it === column }
+                NomenclatureWithTaxonomy.DEFAULT_PROJECTION.any { it === column }
             }
             .map {
                 when (it) {
-                    in NomenclatureType.DEFAULT_PROJECTION -> "nt.\"$it\""
+                    NomenclatureType.COLUMN_MNEMONIC -> "nty.\"$it\""
                     in Nomenclature.DEFAULT_PROJECTION -> "n.\"$it\""
-                    in Taxonomy.DEFAULT_PROJECTION -> "t.\"$it\""
+                    in Taxonomy.DEFAULT_PROJECTION -> "nta.\"$it\""
                     else -> it
                 }
             }
@@ -376,13 +378,14 @@ class MainContentProvider : ContentProvider() {
 
         val taxonomyTypeMnemonic = uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
             .take(1)
-        val joinFilterOnNomenclatureTypeClause = if (taxonomyTypeMnemonic.isEmpty()) {
+            .firstOrNull()
+        val joinFilterOnNomenclatureTypeClause = if (TextUtils.isEmpty(taxonomyTypeMnemonic)) {
             ""
         }
         else {
             bindArgs.add(taxonomyTypeMnemonic)
             """
-            JOIN ${NomenclatureType.TABLE_NAME} nty ON nty.${NomenclatureType.COLUMN_ID} = n.${Nomenclature.COLUMN_TYPE_ID} AND nty.${NomenclatureType.COLUMN_MNEMONIC} = ?
+            JOIN ${NomenclatureType.TABLE_NAME} nty ON nty."${NomenclatureType.COLUMN_ID}" = n."${Nomenclature.COLUMN_TYPE_ID}" AND nty."${NomenclatureType.COLUMN_MNEMONIC}" = ?
             """.trimIndent()
         }
 
@@ -396,14 +399,14 @@ class MainContentProvider : ContentProvider() {
 
             """
             LEFT JOIN ${NomenclatureTaxonomy.TABLE_NAME} nta ON
-                nta.${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID} = n.${Nomenclature.COLUMN_ID}
-                AND (nta.${Taxonomy.COLUMN_KINGDOM} = t.${Taxonomy.COLUMN_KINGDOM} OR nta.${Taxonomy.COLUMN_KINGDOM} = "${Taxonomy.ANY}")
-                ${if (lastPathSegments.size == 2) "AND (nta.${Taxonomy.COLUMN_GROUP} = t.${Taxonomy.COLUMN_GROUP} OR nta.${Taxonomy.COLUMN_GROUP} = \"${Taxonomy.ANY}\")" else ""}
+                nta."${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}" = n."${Nomenclature.COLUMN_ID}"
+                AND (nta."${Taxonomy.COLUMN_KINGDOM}" = ? OR nta."${Taxonomy.COLUMN_KINGDOM}" = "${Taxonomy.ANY}")
+                ${if (lastPathSegments.size == 2) "AND (nta.\"${Taxonomy.COLUMN_GROUP}\" = ? OR nta.\"${Taxonomy.COLUMN_GROUP}\" = \"${Taxonomy.ANY}\")" else ""}
             """.trimIndent()
         }
 
         val whereClause = if (selection == null) "" else "WHERE $selection"
-        val orderBy = sortOrder ?: "n.${Nomenclature.COLUMN_HIERARCHY} COLLATE NOCASE ASC"
+        val orderBy = sortOrder ?: "n.\"${Nomenclature.COLUMN_HIERARCHY}\" COLLATE NOCASE ASC"
 
         val sql = """
             SELECT $defaultProjection
