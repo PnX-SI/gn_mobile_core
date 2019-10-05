@@ -69,6 +69,10 @@ class TaxonomyTest {
                               ANY),
                      Taxonomy("Animalia",
                               "autre"))
+
+        assertEquals(Taxonomy("Animalia",
+                              ANY),
+                     Taxonomy("Animalia"))
     }
 
     @Test

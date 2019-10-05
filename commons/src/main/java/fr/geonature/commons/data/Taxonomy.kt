@@ -24,13 +24,13 @@ class Taxonomy : Parcelable {
     var group: String
 
     constructor(kingdom: String,
-                group: String) {
+                group: String? = null) {
         this.kingdom = sanitizeValue(kingdom)
         this.group = sanitizeValue(group)
     }
 
     private constructor(source: Parcel) : this(source.readString()!!,
-                                               source.readString()!!)
+                                               source.readString())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -81,11 +81,11 @@ class Taxonomy : Parcelable {
         /**
          * The default undefined taxonomy rank as "any".
          */
-        val ANY = "any"
+        const val ANY = "any"
 
-        val sanitizeValue: (String) -> String = { value ->
-            if (value.isEmpty() || arrayOf("autre",
-                                           "all").any {
+        val sanitizeValue: (String?) -> String = { value ->
+            if (value == null || value.isEmpty() || arrayOf("autre",
+                                                            "all").any {
                     value.toLowerCase(Locale.ROOT)
                         .startsWith(it)
                 }) ANY
