@@ -2,6 +2,7 @@ package fr.geonature.commons.input
 
 import android.os.Parcel
 import android.os.Parcelable
+import fr.geonature.commons.data.AbstractTaxon
 
 /**
  * Dummy implementation of [AbstractInputTaxon].
@@ -10,7 +11,7 @@ import android.os.Parcelable
  */
 class DummyInputTaxon : AbstractInputTaxon {
 
-    constructor()
+    constructor(taxon: AbstractTaxon) : super(taxon)
     constructor(source: Parcel) : super(source)
 
     companion object CREATOR : Parcelable.Creator<DummyInputTaxon> {

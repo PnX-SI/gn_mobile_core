@@ -2,6 +2,8 @@ package fr.geonature.commons.input
 
 import android.os.Parcel
 import fr.geonature.commons.data.InputObserver
+import fr.geonature.commons.data.Taxon
+import fr.geonature.commons.data.Taxonomy
 import fr.geonature.commons.util.IsoDateUtils
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -227,44 +229,90 @@ class InputTest {
         val input = DummyInput()
 
         // when adding new input taxon
-        input.addInputTaxon(DummyInputTaxon().apply { id = 2 })
+        input.addInputTaxon(DummyInputTaxon(Taxon(1234L,
+                                                  "taxon_01",
+                                                  Taxonomy("Animalia",
+                                                           "Ascidies"),
+                                                  null)))
 
         // then
-        assertArrayEquals(longArrayOf(2),
-                          input.getInputTaxa().map { it.id }.toLongArray())
+        assertArrayEquals(arrayOf(DummyInputTaxon(Taxon(1234L,
+                                                        "taxon_01",
+                                                        Taxonomy("Animalia",
+                                                                 "Ascidies"),
+                                                        null))),
+                          input.getInputTaxa().toTypedArray())
 
         // when adding existing input taxon
-        input.addInputTaxon(DummyInputTaxon().apply { id = 2 })
+        input.addInputTaxon(DummyInputTaxon(Taxon(1234L,
+                                                  "taxon_02",
+                                                  Taxonomy("Animalia",
+                                                           "Ascidies"),
+                                                  null)))
 
         // then
-        assertArrayEquals(longArrayOf(2),
-                          input.getInputTaxa().map { it.id }.toLongArray())
+        assertArrayEquals(arrayOf(DummyInputTaxon(Taxon(1234L,
+                                                        "taxon_02",
+                                                        Taxonomy("Animalia",
+                                                                 "Ascidies"),
+                                                        null))),
+                          input.getInputTaxa().toTypedArray())
     }
 
     @Test
     fun testRemoveInputTaxon() {
         // given an Input with some input taxa
         val input = DummyInput().apply {
-            addInputTaxon(DummyInputTaxon().apply { id = 2 })
-            addInputTaxon(DummyInputTaxon().apply { id = 4 })
-            addInputTaxon(DummyInputTaxon().apply { id = 3 })
+            addInputTaxon(DummyInputTaxon(Taxon(1234L,
+                                                "taxon_01",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1236L,
+                                                "taxon_03",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1235L,
+                                                "taxon_02",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
         }
 
         // when remove input taxon different from current selected input taxon
-        input.removeInputTaxon(4)
+        input.removeInputTaxon(1236L)
 
         // then
-        assertEquals(3L, input.getCurrentSelectedInputTaxon()?.id)
-        assertArrayEquals(longArrayOf(2, 3),
-                          input.getInputTaxa().map { it.id }.toLongArray())
+        assertEquals(Taxon(1235L,
+                           "taxon_02",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
+                           null),
+                     input.getCurrentSelectedInputTaxon()?.taxon)
+        assertArrayEquals(arrayOf(DummyInputTaxon(Taxon(1234L,
+                                                        "taxon_01",
+                                                        Taxonomy("Animalia",
+                                                                 "Ascidies"),
+                                                        null)),
+                                  DummyInputTaxon(Taxon(1235L,
+                                                        "taxon_02",
+                                                        Taxonomy("Animalia",
+                                                                 "Ascidies"),
+                                                        null))),
+                          input.getInputTaxa().toTypedArray())
 
         // when remove the current selected input taxon
-        input.removeInputTaxon(3)
+        input.removeInputTaxon(1235L)
 
         // then
-        assertNull(input.getCurrentSelectedInputTaxon()?.id)
-        assertArrayEquals(longArrayOf(2),
-                          input.getInputTaxa().map { it.id }.toLongArray())
+        assertNull(input.getCurrentSelectedInputTaxon())
+        assertArrayEquals(arrayOf(DummyInputTaxon(Taxon(1234L,
+                                                        "taxon_01",
+                                                        Taxonomy("Animalia",
+                                                                 "Ascidies"),
+                                                        null))),
+                          input.getInputTaxa().toTypedArray())
     }
 
     @Test
@@ -284,21 +332,41 @@ class InputTest {
 
         // when adding some input Taxa
         input.apply {
-            addInputTaxon(DummyInputTaxon().apply { id = 2 })
-            addInputTaxon(DummyInputTaxon().apply { id = 4 })
-            addInputTaxon(DummyInputTaxon().apply { id = 3 })
+            addInputTaxon(DummyInputTaxon(Taxon(1234L,
+                                                "taxon_01",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1236L,
+                                                "taxon_03",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1235L,
+                                                "taxon_02",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
         }
 
         // then
-        assertEquals(3L,
-                     input.getCurrentSelectedInputTaxon()?.id)
+        assertEquals(Taxon(1235L,
+                           "taxon_02",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
+                           null),
+                     input.getCurrentSelectedInputTaxon()?.taxon)
 
         // when setting the current selected input taxon
-        input.setCurrentSelectedInputTaxonId(4L)
+        input.setCurrentSelectedInputTaxonId(1236L)
 
         //then
-        assertEquals(4L,
-                     input.getCurrentSelectedInputTaxon()?.id)
+        assertEquals(Taxon(1236L,
+                           "taxon_03",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
+                           null),
+                     input.getCurrentSelectedInputTaxon()?.taxon)
     }
 
     @Test
@@ -312,14 +380,30 @@ class InputTest {
 
         // when adding some input taxa
         input.apply {
-            addInputTaxon(DummyInputTaxon().apply { id = 2 })
-            addInputTaxon(DummyInputTaxon().apply { id = 4 })
-            addInputTaxon(DummyInputTaxon().apply { id = 3 })
+            addInputTaxon(DummyInputTaxon(Taxon(1234L,
+                                                "taxon_01",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1236L,
+                                                "taxon_03",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1235L,
+                                                "taxon_02",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
         }
 
         // then
-        assertEquals(3L,
-                     input.getLastAddedInputTaxon()?.id)
+        assertEquals(Taxon(1235L,
+                           "taxon_02",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
+                           null),
+                     input.getLastAddedInputTaxon()?.taxon)
     }
 
     @Test
@@ -335,7 +419,11 @@ class InputTest {
                                         InputObserver(2,
                                                       "",
                                                       "")))
-            setInputTaxa(listOf(DummyInputTaxon().apply { id = 1 }))
+            setInputTaxa(listOf(DummyInputTaxon(Taxon(1234,
+                                                      "taxon_01",
+                                                      Taxonomy("Animalia",
+                                                               "Ascidies"),
+                                                      null))))
         }
 
         // when we obtain a Parcel object to write the Taxon instance to it

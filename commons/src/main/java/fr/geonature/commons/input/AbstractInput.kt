@@ -153,13 +153,13 @@ abstract class AbstractInput(
         this.inputTaxa.clear()
 
         for (inputTaxon in inputTaxa) {
-            this.inputTaxa[inputTaxon.id] = inputTaxon
+            this.inputTaxa[inputTaxon.taxon.id] = inputTaxon
         }
     }
 
     fun addInputTaxon(inputTaxon: AbstractInputTaxon) {
-        this.inputTaxa[inputTaxon.id] = inputTaxon
-        this.currentSelectedInputTaxonId = inputTaxon.id
+        this.inputTaxa[inputTaxon.taxon.id] = inputTaxon
+        this.currentSelectedInputTaxonId = inputTaxon.taxon.id
     }
 
     fun removeInputTaxon(inputTaxonId: Long) {
