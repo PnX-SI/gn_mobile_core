@@ -19,7 +19,7 @@ class Taxon : AbstractTaxon {
     constructor(id: Long,
                 name: String,
                 taxonomy: Taxonomy,
-                description: String?,
+                description: String? = null,
                 heritage: Boolean = false) : super(id,
                                                    name,
                                                    taxonomy,

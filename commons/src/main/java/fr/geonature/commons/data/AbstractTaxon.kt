@@ -43,7 +43,7 @@ abstract class AbstractTaxon : Parcelable {
     constructor(id: Long,
                 name: String,
                 taxonomy: Taxonomy,
-                description: String?,
+                description: String? = null,
                 heritage: Boolean = false) {
         this.id = id
         this.name = name

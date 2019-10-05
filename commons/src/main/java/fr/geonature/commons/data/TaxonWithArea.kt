@@ -16,7 +16,7 @@ class TaxonWithArea : AbstractTaxon {
     constructor(id: Long,
                 name: String,
                 taxonomy: Taxonomy,
-                description: String?,
+                description: String? = null,
                 heritage: Boolean = false,
                 taxonArea: TaxonArea?) : super(id,
                                                name,

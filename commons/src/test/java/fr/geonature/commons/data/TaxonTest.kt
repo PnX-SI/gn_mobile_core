@@ -50,13 +50,11 @@ class TaxonTest {
         assertEquals(Taxon(1234,
                            "taxon_01",
                            Taxonomy("Animalia",
-                                    "Ascidies"),
-                           null),
+                                    "Ascidies")),
                      Taxon(1234,
                            "taxon_01",
                            Taxonomy("Animalia",
-                                    "Ascidies"),
-                           null))
+                                    "Ascidies")))
     }
 
     @Test
@@ -113,9 +111,7 @@ class TaxonTest {
         assertEquals(Taxon(1234,
                            "taxon_01",
                            Taxonomy("Animalia",
-                                    "Ascidies"),
-                           null,
-                           false),
+                                    "Ascidies")),
                      taxon)
     }
 
