@@ -1,6 +1,7 @@
 package fr.geonature.sync.api
 
 import com.google.gson.GsonBuilder
+import fr.geonature.sync.api.model.NomenclatureType
 import fr.geonature.sync.api.model.Taxref
 import fr.geonature.sync.api.model.TaxrefArea
 import fr.geonature.sync.api.model.User
@@ -43,6 +44,10 @@ class GeoNatureAPIClient private constructor(baseUrl: String) {
         return geoNatureService.getUsers()
     }
 
+    fun getTaxonomyRanks(): Call<ResponseBody> {
+        return geoNatureService.getTaxonomyRanks()
+    }
+
     fun getTaxref(): Call<List<Taxref>> {
         return geoNatureService.getTaxref()
     }
@@ -51,8 +56,8 @@ class GeoNatureAPIClient private constructor(baseUrl: String) {
         return geoNatureService.getTaxrefAreas()
     }
 
-    fun getTaxonomyRanks(): Call<ResponseBody> {
-        return geoNatureService.getTaxonomyRanks()
+    fun getNomenclatures(): Call<List<NomenclatureType>> {
+        return geoNatureService.getNomenclatures()
     }
 
     companion object {

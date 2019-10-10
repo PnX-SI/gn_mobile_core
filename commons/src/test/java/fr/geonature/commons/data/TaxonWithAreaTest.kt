@@ -29,17 +29,23 @@ class TaxonWithAreaTest {
 
         assertEquals(TaxonWithArea(1234,
                                    "taxon_01",
+                                   Taxonomy("Animalia",
+                                            "Ascidies"),
                                    "desc",
                                    true,
                                    null),
                      TaxonWithArea(1234,
                                    "taxon_01",
+                                   Taxonomy("Animalia",
+                                            "Ascidies"),
                                    "desc",
                                    true,
                                    null))
 
         assertEquals(TaxonWithArea(1234,
                                    "taxon_01",
+                                   Taxonomy("Animalia",
+                                            "Ascidies"),
                                    "desc",
                                    true,
                                    TaxonArea(1234,
@@ -49,6 +55,8 @@ class TaxonWithAreaTest {
                                              now)),
                      TaxonWithArea(1234,
                                    "taxon_01",
+                                   Taxonomy("Animalia",
+                                            "Ascidies"),
                                    "desc",
                                    true,
                                    TaxonArea(1234,
@@ -59,9 +67,13 @@ class TaxonWithAreaTest {
 
         assertEquals(TaxonWithArea(Taxon(1234,
                                          "taxon_01",
+                                         Taxonomy("Animalia",
+                                                  "Ascidies"),
                                          "desc")),
                      TaxonWithArea(Taxon(1234,
                                          "taxon_01",
+                                         Taxonomy("Animalia",
+                                                  "Ascidies"),
                                          "desc")))
     }
 
@@ -71,22 +83,26 @@ class TaxonWithAreaTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(2)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenReturn(4)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenReturn(5)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(6)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(7)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(8)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
+        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
+        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenReturn(6)
+        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenReturn(7)
+        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(8)
+        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(9)
+        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(10)
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
-        `when`(cursor.getString(2)).thenReturn("desc")
-        `when`(cursor.getString(3)).thenReturn("True")
-        `when`(cursor.getLong(4)).thenReturn(1234)
-        `when`(cursor.getLong(5)).thenReturn(10)
-        `when`(cursor.getString(6)).thenReturn("red")
-        `when`(cursor.getInt(7)).thenReturn(3)
-        `when`(cursor.getLong(8)).thenReturn(1477642500000)
+        `when`(cursor.getString(2)).thenReturn("Animalia")
+        `when`(cursor.getString(3)).thenReturn("Ascidies")
+        `when`(cursor.getString(4)).thenReturn("desc")
+        `when`(cursor.getString(5)).thenReturn("True")
+        `when`(cursor.getLong(6)).thenReturn(1234)
+        `when`(cursor.getLong(7)).thenReturn(10)
+        `when`(cursor.getString(8)).thenReturn("red")
+        `when`(cursor.getInt(9)).thenReturn(3)
+        `when`(cursor.getLong(10)).thenReturn(1477642500000)
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -95,6 +111,8 @@ class TaxonWithAreaTest {
         assertNotNull(taxonWithArea)
         assertEquals(TaxonWithArea(1234,
                                    "taxon_01",
+                                   Taxonomy("Animalia",
+                                            "Ascidies"),
                                    "desc",
                                    true,
                                    TaxonArea(1234,
@@ -111,8 +129,10 @@ class TaxonWithAreaTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(2)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
+        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
         `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenThrow(IllegalArgumentException::class.java)
         `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenThrow(IllegalArgumentException::class.java)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(-1)
@@ -120,13 +140,10 @@ class TaxonWithAreaTest {
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(-1)
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
-        `when`(cursor.getString(2)).thenReturn("desc")
-        `when`(cursor.getString(3)).thenReturn("True")
-        `when`(cursor.getLong(4)).thenReturn(0)
-        `when`(cursor.getLong(5)).thenReturn(0)
-        `when`(cursor.getString(6)).thenReturn(null)
-        `when`(cursor.getInt(7)).thenReturn(0)
-        `when`(cursor.getLong(8)).thenReturn(0)
+        `when`(cursor.getString(2)).thenReturn("Animalia")
+        `when`(cursor.getString(3)).thenReturn("Ascidies")
+        `when`(cursor.getString(4)).thenReturn("desc")
+        `when`(cursor.getString(5)).thenReturn("True")
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -135,6 +152,8 @@ class TaxonWithAreaTest {
         assertNotNull(taxonWithArea)
         assertEquals(TaxonWithArea(1234,
                                    "taxon_01",
+                                   Taxonomy("Animalia",
+                                            "Ascidies"),
                                    "desc",
                                    true,
                                    null),
@@ -147,22 +166,23 @@ class TaxonWithAreaTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(2)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenReturn(4)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenReturn(5)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
+        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
+        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenReturn(6)
+        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenReturn(7)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(-1)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(-1)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(-1)
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
-        `when`(cursor.getString(2)).thenReturn("desc")
-        `when`(cursor.getString(3)).thenReturn("True")
-        `when`(cursor.getLong(4)).thenReturn(0)
-        `when`(cursor.getLong(5)).thenReturn(0)
-        `when`(cursor.getString(6)).thenReturn(null)
-        `when`(cursor.getInt(7)).thenReturn(0)
-        `when`(cursor.getLong(8)).thenReturn(0)
+        `when`(cursor.getString(2)).thenReturn("Animalia")
+        `when`(cursor.getString(3)).thenReturn("Ascidies")
+        `when`(cursor.getString(4)).thenReturn("desc")
+        `when`(cursor.getString(5)).thenReturn("True")
+        `when`(cursor.getLong(6)).thenReturn(0)
+        `when`(cursor.getLong(7)).thenReturn(0)
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -171,6 +191,8 @@ class TaxonWithAreaTest {
         assertNotNull(taxonWithArea)
         assertEquals(TaxonWithArea(1234,
                                    "taxon_01",
+                                   Taxonomy("Animalia",
+                                            "Ascidies"),
                                    "desc",
                                    true,
                                    null),
@@ -196,6 +218,8 @@ class TaxonWithAreaTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenThrow(IllegalArgumentException::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenThrow(IllegalArgumentException::class.java)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenThrow(IllegalArgumentException::class.java)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenThrow(IllegalArgumentException::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
         `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
         `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenThrow(IllegalArgumentException::class.java)
@@ -203,15 +227,6 @@ class TaxonWithAreaTest {
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(-1)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(-1)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(-1)
-        `when`(cursor.getLong(0)).thenReturn(0)
-        `when`(cursor.getString(1)).thenReturn(null)
-        `when`(cursor.getString(2)).thenReturn(null)
-        `when`(cursor.getString(3)).thenReturn(null)
-        `when`(cursor.getLong(4)).thenReturn(0)
-        `when`(cursor.getLong(5)).thenReturn(0)
-        `when`(cursor.getString(6)).thenReturn(null)
-        `when`(cursor.getInt(7)).thenReturn(0)
-        `when`(cursor.getLong(8)).thenReturn(0)
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -225,6 +240,8 @@ class TaxonWithAreaTest {
         // given a TaxonWithArea
         val taxonWithArea = TaxonWithArea(1234,
                                           "taxon_01",
+                                          Taxonomy("Animalia",
+                                                   "Ascidies"),
                                           "desc",
                                           true,
                                           TaxonArea(1234,
@@ -250,6 +267,8 @@ class TaxonWithAreaTest {
     fun testDefaultProjection() {
         assertArrayEquals(arrayOf(AbstractTaxon.COLUMN_ID,
                                   AbstractTaxon.COLUMN_NAME,
+                                  Taxonomy.COLUMN_KINGDOM,
+                                  Taxonomy.COLUMN_GROUP,
                                   AbstractTaxon.COLUMN_DESCRIPTION,
                                   AbstractTaxon.COLUMN_HERITAGE,
                                   TaxonArea.COLUMN_TAXON_ID,

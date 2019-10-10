@@ -6,11 +6,16 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
+import android.text.TextUtils
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import fr.geonature.commons.data.AbstractTaxon
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.InputObserver
+import fr.geonature.commons.data.Nomenclature
+import fr.geonature.commons.data.NomenclatureTaxonomy
+import fr.geonature.commons.data.NomenclatureType
+import fr.geonature.commons.data.NomenclatureWithTaxonomy
 import fr.geonature.commons.data.Provider.AUTHORITY
 import fr.geonature.commons.data.Provider.checkReadPermission
 import fr.geonature.commons.data.Taxon
@@ -38,6 +43,8 @@ class MainContentProvider : ContentProvider() {
             TAXON_ID, TAXON_AREA_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
             TAXONOMY, TAXONOMY_KINGDOM -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
             TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
+            NOMENCLATURE_TYPES -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${NomenclatureType.TABLE_NAME}"
+            NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Nomenclature.TABLE_NAME}"
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -69,6 +76,9 @@ class MainContentProvider : ContentProvider() {
             INPUT_OBSERVER_ID -> inputObserverIdQuery(context,
                                                       uri,
                                                       projection)
+            TAXONOMY, TAXONOMY_KINGDOM, TAXONOMY_KINGDOM_GROUP -> taxonomyQuery(context,
+                                                                                uri,
+                                                                                projection)
             TAXA -> taxaQuery(context,
                               projection,
                               selection,
@@ -86,9 +96,17 @@ class MainContentProvider : ContentProvider() {
             TAXON_AREA_ID -> taxonAreaIdQuery(context,
                                               uri,
                                               projection)
-            TAXONOMY, TAXONOMY_KINGDOM, TAXONOMY_KINGDOM_GROUP -> taxonomyQuery(context,
-                                                                                uri,
-                                                                                projection)
+            NOMENCLATURE_TYPES -> nomenclatureTypesQuery(context,
+                                                         projection,
+                                                         selection,
+                                                         selectionArgs,
+                                                         sortOrder)
+            NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> nomenclaturesByTaxonomyQuery(context,
+                                                                                                                           uri,
+                                                                                                                           projection,
+                                                                                                                           selection,
+                                                                                                                           selectionArgs,
+                                                                                                                           sortOrder)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -170,6 +188,27 @@ class MainContentProvider : ContentProvider() {
             .select(queryBuilder.create())
     }
 
+    private fun taxonomyQuery(context: Context,
+                              uri: Uri,
+                              projection: Array<String>?): Cursor {
+
+        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
+            .take(2)
+        val selection = if (lastPathSegments.isEmpty()) "" else if (lastPathSegments.size == 1) "${Taxonomy.COLUMN_KINGDOM} LIKE ?" else "${Taxonomy.COLUMN_KINGDOM} = ? AND ${Taxonomy.COLUMN_GROUP} LIKE ?"
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxonomy.TABLE_NAME)
+            .columns(projection ?: Taxonomy.DEFAULT_PROJECTION)
+
+        if (selection.isNotEmpty()) {
+            queryBuilder.selection(selection,
+                                   lastPathSegments.toTypedArray())
+        }
+
+        return LocalDatabase.getInstance(context)
+            .taxonomyDao()
+            .select(queryBuilder.create())
+    }
+
     private fun taxaQuery(context: Context,
                           projection: Array<String>?,
                           selection: String?,
@@ -177,7 +216,8 @@ class MainContentProvider : ContentProvider() {
                           sortOrder: String?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns(projection ?: AbstractTaxon.DEFAULT_PROJECTION)
+            .columns((projection
+                ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
             .selection(selection,
                        selectionArgs)
             .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
@@ -196,14 +236,16 @@ class MainContentProvider : ContentProvider() {
 
         val bindArgs = mutableListOf<Any?>()
 
-        val defaultProjection = projection
-            ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
+        val defaultProjection = (projection ?: TaxonWithArea.DEFAULT_PROJECTION).asSequence()
+            .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
+            .map {
                 when (it) {
-                    AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
-                    TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
+                    in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
+                    in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
                     else -> it
                 }
-            }.joinToString(", ")
+            }
+            .joinToString(", ")
 
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
         val joinFilterOnAreaClause = if (filterOnArea == null) {
@@ -223,7 +265,7 @@ class MainContentProvider : ContentProvider() {
             $joinFilterOnAreaClause
             $whereClause
             ORDER BY $orderBy
-            """
+            """.trimIndent()
 
         return LocalDatabase.getInstance(context)
             .taxonAreaDao()
@@ -238,7 +280,8 @@ class MainContentProvider : ContentProvider() {
                              projection: Array<String>?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns(projection ?: AbstractTaxon.DEFAULT_PROJECTION)
+            .columns((projection
+                ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
             .selection("${AbstractTaxon.COLUMN_ID} = ?",
                        arrayOf(uri.lastPathSegment?.toLongOrNull()))
 
@@ -252,14 +295,16 @@ class MainContentProvider : ContentProvider() {
                                  projection: Array<String>?): Cursor {
         val bindArgs = mutableListOf<Any?>()
 
-        val defaultProjection = projection
-            ?: TaxonWithArea.DEFAULT_PROJECTION.asSequence().filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }.map {
+        val defaultProjection = (projection ?: TaxonWithArea.DEFAULT_PROJECTION).asSequence()
+            .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
+            .map {
                 when (it) {
-                    AbstractTaxon.COLUMN_ID, AbstractTaxon.COLUMN_NAME, AbstractTaxon.COLUMN_DESCRIPTION, AbstractTaxon.COLUMN_HERITAGE -> "t.$it"
-                    TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID, TaxonArea.COLUMN_COLOR, TaxonArea.COLUMN_NUMBER_OF_OBSERVERS, TaxonArea.COLUMN_LAST_UPDATED_AT -> "ta.$it"
+                    in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
+                    in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
                     else -> it
                 }
-            }.joinToString(", ")
+            }
+            .joinToString(", ")
 
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
         val joinFilterOnAreaClause = if (filterOnArea == null) {
@@ -283,7 +328,7 @@ class MainContentProvider : ContentProvider() {
             FROM ${Taxon.TABLE_NAME} t
             $joinFilterOnAreaClause
             $whereClause
-            """
+            """.trimIndent()
 
         return LocalDatabase.getInstance(context)
             .taxonAreaDao()
@@ -291,25 +336,93 @@ class MainContentProvider : ContentProvider() {
                                       bindArgs.toTypedArray()))
     }
 
-    private fun taxonomyQuery(context: Context,
-                              uri: Uri,
-                              projection: Array<String>?): Cursor {
+    private fun nomenclatureTypesQuery(context: Context,
+                                       projection: Array<String>?,
+                                       selection: String?,
+                                       selectionArgs: Array<String>?,
+                                       sortOrder: String?): Cursor {
 
-        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
-            .take(2)
-        val selection = if (lastPathSegments.isEmpty()) "" else if (lastPathSegments.size == 1) "${Taxonomy.COLUMN_KINGDOM} LIKE ?" else "${Taxonomy.COLUMN_KINGDOM} = ? AND ${Taxonomy.COLUMN_GROUP} LIKE ?"
-
-        val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxonomy.TABLE_NAME)
-            .columns(projection ?: Taxonomy.DEFAULT_PROJECTION)
-
-        if (selection.isNotEmpty()) {
-            queryBuilder.selection(selection,
-                                   lastPathSegments.toTypedArray())
-        }
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(NomenclatureType.TABLE_NAME)
+            .columns(projection ?: NomenclatureType.DEFAULT_PROJECTION)
+            .selection(selection,
+                       selectionArgs)
+            .orderBy(sortOrder ?: "${NomenclatureType.COLUMN_MNEMONIC} COLLATE NOCASE ASC")
 
         return LocalDatabase.getInstance(context)
-            .taxonomyDao()
+            .nomenclatureTypeDao()
             .select(queryBuilder.create())
+    }
+
+    private fun nomenclaturesByTaxonomyQuery(context: Context,
+                                             uri: Uri,
+                                             projection: Array<String>?,
+                                             selection: String?,
+                                             selectionArgs: Array<String>?,
+                                             sortOrder: String?): Cursor {
+        val bindArgs = mutableListOf<Any?>()
+
+        val defaultProjection = (projection
+            ?: NomenclatureWithTaxonomy.DEFAULT_PROJECTION).asSequence()
+            .filter { column ->
+                NomenclatureWithTaxonomy.DEFAULT_PROJECTION.any { it === column }
+            }
+            .map {
+                when (it) {
+                    NomenclatureType.COLUMN_MNEMONIC -> "nty.\"$it\""
+                    in Nomenclature.DEFAULT_PROJECTION -> "n.\"$it\""
+                    in Taxonomy.DEFAULT_PROJECTION -> "nta.\"$it\""
+                    else -> it
+                }
+            }
+            .joinToString(", ")
+
+        val taxonomyTypeMnemonic = uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+        val joinFilterOnNomenclatureTypeClause = if (TextUtils.isEmpty(taxonomyTypeMnemonic)) {
+            ""
+        }
+        else {
+            bindArgs.add(taxonomyTypeMnemonic)
+            """
+            JOIN ${NomenclatureType.TABLE_NAME} nty ON nty."${NomenclatureType.COLUMN_ID}" = n."${Nomenclature.COLUMN_TYPE_ID}" AND nty."${NomenclatureType.COLUMN_MNEMONIC}" = ?
+            """.trimIndent()
+        }
+
+        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf("items") + 1)
+            .take(2)
+        val joinFilterOnTaxonomyClause = if (lastPathSegments.isEmpty()) {
+            ""
+        }
+        else {
+            bindArgs.addAll(lastPathSegments)
+
+            """
+            LEFT JOIN ${NomenclatureTaxonomy.TABLE_NAME} nta ON
+                nta."${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}" = n."${Nomenclature.COLUMN_ID}"
+                AND (nta."${Taxonomy.COLUMN_KINGDOM}" = ? OR nta."${Taxonomy.COLUMN_KINGDOM}" = "${Taxonomy.ANY}")
+                ${if (lastPathSegments.size == 2) "AND (nta.\"${Taxonomy.COLUMN_GROUP}\" = ? OR nta.\"${Taxonomy.COLUMN_GROUP}\" = \"${Taxonomy.ANY}\")" else ""}
+            """.trimIndent()
+        }
+
+        val whereClause = if (selection == null) "" else "WHERE $selection"
+        val orderBy = sortOrder ?: "n.\"${Nomenclature.COLUMN_HIERARCHY}\" COLLATE NOCASE ASC"
+
+        val sql = """
+            SELECT $defaultProjection
+            FROM ${Nomenclature.TABLE_NAME} n
+            $joinFilterOnNomenclatureTypeClause
+            $joinFilterOnTaxonomyClause
+            $whereClause
+            ORDER BY $orderBy
+            """.trimIndent()
+
+        return LocalDatabase.getInstance(context)
+            .nomenclatureDao()
+            .select(SimpleSQLiteQuery(sql,
+                                      bindArgs.also {
+                                          it.addAll(selectionArgs?.asList() ?: emptyList())
+                                      }.toTypedArray()))
     }
 
     companion object {
@@ -319,13 +432,16 @@ class MainContentProvider : ContentProvider() {
         const val INPUT_OBSERVERS = 10
         const val INPUT_OBSERVERS_IDS = 11
         const val INPUT_OBSERVER_ID = 12
-        const val TAXA = 20
-        const val TAXA_AREA = 21
-        const val TAXON_ID = 22
-        const val TAXON_AREA_ID = 23
-        const val TAXONOMY = 30
-        const val TAXONOMY_KINGDOM = 31
-        const val TAXONOMY_KINGDOM_GROUP = 32
+        const val TAXONOMY = 20
+        const val TAXONOMY_KINGDOM = 21
+        const val TAXONOMY_KINGDOM_GROUP = 22
+        const val TAXA = 30
+        const val TAXA_AREA = 31
+        const val TAXON_ID = 32
+        const val TAXON_AREA_ID = 33
+        const val NOMENCLATURE_TYPES = 40
+        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 41
+        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 42
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
@@ -348,6 +464,15 @@ class MainContentProvider : ContentProvider() {
                    "${InputObserver.TABLE_NAME}/#",
                    INPUT_OBSERVER_ID)
             addURI(AUTHORITY,
+                   Taxonomy.TABLE_NAME,
+                   TAXONOMY)
+            addURI(AUTHORITY,
+                   "${Taxonomy.TABLE_NAME}/*",
+                   TAXONOMY_KINGDOM)
+            addURI(AUTHORITY,
+                   "${Taxonomy.TABLE_NAME}/*/*",
+                   TAXONOMY_KINGDOM_GROUP)
+            addURI(AUTHORITY,
                    Taxon.TABLE_NAME,
                    TAXA)
             addURI(AUTHORITY,
@@ -360,14 +485,14 @@ class MainContentProvider : ContentProvider() {
                    "${Taxon.TABLE_NAME}/#/area/#",
                    TAXON_AREA_ID)
             addURI(AUTHORITY,
-                   Taxonomy.TABLE_NAME,
-                   TAXONOMY)
+                   NomenclatureType.TABLE_NAME,
+                   NOMENCLATURE_TYPES)
             addURI(AUTHORITY,
-                   "${Taxonomy.TABLE_NAME}/*",
-                   TAXONOMY_KINGDOM)
+                   "${NomenclatureType.TABLE_NAME}/*/items/*",
+                   NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM)
             addURI(AUTHORITY,
-                   "${Taxonomy.TABLE_NAME}/*/*",
-                   TAXONOMY_KINGDOM_GROUP)
+                   "${NomenclatureType.TABLE_NAME}/*/items/*/*",
+                   NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP)
         }
     }
 }

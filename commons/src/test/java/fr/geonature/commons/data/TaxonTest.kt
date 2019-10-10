@@ -3,6 +3,7 @@ package fr.geonature.commons.data
 import android.database.Cursor
 import android.os.Parcel
 import fr.geonature.commons.data.Taxon.Companion.fromCursor
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -24,26 +25,36 @@ class TaxonTest {
     fun testEquals() {
         assertEquals(Taxon(1234,
                            "taxon_01",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
                            "desc",
                            true),
                      Taxon(1234,
                            "taxon_01",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
                            "desc",
                            true))
 
         assertEquals(Taxon(1234,
                            "taxon_01",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
                            "desc"),
                      Taxon(1234,
                            "taxon_01",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
                            "desc"))
 
         assertEquals(Taxon(1234,
                            "taxon_01",
-                           null),
+                           Taxonomy("Animalia",
+                                    "Ascidies")),
                      Taxon(1234,
                            "taxon_01",
-                           null))
+                           Taxonomy("Animalia",
+                                    "Ascidies")))
     }
 
     @Test
@@ -52,12 +63,16 @@ class TaxonTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(2)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
+        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
+        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
-        `when`(cursor.getString(2)).thenReturn("desc")
-        `when`(cursor.getString(3)).thenReturn("True")
+        `when`(cursor.getString(2)).thenReturn("Animalia")
+        `when`(cursor.getString(3)).thenReturn("Ascidies")
+        `when`(cursor.getString(4)).thenReturn("desc")
+        `when`(cursor.getString(5)).thenReturn("True")
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -66,6 +81,8 @@ class TaxonTest {
         assertNotNull(taxon)
         assertEquals(Taxon(1234,
                            "taxon_01",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
                            "desc",
                            true),
                      taxon)
@@ -77,12 +94,14 @@ class TaxonTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
         `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
-        `when`(cursor.getString(2)).thenReturn(null)
-        `when`(cursor.getString(3)).thenReturn(null)
+        `when`(cursor.getString(2)).thenReturn("Animalia")
+        `when`(cursor.getString(3)).thenReturn("Ascidies")
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -91,8 +110,8 @@ class TaxonTest {
         assertNotNull(taxon)
         assertEquals(Taxon(1234,
                            "taxon_01",
-                           null,
-                           false),
+                           Taxonomy("Animalia",
+                                    "Ascidies")),
                      taxon)
     }
 
@@ -115,12 +134,10 @@ class TaxonTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenThrow(IllegalArgumentException::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenThrow(IllegalArgumentException::class.java)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenThrow(IllegalArgumentException::class.java)
+        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenThrow(IllegalArgumentException::class.java)
         `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
         `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
-        `when`(cursor.getLong(0)).thenReturn(0)
-        `when`(cursor.getString(1)).thenReturn(null)
-        `when`(cursor.getString(2)).thenReturn(null)
-        `when`(cursor.getString(3)).thenReturn(null)
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -134,6 +151,8 @@ class TaxonTest {
         // given a Taxon
         val taxon = Taxon(1234,
                           "taxon_01",
+                          Taxonomy("Animalia",
+                                   "Ascidies"),
                           "desc",
                           true)
 
@@ -148,5 +167,16 @@ class TaxonTest {
         // then
         assertEquals(taxon,
                      Taxon.CREATOR.createFromParcel(parcel))
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        Assert.assertArrayEquals(arrayOf(AbstractTaxon.COLUMN_ID,
+                                         AbstractTaxon.COLUMN_NAME,
+                                         Taxonomy.COLUMN_KINGDOM,
+                                         Taxonomy.COLUMN_GROUP,
+                                         AbstractTaxon.COLUMN_DESCRIPTION,
+                                         AbstractTaxon.COLUMN_HERITAGE),
+                                 AbstractTaxon.DEFAULT_PROJECTION)
     }
 }

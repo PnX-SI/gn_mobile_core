@@ -12,18 +12,21 @@ import fr.geonature.commons.util.get
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = Taxon.TABLE_NAME)
+@Entity(tableName = Taxon.TABLE_NAME,
+        primaryKeys = [AbstractTaxon.COLUMN_ID])
 class Taxon : AbstractTaxon {
 
     constructor(id: Long,
                 name: String,
-                description: String?,
+                taxonomy: Taxonomy,
+                description: String? = null,
                 heritage: Boolean = false) : super(id,
                                                    name,
+                                                   taxonomy,
                                                    description,
                                                    heritage)
 
-    constructor(source: Parcel) : super(source)
+    private constructor(source: Parcel) : super(source)
 
     companion object {
 
@@ -47,8 +50,11 @@ class Taxon : AbstractTaxon {
             }
 
             return try {
+                val taxonomy = Taxonomy.fromCursor(cursor) ?: return null
+
                 Taxon(requireNotNull(cursor.get(COLUMN_ID)),
                       requireNotNull(cursor.get(COLUMN_NAME)),
+                      taxonomy,
                       cursor.get(COLUMN_DESCRIPTION),
                       requireNotNull(cursor.get(COLUMN_HERITAGE,
                                                 false)))

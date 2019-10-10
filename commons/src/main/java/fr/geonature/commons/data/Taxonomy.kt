@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import fr.geonature.commons.util.get
+import java.util.Locale
 
 /**
  * Describes a taxonomic rank.
@@ -15,14 +16,38 @@ import fr.geonature.commons.util.get
  */
 @Entity(tableName = Taxonomy.TABLE_NAME,
         primaryKeys = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP])
-data class Taxonomy(
+class Taxonomy : Parcelable {
+
     @ColumnInfo(name = COLUMN_KINGDOM)
-    var kingdom: String,
+    var kingdom: String
     @ColumnInfo(name = COLUMN_GROUP)
-    var group: String) : Parcelable {
+    var group: String
+
+    constructor(kingdom: String,
+                group: String? = null) {
+        this.kingdom = sanitizeValue(kingdom)
+        this.group = sanitizeValue(group)
+    }
 
     private constructor(source: Parcel) : this(source.readString()!!,
-                                               source.readString()!!)
+                                               source.readString())
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Taxonomy) return false
+
+        if (kingdom != other.kingdom) return false
+        if (group != other.group) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = kingdom.hashCode()
+        result = 31 * result + group.hashCode()
+
+        return result
+    }
 
     override fun describeContents(): Int {
         return 0
@@ -32,6 +57,10 @@ data class Taxonomy(
                                flags: Int) {
         dest?.writeString(kingdom)
         dest?.writeString(group)
+    }
+
+    override fun toString(): String {
+        return "Taxonomy(kingdom='$kingdom', group='$group')"
     }
 
     companion object {
@@ -48,6 +77,20 @@ data class Taxonomy(
 
         val DEFAULT_PROJECTION = arrayOf(COLUMN_KINGDOM,
                                          COLUMN_GROUP)
+
+        /**
+         * The default undefined taxonomy rank as "any".
+         */
+        const val ANY = "any"
+
+        val sanitizeValue: (String?) -> String = { value ->
+            if (value == null || value.isEmpty() || arrayOf("autre",
+                                                            "all").any {
+                    value.toLowerCase(Locale.ROOT)
+                        .startsWith(it)
+                }) ANY
+            else value
+        }
 
         /**
          * Create a new [Taxonomy] from the specified [Cursor].

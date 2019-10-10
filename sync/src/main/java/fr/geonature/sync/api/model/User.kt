@@ -10,7 +10,9 @@ import com.google.gson.annotations.SerializedName
 data class User(
     @SerializedName("id_role")
     val id: Long,
+
     @SerializedName("nom_role")
     val lastname: String,
+
     @SerializedName("prenom_role")
     val firstname: String)

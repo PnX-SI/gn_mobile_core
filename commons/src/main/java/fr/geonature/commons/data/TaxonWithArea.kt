@@ -15,10 +15,12 @@ class TaxonWithArea : AbstractTaxon {
 
     constructor(id: Long,
                 name: String,
-                description: String?,
+                taxonomy: Taxonomy,
+                description: String? = null,
                 heritage: Boolean = false,
                 taxonArea: TaxonArea?) : super(id,
                                                name,
+                                               taxonomy,
                                                description,
                                                heritage) {
         this.taxonArea = taxonArea
@@ -26,10 +28,11 @@ class TaxonWithArea : AbstractTaxon {
 
     constructor(taxon: Taxon) : super(taxon.id,
                                       taxon.name,
+                                      taxon.taxonomy,
                                       taxon.description,
                                       taxon.heritage)
 
-    constructor(source: Parcel) : super(source) {
+    private constructor(source: Parcel) : super(source) {
         taxonArea = source.readParcelable(TaxonArea::class.java.classLoader)
     }
 
