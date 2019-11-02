@@ -13,9 +13,9 @@ import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.data.Taxonomy
 import fr.geonature.commons.model.MountPoint
+import fr.geonature.commons.util.FileUtils.getDatabaseFolder
+import fr.geonature.commons.util.FileUtils.getFile
 import fr.geonature.sync.BuildConfig
-import fr.geonature.sync.util.FileUtils.getDatabaseFolder
-import fr.geonature.sync.util.FileUtils.getFile
 
 /**
  * The Room database.
