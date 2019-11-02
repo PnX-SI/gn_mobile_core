@@ -2,6 +2,7 @@ package fr.geonature.commons.util
 
 import android.content.Context
 import android.os.Environment
+import android.text.TextUtils
 import android.util.Log
 import fr.geonature.commons.model.MountPoint
 import java.io.File
@@ -23,31 +24,32 @@ object FileUtils {
      *
      * @return the corresponding file
      */
-    fun getFile(
-        directory: File,
-        vararg names: String): File {
+    fun getFile(directory: File,
+                vararg names: String): File {
 
         var file = directory
 
         for (name in names) {
-            file = File(
-                file,
-                name)
+            file = File(file,
+                        name)
         }
 
         return file
     }
 
     /**
-     * Gets the relative path used by this context.
+     * Gets the relative path used by given package ID.
      *
-     * @param context the current `Context`
+     * @param packageId the package ID
      *
      * @return the relative path
      */
-    fun getRelativeSharedPath(context: Context): String {
-
-        return "Android" + File.separator + "data" + File.separator + context.packageName + File.separator
+    fun getRelativeSharedPath(packageId: String): String {
+        return arrayOf("Android",
+                       "data",
+                       packageId).joinToString(File.separator,
+                                               "",
+                                               File.separator)
     }
 
     /**
@@ -60,17 +62,16 @@ object FileUtils {
      */
     fun getExternalStorageDirectory(context: Context): File {
 
-        val externalMountPoint = MountPointUtils.getExternalStorage(
-            context,
-            Environment.MEDIA_MOUNTED,
-            Environment.MEDIA_MOUNTED_READ_ONLY)
+        val externalMountPoint = MountPointUtils.getExternalStorage(context,
+                                                                    Environment.MEDIA_MOUNTED,
+                                                                    Environment.MEDIA_MOUNTED_READ_ONLY)
 
         if (externalMountPoint == null) {
-            Log.w(
-                TAG,
-                "getExternalStorageDirectory: external mount point is not available. Use default: " + MountPointUtils.getInternalStorage())
+            Log.w(TAG,
+                  "getExternalStorageDirectory: external mount point is not available. Use default: " + MountPointUtils.getInternalStorage())
 
-            return MountPointUtils.getInternalStorage().mountPath
+            return MountPointUtils.getInternalStorage()
+                .mountPath
         }
 
         return externalMountPoint.mountPath
@@ -84,31 +85,30 @@ object FileUtils {
      *
      * @return the root folder as `File`
      */
-    fun getRootFolder(
-        context: Context,
-        storageType: MountPoint.StorageType): File {
+    fun getRootFolder(context: Context,
+                      storageType: MountPoint.StorageType): File {
 
-        return getFile(
-            if (storageType === MountPoint.StorageType.EXTERNAL) getExternalStorageDirectory(context)
-            else MountPointUtils.getInternalStorage().mountPath,
-            getRelativeSharedPath(context))
+        return getFile(if (storageType === MountPoint.StorageType.EXTERNAL) getExternalStorageDirectory(context)
+                       else MountPointUtils.getInternalStorage().mountPath,
+                       getRelativeSharedPath(context.packageName))
     }
 
     /**
-     * Gets the `inputs/` folder as `File` used by this context.
+     * Gets the `inputs/` folder as `File` from given package ID.
+     * If package ID is `null` use given context.
      * The relative path used is `inputs/<package_name>`
      *
      * @param context the current `Context`
+     * @param packageId the package ID (may be `null`)
      *
      * @return the `inputs/` folder as `File`
      */
-    fun getInputsFolder(context: Context): File {
+    fun getInputsFolder(context: Context,
+                        packageId: String? = null): File {
 
-        return getFile(
-            getRootFolder(
-                context,
-                MountPoint.StorageType.INTERNAL),
-            "inputs")
+        return getFile(MountPointUtils.getInternalStorage().mountPath,
+                       getRelativeSharedPath(if (TextUtils.isEmpty(packageId)) context.packageName else packageId!!),
+                       "inputs")
     }
 
     /**
@@ -119,14 +119,11 @@ object FileUtils {
      *
      * @return the `databases/` folder
      */
-    fun getDatabaseFolder(
-        context: Context,
-        storageType: MountPoint.StorageType): File {
+    fun getDatabaseFolder(context: Context,
+                          storageType: MountPoint.StorageType): File {
 
-        return getFile(
-            getRootFolder(
-                context,
-                storageType),
-            "databases")
+        return getFile(getRootFolder(context,
+                                     storageType),
+                       "databases")
     }
 }
