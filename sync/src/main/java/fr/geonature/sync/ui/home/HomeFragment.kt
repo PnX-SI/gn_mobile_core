@@ -1,32 +1,33 @@
 package fr.geonature.sync.ui.home
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.util.Pair
+import android.view.animation.AnimationUtils
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import fr.geonature.commons.ui.adapter.ListItemRecyclerViewAdapter
 import fr.geonature.sync.R
-import fr.geonature.sync.ui.observers.InputObserverListActivity
-import fr.geonature.sync.ui.taxa.TaxaActivity
+import fr.geonature.sync.sync.DataSyncViewModel
+import fr.geonature.sync.sync.PackageInfo
+import fr.geonature.sync.sync.PackageInfoViewModel
+import kotlinx.android.synthetic.main.fragment_home.*
 
 /**
- * A fragment representing a list of Items.
- * Activities containing this fragment MUST implement the
- * [HomeFragment.OnHomeFragmentListener] interface.
+ * Home screen [Fragment].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class HomeFragment : Fragment() {
 
     private var listener: OnHomeFragmentListener? = null
-    private lateinit var adapter: HomeRecyclerViewAdapter
+    private var adapter: PackageInfoRecyclerViewAdapter? = null
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
@@ -41,32 +42,76 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view,
                             savedInstanceState)
 
-        adapter =
-            HomeRecyclerViewAdapter(object : HomeRecyclerViewAdapter.OnHomeRecyclerViewAdapterListener {
-                override fun onItemClicked(itemIntent: Pair<String, Intent>) {
-                    Log.i(TAG,
-                          "onItemClicked: ${itemIntent.first}")
-
-                    listener?.onItemClicked(itemIntent)
-                }
-            })
-
-        // Set the adapter
-        if (view is RecyclerView) {
-            with(view) {
-                layoutManager = LinearLayoutManager(context)
-                adapter = this@HomeFragment.adapter
+        adapter = PackageInfoRecyclerViewAdapter(object : ListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<PackageInfo> {
+            override fun onClick(item: PackageInfo) {
+                listener?.onItemClicked(item)
             }
 
-            val dividerItemDecoration = DividerItemDecoration(view.context,
-                                                              (view.layoutManager as LinearLayoutManager).orientation)
-            view.addItemDecoration(dividerItemDecoration)
+            override fun onLongClicked(position: Int,
+                                       item: PackageInfo) {
+                // nothing to do...
+            }
+
+            override fun showEmptyTextView(show: Boolean) {
+                if (emptyTextView.visibility == View.VISIBLE == show) {
+                    return
+                }
+
+                if (show) {
+                    emptyTextView.startAnimation(AnimationUtils.loadAnimation(context,
+                                                                              android.R.anim.fade_in))
+                    emptyTextView.visibility = View.VISIBLE
+
+                }
+                else {
+                    emptyTextView.startAnimation(AnimationUtils.loadAnimation(context,
+                                                                              android.R.anim.fade_out))
+                    emptyTextView.visibility = View.GONE
+                }
+            }
+        })
+
+        with(appRecyclerView as RecyclerView) {
+            layoutManager = LinearLayoutManager(context)
+            adapter = this@HomeFragment.adapter
+
+            val dividerItemDecoration = DividerItemDecoration(context,
+                                                              (layoutManager as LinearLayoutManager).orientation)
+            addItemDecoration(dividerItemDecoration)
         }
 
-        adapter.setItems(listOf(Pair.create("Observers",
-                                            InputObserverListActivity.newIntent(requireContext())),
-                                Pair.create("Taxa",
-                                            TaxaActivity.newIntent(requireContext()))))
+        activity?.let { activity ->
+            ViewModelProvider(activity).get(DataSyncViewModel::class.java)
+                    .also { dataSyncViewModel ->
+                        dataSyncViewModel.syncOutputStatus.observe(this,
+                                                                   Observer {
+                                                                       if (it == null || it.isEmpty()) {
+                                                                           return@Observer
+                                                                       }
+
+                                                                       val workInfo = it[0]
+                                                                       dataSyncView.setState(workInfo.state)
+                                                                   })
+                        dataSyncViewModel.lastSynchronizedDate.observe(this,
+                                                                       Observer {
+                                                                           dataSyncView.setLastSynchronizedDate(it)
+                                                                       })
+                        dataSyncViewModel.syncMessage.observe(this,
+                                                              Observer {
+                                                                  dataSyncView.setMessage(it)
+                                                              })
+
+                        dataSyncViewModel.startSync()
+                    }
+            ViewModelProvider(activity).get(PackageInfoViewModel::class.java)
+                    .also { packageInfoViewModel ->
+                        packageInfoViewModel.getInstalledApplications()
+                                .observe(this,
+                                         Observer {
+                                             adapter?.setItems(it)
+                                         })
+                    }
+        }
     }
 
     override fun onAttach(context: Context) {
@@ -89,12 +134,10 @@ class HomeFragment : Fragment() {
      * Callback used by [HomeFragment].
      */
     interface OnHomeFragmentListener {
-        fun onItemClicked(itemIntent: Pair<String, Intent>)
+        fun onItemClicked(packageInfo: PackageInfo)
     }
 
     companion object {
-
-        private val TAG = HomeFragment::class.java.name
 
         /**
          * Use this factory method to create a new instance of [HomeFragment].

@@ -1,4 +1,4 @@
-package fr.geonature.sync.worker
+package fr.geonature.sync.sync
 
 import android.content.Context
 import android.text.TextUtils
@@ -12,6 +12,7 @@ import fr.geonature.commons.data.NomenclatureType
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.data.Taxonomy
+import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.util.SettingsUtils
@@ -26,8 +27,12 @@ class DataSyncWorker(appContext: Context,
                      workerParams: WorkerParameters) : Worker(appContext,
                                                               workerParams) {
 
+    private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
+
     override fun doWork(): Result {
         val startTime = Date()
+
+        dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_start_synchronization))
 
         val geoNatureServerUrl = SettingsUtils.getGeoNatureServerUrl(applicationContext)
 
@@ -35,6 +40,10 @@ class DataSyncWorker(appContext: Context,
               "starting local data synchronization from '$geoNatureServerUrl'...")
 
         if (TextUtils.isEmpty(geoNatureServerUrl)) {
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_url_configuration))
+            Log.w(TAG,
+                  "No GeoNature server configured")
+
             return Result.failure()
         }
 
@@ -73,6 +82,11 @@ class DataSyncWorker(appContext: Context,
         Log.i(TAG,
               "local data synchronization ${if (syncNomenclatureResult is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms")
 
+        if (syncNomenclatureResult is Result.Success) {
+            dataSyncManager.updateLastSynchronizedDate()
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_succeeded))
+        }
+
         return syncInputObserversResult
     }
 
@@ -81,6 +95,8 @@ class DataSyncWorker(appContext: Context,
             .execute()
 
         if (!response.isSuccessful) {
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
+
             return Result.failure()
         }
 
@@ -91,6 +107,9 @@ class DataSyncWorker(appContext: Context,
                           it.firstname)
         }
             .toTypedArray()
+
+        dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_observers,
+                                                                           users.size))
 
         Log.i(TAG,
               "users to update: ${users.size}")
@@ -107,6 +126,8 @@ class DataSyncWorker(appContext: Context,
             .execute()
 
         if (!taxonomyRanksResponse.isSuccessful) {
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
+
             return Result.failure()
         }
 
@@ -128,6 +149,8 @@ class DataSyncWorker(appContext: Context,
             .execute()
 
         if (!taxrefResponse.isSuccessful) {
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
+
             return Result.failure()
         }
 
@@ -135,6 +158,8 @@ class DataSyncWorker(appContext: Context,
             .execute()
 
         if (!taxrefAreasResponse.isSuccessful) {
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
+
             return Result.failure()
         }
 
@@ -149,6 +174,9 @@ class DataSyncWorker(appContext: Context,
                   null)
         }
             .toTypedArray()
+
+        dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_taxa,
+                                                                           taxa.size))
 
         Log.i(TAG,
               "taxa to update: ${taxa.size}")
@@ -184,6 +212,8 @@ class DataSyncWorker(appContext: Context,
             .execute()
 
         if (!response.isSuccessful) {
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
+
             return Result.failure()
         }
 
@@ -236,6 +266,8 @@ class DataSyncWorker(appContext: Context,
             .toList()
             .toTypedArray()
 
+        dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_nomenclature,
+                                                                           nomenclatureTypesToUpdate.size))
 
         Log.i(TAG,
               "nomenclature types to update: ${nomenclatureTypesToUpdate.size}")
