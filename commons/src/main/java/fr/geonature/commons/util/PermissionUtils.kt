@@ -7,6 +7,7 @@ import android.view.View
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 
 /**
@@ -107,7 +108,7 @@ object PermissionUtils {
         if (shouldShowRequestPermissions) {
             Snackbar.make(snackbarParentView,
                           snackbarMessageResourceId,
-                          Snackbar.LENGTH_INDEFINITE)
+                          BaseTransientBottomBar.LENGTH_INDEFINITE)
                 .setAction(android.R.string.ok) {
                     ActivityCompat.requestPermissions(activity,
                                                       permissions,
@@ -150,7 +151,7 @@ object PermissionUtils {
         if (shouldShowRequestPermissions) {
             Snackbar.make(snackbarParentView,
                           snackbarMessageResourceId,
-                          Snackbar.LENGTH_INDEFINITE)
+                          BaseTransientBottomBar.LENGTH_INDEFINITE)
                 .setAction(android.R.string.ok) {
                     fragment.requestPermissions(permissions,
                                                 requestCode)
