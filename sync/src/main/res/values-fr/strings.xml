@@ -2,15 +2,27 @@
 <resources>
 
     <string name="activity_preferences_title">Paramètres</string>
-    <string name="activity_observers_title">Observateurs</string>
-
-    <string name="no_data">Aucune donnée</string>
 
     <string name="action_settings">Paramètres</string>
-    <string name="action_search">Recherche</string>
-    <plurals name="action_title_item_count_selected">
-        <item quantity="one">%d sélectionné</item>
-        <item quantity="other">%d sélectionnés</item>
+
+    <string name="sync_data">Data synchronization</string>
+    <string name="sync_last_synchronization">Dernière synchronisation</string>
+    <string name="sync_last_synchronization_date">le EEE dd MMM yyyy à kk:mm:ss</string>
+    <string name="sync_last_synchronization_never">Jamais</string>
+    <string name="sync_start_synchronization">Synchronisation en cours…</string>
+    <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré.</string>
+    <string name="sync_error_server_error">Erreur serveur.</string>
+    <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
+    <string name="sync_data_taxa">Synchronisation des taxons: %1$d</string>
+    <string name="sync_data_nomenclature">Synchronisation de la nomenclature: %1$d</string>
+    <string name="sync_data_succeeded">Done.</string>
+
+    <string name="home_installed_apps">Applications</string>
+    <string name="home_no_available_app">Aucune application compatible trouvée.</string>
+    <string name="home_app_version">%1$s (%2$s)</string>
+    <plurals name="home_app_inputs">
+        <item quantity="one">Relevé à synchronizer : %d</item>
+        <item quantity="other">Relevés à synchronizer : %d</item>
     </plurals>
 
 </resources>

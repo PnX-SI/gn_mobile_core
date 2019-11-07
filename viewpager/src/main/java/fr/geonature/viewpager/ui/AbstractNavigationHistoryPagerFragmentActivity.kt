@@ -96,13 +96,23 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
                 // go back in the navigation history
                 val fragment = getPageFragment(position)
 
-                if (fragment != null && fragment.getResourceTitle() == pager.history.last) {
+                if (fragment == null) {
+                    goToPreviousPage()
+
+                    return
+                }
+
+                if (fragment.getResourceTitle() == pager.history.last) {
                     pager.history.pollLast()
+
+                    if (!fragment.validate()) {
+                        goToPreviousPage()
+
+                        return
+                    }
                 }
                 else {
-
-                    goToPageByKey(pager.history.last)
-
+                    goToPreviousPage()
 
                     return
                 }

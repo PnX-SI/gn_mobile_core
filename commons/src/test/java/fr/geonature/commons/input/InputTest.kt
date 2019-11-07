@@ -407,6 +407,45 @@ class InputTest {
     }
 
     @Test
+    fun testClearCurrentSelectedInputTaxonId() {
+        // given an Input with no input data
+        val input = DummyInput()
+
+        // when adding some input taxa
+        input.apply {
+            addInputTaxon(DummyInputTaxon(Taxon(1234L,
+                                                "taxon_01",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1236L,
+                                                "taxon_03",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+            addInputTaxon(DummyInputTaxon(Taxon(1235L,
+                                                "taxon_02",
+                                                Taxonomy("Animalia",
+                                                         "Ascidies"),
+                                                null)))
+        }
+
+        // then
+        assertEquals(Taxon(1235L,
+                           "taxon_02",
+                           Taxonomy("Animalia",
+                                    "Ascidies"),
+                           null),
+                     input.getCurrentSelectedInputTaxon()?.taxon)
+
+        // when clearing the current selected input taxon
+        input.clearCurrentSelectedInputTaxon()
+
+        // then
+        assertNull(input.getCurrentSelectedInputTaxon())
+    }
+
+    @Test
     fun testParcelable() {
         // given an Input
         val input = DummyInput().apply {

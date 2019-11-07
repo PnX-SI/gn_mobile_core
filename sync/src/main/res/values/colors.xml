@@ -8,4 +8,9 @@
     <color name="bright_foreground_dark">@android:color/white</color>
     <color name="bright_foreground_dark_disabled">#80ffffff</color>
 
+    <color name="status_ok">#4CAF50</color>
+    <color name="status_ko">#f00</color>
+    <color name="status_pending">#FF9800</color>
+    <color name="status_unknown">#ccc</color>
+
 </resources>

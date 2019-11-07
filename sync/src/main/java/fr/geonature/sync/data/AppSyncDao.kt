@@ -5,15 +5,16 @@ import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.preference.PreferenceManager
+import android.text.TextUtils.isEmpty
 import fr.geonature.commons.data.AppSync
-import fr.geonature.commons.util.StringUtils
+import fr.geonature.commons.util.FileUtils.getInputsFolder
 
 /**
  * Data access object for [AppSync].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSyncDao(context: Context) {
+class AppSyncDao(private val context: Context) {
 
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -23,25 +24,24 @@ class AppSyncDao(context: Context) {
                               AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE)
         val cursor = MatrixCursor(columns)
 
-        if (StringUtils.isEmpty(packageId)) return cursor
+        if (isEmpty(packageId)) return cursor
 
-        val lastSync = this.sharedPreferences.getString(buildPreferenceKeyFromPackageId(packageId!!,
-                                                                                        AppSync.COLUMN_LAST_SYNC),
+        val lastSync = this.sharedPreferences.getString("sync.$packageId.${AppSync.COLUMN_LAST_SYNC}",
                                                         null)
-        val inputsToSynchronize = this.sharedPreferences.getLong(buildPreferenceKeyFromPackageId(packageId,
-                                                                                                 AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE),
-                                                                 0)
 
         val values = arrayOf(packageId,
                              lastSync,
-                             inputsToSynchronize)
+                             countInputsToSynchronize(packageId!!))
+
         cursor.addRow(values)
 
         return cursor
     }
 
-    private fun buildPreferenceKeyFromPackageId(packageId: String,
-                                                key: String): String {
-        return "sync.$packageId.$key"
+    private fun countInputsToSynchronize(packageId: String): Number {
+        return getInputsFolder(context,
+                               packageId).walkTopDown()
+            .filter { it.extension == "json" }
+            .count()
     }
 }

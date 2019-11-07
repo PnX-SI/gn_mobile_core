@@ -5,15 +5,27 @@
     <string name="app_version" translatable="false">%1$s (%2$d)\n%3$s</string>
 
     <string name="activity_preferences_title">Settings</string>
-    <string name="activity_observers_title">Observers</string>
-
-    <string name="no_data">No data</string>
 
     <string name="action_settings">Settings</string>
-    <string name="action_search">Search</string>
-    <plurals name="action_title_item_count_selected">
-        <item quantity="one">%d selected</item>
-        <item quantity="other">%d selected</item>
+
+    <string name="sync_data">Data synchronization</string>
+    <string name="sync_last_synchronization">Last synchronization</string>
+    <string name="sync_last_synchronization_date">EEE dd MMM yyyy, kk:mm:ss</string>
+    <string name="sync_last_synchronization_never">Never</string>
+    <string name="sync_start_synchronization">Starting local data synchronization…</string>
+    <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
+    <string name="sync_error_server_error">GeoNature server error.</string>
+    <string name="sync_data_observers">Synchronize observers: %1$d</string>
+    <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
+    <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
+    <string name="sync_data_succeeded">Done.</string>
+
+    <string name="home_installed_apps">Available apps</string>
+    <string name="home_no_available_app">No compatible app installed.</string>
+    <string name="home_app_version">%1$s (%2$s)</string>
+    <plurals name="home_app_inputs">
+        <item quantity="one">Input to synchronize: %d</item>
+        <item quantity="other">Inputs to synchronize: %d</item>
     </plurals>
 
 </resources>

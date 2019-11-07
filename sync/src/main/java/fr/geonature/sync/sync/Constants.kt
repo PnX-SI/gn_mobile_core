@@ -1,4 +1,4 @@
-package fr.geonature.sync.worker
+package fr.geonature.sync.sync
 
 /**
  * Defines a list of constants used for [androidx.work.Worker] names, inputs & outputs.

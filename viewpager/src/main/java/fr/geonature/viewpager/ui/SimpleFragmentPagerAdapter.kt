@@ -12,7 +12,8 @@ import java.util.ArrayList
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class SimpleFragmentPagerAdapter internal constructor(private val context: Context,
-                                                      fm: FragmentManager) : FragmentPagerAdapter(fm) {
+                                                      fm: FragmentManager) : FragmentPagerAdapter(fm,
+                                                                                                  BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     val fragments: MutableMap<Int, Fragment> = LinkedHashMap()
 
