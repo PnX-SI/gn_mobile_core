@@ -2,6 +2,7 @@ package fr.geonature.commons.settings
 
 import android.app.Application
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import fr.geonature.commons.model.MountPoint.StorageType.INTERNAL
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
@@ -27,7 +28,8 @@ class AppSettingsManager<AS : IAppSettings> private constructor(internal val app
 
     private val appSettingsJsonReader: AppSettingsJsonReader<AS> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
-    val appSettings: MutableLiveData<AS> = MutableLiveData()
+    private val _appSettings: MutableLiveData<AS> = MutableLiveData()
+    val appSettings: LiveData<AS> = _appSettings
 
     init {
         GlobalScope.launch(Main) {
@@ -50,7 +52,7 @@ class AppSettingsManager<AS : IAppSettings> private constructor(internal val app
      * @return [IAppSettings] or `null` if not found
      */
     suspend fun loadAppSettings(): AS? = withContext(IO) {
-        val currentLoadedAppSettings = appSettings.value
+        val currentLoadedAppSettings = _appSettings.value
 
         if (currentLoadedAppSettings == null) {
             val settingsJsonFile = getAppSettingsAsFile()
@@ -82,7 +84,7 @@ class AppSettingsManager<AS : IAppSettings> private constructor(internal val app
         }
         else {
             currentLoadedAppSettings
-        }.also { appSettings.postValue(it) }
+        }.also { _appSettings.postValue(it) }
     }
 
     internal fun getAppSettingsAsFile(): File {
