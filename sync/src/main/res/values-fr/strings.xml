@@ -2,8 +2,10 @@
 <resources>
 
     <string name="activity_preferences_title">Paramètres</string>
+    <string name="activity_login_title">Authentification</string>
 
     <string name="action_settings">Paramètres</string>
+    <string name="action_login">Se connecter</string>
 
     <string name="sync_data">Data synchronization</string>
     <string name="sync_last_synchronization">Dernière synchronisation</string>
@@ -24,5 +26,17 @@
         <item quantity="one">Relevé à synchronizer : %d</item>
         <item quantity="other">Relevés à synchronizer : %d</item>
     </plurals>
+
+    <string name="login_login_hint">Identifiant</string>
+    <string name="login_password_hint">Mot de passe</string>
+    <string name="login_action_sign_in">Se connecter</string>
+    <string name="login_form_username_invalid">Identifiant invalide</string>
+    <string name="login_form_password_invalid">Mot de passe invalide</string>
+    <string name="login_success">Authentification réussie</string>
+    <string name="login_failed">Echec lors de l\'authentification</string>
+    <string name="login_failed_login">Utilisateur inconnu</string>
+    <string name="login_failed_password">Mot de passe invalide</string>
+
+    <string name="snackbar_settings_not_found">Erreur lors du chargement des paramètres \'%1$s\'</string>
 
 </resources>

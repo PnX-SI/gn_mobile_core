@@ -5,8 +5,10 @@
     <string name="app_version" translatable="false">%1$s (%2$d)\n%3$s</string>
 
     <string name="activity_preferences_title">Settings</string>
+    <string name="activity_login_title">Sign in</string>
 
     <string name="action_settings">Settings</string>
+    <string name="action_login">Sign in</string>
 
     <string name="sync_data">Data synchronization</string>
     <string name="sync_last_synchronization">Last synchronization</string>
@@ -27,5 +29,17 @@
         <item quantity="one">Input to synchronize: %d</item>
         <item quantity="other">Inputs to synchronize: %d</item>
     </plurals>
+
+    <string name="login_login_hint">Login</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_action_sign_in">Sign in</string>
+    <string name="login_form_username_invalid">Username must not be empty</string>
+    <string name="login_form_password_invalid">Password must not be empty</string>
+    <string name="login_success">Successfully authenticated</string>
+    <string name="login_failed">Login failed</string>
+    <string name="login_failed_login">Invalid login</string>
+    <string name="login_failed_password">Invalid password</string>
+
+    <string name="snackbar_settings_not_found">Unable to load settings \'%1$s\'</string>
 
 </resources>

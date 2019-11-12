@@ -2,13 +2,35 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="CommonsBaseTheme">
+    <style name="AppTheme"
+        parent="Theme.AppCompat.Light.DarkActionBar">
 
         <!-- main theme colors -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/accent</item>
 
+    </style>
+
+    <style name="AppTheme.Login"
+        parent="Theme.AppCompat">
+
+        <!-- main theme colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/accent</item>
+
+        <item name="android:background">@drawable/background_login</item>
+        <item name="background">@drawable/background_login</item>
+        <item name="android:colorButtonNormal">@color/background</item>
+        <item name="android:actionBarStyle">@style/ActionBar.Login</item>
+        <item name="actionBarStyle">@style/ActionBar.Login</item>
+    </style>
+
+    <style name="ActionBar.Login"
+        parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/primary_dark</item>
+        <item name="background">@color/primary_dark</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -17,7 +39,10 @@
         <item name="windowActionModeOverlay">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="AppTheme.AppBarOverlay"
+        parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay"
+        parent="ThemeOverlay.AppCompat.Light" />
 
 </resources>

@@ -8,11 +8,11 @@ import fr.geonature.sync.R
 import fr.geonature.sync.sync.PackageInfo
 
 /**
- * Default RecyclerView Adapter for [PackageInfo] used by [HomeFragment].
+ * Default RecyclerView Adapter for [PackageInfo] used by [HomeActivity].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  *
- * @see HomeFragment
+ * @see HomeActivity
  */
 class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterListener<PackageInfo>) : ListItemRecyclerViewAdapter<PackageInfo>(listener) {
     override fun getViewHolder(view: View,
