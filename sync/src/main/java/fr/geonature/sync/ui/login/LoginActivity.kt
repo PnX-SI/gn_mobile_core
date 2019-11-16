@@ -16,6 +16,7 @@ import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.util.KeyboardUtils.hideSoftKeyboard
 import fr.geonature.commons.util.afterTextChanged
 import fr.geonature.sync.R
+import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
 import kotlinx.android.synthetic.main.activity_login.*
@@ -23,7 +24,7 @@ import kotlinx.android.synthetic.main.activity_login.*
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var appSettingsViewModel: AppSettingsViewModel
-    private lateinit var loginViewModel: LoginViewModel
+    private lateinit var authLoginViewModel: AuthLoginViewModel
     private var appSettings: AppSettings? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,54 +37,55 @@ class LoginActivity : AppCompatActivity() {
 
         loadAppSettings()
 
-        loginViewModel = ViewModelProvider(this,
-                                           LoginViewModel.Factory { LoginViewModel(application) }).get(LoginViewModel::class.java)
-
-        loginViewModel.loginFormState.observe(this@LoginActivity,
-                                              Observer {
-                                                  val loginState = it ?: return@Observer
-
-                                                  // disable login button unless both username / password is valid
-                                                  button_login.isEnabled = loginState.isValid && appSettings != null
-
-                                                  if (loginState.usernameError != null) {
-                                                      edit_text_username.error = getString(loginState.usernameError)
-                                                  }
-
-                                                  if (loginState.passwordError != null) {
-                                                      edit_text_password.error = getString(loginState.passwordError)
-                                                  }
-                                              })
-
-        loginViewModel.loginResult.observe(this@LoginActivity,
+        authLoginViewModel = ViewModelProvider(this,
+                                               AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
+                .apply {
+                    loginFormState.observe(this@LoginActivity,
                                            Observer {
-                                               val loginResult = it ?: return@Observer
+                                               val loginState = it ?: return@Observer
 
-                                               progress.visibility = View.GONE
+                                               // disable login button unless both username / password is valid
+                                               button_login.isEnabled = loginState.isValid && appSettings != null
 
-                                               if (loginResult.hasError()) {
-                                                   showToast(loginResult.error
-                                                                 ?: R.string.login_failed)
-
-                                                   return@Observer
+                                               if (loginState.usernameError != null) {
+                                                   edit_text_username.error = getString(loginState.usernameError)
                                                }
 
-                                               showToast(R.string.login_success)
-                                               setResult(Activity.RESULT_OK)
-
-                                               // Complete and destroy login activity once successful
-                                               finish()
+                                               if (loginState.passwordError != null) {
+                                                   edit_text_password.error = getString(loginState.passwordError)
+                                               }
                                            })
 
+                    loginResult.observe(this@LoginActivity,
+                                        Observer {
+                                            val loginResult = it ?: return@Observer
+
+                                            progress.visibility = View.GONE
+
+                                            if (loginResult.hasError()) {
+                                                showToast(loginResult.error
+                                                              ?: R.string.login_failed)
+
+                                                return@Observer
+                                            }
+
+                                            showToast(R.string.login_success)
+                                            setResult(Activity.RESULT_OK)
+
+                                            // Complete and destroy login activity once successful
+                                            finish()
+                                        })
+                }
+
         edit_text_username.afterTextChanged {
-            loginViewModel.loginDataChanged(edit_text_username.text.toString(),
-                                            edit_text_password.text.toString())
+            authLoginViewModel.loginDataChanged(edit_text_username.text.toString(),
+                                                edit_text_password.text.toString())
         }
 
         edit_text_password.apply {
             afterTextChanged {
-                loginViewModel.loginDataChanged(edit_text_username.text.toString(),
-                                                edit_text_password.text.toString())
+                authLoginViewModel.loginDataChanged(edit_text_username.text.toString(),
+                                                    edit_text_password.text.toString())
             }
 
             setOnEditorActionListener { _, actionId, _ ->
@@ -136,9 +138,9 @@ class LoginActivity : AppCompatActivity() {
         hideSoftKeyboard(edit_text_password)
         progress.visibility = View.VISIBLE
 
-        loginViewModel.login(username,
-                             password,
-                             appSettings.applicationId)
+        authLoginViewModel.login(username,
+                                 password,
+                                 appSettings.applicationId)
     }
 
     private fun showToast(@StringRes

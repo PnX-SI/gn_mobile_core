@@ -7,11 +7,18 @@
         android:id="@+id/menu_settings"
         android:icon="@drawable/ic_action_settings"
         android:title="@string/action_settings"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_login"
         android:icon="@drawable/ic_action_login"
-        android:title="@string/action_login" />
+        android:title="@string/action_login"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_logout"
+        android:icon="@drawable/ic_action_logout"
+        android:title="@string/action_logout"
+        app:showAsAction="never" />
 
 </menu>

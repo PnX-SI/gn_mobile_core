@@ -2,7 +2,6 @@ package fr.geonature.sync.auth
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
-import fr.geonature.commons.util.IsoDateUtils.toDate
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthUser
 import kotlinx.coroutines.runBlocking
@@ -14,6 +13,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.util.Calendar
 
 /**
  * Unit tests about [AuthManager].
@@ -74,7 +74,12 @@ class AuthManagerTest {
                                            3,
                                            1,
                                            "admin"),
-                                  toDate("2019-11-19T09:30:00Z")!!)
+                                  Calendar.getInstance().apply {
+                                      add(Calendar.DAY_OF_YEAR,
+                                          7)
+                                      set(Calendar.MILLISECOND,
+                                          0)
+                                  }.time)
 
         // when saving this AuthLogin
         val saved = runBlocking { authManager.setAuthLogin(authLogin) }
@@ -89,5 +94,32 @@ class AuthManagerTest {
         assertNotNull(authLoginFromManager)
         assertEquals(authLogin,
                      authLoginFromManager)
+    }
+
+    @Test
+    fun testSaveAndGetExpiredAuthLogin() {
+        // given an expired AuthLogin instance to save and read
+        val authLogin = AuthLogin(AuthUser(1234L,
+                                           "Admin",
+                                           "Test",
+                                           3,
+                                           1,
+                                           "admin"),
+                                  Calendar.getInstance().apply {
+                                      add(Calendar.DAY_OF_YEAR,
+                                          -1)
+                                  }.time)
+
+        // when saving this AuthLogin
+        val saved = runBlocking { authManager.setAuthLogin(authLogin) }
+
+        // then
+        assertTrue(saved)
+
+        // when reading this AuthLogin from manager
+        val authLoginFromManager = runBlocking { authManager.getAuthLogin() }
+
+        // then
+        assertNull(authLoginFromManager)
     }
 }

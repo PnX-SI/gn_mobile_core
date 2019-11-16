@@ -5,7 +5,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -14,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.ui.adapter.ListItemRecyclerViewAdapter
 import fr.geonature.sync.R
+import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
 import fr.geonature.sync.sync.DataSyncViewModel
@@ -27,6 +30,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
 /**
  * Home screen Activity.
  *
@@ -35,10 +39,12 @@ import kotlinx.coroutines.launch
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var appSettingsViewModel: AppSettingsViewModel
+    private lateinit var authLoginViewModel: AuthLoginViewModel
     private lateinit var dataSyncViewModel: DataSyncViewModel
     private lateinit var packageInfoViewModel: PackageInfoViewModel
     private lateinit var adapter: PackageInfoRecyclerViewAdapter
     private var appSettings: AppSettings? = null
+    private var isLoggedIn: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +53,15 @@ class HomeActivity : AppCompatActivity() {
 
         appSettingsViewModel = ViewModelProvider(this,
                                                  fr.geonature.commons.settings.AppSettingsViewModel.Factory { AppSettingsViewModel(application) }).get(AppSettingsViewModel::class.java)
+        authLoginViewModel = ViewModelProvider(this,
+                                               AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
+                .apply {
+                    isLoggedIn.observe(this@HomeActivity,
+                                       Observer {
+                                           this@HomeActivity.isLoggedIn = it
+                                           invalidateOptionsMenu()
+                                       })
+                }
         dataSyncViewModel = ViewModelProvider(this,
                                               DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
         packageInfoViewModel = ViewModelProvider(this,
@@ -101,7 +116,20 @@ class HomeActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.settings,
                              menu)
 
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+        }
+
         return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.findItem(R.id.menu_login)
+                ?.isVisible = !isLoggedIn
+        menu?.findItem(R.id.menu_logout)
+                ?.isVisible = isLoggedIn
+
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -112,6 +140,17 @@ class HomeActivity : AppCompatActivity() {
             }
             R.id.menu_login -> {
                 startActivity(LoginActivity.newIntent(this))
+                true
+            }
+            R.id.menu_logout -> {
+                authLoginViewModel.logout()
+                        .observe(this,
+                                 Observer {
+                                     Toast.makeText(this,
+                                                    R.string.logout_success,
+                                                    Toast.LENGTH_SHORT)
+                                             .show()
+                                 })
                 true
             }
             else -> super.onOptionsItemSelected(item)

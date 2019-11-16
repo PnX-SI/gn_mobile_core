@@ -1,4 +1,4 @@
-package fr.geonature.sync.ui.login
+package fr.geonature.sync.auth
 
 import android.app.Application
 import android.text.TextUtils
@@ -15,7 +15,6 @@ import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.api.model.AuthCredentials
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthLoginError
-import fr.geonature.sync.auth.AuthManager
 import fr.geonature.sync.util.SettingsUtils
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -25,10 +24,18 @@ import retrofit2.Response
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class LoginViewModel(application: Application) : ViewModel() {
+class AuthLoginViewModel(application: Application) : ViewModel() {
 
-    private val authManager: AuthManager = AuthManager(application)
+    private val authManager: AuthManager = AuthManager.getInstance(application)
     private var geoNatureAPIClient: GeoNatureAPIClient? = null
+
+    private val _loginFormState = MutableLiveData<LoginFormState>()
+    val loginFormState: LiveData<LoginFormState> = _loginFormState
+
+    private val _loginResult = MutableLiveData<LoginResult>()
+    val loginResult: LiveData<LoginResult> = _loginResult
+
+    val isLoggedIn: LiveData<Boolean> = authManager.isLoggedIn
 
     init {
         SettingsUtils.getGeoNatureServerUrl(application)
@@ -39,48 +46,47 @@ class LoginViewModel(application: Application) : ViewModel() {
                 }
     }
 
-    private val _loginFormState = MutableLiveData<LoginFormState>()
-    val loginFormState: LiveData<LoginFormState> = _loginFormState
-
-    private val _loginResult = MutableLiveData<LoginResult>()
-    val loginResult: LiveData<LoginResult> = _loginResult
-
     fun login(username: String,
               password: String,
               applicationId: Int) {
         val geoNatureAPIClient = geoNatureAPIClient ?: return
 
         viewModelScope.launch {
-            val authLoginResponse = geoNatureAPIClient.authLogin(AuthCredentials(username,
-                                                                                 password,
-                                                                                 applicationId))
+            try {
+                val authLoginResponse = geoNatureAPIClient.authLogin(AuthCredentials(username,
+                                                                                     password,
+                                                                                     applicationId))
 
-            if (!authLoginResponse.isSuccessful) {
-                val authLoginError = buildErrorResponse(authLoginResponse)
+                if (!authLoginResponse.isSuccessful) {
+                    val authLoginError = buildErrorResponse(authLoginResponse)
 
-                _loginResult.value = if (authLoginError != null) {
-                    when (authLoginError.type) {
-                        "login" -> LoginResult(error = R.string.login_failed_login)
-                        "password" -> LoginResult(error = R.string.login_failed_password)
-                        else -> LoginResult(error = R.string.login_failed)
+                    _loginResult.value = if (authLoginError != null) {
+                        when (authLoginError.type) {
+                            "login" -> LoginResult(error = R.string.login_failed_login)
+                            "password" -> LoginResult(error = R.string.login_failed_password)
+                            else -> LoginResult(error = R.string.login_failed)
+                        }
                     }
-                }
-                else {
-                    LoginResult(error = R.string.login_failed)
+                    else {
+                        LoginResult(error = R.string.login_failed)
+                    }
+
+                    return@launch
                 }
 
-                return@launch
+                val authLogin = authLoginResponse.body()
+
+                if (authLogin == null) {
+                    _loginResult.value = LoginResult(error = R.string.login_failed)
+                    return@launch
+                }
+
+                authManager.setAuthLogin(authLogin)
+                _loginResult.value = LoginResult(success = authLogin)
             }
-
-            val authLogin = authLoginResponse.body()
-
-            if (authLogin == null) {
+            catch (e: Exception) {
                 _loginResult.value = LoginResult(error = R.string.login_failed)
-                return@launch
             }
-
-            authManager.setAuthLogin(authLogin)
-            _loginResult.value = LoginResult(success = authLogin)
         }
     }
 
@@ -97,6 +103,16 @@ class LoginViewModel(application: Application) : ViewModel() {
         }
 
         _loginFormState.value = LoginFormState(isValid = true)
+    }
+
+    fun logout(): LiveData<Boolean> {
+        val disconnected = MutableLiveData<Boolean>()
+
+        viewModelScope.launch {
+            disconnected.value = authManager.logout()
+        }
+
+        return disconnected
     }
 
     // A placeholder username validation check
@@ -141,13 +157,13 @@ class LoginViewModel(application: Application) : ViewModel() {
     }
 
     /**
-     * Default Factory to use for [LoginViewModel].
+     * Default Factory to use for [AuthLoginViewModel].
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    class Factory(val creator: () -> LoginViewModel) : ViewModelProvider.Factory {
+    class Factory(val creator: () -> AuthLoginViewModel) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
+            if (modelClass.isAssignableFrom(AuthLoginViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST") return creator() as T
             }
 

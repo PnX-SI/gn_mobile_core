@@ -9,6 +9,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_login">Sign in</string>
+    <string name="action_logout">Sign out</string>
 
     <string name="sync_data">Data synchronization</string>
     <string name="sync_last_synchronization">Last synchronization</string>
@@ -39,6 +40,7 @@
     <string name="login_failed">Login failed</string>
     <string name="login_failed_login">Invalid login</string>
     <string name="login_failed_password">Invalid password</string>
+    <string name="logout_success">Disconnected</string>
 
     <string name="snackbar_settings_not_found">Unable to load settings \'%1$s\'</string>
 
