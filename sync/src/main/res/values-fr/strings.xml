@@ -15,6 +15,7 @@
     <string name="sync_start_synchronization">Synchronisation en cours…</string>
     <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré.</string>
     <string name="sync_error_server_error">Erreur serveur.</string>
+    <string name="sync_data_dataset">Synchronisation des jeux de données : %1$d</string>
     <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
     <string name="sync_data_taxa">Synchronisation des taxons: %1$d</string>
     <string name="sync_data_nomenclature">Synchronisation de la nomenclature: %1$d</string>

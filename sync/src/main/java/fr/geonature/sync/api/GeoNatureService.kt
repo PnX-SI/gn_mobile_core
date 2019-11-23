@@ -32,6 +32,9 @@ interface GeoNatureService {
                           @Body
                           input: RequestBody): Call<ResponseBody>
 
+    @GET("geonature/api/meta/datasets")
+    fun getMetaDatasets(): Call<ResponseBody>
+
     @GET("geonature/api/users/menu/1")
     fun getUsers(): Call<List<User>>
 

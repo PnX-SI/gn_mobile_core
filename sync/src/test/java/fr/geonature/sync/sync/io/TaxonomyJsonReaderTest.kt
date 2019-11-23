@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.sync.sync.io
 
 import android.app.Application
 import fr.geonature.commons.data.Taxonomy

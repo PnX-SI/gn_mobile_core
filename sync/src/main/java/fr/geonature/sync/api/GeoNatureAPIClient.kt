@@ -86,6 +86,10 @@ class GeoNatureAPIClient private constructor(context: Context,
                                                              input.toString()))
     }
 
+    fun getMetaDatasets(): Call<ResponseBody> {
+        return geoNatureService.getMetaDatasets()
+    }
+
     fun getUsers(): Call<List<User>> {
         return geoNatureService.getUsers()
     }

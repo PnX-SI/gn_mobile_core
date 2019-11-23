@@ -18,6 +18,7 @@
     <string name="sync_start_synchronization">Starting local data synchronization…</string>
     <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
     <string name="sync_error_server_error">GeoNature server error.</string>
+    <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
     <string name="sync_data_observers">Synchronize observers: %1$d</string>
     <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
     <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>

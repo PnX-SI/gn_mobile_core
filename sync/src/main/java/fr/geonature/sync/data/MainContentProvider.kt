@@ -11,6 +11,7 @@ import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import fr.geonature.commons.data.AbstractTaxon
 import fr.geonature.commons.data.AppSync
+import fr.geonature.commons.data.Dataset
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Nomenclature
 import fr.geonature.commons.data.NomenclatureTaxonomy
@@ -37,6 +38,7 @@ class MainContentProvider : ContentProvider() {
     override fun getType(uri: Uri): String? {
         return when (MATCHER.match(uri)) {
             APP_SYNC_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${AppSync.TABLE_NAME}"
+            DATASET, DATASET_ACTIVE -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Dataset.TABLE_NAME}"
             INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
             INPUT_OBSERVER_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
             TAXA -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
@@ -64,6 +66,10 @@ class MainContentProvider : ContentProvider() {
         return when (MATCHER.match(uri)) {
             APP_SYNC_ID -> appSyncIdQuery(context,
                                           uri)
+            DATASET, DATASET_ACTIVE -> datasetQuery(context,
+                                                    uri,
+                                                    projection,
+                                                    sortOrder)
             INPUT_OBSERVERS -> inputObserversQuery(context,
                                                    projection,
                                                    selection,
@@ -138,6 +144,26 @@ class MainContentProvider : ContentProvider() {
         return appSyncDao.findByPackageId(packageId)
     }
 
+    private fun datasetQuery(context: Context,
+                             uri: Uri,
+                             projection: Array<String>?,
+                             sortOrder: String?): Cursor {
+        val onlyActive = uri.lastPathSegment == "active"
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(Dataset.TABLE_NAME)
+                .columns(projection ?: Dataset.DEFAULT_PROJECTION)
+                .orderBy(sortOrder ?: "${Dataset.COLUMN_NAME} COLLATE NOCASE ASC")
+
+        if (onlyActive) {
+            queryBuilder.selection("${Dataset.COLUMN_ACTIVE} = 1",
+                                   null)
+        }
+
+        return LocalDatabase.getInstance(context)
+                .datasetDao()
+                .select(queryBuilder.create())
+    }
+
     private fun inputObserversQuery(context: Context,
                                     projection: Array<String>?,
                                     selection: String?,
@@ -145,14 +171,14 @@ class MainContentProvider : ContentProvider() {
                                     sortOrder: String?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
-            .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
-            .selection(selection,
-                       selectionArgs)
-            .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
+                .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
+                .selection(selection,
+                           selectionArgs)
+                .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
 
         return LocalDatabase.getInstance(context)
-            .inputObserverDao()
-            .select(queryBuilder.create())
+                .inputObserverDao()
+                .select(queryBuilder.create())
     }
 
     private fun inputObserversIdsQuery(context: Context,
@@ -164,14 +190,14 @@ class MainContentProvider : ContentProvider() {
             ?: listOf()
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
-            .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
-            .selection("${InputObserver.COLUMN_ID} IN (${selectedObserverIds.joinToString(",")})",
-                       null)
-            .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
+                .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
+                .selection("${InputObserver.COLUMN_ID} IN (${selectedObserverIds.joinToString(",")})",
+                           null)
+                .orderBy(sortOrder ?: "${InputObserver.COLUMN_LASTNAME} COLLATE NOCASE ASC")
 
         return LocalDatabase.getInstance(context)
-            .inputObserverDao()
-            .select(queryBuilder.create())
+                .inputObserverDao()
+                .select(queryBuilder.create())
     }
 
     private fun inputObserverIdQuery(context: Context,
@@ -179,13 +205,13 @@ class MainContentProvider : ContentProvider() {
                                      projection: Array<String>?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(InputObserver.TABLE_NAME)
-            .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
-            .selection("${InputObserver.COLUMN_ID} = ?",
-                       arrayOf(uri.lastPathSegment?.toLongOrNull()))
+                .columns(projection ?: InputObserver.DEFAULT_PROJECTION)
+                .selection("${InputObserver.COLUMN_ID} = ?",
+                           arrayOf(uri.lastPathSegment?.toLongOrNull()))
 
         return LocalDatabase.getInstance(context)
-            .inputObserverDao()
-            .select(queryBuilder.create())
+                .inputObserverDao()
+                .select(queryBuilder.create())
     }
 
     private fun taxonomyQuery(context: Context,
@@ -193,11 +219,11 @@ class MainContentProvider : ContentProvider() {
                               projection: Array<String>?): Cursor {
 
         val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
-            .take(2)
+                .take(2)
         val selection = if (lastPathSegments.isEmpty()) "" else if (lastPathSegments.size == 1) "${Taxonomy.COLUMN_KINGDOM} LIKE ?" else "${Taxonomy.COLUMN_KINGDOM} = ? AND ${Taxonomy.COLUMN_GROUP} LIKE ?"
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxonomy.TABLE_NAME)
-            .columns(projection ?: Taxonomy.DEFAULT_PROJECTION)
+                .columns(projection ?: Taxonomy.DEFAULT_PROJECTION)
 
         if (selection.isNotEmpty()) {
             queryBuilder.selection(selection,
@@ -205,8 +231,8 @@ class MainContentProvider : ContentProvider() {
         }
 
         return LocalDatabase.getInstance(context)
-            .taxonomyDao()
-            .select(queryBuilder.create())
+                .taxonomyDao()
+                .select(queryBuilder.create())
     }
 
     private fun taxaQuery(context: Context,
@@ -216,15 +242,15 @@ class MainContentProvider : ContentProvider() {
                           sortOrder: String?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns((projection
-                ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
-            .selection(selection,
-                       selectionArgs)
-            .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
+                .columns((projection
+                    ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
+                .selection(selection,
+                           selectionArgs)
+                .orderBy(sortOrder ?: "${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE ASC")
 
         return LocalDatabase.getInstance(context)
-            .taxonDao()
-            .select(queryBuilder.create())
+                .taxonDao()
+                .select(queryBuilder.create())
     }
 
     private fun taxaAreaQuery(context: Context,
@@ -237,15 +263,15 @@ class MainContentProvider : ContentProvider() {
         val bindArgs = mutableListOf<Any?>()
 
         val defaultProjection = (projection ?: TaxonWithArea.DEFAULT_PROJECTION).asSequence()
-            .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
-            .map {
-                when (it) {
-                    in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
-                    in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
-                    else -> it
+                .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
+                .map {
+                    when (it) {
+                        in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
+                        in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
+                        else -> it
+                    }
                 }
-            }
-            .joinToString(", ")
+                .joinToString(", ")
 
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
         val joinFilterOnAreaClause = if (filterOnArea == null) {
@@ -268,11 +294,11 @@ class MainContentProvider : ContentProvider() {
             """.trimIndent()
 
         return LocalDatabase.getInstance(context)
-            .taxonAreaDao()
-            .select(SimpleSQLiteQuery(sql,
-                                      bindArgs.also {
-                                          it.addAll(selectionArgs?.asList() ?: emptyList())
-                                      }.toTypedArray()))
+                .taxonAreaDao()
+                .select(SimpleSQLiteQuery(sql,
+                                          bindArgs.also {
+                                              it.addAll(selectionArgs?.asList() ?: emptyList())
+                                          }.toTypedArray()))
     }
 
     private fun taxonIdQuery(context: Context,
@@ -280,14 +306,14 @@ class MainContentProvider : ContentProvider() {
                              projection: Array<String>?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(Taxon.TABLE_NAME)
-            .columns((projection
-                ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
-            .selection("${AbstractTaxon.COLUMN_ID} = ?",
-                       arrayOf(uri.lastPathSegment?.toLongOrNull()))
+                .columns((projection
+                    ?: AbstractTaxon.DEFAULT_PROJECTION).map { "\"$it\"" }.toTypedArray())
+                .selection("${AbstractTaxon.COLUMN_ID} = ?",
+                           arrayOf(uri.lastPathSegment?.toLongOrNull()))
 
         return LocalDatabase.getInstance(context)
-            .taxonDao()
-            .select(queryBuilder.create())
+                .taxonDao()
+                .select(queryBuilder.create())
     }
 
     private fun taxonAreaIdQuery(context: Context,
@@ -296,15 +322,15 @@ class MainContentProvider : ContentProvider() {
         val bindArgs = mutableListOf<Any?>()
 
         val defaultProjection = (projection ?: TaxonWithArea.DEFAULT_PROJECTION).asSequence()
-            .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
-            .map {
-                when (it) {
-                    in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
-                    in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
-                    else -> it
+                .filter { column -> TaxonWithArea.DEFAULT_PROJECTION.any { it === column } }
+                .map {
+                    when (it) {
+                        in AbstractTaxon.DEFAULT_PROJECTION -> "t.\"$it\""
+                        in TaxonArea.DEFAULT_PROJECTION -> "ta.\"$it\""
+                        else -> it
+                    }
                 }
-            }
-            .joinToString(", ")
+                .joinToString(", ")
 
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
         val joinFilterOnAreaClause = if (filterOnArea == null) {
@@ -316,9 +342,9 @@ class MainContentProvider : ContentProvider() {
         }
 
         val taxonId = uri.pathSegments.asSequence()
-            .map { it.toLongOrNull() }
-            .filterNotNull()
-            .firstOrNull()
+                .map { it.toLongOrNull() }
+                .filterNotNull()
+                .firstOrNull()
         bindArgs.add(taxonId)
 
         val whereClause = "WHERE ${AbstractTaxon.COLUMN_ID} = ?"
@@ -331,9 +357,9 @@ class MainContentProvider : ContentProvider() {
             """.trimIndent()
 
         return LocalDatabase.getInstance(context)
-            .taxonAreaDao()
-            .select(SimpleSQLiteQuery(sql,
-                                      bindArgs.toTypedArray()))
+                .taxonAreaDao()
+                .select(SimpleSQLiteQuery(sql,
+                                          bindArgs.toTypedArray()))
     }
 
     private fun nomenclatureTypesQuery(context: Context,
@@ -343,14 +369,14 @@ class MainContentProvider : ContentProvider() {
                                        sortOrder: String?): Cursor {
 
         val queryBuilder = SupportSQLiteQueryBuilder.builder(NomenclatureType.TABLE_NAME)
-            .columns(projection ?: NomenclatureType.DEFAULT_PROJECTION)
-            .selection(selection,
-                       selectionArgs)
-            .orderBy(sortOrder ?: "${NomenclatureType.COLUMN_MNEMONIC} COLLATE NOCASE ASC")
+                .columns(projection ?: NomenclatureType.DEFAULT_PROJECTION)
+                .selection(selection,
+                           selectionArgs)
+                .orderBy(sortOrder ?: "${NomenclatureType.COLUMN_MNEMONIC} COLLATE NOCASE ASC")
 
         return LocalDatabase.getInstance(context)
-            .nomenclatureTypeDao()
-            .select(queryBuilder.create())
+                .nomenclatureTypeDao()
+                .select(queryBuilder.create())
     }
 
     private fun nomenclaturesByTaxonomyQuery(context: Context,
@@ -363,22 +389,22 @@ class MainContentProvider : ContentProvider() {
 
         val defaultProjection = (projection
             ?: NomenclatureWithTaxonomy.DEFAULT_PROJECTION).asSequence()
-            .filter { column ->
-                NomenclatureWithTaxonomy.DEFAULT_PROJECTION.any { it === column }
-            }
-            .map {
-                when (it) {
-                    NomenclatureType.COLUMN_MNEMONIC -> "nty.\"$it\""
-                    in Nomenclature.DEFAULT_PROJECTION -> "n.\"$it\""
-                    in Taxonomy.DEFAULT_PROJECTION -> "nta.\"$it\""
-                    else -> it
+                .filter { column ->
+                    NomenclatureWithTaxonomy.DEFAULT_PROJECTION.any { it === column }
                 }
-            }
-            .joinToString(", ")
+                .map {
+                    when (it) {
+                        NomenclatureType.COLUMN_MNEMONIC -> "nty.\"$it\""
+                        in Nomenclature.DEFAULT_PROJECTION -> "n.\"$it\""
+                        in Taxonomy.DEFAULT_PROJECTION -> "nta.\"$it\""
+                        else -> it
+                    }
+                }
+                .joinToString(", ")
 
         val taxonomyTypeMnemonic = uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
+                .take(1)
+                .firstOrNull()
         val joinFilterOnNomenclatureTypeClause = if (TextUtils.isEmpty(taxonomyTypeMnemonic)) {
             ""
         }
@@ -390,7 +416,7 @@ class MainContentProvider : ContentProvider() {
         }
 
         val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf("items") + 1)
-            .take(2)
+                .take(2)
         val joinFilterOnTaxonomyClause = if (lastPathSegments.isEmpty()) {
             ""
         }
@@ -418,30 +444,32 @@ class MainContentProvider : ContentProvider() {
             """.trimIndent()
 
         return LocalDatabase.getInstance(context)
-            .nomenclatureDao()
-            .select(SimpleSQLiteQuery(sql,
-                                      bindArgs.also {
-                                          it.addAll(selectionArgs?.asList() ?: emptyList())
-                                      }.toTypedArray()))
+                .nomenclatureDao()
+                .select(SimpleSQLiteQuery(sql,
+                                          bindArgs.also {
+                                              it.addAll(selectionArgs?.asList() ?: emptyList())
+                                          }.toTypedArray()))
     }
 
     companion object {
 
         // used for the UriMatcher
         const val APP_SYNC_ID = 1
-        const val INPUT_OBSERVERS = 10
-        const val INPUT_OBSERVERS_IDS = 11
-        const val INPUT_OBSERVER_ID = 12
-        const val TAXONOMY = 20
-        const val TAXONOMY_KINGDOM = 21
-        const val TAXONOMY_KINGDOM_GROUP = 22
-        const val TAXA = 30
-        const val TAXA_AREA = 31
-        const val TAXON_ID = 32
-        const val TAXON_AREA_ID = 33
-        const val NOMENCLATURE_TYPES = 40
-        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 41
-        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 42
+        const val DATASET = 10
+        const val DATASET_ACTIVE = 11
+        const val INPUT_OBSERVERS = 20
+        const val INPUT_OBSERVERS_IDS = 21
+        const val INPUT_OBSERVER_ID = 22
+        const val TAXONOMY = 30
+        const val TAXONOMY_KINGDOM = 31
+        const val TAXONOMY_KINGDOM_GROUP = 32
+        const val TAXA = 40
+        const val TAXA_AREA = 41
+        const val TAXON_ID = 42
+        const val TAXON_AREA_ID = 43
+        const val NOMENCLATURE_TYPES = 50
+        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 51
+        const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 52
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
@@ -454,6 +482,12 @@ class MainContentProvider : ContentProvider() {
             addURI(AUTHORITY,
                    "${AppSync.TABLE_NAME}/*",
                    APP_SYNC_ID)
+            addURI(AUTHORITY,
+                   Dataset.TABLE_NAME,
+                   DATASET)
+            addURI(AUTHORITY,
+                   "${Dataset.TABLE_NAME}/active",
+                   DATASET_ACTIVE)
             addURI(AUTHORITY,
                    InputObserver.TABLE_NAME,
                    INPUT_OBSERVERS)
