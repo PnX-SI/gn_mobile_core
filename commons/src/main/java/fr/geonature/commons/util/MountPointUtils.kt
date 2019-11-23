@@ -6,7 +6,6 @@ import android.util.Log
 import fr.geonature.commons.BuildConfig
 import fr.geonature.commons.R
 import fr.geonature.commons.model.MountPoint
-import fr.geonature.commons.util.StringUtils.isEmpty
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.ArrayList
@@ -31,7 +30,7 @@ object MountPointUtils {
     fun getInternalStorage(): MountPoint {
         val externalStorage = System.getenv("EXTERNAL_STORAGE")
 
-        if (isEmpty(externalStorage)) {
+        if (externalStorage.isNullOrBlank()) {
             val mountPoint = MountPoint(Environment.getExternalStorageDirectory().absolutePath,
                                         MountPoint.StorageType.INTERNAL)
 
@@ -43,7 +42,7 @@ object MountPointUtils {
             return mountPoint
         }
 
-        val mountPoint = MountPoint(externalStorage!!,
+        val mountPoint = MountPoint(externalStorage,
                                     MountPoint.StorageType.INTERNAL)
 
         if (BuildConfig.DEBUG) {
@@ -271,12 +270,12 @@ object MountPointUtils {
 
             var secondaryStorage = System.getenv("SECONDARY_STORAGE")
 
-            if (isEmpty(secondaryStorage)) {
+            if (secondaryStorage.isNullOrBlank()) {
                 secondaryStorage = System.getenv("EXTERNAL_SDCARD_STORAGE")
             }
 
-            if (!isEmpty(secondaryStorage)) {
-                val paths = secondaryStorage!!.split(":".toRegex())
+            if (!secondaryStorage.isNullOrBlank()) {
+                val paths = secondaryStorage.split(":".toRegex())
                         .dropLastWhile {
                             it.isEmpty()
                         }
@@ -322,7 +321,7 @@ object MountPointUtils {
                 while (scanner.hasNext()) {
                     var line = scanner.nextLine()
 
-                    if (isEmpty(line)) {
+                    if (line.isNullOrBlank()) {
                         continue
                     }
 
@@ -455,7 +454,7 @@ object MountPointUtils {
 
     private fun buildMountPoint(mountPath: String,
                                 storageType: MountPoint.StorageType): MountPoint? {
-        return buildMountPoint(File(if (isEmpty(mountPath)) "/" else mountPath),
+        return buildMountPoint(File(if (mountPath.isBlank()) "/" else mountPath),
                                storageType)
     }
 }

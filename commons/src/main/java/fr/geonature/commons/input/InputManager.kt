@@ -8,7 +8,6 @@ import androidx.preference.PreferenceManager
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import fr.geonature.commons.util.FileUtils.getInputsFolder
-import fr.geonature.commons.util.StringUtils.isEmpty
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -42,7 +41,7 @@ class InputManager<I : AbstractInput> private constructor(internal val applicati
      */
     suspend fun readInputs(): List<I> = withContext(IO) {
         preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }
-            .values.mapNotNull { if (it is String && !isEmpty(it)) inputJsonReader.read(it) else null }
+            .values.mapNotNull { if (it is String && !it.isBlank()) inputJsonReader.read(it) else null }
             .sortedBy { it.id }
             .also { inputs.postValue(it) }
     }
@@ -61,7 +60,7 @@ class InputManager<I : AbstractInput> private constructor(internal val applicati
         val inputAsJson = preferenceManager.getString(inputPreferenceKey,
                                                       null)
 
-        if (isEmpty(inputAsJson)) {
+        if (inputAsJson.isNullOrBlank()) {
             return@withContext null
         }
 
@@ -89,7 +88,7 @@ class InputManager<I : AbstractInput> private constructor(internal val applicati
     suspend fun saveInput(input: I): Boolean = withContext(IO) {
         val inputAsJson = inputJsonWriter.write(input)
 
-        if (isEmpty(inputAsJson)) return@withContext false
+        if (inputAsJson.isNullOrBlank()) return@withContext false
 
         preferenceManager.edit()
             .putString(buildInputPreferenceKey(input.id),

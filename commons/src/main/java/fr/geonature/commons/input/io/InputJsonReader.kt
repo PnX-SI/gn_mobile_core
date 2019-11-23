@@ -3,7 +3,6 @@ package fr.geonature.commons.input.io
 import android.util.JsonReader
 import android.util.Log
 import fr.geonature.commons.input.AbstractInput
-import fr.geonature.commons.util.StringUtils
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -25,7 +24,7 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
      * @see .read
      */
     fun read(json: String?): I? {
-        if (StringUtils.isEmpty(json)) {
+        if (json.isNullOrBlank()) {
             return null
         }
 
