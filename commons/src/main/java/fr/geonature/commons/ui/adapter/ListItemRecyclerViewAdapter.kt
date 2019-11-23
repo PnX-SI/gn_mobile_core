@@ -165,6 +165,14 @@ abstract class ListItemRecyclerViewAdapter<T>(private val listener: OnListItemRe
     }
 
     /**
+     * Clear the list.
+     */
+    fun clear() {
+        this.items.clear()
+        notifyDataSetChanged()
+    }
+
+    /**
      * Gets the [AbstractViewHolder] implementation for given view type.
      */
     protected abstract fun getViewHolder(view: View,
