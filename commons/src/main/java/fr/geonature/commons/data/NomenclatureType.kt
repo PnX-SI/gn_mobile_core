@@ -44,9 +44,11 @@ data class NomenclatureType(
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(id)
-        dest?.writeString(mnemonic)
-        dest?.writeString(defaultLabel)
+        dest?.also {
+            it.writeLong(id)
+            it.writeString(mnemonic)
+            it.writeString(defaultLabel)
+        }
     }
 
     companion object {

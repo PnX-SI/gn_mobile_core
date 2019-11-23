@@ -47,9 +47,11 @@ data class InputObserver(
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(id)
-        dest?.writeString(lastname)
-        dest?.writeString(firstname)
+        dest?.also {
+            it.writeLong(id)
+            it.writeString(lastname)
+            it.writeString(firstname)
+        }
     }
 
     companion object {

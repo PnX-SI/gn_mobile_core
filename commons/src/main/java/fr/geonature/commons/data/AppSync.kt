@@ -3,7 +3,8 @@ package fr.geonature.commons.data
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
-import fr.geonature.commons.util.IsoDateUtils.toDate
+import android.util.Log
+import fr.geonature.commons.util.get
 import java.util.Date
 
 /**
@@ -11,11 +12,11 @@ import java.util.Date
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-data class AppSync(var packageId: String?,
+data class AppSync(var packageId: String,
                    var lastSync: Date? = null,
                    var inputsToSynchronize: Int = 0) : Parcelable {
 
-    private constructor(source: Parcel) : this(source.readString(),
+    private constructor(source: Parcel) : this(source.readString()!!,
                                                source.readSerializable() as Date,
                                                source.readInt())
 
@@ -25,12 +26,16 @@ data class AppSync(var packageId: String?,
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeString(packageId)
-        dest?.writeSerializable(lastSync)
-        dest?.writeInt(inputsToSynchronize)
+        dest?.also {
+            it.writeString(packageId)
+            it.writeSerializable(lastSync)
+            it.writeInt(inputsToSynchronize)
+        }
     }
 
     companion object {
+
+        private val TAG = AppSync::class.java.name
 
         const val TABLE_NAME = "app_sync"
         const val COLUMN_ID = "package_id"
@@ -49,11 +54,18 @@ data class AppSync(var packageId: String?,
                 return null
             }
 
-            val appSync = AppSync(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)))
-            appSync.lastSync = toDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LAST_SYNC)))
-            appSync.inputsToSynchronize = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_INPUTS_TO_SYNCHRONIZE))
+            return try {
+                AppSync(requireNotNull(cursor.get(COLUMN_ID)),
+                        cursor.get(COLUMN_LAST_SYNC),
+                        requireNotNull(cursor.get(COLUMN_INPUTS_TO_SYNCHRONIZE,
+                                                  0)))
+            }
+            catch (iae: IllegalArgumentException) {
+                Log.w(TAG,
+                      iae.message)
 
-            return appSync
+                null
+            }
         }
 
         @JvmField

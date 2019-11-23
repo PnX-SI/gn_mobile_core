@@ -91,13 +91,13 @@ class TaxonWithAreaTest {
         `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenReturn(7)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(8)
         `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(9)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(10)
+        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(10)
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
         `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getString(5)).thenReturn("True")
+        `when`(cursor.getInt(5)).thenReturn(1)
         `when`(cursor.getLong(6)).thenReturn(1234)
         `when`(cursor.getLong(7)).thenReturn(10)
         `when`(cursor.getString(8)).thenReturn("red")
@@ -143,7 +143,7 @@ class TaxonWithAreaTest {
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
         `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getString(5)).thenReturn("True")
+        `when`(cursor.getInt(5)).thenReturn(1)
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -180,7 +180,7 @@ class TaxonWithAreaTest {
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
         `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getString(5)).thenReturn("True")
+        `when`(cursor.getInt(5)).thenReturn(1)
         `when`(cursor.getLong(6)).thenReturn(0)
         `when`(cursor.getLong(7)).thenReturn(0)
 

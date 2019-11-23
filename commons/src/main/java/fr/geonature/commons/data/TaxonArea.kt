@@ -8,7 +8,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.TypeConverters
-import fr.geonature.commons.data.Converters.fromTimestamp
 import fr.geonature.commons.util.get
 import java.util.Date
 
@@ -56,11 +55,13 @@ data class TaxonArea(
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(taxonId)
-        dest?.writeLong(areaId)
-        dest?.writeString(color)
-        dest?.writeInt(numberOfObservers)
-        dest?.writeSerializable(lastUpdatedAt)
+        dest?.also {
+            it.writeLong(taxonId)
+            it.writeLong(areaId)
+            it.writeString(color)
+            it.writeInt(numberOfObservers)
+            it.writeSerializable(lastUpdatedAt)
+        }
     }
 
     companion object {
@@ -103,8 +104,7 @@ data class TaxonArea(
                                      "#00000000"),
                           requireNotNull(cursor.get(COLUMN_NUMBER_OF_OBSERVERS,
                                                     0)),
-                          cursor.get(COLUMN_LAST_UPDATED_AT,
-                                     0L).run { if (this == 0L) null else fromTimestamp(this) })
+                          cursor.get(COLUMN_LAST_UPDATED_AT))
             }
             catch (iae: IllegalArgumentException) {
                 Log.w(TAG,

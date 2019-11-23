@@ -55,8 +55,10 @@ class Taxonomy : Parcelable {
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeString(kingdom)
-        dest?.writeString(group)
+        dest?.also {
+            it.writeString(kingdom)
+            it.writeString(group)
+        }
     }
 
     override fun toString(): String {
@@ -87,7 +89,7 @@ class Taxonomy : Parcelable {
             if (value == null || value.isEmpty() || arrayOf("autre",
                                                             "all").any {
                     value.toLowerCase(Locale.ROOT)
-                        .startsWith(it)
+                            .startsWith(it)
                 }) ANY
             else value
         }

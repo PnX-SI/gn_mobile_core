@@ -72,7 +72,7 @@ class TaxonTest {
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
         `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getString(5)).thenReturn("True")
+        `when`(cursor.getInt(5)).thenReturn(1)
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)

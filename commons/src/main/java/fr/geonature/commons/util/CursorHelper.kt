@@ -1,6 +1,8 @@
 package fr.geonature.commons.util
 
 import android.database.Cursor
+import fr.geonature.commons.data.Converters.fromTimestamp
+import java.util.Date
 
 /**
  * Utilities function about Cursor.
@@ -15,7 +17,8 @@ import android.database.Cursor
  *
  * @return the value of that column or the default value as fallback if given
  */
-inline fun <reified T> Cursor.get(columnName: String, defaultValue: T? = null): T? {
+inline fun <reified T> Cursor.get(columnName: String,
+                                  defaultValue: T? = null): T? {
     val columnIndex = if (defaultValue == null) getColumnIndexOrThrow(columnName) else getColumnIndex(columnName)
 
     return when (T::class) {
@@ -26,7 +29,8 @@ inline fun <reified T> Cursor.get(columnName: String, defaultValue: T? = null): 
         Long::class -> if (columnIndex > -1) getLong(columnIndex) as T? else defaultValue
         Float::class -> if (columnIndex > -1) getFloat(columnIndex) as T? else defaultValue
         Double::class -> if (columnIndex > -1) getDouble(columnIndex) as T? else defaultValue
-        Boolean::class -> if (columnIndex > -1) getString(columnIndex).run { this?.toBoolean() } as T? else defaultValue
+        Boolean::class -> if (columnIndex > -1) getInt(columnIndex).run { this != 0 } as T? else defaultValue
+        Date::class -> if (columnIndex > -1) getLong(columnIndex).run { if (this == 0L) null else fromTimestamp(this) } as T? else defaultValue
         else -> throw IllegalArgumentException("Unsupported type ${T::class.java}")
     }.run { this ?: defaultValue }
 }

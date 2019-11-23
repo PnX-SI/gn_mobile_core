@@ -90,11 +90,13 @@ open class Nomenclature : Parcelable {
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(id)
-        dest?.writeString(code)
-        dest?.writeString(hierarchy)
-        dest?.writeString(defaultLabel)
-        dest?.writeLong(typeId)
+        dest?.also {
+            it.writeLong(id)
+            it.writeString(code)
+            it.writeString(hierarchy)
+            it.writeString(defaultLabel)
+            it.writeLong(typeId)
+        }
     }
 
     companion object {

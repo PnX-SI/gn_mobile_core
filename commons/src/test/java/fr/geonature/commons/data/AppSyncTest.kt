@@ -10,7 +10,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 /**
  * Unit tests about [AppSync].
@@ -35,9 +35,9 @@ class AppSyncTest {
         val cursor = mock(Cursor::class.java)
         `when`(cursor.getColumnIndexOrThrow(AppSync.COLUMN_ID)).thenReturn(0)
         `when`(cursor.getColumnIndexOrThrow(AppSync.COLUMN_LAST_SYNC)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE)).thenReturn(2)
+        `when`(cursor.getColumnIndex(AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE)).thenReturn(2)
         `when`(cursor.getString(0)).thenReturn("fr.geonature.sync")
-        `when`(cursor.getString(1)).thenReturn("2016-10-28T08:15:00Z")
+        `when`(cursor.getLong(1)).thenReturn(1477642500000)
         `when`(cursor.getInt(2)).thenReturn(3)
 
         // when getting AppSync instance from Cursor

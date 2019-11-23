@@ -87,12 +87,14 @@ abstract class AbstractTaxon : Parcelable {
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(id)
-        dest?.writeString(name)
-        dest?.writeParcelable(taxonomy,
-                              flags)
-        dest?.writeString(description)
-        dest?.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
+        dest?.also {
+            it.writeLong(id)
+            it.writeString(name)
+            it.writeParcelable(taxonomy,
+                               flags)
+            it.writeString(description)
+            it.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
+        }
     }
 
     companion object {
