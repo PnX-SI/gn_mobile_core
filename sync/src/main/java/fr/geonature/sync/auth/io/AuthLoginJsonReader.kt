@@ -3,7 +3,6 @@ package fr.geonature.sync.auth.io
 import android.util.JsonReader
 import android.util.Log
 import fr.geonature.commons.util.IsoDateUtils.toDate
-import fr.geonature.commons.util.StringUtils
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthUser
 import java.io.IOException
@@ -28,7 +27,7 @@ class AuthLoginJsonReader {
      * @see .read
      */
     fun read(json: String?): AuthLogin? {
-        if (StringUtils.isEmpty(json)) {
+        if (json.isNullOrBlank()) {
             return null
         }
 
@@ -109,16 +108,16 @@ class AuthLoginJsonReader {
 
         reader.endObject()
 
-        if (id == null || StringUtils.isEmpty(lastname) || StringUtils.isEmpty(firstname) || applicationId == null || organismId == null || StringUtils.isEmpty(login)) {
+        if (id == null || lastname.isNullOrBlank() || firstname.isNullOrBlank() || applicationId == null || organismId == null || login.isNullOrBlank()) {
             return null
         }
 
         return AuthUser(id,
-                        lastname!!,
-                        firstname!!,
+                        lastname,
+                        firstname,
                         applicationId,
                         organismId,
-                        login!!)
+                        login)
     }
 
     companion object {

@@ -2,9 +2,10 @@ package fr.geonature.sync.sync
 
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import fr.geonature.commons.util.FileUtils.getInputsFolder
-import kotlinx.coroutines.Dispatchers
+import androidx.work.WorkInfo
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 
 /**
@@ -22,12 +23,16 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                                                  PackageManager.GET_META_DATA)
             .sharedUserId
 
-    val packageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
+    private val availablePackageInfos = mutableMapOf<String, PackageInfo>()
+    private val _packageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
+    val packageInfos: LiveData<List<PackageInfo>> = _packageInfos
 
     /**
      * Finds all compatible installed applications.
      */
-    suspend fun getInstalledApplications(): List<PackageInfo> = withContext(Dispatchers.IO) {
+    suspend fun getInstalledApplications(): List<PackageInfo> = withContext(IO) {
+        availablePackageInfos.clear()
+
         pm.getInstalledApplications(PackageManager.GET_META_DATA)
                 .asSequence()
                 .filter { it.packageName.startsWith(sharedUserId) }
@@ -38,14 +43,36 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                                 pm.getPackageInfo(it.packageName,
                                                   PackageManager.GET_META_DATA).versionName,
                                 pm.getApplicationIcon(it.packageName),
-                                getInputsFolder(applicationContext,
-                                                it.packageName).walkTopDown().filter { f -> f.extension == "json" }.count(),
                                 pm.getLaunchIntentForPackage(it.packageName))
                 }
+                .onEach { availablePackageInfos[it.packageName] = it }
                 .toList()
                 .also {
-                    packageInfos.postValue(it)
+                    _packageInfos.postValue(it)
                 }
+    }
+
+    /**
+     * Updates given [PackageInfo] status.
+     */
+    fun updatePackageInfo(packageName: String,
+                          state: WorkInfo.State,
+                          syncInputs: List<SyncInput>): PackageInfo? {
+        val packageInfoToUpdate = availablePackageInfos[packageName]?.copy()?.apply {
+            syncInputs.let {
+                inputs.also {
+                    it.clear()
+                    it.addAll(syncInputs)
+                }
+            }
+
+            this.state = state
+        } ?: return null
+
+        availablePackageInfos[packageName] = packageInfoToUpdate
+        _packageInfos.postValue(availablePackageInfos.values.toList())
+
+        return packageInfoToUpdate
     }
 
     companion object {

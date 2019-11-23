@@ -7,7 +7,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.preference.PreferenceManager
-import fr.geonature.commons.util.StringUtils.isEmpty
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.auth.io.AuthLoginJsonReader
 import fr.geonature.sync.auth.io.AuthLoginJsonWriter
@@ -55,7 +54,7 @@ class AuthManager(context: Context) {
         val authLoginAsJson = preferenceManager.getString(KEY_PREFERENCE_AUTH_LOGIN,
                                                           null)
 
-        if (isEmpty(authLoginAsJson)) {
+        if (authLoginAsJson.isNullOrBlank()) {
             _authLogin.postValue(null)
             return@withContext null
         }
@@ -75,7 +74,7 @@ class AuthManager(context: Context) {
     suspend fun setAuthLogin(authLogin: AuthLogin): Boolean = withContext(IO) {
         val authLoginAsJson = authLoginJsonWriter.write(authLogin)
 
-        if (isEmpty(authLoginAsJson)) {
+        if (authLoginAsJson.isNullOrBlank()) {
             _authLogin.postValue(null)
             return@withContext false
         }

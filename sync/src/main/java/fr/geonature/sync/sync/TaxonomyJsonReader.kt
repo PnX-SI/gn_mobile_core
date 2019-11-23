@@ -6,7 +6,6 @@ import android.util.JsonToken.BEGIN_ARRAY
 import android.util.JsonToken.NAME
 import android.util.Log
 import fr.geonature.commons.data.Taxonomy
-import fr.geonature.commons.util.StringUtils
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -26,7 +25,7 @@ class TaxonomyJsonReader {
      * @see .read
      */
     fun read(json: String?): List<Taxonomy> {
-        if (StringUtils.isEmpty(json)) {
+        if (json.isNullOrBlank()) {
             return emptyList()
         }
 

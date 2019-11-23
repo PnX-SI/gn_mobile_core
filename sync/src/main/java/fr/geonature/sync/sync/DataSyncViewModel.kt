@@ -26,7 +26,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 it.getLastSynchronizedDate()
             }
 
-    val syncOutputStatus: LiveData<List<WorkInfo>> = workManager.getWorkInfosByTagLiveData(Constants.TAG_DATA_SYNC_OUTPUT)
+    val syncOutputStatus: LiveData<List<WorkInfo>> = workManager.getWorkInfosByTagLiveData(DataSyncWorker.TAG_DATA_SYNC_OUTPUT)
     val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
     val syncMessage: LiveData<String> = dataSyncManager.syncMessage
 
@@ -35,9 +35,12 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-        val continuation = workManager.beginUniqueWork(Constants.DATA_SYNC_WORK_NAME,
+        val continuation = workManager.beginUniqueWork(DataSyncWorker.DATA_SYNC_WORK_NAME,
                                                        ExistingWorkPolicy.REPLACE,
-                                                       OneTimeWorkRequest.Builder(DataSyncWorker::class.java).addTag(Constants.TAG_DATA_SYNC_OUTPUT).setConstraints(constraints).build())
+                                                       OneTimeWorkRequest.Builder(DataSyncWorker::class.java)
+                                                               .addTag(DataSyncWorker.TAG_DATA_SYNC_OUTPUT)
+                                                               .setConstraints(constraints)
+                                                               .build())
 
         // start the work
         continuation.enqueue()

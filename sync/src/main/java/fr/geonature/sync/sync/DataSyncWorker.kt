@@ -19,7 +19,7 @@ import fr.geonature.sync.util.SettingsUtils
 import java.util.Date
 
 /**
- * Local data synchronisation worker.
+ * Local data synchronization worker.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
@@ -39,7 +39,7 @@ class DataSyncWorker(appContext: Context,
         Log.i(TAG,
               "starting local data synchronization from '$geoNatureServerUrl'...")
 
-        if (TextUtils.isEmpty(geoNatureServerUrl)) {
+        if (geoNatureServerUrl.isNullOrBlank()) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_url_configuration))
             Log.w(TAG,
                   "No GeoNature server configured")
@@ -48,7 +48,7 @@ class DataSyncWorker(appContext: Context,
         }
 
         val geoNatureServiceClient = GeoNatureAPIClient.instance(applicationContext,
-                                                                 geoNatureServerUrl!!)
+                                                                 geoNatureServerUrl)
                 .value
 
         val syncInputObserversResult = syncInputObservers(geoNatureServiceClient)
@@ -290,5 +290,10 @@ class DataSyncWorker(appContext: Context,
 
     companion object {
         private val TAG = DataSyncWorker::class.java.name
+
+        // The name of the synchronisation work
+        const val DATA_SYNC_WORK_NAME = "data_sync_work_name"
+
+        const val TAG_DATA_SYNC_OUTPUT = "tag_data_sync_output"
     }
 }

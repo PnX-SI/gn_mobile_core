@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.animation.AnimationUtils
+import android.view.animation.AnimationUtils.loadAnimation
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
@@ -25,7 +25,7 @@ import fr.geonature.sync.sync.PackageInfoViewModel
 import fr.geonature.sync.ui.login.LoginActivity
 import fr.geonature.sync.ui.settings.PreferencesActivity
 import kotlinx.android.synthetic.main.activity_home.*
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -85,14 +85,14 @@ class HomeActivity : AppCompatActivity() {
                 }
 
                 if (show) {
-                    emptyTextView.startAnimation(AnimationUtils.loadAnimation(this@HomeActivity,
-                                                                              android.R.anim.fade_in))
+                    emptyTextView.startAnimation(loadAnimation(this@HomeActivity,
+                                                               android.R.anim.fade_in))
                     emptyTextView.visibility = View.VISIBLE
 
                 }
                 else {
-                    emptyTextView.startAnimation(AnimationUtils.loadAnimation(this@HomeActivity,
-                                                                              android.R.anim.fade_out))
+                    emptyTextView.startAnimation(loadAnimation(this@HomeActivity,
+                                                               android.R.anim.fade_out))
                     emptyTextView.visibility = View.GONE
                 }
             }
@@ -183,17 +183,17 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun getInstalledApplications() {
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch(Main) {
             progress.visibility = View.VISIBLE
 
             delay(500)
 
             packageInfoViewModel.getInstalledApplications()
-                    .observe(this@HomeActivity,
-                             Observer {
-                                 progress.visibility = View.GONE
-                                 adapter.setItems(it)
-                             })
+            packageInfoViewModel.packageInfos.observe(this@HomeActivity,
+                                                      Observer {
+                                                          progress.visibility = View.GONE
+                                                          adapter.setItems(it)
+                                                      })
         }
     }
 

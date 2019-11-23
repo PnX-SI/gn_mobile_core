@@ -9,9 +9,12 @@ import fr.geonature.sync.api.model.Taxref
 import fr.geonature.sync.api.model.TaxrefArea
 import fr.geonature.sync.api.model.User
 import fr.geonature.sync.auth.AuthManager
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -29,7 +32,7 @@ class GeoNatureAPIClient private constructor(context: Context,
     init {
         val authManager = AuthManager(context)
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
+            level = HttpLoggingInterceptor.Level.BODY
             redactHeader("Authorization")
             redactHeader("Cookie")
         }
@@ -74,6 +77,13 @@ class GeoNatureAPIClient private constructor(context: Context,
 
     suspend fun authLogin(authCredentials: AuthCredentials): Response<AuthLogin> {
         return geoNatureService.authLogin(authCredentials)
+    }
+
+    suspend fun sendInput(module: String,
+                          input: JSONObject): Call<ResponseBody> {
+        return geoNatureService.sendInput(module,
+                                          RequestBody.create(MediaType.parse("application/json; charset=utf-8"),
+                                                             input.toString()))
     }
 
     fun getUsers(): Call<List<User>> {
