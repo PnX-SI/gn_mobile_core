@@ -39,6 +39,7 @@ class MainContentProvider : ContentProvider() {
         return when (MATCHER.match(uri)) {
             APP_SYNC_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${AppSync.TABLE_NAME}"
             DATASET, DATASET_ACTIVE -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Dataset.TABLE_NAME}"
+            DATASET_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Dataset.TABLE_NAME}"
             INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
             INPUT_OBSERVER_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
             TAXA -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
@@ -70,6 +71,9 @@ class MainContentProvider : ContentProvider() {
                                                     uri,
                                                     projection,
                                                     sortOrder)
+            DATASET_ID -> datasetIdQuery(context,
+                                         uri,
+                                         projection)
             INPUT_OBSERVERS -> inputObserversQuery(context,
                                                    projection,
                                                    selection,
@@ -158,6 +162,20 @@ class MainContentProvider : ContentProvider() {
             queryBuilder.selection("${Dataset.COLUMN_ACTIVE} = 1",
                                    null)
         }
+
+        return LocalDatabase.getInstance(context)
+                .datasetDao()
+                .select(queryBuilder.create())
+    }
+
+    private fun datasetIdQuery(context: Context,
+                               uri: Uri,
+                               projection: Array<String>?): Cursor {
+
+        val queryBuilder = SupportSQLiteQueryBuilder.builder(Dataset.TABLE_NAME)
+                .columns(projection ?: Dataset.DEFAULT_PROJECTION)
+                .selection("${Dataset.COLUMN_ID} = ?",
+                           arrayOf(uri.lastPathSegment?.toLongOrNull()))
 
         return LocalDatabase.getInstance(context)
                 .datasetDao()
@@ -457,6 +475,7 @@ class MainContentProvider : ContentProvider() {
         const val APP_SYNC_ID = 1
         const val DATASET = 10
         const val DATASET_ACTIVE = 11
+        const val DATASET_ID = 12
         const val INPUT_OBSERVERS = 20
         const val INPUT_OBSERVERS_IDS = 21
         const val INPUT_OBSERVER_ID = 22
@@ -488,6 +507,9 @@ class MainContentProvider : ContentProvider() {
             addURI(AUTHORITY,
                    "${Dataset.TABLE_NAME}/active",
                    DATASET_ACTIVE)
+            addURI(AUTHORITY,
+                   "${Dataset.TABLE_NAME}/#",
+                   DATASET_ID)
             addURI(AUTHORITY,
                    InputObserver.TABLE_NAME,
                    INPUT_OBSERVERS)
