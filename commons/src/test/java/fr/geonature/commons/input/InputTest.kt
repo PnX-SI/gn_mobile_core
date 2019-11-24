@@ -4,7 +4,7 @@ import android.os.Parcel
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.Taxonomy
-import fr.geonature.commons.util.IsoDateUtils
+import fr.geonature.commons.util.IsoDateUtils.toDate
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -40,7 +40,7 @@ class InputTest {
         input.setDate("2016-10-28T08:15:00Z")
 
         // then
-        assertEquals(IsoDateUtils.toDate("2016-10-28T08:15:00Z"),
+        assertEquals(toDate("2016-10-28T08:15:00Z"),
                      input.date)
     }
 
@@ -451,7 +451,8 @@ class InputTest {
         val input = DummyInput().apply {
             id = 1234
             date = Calendar.getInstance()
-                .time
+                    .time
+            datasetId = 17
             setAllInputObservers(listOf(InputObserver(1,
                                                       "",
                                                       ""),

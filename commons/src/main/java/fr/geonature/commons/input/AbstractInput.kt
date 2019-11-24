@@ -22,6 +22,7 @@ abstract class AbstractInput(
 
     var id: Long = generateId()
     var date: Date = Date()
+    var datasetId: Long? = null
     private val inputObserverIds: MutableSet<Long> = mutableSetOf()
     private val inputTaxa: MutableMap<Long, AbstractInputTaxon> = LinkedHashMap()
     private var currentSelectedInputTaxonId: Long? = null
@@ -29,6 +30,8 @@ abstract class AbstractInput(
     constructor(source: Parcel) : this(source.readString()!!) {
         this.id = source.readLong()
         this.date = source.readSerializable() as Date
+        this.datasetId = source.readLong()
+                .takeIf { it != -1L }
 
         val inputObserverId = source.readLong()
 
@@ -54,6 +57,7 @@ abstract class AbstractInput(
         dest.writeString(module)
         dest.writeLong(this.id)
         dest.writeSerializable(this.date)
+        dest.writeLong(this.datasetId ?: -1L)
         dest.writeLong(if (inputObserverIds.isEmpty()) -1 else inputObserverIds.first())
         dest.writeLongArray(inputObserverIds.drop(1).toLongArray())
         dest.writeTypedList(getInputTaxa())
@@ -68,6 +72,7 @@ abstract class AbstractInput(
         if (module != other.module) return false
         if (id != other.id) return false
         if (date != other.date) return false
+        if (datasetId != other.datasetId) return false
         if (inputObserverIds != other.inputObserverIds) return false
         if (inputTaxa != other.inputTaxa) return false
 
@@ -78,6 +83,7 @@ abstract class AbstractInput(
         var result = module.hashCode()
         result = 31 * result + id.hashCode()
         result = 31 * result + date.hashCode()
+        result = 31 * result + datasetId.hashCode()
         result = 31 * result + inputObserverIds.hashCode()
         result = 31 * result + inputTaxa.hashCode()
 
@@ -108,7 +114,7 @@ abstract class AbstractInput(
      */
     fun getInputObserverIds(): Set<Long> {
         return this.inputObserverIds.drop(1)
-            .toSet()
+                .toSet()
     }
 
     fun clearAllInputObservers() {
@@ -117,10 +123,10 @@ abstract class AbstractInput(
 
     fun setPrimaryInputObserverId(id: Long) {
         val inputObservers = this.inputObserverIds.toMutableList()
-            .apply {
-                add(0,
-                    id)
-            }
+                .apply {
+                    add(0,
+                        id)
+                }
         this.inputObserverIds.clear()
         this.inputObserverIds.addAll(inputObservers)
     }
