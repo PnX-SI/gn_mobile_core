@@ -12,9 +12,9 @@ import androidx.recyclerview.widget.RecyclerView
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-abstract class ListItemRecyclerViewAdapter<T>(private val listener: OnListItemRecyclerViewAdapterListener<T>) : RecyclerView.Adapter<ListItemRecyclerViewAdapter<T>.AbstractViewHolder>() {
+abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnListItemRecyclerViewAdapterListener<T>) : RecyclerView.Adapter<AbstractListItemRecyclerViewAdapter<T>.AbstractViewHolder>() {
 
-    private val items = mutableListOf<T>()
+    internal val items = mutableListOf<T>()
 
     init {
         this.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
@@ -93,7 +93,7 @@ abstract class ListItemRecyclerViewAdapter<T>(private val listener: OnListItemRe
             return
         }
 
-        if (items.isEmpty()) {
+        if (newItems.isEmpty()) {
             this.items.clear()
             notifyDataSetChanged()
 
@@ -102,7 +102,7 @@ abstract class ListItemRecyclerViewAdapter<T>(private val listener: OnListItemRe
 
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize(): Int {
-                return this@ListItemRecyclerViewAdapter.items.size
+                return this@AbstractListItemRecyclerViewAdapter.items.size
             }
 
             override fun getNewListSize(): Int {
@@ -111,18 +111,18 @@ abstract class ListItemRecyclerViewAdapter<T>(private val listener: OnListItemRe
 
             override fun areItemsTheSame(oldItemPosition: Int,
                                          newItemPosition: Int): Boolean {
-                return this@ListItemRecyclerViewAdapter.areItemsTheSame(this@ListItemRecyclerViewAdapter.items,
-                                                                        newItems,
-                                                                        oldItemPosition,
-                                                                        newItemPosition)
+                return this@AbstractListItemRecyclerViewAdapter.areItemsTheSame(this@AbstractListItemRecyclerViewAdapter.items,
+                                                                                newItems,
+                                                                                oldItemPosition,
+                                                                                newItemPosition)
             }
 
             override fun areContentsTheSame(oldItemPosition: Int,
                                             newItemPosition: Int): Boolean {
-                return this@ListItemRecyclerViewAdapter.areContentsTheSame(this@ListItemRecyclerViewAdapter.items,
-                                                                           newItems,
-                                                                           oldItemPosition,
-                                                                           newItemPosition)
+                return this@AbstractListItemRecyclerViewAdapter.areContentsTheSame(this@AbstractListItemRecyclerViewAdapter.items,
+                                                                                   newItems,
+                                                                                   oldItemPosition,
+                                                                                   newItemPosition)
             }
         })
 
@@ -137,8 +137,8 @@ abstract class ListItemRecyclerViewAdapter<T>(private val listener: OnListItemRe
      */
     fun add(item: T,
             index: Int = -1) {
-        val position = if (index == -1) this.items.size - 1 else index
-        this.items.add(index,
+        val position = if (index < 0 || index > this.items.size) this.items.size else index
+        this.items.add(position,
                        item)
 
         notifyItemInserted(position)
@@ -222,7 +222,7 @@ abstract class ListItemRecyclerViewAdapter<T>(private val listener: OnListItemRe
     }
 
     /**
-     * Callback used by [ListItemRecyclerViewAdapter].
+     * Callback used by [AbstractListItemRecyclerViewAdapter].
      */
     interface OnListItemRecyclerViewAdapterListener<T> {
 

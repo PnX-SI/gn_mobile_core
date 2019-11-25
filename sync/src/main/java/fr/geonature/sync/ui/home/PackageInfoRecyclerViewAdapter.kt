@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.work.WorkInfo
-import fr.geonature.commons.ui.adapter.ListItemRecyclerViewAdapter
+import fr.geonature.commons.ui.adapter.AbstractListItemRecyclerViewAdapter
 import fr.geonature.sync.R
 import fr.geonature.sync.sync.PackageInfo
 
@@ -18,7 +18,7 @@ import fr.geonature.sync.sync.PackageInfo
  *
  * @see HomeActivity
  */
-class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterListener<PackageInfo>) : ListItemRecyclerViewAdapter<PackageInfo>(listener) {
+class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterListener<PackageInfo>) : AbstractListItemRecyclerViewAdapter<PackageInfo>(listener) {
     override fun getViewHolder(view: View,
                                viewType: Int): AbstractViewHolder {
         return ViewHolder(view)
@@ -43,7 +43,7 @@ class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterList
         return oldItems[oldItemPosition] == newItems[newItemPosition] && oldItems[oldItemPosition].state == newItems[newItemPosition].state && oldItems[oldItemPosition].inputs == newItems[newItemPosition].inputs
     }
 
-    inner class ViewHolder(itemView: View) : ListItemRecyclerViewAdapter<PackageInfo>.AbstractViewHolder(itemView) {
+    inner class ViewHolder(itemView: View) : AbstractListItemRecyclerViewAdapter<PackageInfo>.AbstractViewHolder(itemView) {
 
         private val icon: ImageView = itemView.findViewById(android.R.id.icon1)
         private val iconStatus: TextView = itemView.findViewById(android.R.id.icon2)

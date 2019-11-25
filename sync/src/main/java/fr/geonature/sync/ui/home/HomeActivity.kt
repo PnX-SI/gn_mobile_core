@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import fr.geonature.commons.ui.adapter.ListItemRecyclerViewAdapter
+import fr.geonature.commons.ui.adapter.AbstractListItemRecyclerViewAdapter
 import fr.geonature.sync.R
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
@@ -67,7 +67,7 @@ class HomeActivity : AppCompatActivity() {
         packageInfoViewModel = ViewModelProvider(this,
                                                  PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(PackageInfoViewModel::class.java)
 
-        adapter = PackageInfoRecyclerViewAdapter(object : ListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<PackageInfo> {
+        adapter = PackageInfoRecyclerViewAdapter(object : AbstractListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<PackageInfo> {
             override fun onClick(item: PackageInfo) {
                 item.launchIntent?.run {
                     startActivity(this)
