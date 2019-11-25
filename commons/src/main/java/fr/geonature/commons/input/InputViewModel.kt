@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -21,9 +21,9 @@ open class InputViewModel<I : AbstractInput>(application: Application,
                                              inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
                                              inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>) : AndroidViewModel(application) {
 
-    internal val inputManager = InputManager.getInstance(application,
-                                                         inputJsonReaderListener,
-                                                         inputJsonWriterListener)
+    private val inputManager = InputManager.getInstance(application,
+                                                        inputJsonReaderListener,
+                                                        inputJsonWriterListener)
 
     private var deletedInputToRestore: I? = null
 
@@ -64,7 +64,7 @@ open class InputViewModel<I : AbstractInput>(application: Application,
      * @param input the [AbstractInput] to save
      */
     fun saveInput(input: I) {
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch(Main) {
             inputManager.saveInput(input)
         }
     }
@@ -100,8 +100,19 @@ open class InputViewModel<I : AbstractInput>(application: Application,
      * @param id the [AbstractInput] ID to export
      */
     fun exportInput(id: Long) {
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch(Main) {
             inputManager.exportInput(id)
+        }
+    }
+
+    /**
+     * Exports [AbstractInput] from given ID as `JSON` file.
+     *
+     * @param input the [AbstractInput] to export
+     */
+    fun exportInput(input: I) {
+        GlobalScope.launch(Main) {
+            inputManager.exportInput(input)
         }
     }
 
