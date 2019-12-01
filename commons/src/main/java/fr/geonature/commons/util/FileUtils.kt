@@ -2,9 +2,10 @@ package fr.geonature.commons.util
 
 import android.content.Context
 import android.os.Environment
-import android.text.TextUtils
 import android.util.Log
 import fr.geonature.commons.model.MountPoint
+import fr.geonature.commons.util.MountPointUtils.getExternalStorage
+import fr.geonature.commons.util.MountPointUtils.getInternalStorage
 import java.io.File
 
 /**
@@ -62,16 +63,15 @@ object FileUtils {
      */
     fun getExternalStorageDirectory(context: Context): File {
 
-        val externalMountPoint = MountPointUtils.getExternalStorage(context,
-                                                                    Environment.MEDIA_MOUNTED,
-                                                                    Environment.MEDIA_MOUNTED_READ_ONLY)
+        val externalMountPoint = getExternalStorage(context,
+                                                    Environment.MEDIA_MOUNTED,
+                                                    Environment.MEDIA_MOUNTED_READ_ONLY)
 
         if (externalMountPoint == null) {
             Log.w(TAG,
-                  "getExternalStorageDirectory: external mount point is not available. Use default: " + MountPointUtils.getInternalStorage())
+                  "getExternalStorageDirectory: external mount point is not available. Use default: " + getInternalStorage())
 
-            return MountPointUtils.getInternalStorage()
-                .mountPath
+            return getInternalStorage().mountPath
         }
 
         return externalMountPoint.mountPath
@@ -89,7 +89,7 @@ object FileUtils {
                       storageType: MountPoint.StorageType): File {
 
         return getFile(if (storageType === MountPoint.StorageType.EXTERNAL) getExternalStorageDirectory(context)
-                       else MountPointUtils.getInternalStorage().mountPath,
+                       else getInternalStorage().mountPath,
                        getRelativeSharedPath(context.packageName))
     }
 
@@ -106,8 +106,8 @@ object FileUtils {
     fun getInputsFolder(context: Context,
                         packageId: String? = null): File {
 
-        return getFile(MountPointUtils.getInternalStorage().mountPath,
-                       getRelativeSharedPath(if (TextUtils.isEmpty(packageId)) context.packageName else packageId!!),
+        return getFile(getInternalStorage().mountPath,
+                       getRelativeSharedPath(if (packageId.isNullOrBlank()) context.packageName else packageId),
                        "inputs")
     }
 
