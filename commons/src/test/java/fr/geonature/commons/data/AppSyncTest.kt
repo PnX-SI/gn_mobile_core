@@ -82,11 +82,11 @@ class AppSyncTest {
     @Test
     fun testDefaultProjection() {
         assertArrayEquals(arrayOf(Pair("${AppSync.TABLE_NAME}.\"${AppSync.COLUMN_ID}\"",
-                                       "\"${AppSync.TABLE_NAME}_${AppSync.COLUMN_ID}\""),
+                                       "${AppSync.TABLE_NAME}_${AppSync.COLUMN_ID}"),
                                   Pair("${AppSync.TABLE_NAME}.\"${AppSync.COLUMN_LAST_SYNC}\"",
-                                       "\"${AppSync.TABLE_NAME}_${AppSync.COLUMN_LAST_SYNC}\""),
+                                       "${AppSync.TABLE_NAME}_${AppSync.COLUMN_LAST_SYNC}"),
                                   Pair("${AppSync.TABLE_NAME}.\"${AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE}\"",
-                                       "\"${AppSync.TABLE_NAME}_${AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE}\"")),
+                                       "${AppSync.TABLE_NAME}_${AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE}")),
                           defaultProjection())
     }
 }

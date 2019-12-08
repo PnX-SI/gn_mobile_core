@@ -195,15 +195,15 @@ class TaxonAreaTest {
     @Test
     fun testDefaultProjection() {
         assertArrayEquals(arrayOf(Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_TAXON_ID}\"",
-                                       "\"${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_TAXON_ID}\""),
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_TAXON_ID}"),
                                   Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_AREA_ID}\"",
-                                       "\"${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_AREA_ID}\""),
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_AREA_ID}"),
                                   Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_COLOR}\"",
-                                       "\"${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR}\""),
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR}"),
                                   Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}\"",
-                                       "\"${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}\""),
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}"),
                                   Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_LAST_UPDATED_AT}\"",
-                                       "\"${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_LAST_UPDATED_AT}\"")),
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_LAST_UPDATED_AT}")),
                           defaultProjection())
     }
 }

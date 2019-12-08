@@ -107,15 +107,15 @@ class DatasetTest {
     @Test
     fun testDefaultProjection() {
         assertArrayEquals(arrayOf(Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_ID}\"",
-                                       "\"${Dataset.TABLE_NAME}_${Dataset.COLUMN_ID}\""),
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ID}"),
                                   Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_NAME}\"",
-                                       "\"${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME}\""),
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME}"),
                                   Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_DESCRIPTION}\"",
-                                       "\"${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION}\""),
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION}"),
                                   Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_ACTIVE}\"",
-                                       "\"${Dataset.TABLE_NAME}_${Dataset.COLUMN_ACTIVE}\""),
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ACTIVE}"),
                                   Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_CREATED_AT}\"",
-                                       "\"${Dataset.TABLE_NAME}_${Dataset.COLUMN_CREATED_AT}\"")),
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_CREATED_AT}")),
                           defaultProjection())
     }
 }

@@ -121,9 +121,9 @@ class TaxonomyTest {
     @Test
     fun testDefaultProjection() {
         assertArrayEquals(arrayOf(Pair("${Taxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
-                                       "\"${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}\""),
+                                       "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
                                   Pair("${Taxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
-                                       "\"${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}\"")),
+                                       "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}")),
                           defaultProjection())
     }
 }

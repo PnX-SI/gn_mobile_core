@@ -57,11 +57,11 @@ class NomenclatureTaxonomyTest {
     @Test
     fun testDefaultProjection() {
         assertArrayEquals(arrayOf(Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}\"",
-                                       "\"${NomenclatureTaxonomy.TABLE_NAME}_${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}\""),
+                                       "${NomenclatureTaxonomy.TABLE_NAME}_${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}"),
                                   Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
-                                       "\"${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}\""),
+                                       "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
                                   Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
-                                       "\"${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}\"")),
+                                       "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}")),
                           defaultProjection())
     }
 }
