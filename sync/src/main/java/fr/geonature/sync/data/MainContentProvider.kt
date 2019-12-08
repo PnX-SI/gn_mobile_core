@@ -158,13 +158,18 @@ class MainContentProvider : ContentProvider() {
 
     private fun inputObserversByIdsQuery(context: Context,
                                          uri: Uri): Cursor {
-        val selectedObserverIds = uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()
-            ?: listOf()
+        val selectedObserverIds = uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()?.toLongArray()
+            ?: longArrayOf()
+
+        if (selectedObserverIds.size == 1) {
+            return inputObserverByIdQuery(context,
+                                          uri)
+        }
 
         return LocalDatabase.getInstance(context)
                 .inputObserverDao()
                 .QB()
-                .whereIdsIn(selectedObserverIds.toTypedArray())
+                .whereIdsIn(*selectedObserverIds)
                 .cursor()
     }
 

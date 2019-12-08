@@ -29,10 +29,9 @@ abstract class InputObserverDao : BaseDao<InputObserver>() {
                              false)
         }
 
-        fun whereIdsIn(vararg id: Array<Long>): QB {
+        fun whereIdsIn(vararg id: Long): QB {
             selectQueryBuilder.where("${column(InputObserver.COLUMN_ID,
-                                               entityTableName).second} IN (?)",
-                                     id.joinToString(","))
+                                               entityTableName).second} IN (${id.joinToString(",")})")
 
             return this
         }
@@ -44,7 +43,5 @@ abstract class InputObserverDao : BaseDao<InputObserver>() {
 
             return this
         }
-
-        // TODO: apply filter from selection args
     }
 }
