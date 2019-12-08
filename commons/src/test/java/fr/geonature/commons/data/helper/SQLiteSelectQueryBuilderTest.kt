@@ -3,12 +3,15 @@ package fr.geonature.commons.data.helper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [SQLiteSelectQueryBuilder].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
+@RunWith(RobolectricTestRunner::class)
 class SQLiteSelectQueryBuilderTest {
 
     @Test

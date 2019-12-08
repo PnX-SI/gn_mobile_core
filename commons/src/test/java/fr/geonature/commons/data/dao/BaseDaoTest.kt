@@ -8,12 +8,15 @@ import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [BaseDao].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
+@RunWith(RobolectricTestRunner::class)
 class BaseDaoTest {
 
     @Test

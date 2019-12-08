@@ -1,5 +1,6 @@
 package fr.geonature.commons.data.helper
 
+import android.util.Log
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 
@@ -283,6 +284,9 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 .replace("\n{2,}".toRegex(RegexOption.MULTILINE),
                          "\n")
 
+        Log.d(TAG,
+              "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}")
+
         return SimpleSQLiteQuery(sql,
                                  bindArgs.toTypedArray())
     }
@@ -296,6 +300,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     }
 
     companion object {
+
+        private val TAG = SQLiteSelectQueryBuilder::class.java.name
 
         /**
          * Creates a query for the given table name.
