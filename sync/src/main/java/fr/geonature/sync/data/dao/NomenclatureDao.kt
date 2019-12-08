@@ -65,13 +65,14 @@ abstract class NomenclatureDao : BaseDao<Nomenclature>() {
             }
 
             selectQueryBuilder.columns(*DefaultNomenclature.defaultProjection())
-                    .leftJoin(DefaultNomenclature.TABLE_NAME,
-                              "${column(DefaultNomenclature.COLUMN_NOMENCLATURE_ID,
-                                        DefaultNomenclature.TABLE_NAME).second} = ${column(Nomenclature.COLUMN_ID,
-                                                                                           entityTableName).second} AND ${column(DefaultNomenclature.COLUMN_MODULE,
-                                                                                                                                 DefaultNomenclature.TABLE_NAME).second} = ?",
-                              DefaultNomenclature.TABLE_NAME,
-                              module)
+                    .join(DEFAULT,
+                          DefaultNomenclature.TABLE_NAME,
+                          "${column(DefaultNomenclature.COLUMN_NOMENCLATURE_ID,
+                                    DefaultNomenclature.TABLE_NAME).second} = ${column(Nomenclature.COLUMN_ID,
+                                                                                       entityTableName).second} AND ${column(DefaultNomenclature.COLUMN_MODULE,
+                                                                                                                             DefaultNomenclature.TABLE_NAME).second} = ?",
+                          DefaultNomenclature.TABLE_NAME,
+                          module)
 
             return this
         }
