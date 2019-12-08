@@ -5,6 +5,7 @@ import android.text.TextUtils
 import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import fr.geonature.commons.data.DefaultNomenclature
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Nomenclature
 import fr.geonature.commons.data.NomenclatureTaxonomy
@@ -18,6 +19,7 @@ import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import fr.geonature.sync.util.SettingsUtils
+import org.json.JSONObject
 import java.util.Date
 
 /**
@@ -275,16 +277,16 @@ class DataSyncWorker(appContext: Context,
 
     private fun syncNomenclature(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
-            val response = geoNatureServiceClient.getNomenclatures()
+            val nomenclatureResponse = geoNatureServiceClient.getNomenclatures()
                     .execute()
 
-            if (!response.isSuccessful) {
+            if (!nomenclatureResponse.isSuccessful) {
                 dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
 
                 return Result.failure()
             }
 
-            val nomenclatureTypes = response.body() ?: return Result.failure()
+            val nomenclatureTypes = nomenclatureResponse.body() ?: return Result.failure()
             val validNomenclatureTypesToUpdate = nomenclatureTypes.asSequence()
                     .filter { it.id > 0 }
                     .filter { it.nomenclatures.isNotEmpty() }
@@ -296,6 +298,11 @@ class DataSyncWorker(appContext: Context,
             }
                     .toList()
                     .toTypedArray()
+
+            Log.i(TAG,
+                  "nomenclature types to update: ${nomenclatureTypesToUpdate.size}")
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_nomenclature_type,
+                                                                               nomenclatureTypesToUpdate.size))
 
             val nomenclaturesToUpdate = validNomenclatureTypesToUpdate.map { nomenclatureType ->
                 nomenclatureType.nomenclatures.asSequence()
@@ -333,22 +340,50 @@ class DataSyncWorker(appContext: Context,
                     .toList()
                     .toTypedArray()
 
+            Log.i(TAG,
+                  "nomenclature to update: ${nomenclaturesToUpdate.size}")
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_nomenclature,
-                                                                               nomenclatureTypesToUpdate.size))
+                                                                               nomenclaturesToUpdate.size))
+
+            // TODO: fetch available GeoNature modules
+            val defaultNomenclatureResponse = geoNatureServiceClient.getDefaultNomenclaturesValues("occtax")
+                    .execute()
+
+            if (!defaultNomenclatureResponse.isSuccessful) {
+                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
+
+                return Result.failure()
+            }
+
+            val jsonString = defaultNomenclatureResponse.body()?.string() ?: return Result.failure()
+            val defaultNomenclatureAsJson = JSONObject(jsonString)
+            val defaultNomenclaturesToUpdate = defaultNomenclatureAsJson.keys()
+                    .asSequence()
+                    .filter { mnemonic ->
+                        nomenclatureTypesToUpdate.find { it.mnemonic == mnemonic } != null
+                    }
+                    .map {
+                        DefaultNomenclature("occtax",
+                                            defaultNomenclatureAsJson.getLong(it))
+                    }
+                    .toList()
+                    .toTypedArray()
 
             Log.i(TAG,
-                  "nomenclature types to update: ${nomenclatureTypesToUpdate.size}")
+                  "nomenclature default values to update: ${defaultNomenclaturesToUpdate.size}")
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_nomenclature_default,
+                                                                               defaultNomenclaturesToUpdate.size))
 
             LocalDatabase.getInstance(applicationContext)
                     .run {
                         this.nomenclatureTypeDao()
                                 .insert(*nomenclatureTypesToUpdate)
-
                         this.nomenclatureDao()
                                 .insert(*nomenclaturesToUpdate)
-
                         this.nomenclatureTaxonomyDao()
                                 .insert(*nomenclaturesTaxonomyToUpdate)
+                        this.defaultNomenclatureDao()
+                                .insert(*defaultNomenclaturesToUpdate)
                     }
 
             Result.success()
