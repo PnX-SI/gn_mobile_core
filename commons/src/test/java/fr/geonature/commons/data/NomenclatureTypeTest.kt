@@ -77,12 +77,12 @@ class NomenclatureTypeTest {
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_ID}",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_MNEMONIC}",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_DEFAULT_LABEL}",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}")),
+        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
+                                       "\"${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}\""),
+                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
+                                       "\"${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}\""),
+                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
+                                       "\"${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}\"")),
                           defaultProjection())
     }
 }

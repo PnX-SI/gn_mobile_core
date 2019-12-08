@@ -71,10 +71,10 @@ class DefaultNomenclatureTest {
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${DefaultNomenclature.TABLE_NAME}.${DefaultNomenclature.COLUMN_MODULE}",
-                                       "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_MODULE}"),
-                                  Pair("${DefaultNomenclature.TABLE_NAME}.${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}",
-                                       "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}")),
+        assertArrayEquals(arrayOf(Pair("${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_MODULE}\"",
+                                       "\"${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_MODULE}\""),
+                                  Pair("${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}\"",
+                                       "\"${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}\"")),
                           defaultProjection())
     }
 }

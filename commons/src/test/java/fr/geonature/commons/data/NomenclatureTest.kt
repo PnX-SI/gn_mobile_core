@@ -87,16 +87,16 @@ class NomenclatureTest {
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_ID}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_CODE}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_HIERARCHY}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_DEFAULT_LABEL}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_TYPE_ID}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}")),
+        assertArrayEquals(arrayOf(Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_ID}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_CODE}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_HIERARCHY}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_DEFAULT_LABEL}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_TYPE_ID}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}\"")),
                           defaultProjection())
     }
 }

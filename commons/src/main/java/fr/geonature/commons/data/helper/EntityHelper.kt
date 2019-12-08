@@ -12,7 +12,7 @@ object EntityHelper {
      */
     fun column(columnName: String,
                tableAlias: String? = null): Pair<String, String> {
-        return Pair("${tableAlias.orEmpty()}${if (tableAlias.isNullOrBlank()) "" else "."}$columnName",
-                    "${tableAlias.orEmpty()}${if (tableAlias.isNullOrBlank()) "" else "_"}$columnName")
+        return Pair("${tableAlias.orEmpty()}${if (tableAlias.isNullOrBlank()) "" else "."}\"$columnName\"",
+                    "\"${tableAlias.orEmpty()}${if (tableAlias.isNullOrBlank()) "" else "_"}$columnName\"")
     }
 }

@@ -174,22 +174,22 @@ class NomenclatureWithTypeTest {
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_ID}",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_MNEMONIC}",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_DEFAULT_LABEL}",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_ID}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_CODE}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_HIERARCHY}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_DEFAULT_LABEL}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.${Nomenclature.COLUMN_TYPE_ID}",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}")),
+        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
+                                       "\"${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}\""),
+                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
+                                       "\"${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}\""),
+                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
+                                       "\"${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_ID}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_CODE}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_HIERARCHY}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_DEFAULT_LABEL}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}\""),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_TYPE_ID}\"",
+                                       "\"${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}\"")),
                           defaultProjection())
     }
 }

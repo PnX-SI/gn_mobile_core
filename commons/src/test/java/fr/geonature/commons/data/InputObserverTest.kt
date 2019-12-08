@@ -135,12 +135,12 @@ class InputObserverTest {
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${InputObserver.TABLE_NAME}.${InputObserver.COLUMN_ID}",
-                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_ID}"),
-                                  Pair("${InputObserver.TABLE_NAME}.${InputObserver.COLUMN_LASTNAME}",
-                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME}"),
-                                  Pair("${InputObserver.TABLE_NAME}.${InputObserver.COLUMN_FIRSTNAME}",
-                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME}")),
+        assertArrayEquals(arrayOf(Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_ID}\"",
+                                       "\"${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_ID}\""),
+                                  Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_LASTNAME}\"",
+                                       "\"${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME}\""),
+                                  Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_FIRSTNAME}\"",
+                                       "\"${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME}\"")),
                           defaultProjection())
     }
 }

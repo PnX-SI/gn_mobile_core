@@ -192,18 +192,18 @@ class TaxonTest {
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_ID}",
-                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_ID}"),
-                                  Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_NAME}",
-                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME}"),
-                                  Pair("${Taxon.TABLE_NAME}.${Taxonomy.COLUMN_KINGDOM}",
-                                       "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
-                                  Pair("${Taxon.TABLE_NAME}.${Taxonomy.COLUMN_GROUP}",
-                                       "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"),
-                                  Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_DESCRIPTION}",
-                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"),
-                                  Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_HERITAGE}",
-                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}")),
+        assertArrayEquals(arrayOf(Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_ID}\"",
+                                       "\"${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_ID}\""),
+                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_NAME}\"",
+                                       "\"${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME}\""),
+                                  Pair("${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
+                                       "\"${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}\""),
+                                  Pair("${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
+                                       "\"${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}\""),
+                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_DESCRIPTION}\"",
+                                       "\"${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}\""),
+                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_HERITAGE}\"",
+                                       "\"${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}\"")),
                           defaultProjection())
     }
 }

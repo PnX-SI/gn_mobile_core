@@ -13,11 +13,11 @@ class EntityHelperTest {
 
     @Test
     fun testColumn() {
-        assertEquals(Pair("column",
-                          "column"),
+        assertEquals(Pair("\"column\"",
+                          "\"column\""),
                      column("column"))
-        assertEquals(Pair("table.column",
-                          "table_column"),
+        assertEquals(Pair("table.\"column\"",
+                          "\"table_column\""),
                      column("column",
                             "table"))
     }
