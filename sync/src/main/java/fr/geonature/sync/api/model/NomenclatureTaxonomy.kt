@@ -3,7 +3,7 @@ package fr.geonature.sync.api.model
 import com.google.gson.annotations.SerializedName
 
 /**
- * GeoNature NomenclatureType taxonomy rank definition.
+ * GeoNature nomenclature type taxonomy rank definition.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */

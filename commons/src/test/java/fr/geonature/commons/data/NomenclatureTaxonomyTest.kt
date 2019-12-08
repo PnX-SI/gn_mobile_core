@@ -1,6 +1,9 @@
 package fr.geonature.commons.data
 
 import android.database.Cursor
+import fr.geonature.commons.data.NomenclatureTaxonomy.Companion.defaultProjection
+import fr.geonature.commons.data.NomenclatureTaxonomy.Companion.fromCursor
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -31,15 +34,17 @@ class NomenclatureTaxonomyTest {
     fun testCreateFromCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(2)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("Animalia")
         `when`(cursor.getString(2)).thenReturn("Ascidies")
 
         // when getting a NomenclatureTaxonomy instance from Cursor
-        val nomenclatureTaxonomy = NomenclatureTaxonomy.fromCursor(cursor)
+        val nomenclatureTaxonomy = fromCursor(cursor)
 
         // then
         assertNotNull(nomenclatureTaxonomy)
@@ -47,5 +52,16 @@ class NomenclatureTaxonomyTest {
                                           Taxonomy("Animalia",
                                                    "Ascidies")),
                      nomenclatureTaxonomy)
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        assertArrayEquals(arrayOf(Pair("${NomenclatureTaxonomy.TABLE_NAME}.${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}",
+                                       "${NomenclatureTaxonomy.TABLE_NAME}_${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}"),
+                                  Pair("${NomenclatureTaxonomy.TABLE_NAME}.${Taxonomy.COLUMN_KINGDOM}",
+                                       "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
+                                  Pair("${NomenclatureTaxonomy.TABLE_NAME}.${Taxonomy.COLUMN_GROUP}",
+                                       "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}")),
+                          defaultProjection())
     }
 }

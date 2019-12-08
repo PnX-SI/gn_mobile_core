@@ -3,7 +3,9 @@ package fr.geonature.commons.data
 import android.database.Cursor
 import android.os.Parcel
 import fr.geonature.commons.data.Taxonomy.Companion.ANY
+import fr.geonature.commons.data.Taxonomy.Companion.defaultProjection
 import fr.geonature.commons.data.Taxonomy.Companion.fromCursor
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -79,8 +81,11 @@ class TaxonomyTest {
     fun testCreateFromCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(1)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getString(0)).thenReturn("Animalia")
         `when`(cursor.getString(1)).thenReturn("Ascidies")
 
@@ -111,5 +116,14 @@ class TaxonomyTest {
         // then
         assertEquals(taxonomy,
                      Taxonomy.CREATOR.createFromParcel(parcel))
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        assertArrayEquals(arrayOf(Pair("${Taxonomy.TABLE_NAME}.${Taxonomy.COLUMN_KINGDOM}",
+                                       "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
+                                  Pair("${Taxonomy.TABLE_NAME}.${Taxonomy.COLUMN_GROUP}",
+                                       "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}")),
+                          defaultProjection())
     }
 }

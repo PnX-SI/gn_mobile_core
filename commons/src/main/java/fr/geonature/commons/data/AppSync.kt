@@ -4,7 +4,8 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 import java.util.Date
 
 /**
@@ -43,26 +44,51 @@ data class AppSync(var packageId: String,
         const val COLUMN_INPUTS_TO_SYNCHRONIZE = "inputs_to_synchronize"
 
         /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_ID,
+                                  tableAlias),
+                           column(COLUMN_LAST_SYNC,
+                                  tableAlias),
+                           column(COLUMN_INPUTS_TO_SYNCHRONIZE,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
+
+        /**
          * Create a new [AppSync] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
          *
          * @return A newly created [AppSync] instance.
          */
-        fun fromCursor(cursor: Cursor): AppSync? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): AppSync? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                AppSync(requireNotNull(cursor.get(COLUMN_ID)),
-                        cursor.get(COLUMN_LAST_SYNC),
-                        requireNotNull(cursor.get(COLUMN_INPUTS_TO_SYNCHRONIZE,
+                AppSync(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
+                                                                 tableAlias))),
+                        cursor.get(getColumnAlias(COLUMN_LAST_SYNC,
+                                                  tableAlias)),
+                        requireNotNull(cursor.get(getColumnAlias(COLUMN_INPUTS_TO_SYNCHRONIZE,
+                                                                 tableAlias),
                                                   0)))
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

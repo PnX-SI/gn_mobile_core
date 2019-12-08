@@ -5,6 +5,7 @@ import android.os.Parcelable
 import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
+import fr.geonature.commons.data.helper.EntityHelper.column
 
 /**
  * Base taxon.
@@ -108,10 +109,28 @@ abstract class AbstractTaxon : Parcelable {
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_HERITAGE = "heritage"
 
-        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
-                                         COLUMN_NAME,
-                                         *Taxonomy.DEFAULT_PROJECTION,
-                                         COLUMN_DESCRIPTION,
-                                         COLUMN_HERITAGE)
+        /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_ID,
+                                  tableAlias),
+                           column(COLUMN_NAME,
+                                  tableAlias),
+                           *Taxonomy.defaultProjection(tableAlias),
+                           column(COLUMN_DESCRIPTION,
+                                  tableAlias),
+                           column(COLUMN_HERITAGE,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String): String {
+            return column(columnName,
+                          tableAlias).second
+        }
     }
 }

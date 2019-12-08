@@ -1,7 +1,7 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.helper
 
-import fr.geonature.commons.data.Converters.dateToTimestamp
-import fr.geonature.commons.data.Converters.fromTimestamp
+import fr.geonature.commons.data.helper.Converters.dateToTimestamp
+import fr.geonature.commons.data.helper.Converters.fromTimestamp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

@@ -1,7 +1,7 @@
-package fr.geonature.commons.util
+package fr.geonature.commons.data.helper
 
 import android.database.Cursor
-import fr.geonature.commons.data.Converters.fromTimestamp
+import fr.geonature.commons.data.helper.Converters.fromTimestamp
 import java.util.Date
 
 /**

@@ -2,7 +2,9 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.NomenclatureType.Companion.defaultProjection
 import fr.geonature.commons.data.NomenclatureType.Companion.fromCursor
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -33,9 +35,11 @@ class NomenclatureTypeTest {
     fun testCreateFromCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(NomenclatureType.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(NomenclatureType.COLUMN_MNEMONIC)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(NomenclatureType.COLUMN_DEFAULT_LABEL)).thenReturn(2)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("SGR")
         `when`(cursor.getString(2)).thenReturn("label")
@@ -69,5 +73,16 @@ class NomenclatureTypeTest {
         // then
         assertEquals(nomenclatureType,
                      NomenclatureType.CREATOR.createFromParcel(parcel))
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_ID}",
+                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"),
+                                  Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_MNEMONIC}",
+                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"),
+                                  Pair("${NomenclatureType.TABLE_NAME}.${NomenclatureType.COLUMN_DEFAULT_LABEL}",
+                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}")),
+                          defaultProjection())
     }
 }

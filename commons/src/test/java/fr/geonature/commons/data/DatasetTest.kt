@@ -2,7 +2,9 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.Dataset.Companion.defaultProjection
 import fr.geonature.commons.data.Dataset.Companion.fromCursor
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -42,11 +44,12 @@ class DatasetTest {
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Dataset.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(Dataset.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Dataset.COLUMN_DESCRIPTION)).thenReturn(2)
-        `when`(cursor.getColumnIndex(Dataset.COLUMN_ACTIVE)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(Dataset.COLUMN_CREATED_AT)).thenReturn(4)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("Dataset #1")
         `when`(cursor.getString(2)).thenReturn("description")
@@ -99,5 +102,20 @@ class DatasetTest {
         // then
         assertEquals(dataset,
                      Dataset.CREATOR.createFromParcel(parcel))
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        assertArrayEquals(arrayOf(Pair("${Dataset.TABLE_NAME}.${Dataset.COLUMN_ID}",
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ID}"),
+                                  Pair("${Dataset.TABLE_NAME}.${Dataset.COLUMN_NAME}",
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME}"),
+                                  Pair("${Dataset.TABLE_NAME}.${Dataset.COLUMN_DESCRIPTION}",
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION}"),
+                                  Pair("${Dataset.TABLE_NAME}.${Dataset.COLUMN_ACTIVE}",
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ACTIVE}"),
+                                  Pair("${Dataset.TABLE_NAME}.${Dataset.COLUMN_CREATED_AT}",
+                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_CREATED_AT}")),
+                          defaultProjection())
     }
 }

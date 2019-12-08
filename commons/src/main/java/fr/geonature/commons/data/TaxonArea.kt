@@ -8,7 +8,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.TypeConverters
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.Converters
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 import java.util.Date
 
 /**
@@ -79,11 +81,30 @@ data class TaxonArea(
         const val COLUMN_NUMBER_OF_OBSERVERS = "nb_observers"
         const val COLUMN_LAST_UPDATED_AT = "last_updated_at"
 
-        val DEFAULT_PROJECTION = arrayOf(COLUMN_TAXON_ID,
-                                         COLUMN_AREA_ID,
-                                         COLUMN_COLOR,
-                                         COLUMN_NUMBER_OF_OBSERVERS,
-                                         COLUMN_LAST_UPDATED_AT)
+        /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_TAXON_ID,
+                                  tableAlias),
+                           column(COLUMN_AREA_ID,
+                                  tableAlias),
+                           column(COLUMN_COLOR,
+                                  tableAlias),
+                           column(COLUMN_NUMBER_OF_OBSERVERS,
+                                  tableAlias),
+                           column(COLUMN_LAST_UPDATED_AT,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
 
         /**
          * Create a new [TaxonArea] from the specified [Cursor].
@@ -92,23 +113,29 @@ data class TaxonArea(
          *
          * @return A newly created [TaxonArea] instance
          */
-        fun fromCursor(cursor: Cursor): TaxonArea? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): TaxonArea? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                TaxonArea(requireNotNull(cursor.get(COLUMN_TAXON_ID)),
-                          requireNotNull(cursor.get(COLUMN_AREA_ID)),
-                          cursor.get(COLUMN_COLOR,
+                TaxonArea(requireNotNull(cursor.get(getColumnAlias(COLUMN_TAXON_ID,
+                                                                   tableAlias))),
+                          requireNotNull(cursor.get(getColumnAlias(COLUMN_AREA_ID,
+                                                                   tableAlias))),
+                          cursor.get(getColumnAlias(COLUMN_COLOR,
+                                                    tableAlias),
                                      "#00000000"),
-                          requireNotNull(cursor.get(COLUMN_NUMBER_OF_OBSERVERS,
+                          requireNotNull(cursor.get(getColumnAlias(COLUMN_NUMBER_OF_OBSERVERS,
+                                                                   tableAlias),
                                                     0)),
-                          cursor.get(COLUMN_LAST_UPDATED_AT))
+                          cursor.get(getColumnAlias(COLUMN_LAST_UPDATED_AT,
+                                                    tableAlias)))
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

@@ -2,6 +2,7 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.TaxonWithArea.Companion.defaultProjection
 import fr.geonature.commons.data.TaxonWithArea.Companion.fromCursor
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -81,17 +82,12 @@ class TaxonWithAreaTest {
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenReturn(6)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenReturn(7)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(8)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(9)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(10)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
@@ -127,17 +123,20 @@ class TaxonWithAreaTest {
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(-1)
+
+        defaultProjection().forEachIndexed { index, c ->
+            when (c) {
+                in TaxonArea.defaultProjection() -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                }
+                else -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                    `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+                }
+            }
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
@@ -164,17 +163,20 @@ class TaxonWithAreaTest {
     fun testCreateFromIncompleteCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenReturn(6)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenReturn(7)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(-1)
+
+        defaultProjection().forEachIndexed { index, c ->
+            when (c) {
+                in TaxonArea.defaultProjection() -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                }
+                else -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                    `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+                }
+            }
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
@@ -216,17 +218,11 @@ class TaxonWithAreaTest {
     fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_TAXON_ID)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(TaxonArea.COLUMN_AREA_ID)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_COLOR)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(TaxonArea.COLUMN_LAST_UPDATED_AT)).thenReturn(-1)
+
+        defaultProjection().forEach { c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+            `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+        }
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -265,17 +261,28 @@ class TaxonWithAreaTest {
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(AbstractTaxon.COLUMN_ID,
-                                  AbstractTaxon.COLUMN_NAME,
-                                  Taxonomy.COLUMN_KINGDOM,
-                                  Taxonomy.COLUMN_GROUP,
-                                  AbstractTaxon.COLUMN_DESCRIPTION,
-                                  AbstractTaxon.COLUMN_HERITAGE,
-                                  TaxonArea.COLUMN_TAXON_ID,
-                                  TaxonArea.COLUMN_AREA_ID,
-                                  TaxonArea.COLUMN_COLOR,
-                                  TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
-                                  TaxonArea.COLUMN_LAST_UPDATED_AT),
-                          TaxonWithArea.DEFAULT_PROJECTION)
+        assertArrayEquals(arrayOf(Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_ID}",
+                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_ID}"),
+                                  Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_NAME}",
+                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME}"),
+                                  Pair("${Taxon.TABLE_NAME}.${Taxonomy.COLUMN_KINGDOM}",
+                                       "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
+                                  Pair("${Taxon.TABLE_NAME}.${Taxonomy.COLUMN_GROUP}",
+                                       "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"),
+                                  Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_DESCRIPTION}",
+                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"),
+                                  Pair("${Taxon.TABLE_NAME}.${AbstractTaxon.COLUMN_HERITAGE}",
+                                       "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}"),
+                                  Pair("${TaxonArea.TABLE_NAME}.${TaxonArea.COLUMN_TAXON_ID}",
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_TAXON_ID}"),
+                                  Pair("${TaxonArea.TABLE_NAME}.${TaxonArea.COLUMN_AREA_ID}",
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_AREA_ID}"),
+                                  Pair("${TaxonArea.TABLE_NAME}.${TaxonArea.COLUMN_COLOR}",
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR}"),
+                                  Pair("${TaxonArea.TABLE_NAME}.${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}",
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}"),
+                                  Pair("${TaxonArea.TABLE_NAME}.${TaxonArea.COLUMN_LAST_UPDATED_AT}",
+                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_LAST_UPDATED_AT}")),
+                          defaultProjection())
     }
 }

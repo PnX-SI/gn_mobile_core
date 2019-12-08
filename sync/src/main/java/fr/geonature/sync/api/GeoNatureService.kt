@@ -49,4 +49,8 @@ interface GeoNatureService {
 
     @GET("geonature/api/nomenclatures/nomenclatures/taxonomy")
     fun getNomenclatures(): Call<List<NomenclatureType>>
+
+    @GET("geonature/api/{module}/defaultNomenclatures")
+    fun getDefaultNomenclaturesValues(@Path("module")
+                                      module: String): Call<ResponseBody>
 }

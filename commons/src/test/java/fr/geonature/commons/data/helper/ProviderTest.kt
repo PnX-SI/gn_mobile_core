@@ -1,6 +1,6 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.helper
 
-import fr.geonature.commons.data.Provider.buildUri
+import fr.geonature.commons.data.helper.Provider.buildUri
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

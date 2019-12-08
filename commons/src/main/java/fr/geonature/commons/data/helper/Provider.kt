@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.helper
 
 import android.content.Context
 import android.net.Uri

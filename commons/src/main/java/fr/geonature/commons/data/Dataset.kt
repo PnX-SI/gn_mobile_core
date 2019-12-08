@@ -9,7 +9,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.Converters
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 import java.util.Date
 
 /**
@@ -91,11 +93,30 @@ data class Dataset(
         const val COLUMN_ACTIVE = "active"
         const val COLUMN_CREATED_AT = "created_at"
 
-        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
-                                         COLUMN_NAME,
-                                         COLUMN_DESCRIPTION,
-                                         COLUMN_ACTIVE,
-                                         COLUMN_CREATED_AT)
+        /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_ID,
+                                  tableAlias),
+                           column(COLUMN_NAME,
+                                  tableAlias),
+                           column(COLUMN_DESCRIPTION,
+                                  tableAlias),
+                           column(COLUMN_ACTIVE,
+                                  tableAlias),
+                           column(COLUMN_CREATED_AT,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
 
         /**
          * Create a new [Dataset] from the specified [Cursor].
@@ -104,22 +125,28 @@ data class Dataset(
          *
          * @return A newly created [Dataset] instance
          */
-        fun fromCursor(cursor: Cursor): Dataset? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): Dataset? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                Dataset(requireNotNull(cursor.get(COLUMN_ID)),
-                        requireNotNull(cursor.get(COLUMN_NAME)),
-                        cursor.get(COLUMN_DESCRIPTION),
-                        requireNotNull(cursor.get(COLUMN_ACTIVE,
+                Dataset(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
+                                                                 tableAlias))),
+                        requireNotNull(cursor.get(getColumnAlias(COLUMN_NAME,
+                                                                 tableAlias))),
+                        cursor.get(getColumnAlias(COLUMN_DESCRIPTION,
+                                                  tableAlias)),
+                        requireNotNull(cursor.get(getColumnAlias(COLUMN_ACTIVE,
+                                                                 tableAlias),
                                                   false)),
-                        cursor.get(COLUMN_CREATED_AT))
+                        cursor.get(getColumnAlias(COLUMN_CREATED_AT,
+                                                  tableAlias)))
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

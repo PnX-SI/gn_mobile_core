@@ -1,11 +1,10 @@
-package fr.geonature.sync.data
+package fr.geonature.sync.data.dao
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.preference.PreferenceManager
-import android.text.TextUtils.isEmpty
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.util.FileUtils.getInputsFolder
 
@@ -19,19 +18,16 @@ class AppSyncDao(private val context: Context) {
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     fun findByPackageId(packageId: String?): Cursor {
-        val columns = arrayOf(AppSync.COLUMN_ID,
-                              AppSync.COLUMN_LAST_SYNC,
-                              AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE)
-        val cursor = MatrixCursor(columns)
+        val cursor = MatrixCursor(AppSync.defaultProjection().map { it.second }.toTypedArray())
 
-        if (isEmpty(packageId)) return cursor
+        if (packageId.isNullOrBlank()) return cursor
 
         val lastSync = this.sharedPreferences.getString("sync.$packageId.${AppSync.COLUMN_LAST_SYNC}",
                                                         null)
 
         val values = arrayOf(packageId,
                              lastSync,
-                             countInputsToSynchronize(packageId!!))
+                             countInputsToSynchronize(packageId))
 
         cursor.addRow(values)
 
@@ -41,7 +37,7 @@ class AppSyncDao(private val context: Context) {
     private fun countInputsToSynchronize(packageId: String): Number {
         return getInputsFolder(context,
                                packageId).walkTopDown()
-            .filter { it.extension == "json" }
-            .count()
+                .filter { it.extension == "json" }
+                .count()
     }
 }

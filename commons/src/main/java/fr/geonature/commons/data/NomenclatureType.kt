@@ -9,7 +9,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 
 /**
  * Describes a nomenclature type.
@@ -68,9 +69,26 @@ data class NomenclatureType(
         const val COLUMN_MNEMONIC = "mnemonic"
         const val COLUMN_DEFAULT_LABEL = "default_label"
 
-        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
-                                         COLUMN_MNEMONIC,
-                                         COLUMN_DEFAULT_LABEL)
+        /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_ID,
+                                  tableAlias),
+                           column(COLUMN_MNEMONIC,
+                                  tableAlias),
+                           column(COLUMN_DEFAULT_LABEL,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
 
         /**
          * Create a new [NomenclatureType] from the specified [Cursor].
@@ -79,19 +97,23 @@ data class NomenclatureType(
          *
          * @return A newly created [NomenclatureType] instance
          */
-        fun fromCursor(cursor: Cursor): NomenclatureType? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): NomenclatureType? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                NomenclatureType(requireNotNull(cursor.get(COLUMN_ID)),
-                                 requireNotNull(cursor.get(COLUMN_MNEMONIC)),
-                                 requireNotNull(cursor.get(COLUMN_DEFAULT_LABEL)))
+                NomenclatureType(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
+                                                                          tableAlias))),
+                                 requireNotNull(cursor.get(getColumnAlias(COLUMN_MNEMONIC,
+                                                                          tableAlias))),
+                                 requireNotNull(cursor.get(getColumnAlias(COLUMN_DEFAULT_LABEL,
+                                                                          tableAlias))))
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

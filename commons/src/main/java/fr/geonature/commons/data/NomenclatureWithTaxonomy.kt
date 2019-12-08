@@ -9,31 +9,18 @@ import android.os.Parcelable
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class NomenclatureWithTaxonomy : Nomenclature {
+class NomenclatureWithTaxonomy : NomenclatureWithType {
 
     var taxonony: Taxonomy? = null
 
-    constructor(id: Long,
-                code: String,
-                hierarchy: String,
-                defaultLabel: String,
-                typeId: Long,
-                taxonomy: Taxonomy? = null) : super(id,
-                                                    code,
-                                                    hierarchy,
-                                                    defaultLabel,
-                                                    typeId) {
-        this.taxonony = taxonomy
-    }
+    constructor(nomenclatureWithType: NomenclatureWithType) : super(nomenclatureWithType.id,
+                                                                    nomenclatureWithType.code,
+                                                                    nomenclatureWithType.hierarchy,
+                                                                    nomenclatureWithType.defaultLabel,
+                                                                    nomenclatureWithType.typeId,
+                                                                    nomenclatureWithType.type)
 
-    constructor(nomenclature: Nomenclature) : super(nomenclature.id,
-                                                    nomenclature.code,
-                                                    nomenclature.hierarchy,
-                                                    nomenclature.defaultLabel,
-                                                    nomenclature.typeId)
-
-
-    private constructor(source: Parcel) : super(source) {
+    internal constructor(source: Parcel) : super(source) {
         taxonony = source.readParcelable(Taxonomy::class.java.classLoader)
     }
 
@@ -65,9 +52,13 @@ class NomenclatureWithTaxonomy : Nomenclature {
 
     companion object {
 
-        val DEFAULT_PROJECTION = arrayOf(NomenclatureType.COLUMN_MNEMONIC,
-                                         *Nomenclature.DEFAULT_PROJECTION,
-                                         *Taxonomy.DEFAULT_PROJECTION)
+        /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(): Array<Pair<String, String>> {
+            return arrayOf(*NomenclatureWithType.defaultProjection(),
+                           *NomenclatureTaxonomy.defaultProjection())
+        }
 
         /**
          * Create a new [NomenclatureWithTaxonomy] from the specified [Cursor].
@@ -77,11 +68,11 @@ class NomenclatureWithTaxonomy : Nomenclature {
          * @return A newly created [NomenclatureWithTaxonomy] instance
          */
         fun fromCursor(cursor: Cursor): NomenclatureWithTaxonomy? {
-            val nomenclature = Nomenclature.fromCursor(cursor) ?: return null
+            val nomenclatureWithType = NomenclatureWithType.fromCursor(cursor) ?: return null
             val nomenclatureTaxonomy = NomenclatureTaxonomy.fromCursor(cursor)
 
-            return NomenclatureWithTaxonomy(nomenclature).also {
-                if (nomenclature.id == nomenclatureTaxonomy?.nomenclatureId) {
+            return NomenclatureWithTaxonomy(nomenclatureWithType).also {
+                if (nomenclatureWithType.id == nomenclatureTaxonomy?.nomenclatureId) {
                     it.taxonony = nomenclatureTaxonomy.taxonomy
                 }
             }

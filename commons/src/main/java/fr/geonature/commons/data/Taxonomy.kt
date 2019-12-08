@@ -6,7 +6,8 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 import java.util.Locale
 
 /**
@@ -77,15 +78,12 @@ class Taxonomy : Parcelable {
         const val COLUMN_KINGDOM = "kingdom"
         const val COLUMN_GROUP = "group"
 
-        val DEFAULT_PROJECTION = arrayOf(COLUMN_KINGDOM,
-                                         COLUMN_GROUP)
-
         /**
          * The default undefined taxonomy rank as "any".
          */
         const val ANY = "any"
 
-        val sanitizeValue: (String?) -> String = { value ->
+        private val sanitizeValue: (String?) -> String = { value ->
             if (value == null || value.isEmpty() || arrayOf("autre",
                                                             "all").any {
                     value.toLowerCase(Locale.ROOT)
@@ -95,24 +93,46 @@ class Taxonomy : Parcelable {
         }
 
         /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_KINGDOM,
+                                  tableAlias),
+                           column(COLUMN_GROUP,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
+
+        /**
          * Create a new [Taxonomy] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
          *
          * @return A newly created [Taxonomy] instance
          */
-        fun fromCursor(cursor: Cursor): Taxonomy? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): Taxonomy? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                Taxonomy(requireNotNull(cursor.get(COLUMN_KINGDOM)),
-                         requireNotNull(cursor.get(COLUMN_GROUP)))
+                Taxonomy(requireNotNull(cursor.get(getColumnAlias(COLUMN_KINGDOM,
+                                                                  tableAlias))),
+                         requireNotNull(cursor.get(getColumnAlias(COLUMN_GROUP,
+                                                                  tableAlias))))
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

@@ -110,6 +110,10 @@ class GeoNatureAPIClient private constructor(context: Context,
         return geoNatureService.getNomenclatures()
     }
 
+    fun getDefaultNomenclaturesValues(module: String): Call<ResponseBody> {
+        return geoNatureService.getDefaultNomenclaturesValues(module)
+    }
+
     companion object {
 
         fun instance(context: Context,
