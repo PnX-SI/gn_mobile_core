@@ -26,7 +26,8 @@ open class DefaultNomenclature : Parcelable {
     @ColumnInfo(name = COLUMN_MODULE)
     var module: String
 
-    @ColumnInfo(name = COLUMN_NOMENCLATURE_ID)
+    @ColumnInfo(name = COLUMN_NOMENCLATURE_ID,
+                index = true)
     var nomenclatureId: Long
 
     constructor(module: String,
