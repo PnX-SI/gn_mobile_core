@@ -52,15 +52,17 @@ abstract class AbstractInput(
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel,
+    override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest.writeString(module)
-        dest.writeLong(this.id)
-        dest.writeSerializable(this.date)
-        dest.writeLong(this.datasetId ?: -1L)
-        dest.writeLong(if (inputObserverIds.isEmpty()) -1 else inputObserverIds.first())
-        dest.writeLongArray(inputObserverIds.drop(1).toLongArray())
-        dest.writeTypedList(getInputTaxa())
+        dest?.also {
+            it.writeString(module)
+            it.writeLong(this.id)
+            it.writeSerializable(this.date)
+            it.writeLong(this.datasetId ?: -1L)
+            it.writeLong(if (inputObserverIds.isEmpty()) -1 else inputObserverIds.first())
+            it.writeLongArray(inputObserverIds.drop(1).toLongArray())
+            it.writeTypedList(getInputTaxa())
+        }
     }
 
     override fun equals(other: Any?): Boolean {
