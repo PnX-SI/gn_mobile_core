@@ -43,9 +43,9 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                 .build()
 
         val continuation = workManager.beginUniqueWork(InputsSyncWorker.workName(packageInfo.packageName),
-                                                       ExistingWorkPolicy.REPLACE,
+                                                       ExistingWorkPolicy.KEEP,
                                                        OneTimeWorkRequest.Builder(InputsSyncWorker::class.java)
-                                                               .addTag(InputsSyncWorker.tagName(packageInfo.packageName))
+                                                               .addTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
                                                                .setConstraints(constraints)
                                                                .setInputData(Data.Builder()
                                                                                      .putString(InputsSyncWorker.KEY_PACKAGE_NAME, packageInfo.packageName)
@@ -54,6 +54,10 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
 
         // start the work
         continuation.enqueue()
+    }
+
+    fun cancelTasks() {
+        workManager.cancelAllWorkByTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
     }
 
     /**

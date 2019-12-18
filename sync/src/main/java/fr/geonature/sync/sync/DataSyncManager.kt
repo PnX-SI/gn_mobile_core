@@ -2,6 +2,7 @@ package fr.geonature.sync.sync
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import java.util.Date
@@ -15,8 +16,10 @@ class DataSyncManager private constructor(applicationContext: Context) {
 
     private val preferenceManager: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
-    val lastSynchronizedDate: MutableLiveData<Date?> = MutableLiveData()
+    private val _lastSynchronizedDate: MutableLiveData<Date?> = MutableLiveData()
+    val lastSynchronizedDate: LiveData<Date?> = _lastSynchronizedDate
     val syncMessage: MutableLiveData<String> = MutableLiveData()
+    val serverStatus: MutableLiveData<ServerStatus> = MutableLiveData()
 
     fun updateLastSynchronizedDate() {
         val now = Date()
@@ -26,7 +29,7 @@ class DataSyncManager private constructor(applicationContext: Context) {
                      now.time)
             .apply()
 
-        lastSynchronizedDate.postValue(now)
+        _lastSynchronizedDate.postValue(now)
     }
 
     fun getLastSynchronizedDate(): Date? {
@@ -35,13 +38,13 @@ class DataSyncManager private constructor(applicationContext: Context) {
 
 
         if (timestamp == 0L) {
-            lastSynchronizedDate.postValue(null)
+            _lastSynchronizedDate.postValue(null)
 
             return null
         }
 
         val synchronizedDate = Date(timestamp)
-        lastSynchronizedDate.postValue(synchronizedDate)
+        _lastSynchronizedDate.postValue(synchronizedDate)
 
         return synchronizedDate
     }

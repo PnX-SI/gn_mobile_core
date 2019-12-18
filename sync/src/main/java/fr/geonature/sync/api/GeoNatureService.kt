@@ -27,10 +27,10 @@ interface GeoNatureService {
                           authCredentials: AuthCredentials): Response<AuthLogin>
 
     @POST("geonature/api/{module}/releve")
-    suspend fun sendInput(@Path("module")
-                          module: String,
-                          @Body
-                          input: RequestBody): Call<ResponseBody>
+    fun sendInput(@Path("module")
+                  module: String,
+                  @Body
+                  input: RequestBody): Call<ResponseBody>
 
     @GET("geonature/api/meta/datasets")
     fun getMetaDatasets(): Call<ResponseBody>

@@ -22,6 +22,7 @@ import fr.geonature.sync.settings.AppSettingsViewModel
 import fr.geonature.sync.sync.DataSyncViewModel
 import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.PackageInfoViewModel
+import fr.geonature.sync.sync.ServerStatus
 import fr.geonature.sync.ui.login.LoginActivity
 import fr.geonature.sync.ui.settings.PreferencesActivity
 import kotlinx.android.synthetic.main.activity_home.*
@@ -29,7 +30,6 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
 
 /**
  * Home screen Activity.
@@ -108,6 +108,11 @@ class HomeActivity : AppCompatActivity() {
         }
 
         loadAppSettings()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
         startSync()
         getInstalledApplications()
     }
@@ -147,7 +152,7 @@ class HomeActivity : AppCompatActivity() {
                         .observe(this,
                                  Observer {
                                      Toast.makeText(this,
-                                                    R.string.logout_success,
+                                                    R.string.toast_logout_success,
                                                     Toast.LENGTH_SHORT)
                                              .show()
                                  })
@@ -178,8 +183,30 @@ class HomeActivity : AppCompatActivity() {
                           Observer {
                               dataSyncView.setMessage(it)
                           })
+        dataSyncViewModel.serverStatus.takeIf { !it.hasActiveObservers() }
+                ?.observe(this,
+                          Observer {
+                              if (it == null) return@Observer
 
-        dataSyncViewModel.startSync()
+                              when (it) {
+                                  ServerStatus.INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
+                                  ServerStatus.FORBIDDEN -> {
+                                      packageInfoViewModel.cancelTasks()
+
+                                      Toast.makeText(this,
+                                                     R.string.toast_not_connected,
+                                                     Toast.LENGTH_SHORT)
+                                              .show()
+
+                                      startActivity(LoginActivity.newIntent(this))
+                                  }
+                              }
+                          })
+
+        GlobalScope.launch(Main) {
+            delay(250)
+            dataSyncViewModel.startSync()
+        }
     }
 
     private fun getInstalledApplications() {

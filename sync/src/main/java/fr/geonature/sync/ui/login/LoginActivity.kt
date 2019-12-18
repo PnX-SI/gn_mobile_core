@@ -154,7 +154,9 @@ class LoginActivity : AppCompatActivity() {
     companion object {
         fun newIntent(context: Context): Intent {
             return Intent(context,
-                          LoginActivity::class.java)
+                          LoginActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            }
         }
     }
 }

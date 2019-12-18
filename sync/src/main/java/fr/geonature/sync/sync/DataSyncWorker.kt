@@ -20,6 +20,7 @@ import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import fr.geonature.sync.util.SettingsUtils
 import org.json.JSONObject
+import retrofit2.Response
 import java.util.Date
 
 /**
@@ -109,10 +110,10 @@ class DataSyncWorker(appContext: Context,
             val response = geoNatureServiceClient.getMetaDatasets()
                     .execute()
 
-            if (!response.isSuccessful) {
-                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-                return Result.failure()
+            checkResponse(response).run {
+                if (this is Result.Failure) {
+                    return this
+                }
             }
 
             val jsonString = response.body()?.string() ?: return Result.failure()
@@ -142,10 +143,10 @@ class DataSyncWorker(appContext: Context,
             val response = geoNatureServiceClient.getUsers()
                     .execute()
 
-            if (!response.isSuccessful) {
-                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-                return Result.failure()
+            checkResponse(response).run {
+                if (this is Result.Failure) {
+                    return this
+                }
             }
 
             val users = response.body() ?: return Result.failure()
@@ -180,10 +181,10 @@ class DataSyncWorker(appContext: Context,
             val taxonomyRanksResponse = geoNatureServiceClient.getTaxonomyRanks()
                     .execute()
 
-            if (!taxonomyRanksResponse.isSuccessful) {
-                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-                return Result.failure()
+            checkResponse(taxonomyRanksResponse).run {
+                if (this is Result.Failure) {
+                    return this
+                }
             }
 
             val jsonString = taxonomyRanksResponse.body()?.string() ?: return Result.failure()
@@ -210,19 +211,19 @@ class DataSyncWorker(appContext: Context,
             val taxrefResponse = geoNatureServiceClient.getTaxref()
                     .execute()
 
-            if (!taxrefResponse.isSuccessful) {
-                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-                return Result.failure()
+            checkResponse(taxrefResponse).run {
+                if (this is Result.Failure) {
+                    return this
+                }
             }
 
             val taxrefAreasResponse = geoNatureServiceClient.getTaxrefAreas()
                     .execute()
 
-            if (!taxrefAreasResponse.isSuccessful) {
-                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-                return Result.failure()
+            checkResponse(taxrefAreasResponse).run {
+                if (this is Result.Failure) {
+                    return this
+                }
             }
 
             val taxref = taxrefResponse.body() ?: return Result.failure()
@@ -280,10 +281,10 @@ class DataSyncWorker(appContext: Context,
             val nomenclatureResponse = geoNatureServiceClient.getNomenclatures()
                     .execute()
 
-            if (!nomenclatureResponse.isSuccessful) {
-                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-                return Result.failure()
+            checkResponse(nomenclatureResponse).run {
+                if (this is Result.Failure) {
+                    return this
+                }
             }
 
             val nomenclatureTypes = nomenclatureResponse.body() ?: return Result.failure()
@@ -349,10 +350,10 @@ class DataSyncWorker(appContext: Context,
             val defaultNomenclatureResponse = geoNatureServiceClient.getDefaultNomenclaturesValues("occtax")
                     .execute()
 
-            if (!defaultNomenclatureResponse.isSuccessful) {
-                dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-                return Result.failure()
+            checkResponse(defaultNomenclatureResponse).run {
+                if (this is Result.Failure) {
+                    return this
+                }
             }
 
             val jsonString = defaultNomenclatureResponse.body()?.string() ?: return Result.failure()
@@ -395,12 +396,29 @@ class DataSyncWorker(appContext: Context,
         }
     }
 
+    private fun checkResponse(response: Response<*>):Result {
+        // not connected
+        if (response.code() == 403) {
+            dataSyncManager.serverStatus.postValue(ServerStatus.FORBIDDEN)
+
+            return Result.failure()
+        }
+
+        if (!response.isSuccessful) {
+            dataSyncManager.serverStatus.postValue(ServerStatus.INTERNAL_SERVER_ERROR)
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
+
+            return Result.failure()
+        }
+
+        return Result.success()
+    }
+
     companion object {
         private val TAG = DataSyncWorker::class.java.name
 
         // The name of the synchronisation work
-        const val DATA_SYNC_WORK_NAME = "data_sync_work_name"
-
-        const val TAG_DATA_SYNC_OUTPUT = "tag_data_sync_output"
+        const val DATA_SYNC_WORKER = "data_sync_worker"
+        const val DATA_SYNC_WORKER_TAG = "data_sync_worker_tag"
     }
 }

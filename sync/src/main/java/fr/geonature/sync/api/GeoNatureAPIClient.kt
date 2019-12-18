@@ -79,8 +79,8 @@ class GeoNatureAPIClient private constructor(context: Context,
         return geoNatureService.authLogin(authCredentials)
     }
 
-    suspend fun sendInput(module: String,
-                          input: JSONObject): Call<ResponseBody> {
+    fun sendInput(module: String,
+                  input: JSONObject): Call<ResponseBody> {
         return geoNatureService.sendInput(module,
                                           RequestBody.create(MediaType.parse("application/json; charset=utf-8"),
                                                              input.toString()))

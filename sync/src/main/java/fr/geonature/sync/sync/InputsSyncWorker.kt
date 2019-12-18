@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.File
 
 /**
  * Input synchronization worker.
@@ -128,21 +129,17 @@ class InputsSyncWorker(appContext: Context,
     }
 
     private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean = withContext(Dispatchers.IO) {
-        true
-        // TODO: delete input if successfully synchronized
-        /*
         File(syncInput.filePath).takeIf { it.exists() && it.isFile && it.parentFile.canWrite() }?.delete()?.also {
             getInputsToSynchronize(syncInput.packageInfo)
         } ?: false
-         */
     }
 
     companion object {
         private val TAG = InputsSyncWorker::class.java.name
 
         const val KEY_PACKAGE_NAME = "KEY_PACKAGE_NAME"
+        const val INPUT_SYNC_WORKER_TAG = "inputs_sync_worker_tag"
 
         val workName: (packageName: String) -> String = { "inputs_sync_worker:$it" }
-        val tagName: (packageName: String) -> String = { "inputs_sync_worker_tag:$it" }
     }
 }

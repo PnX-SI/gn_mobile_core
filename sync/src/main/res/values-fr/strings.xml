@@ -40,7 +40,9 @@
     <string name="login_failed">Echec lors de l\'authentification</string>
     <string name="login_failed_login">Utilisateur inconnu</string>
     <string name="login_failed_password">Mot de passe invalide</string>
-    <string name="logout_success">Déconnexion réussie</string>
+
+    <string name="toast_not_connected">Non connecté</string>
+    <string name="toast_logout_success">Déconnexion réussie</string>
 
     <string name="snackbar_settings_not_found">Erreur lors du chargement des paramètres \'%1$s\'</string>
 
