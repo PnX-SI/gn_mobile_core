@@ -7,7 +7,8 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 
 /**
  * Describes a nomenclature item with taxonomy as join table.
@@ -58,26 +59,50 @@ class NomenclatureTaxonomy(@ColumnInfo(name = COLUMN_NOMENCLATURE_ID)
         const val COLUMN_NOMENCLATURE_ID = "nomenclature_id"
 
         /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_NOMENCLATURE_ID,
+                                  tableAlias),
+                           column(Taxonomy.COLUMN_KINGDOM,
+                                  tableAlias),
+                           column(Taxonomy.COLUMN_GROUP,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
+
+        /**
          * Create a new [NomenclatureTaxonomy] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
          *
          * @return A newly created [NomenclatureTaxonomy] instance
          */
-        fun fromCursor(cursor: Cursor): NomenclatureTaxonomy? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): NomenclatureTaxonomy? {
             if (cursor.isClosed) {
                 return null
             }
 
-            val taxonomy = Taxonomy.fromCursor(cursor) ?: return null
+            val taxonomy = Taxonomy.fromCursor(cursor,
+                                               tableAlias) ?: return null
 
             return try {
-                NomenclatureTaxonomy(requireNotNull(cursor.get(COLUMN_NOMENCLATURE_ID)),
+                NomenclatureTaxonomy(requireNotNull(cursor.get(getColumnAlias(COLUMN_NOMENCLATURE_ID,
+                                                                              tableAlias))),
                                      taxonomy)
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

@@ -2,7 +2,9 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.Nomenclature.Companion.defaultProjection
 import fr.geonature.commons.data.Nomenclature.Companion.fromCursor
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -37,11 +39,11 @@ class NomenclatureTest {
     fun testCreateFromCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Nomenclature.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(Nomenclature.COLUMN_CODE)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Nomenclature.COLUMN_HIERARCHY)).thenReturn(2)
-        `when`(cursor.getColumnIndexOrThrow(Nomenclature.COLUMN_DEFAULT_LABEL)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(Nomenclature.COLUMN_TYPE_ID)).thenReturn(4)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(2)
         `when`(cursor.getString(1)).thenReturn("SN")
         `when`(cursor.getString(2)).thenReturn("1234:002")
@@ -81,5 +83,20 @@ class NomenclatureTest {
         // then
         assertEquals(nomenclature,
                      Nomenclature.CREATOR.createFromParcel(parcel))
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        assertArrayEquals(arrayOf(Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_ID}\"",
+                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}"),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_CODE}\"",
+                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}"),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_HIERARCHY}\"",
+                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}"),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_DEFAULT_LABEL}\"",
+                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}"),
+                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_TYPE_ID}\"",
+                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}")),
+                          defaultProjection())
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import fr.geonature.viewpager.R
 import java.util.ArrayList
 
 /**
@@ -29,7 +30,9 @@ class SimpleFragmentPagerAdapter internal constructor(private val context: Conte
         val fragment = getItem(position)
 
         return if (fragment is IValidateFragment) {
-            context.getText(fragment.getResourceTitle())
+            context.getString(R.string.page_title,
+                              position + 1,
+                              context.getText(fragment.getResourceTitle()))
         }
         else {
             null

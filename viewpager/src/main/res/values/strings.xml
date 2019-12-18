@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">ViewPager</string>
 
+    <string name="page_title" translatable="false">%1$d - %2$s</string>
     <string name="button_pager_previous">Previous</string>
     <string name="button_pager_next">Next</string>
     <string name="button_pager_finish">Finish</string>

@@ -10,7 +10,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 
 /**
  * Describes a nomenclature item.
@@ -90,11 +91,13 @@ open class Nomenclature : Parcelable {
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(id)
-        dest?.writeString(code)
-        dest?.writeString(hierarchy)
-        dest?.writeString(defaultLabel)
-        dest?.writeLong(typeId)
+        dest?.also {
+            it.writeLong(id)
+            it.writeString(code)
+            it.writeString(hierarchy)
+            it.writeString(defaultLabel)
+            it.writeLong(typeId)
+        }
     }
 
     companion object {
@@ -116,11 +119,30 @@ open class Nomenclature : Parcelable {
         const val COLUMN_DEFAULT_LABEL = "default_label"
         const val COLUMN_TYPE_ID = "type_id"
 
-        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
-                                         COLUMN_CODE,
-                                         COLUMN_HIERARCHY,
-                                         COLUMN_DEFAULT_LABEL,
-                                         COLUMN_TYPE_ID)
+        /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_ID,
+                                  tableAlias),
+                           column(COLUMN_CODE,
+                                  tableAlias),
+                           column(COLUMN_HIERARCHY,
+                                  tableAlias),
+                           column(COLUMN_DEFAULT_LABEL,
+                                  tableAlias),
+                           column(COLUMN_TYPE_ID,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
 
         /**
          * Create a new [Nomenclature] from the specified [Cursor].
@@ -129,21 +151,27 @@ open class Nomenclature : Parcelable {
          *
          * @return A newly created [Nomenclature] instance
          */
-        fun fromCursor(cursor: Cursor): Nomenclature? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): Nomenclature? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                Nomenclature(requireNotNull(cursor.get(COLUMN_ID)),
-                             requireNotNull(cursor.get(COLUMN_CODE)),
-                             requireNotNull(cursor.get(COLUMN_HIERARCHY)),
-                             requireNotNull(cursor.get(COLUMN_DEFAULT_LABEL)),
-                             requireNotNull(cursor.get(COLUMN_TYPE_ID)))
+                Nomenclature(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
+                                                                      tableAlias))),
+                             requireNotNull(cursor.get(getColumnAlias(COLUMN_CODE,
+                                                                      tableAlias))),
+                             requireNotNull(cursor.get(getColumnAlias(COLUMN_HIERARCHY,
+                                                                      tableAlias))),
+                             requireNotNull(cursor.get(getColumnAlias(COLUMN_DEFAULT_LABEL,
+                                                                      tableAlias))),
+                             requireNotNull(cursor.get(getColumnAlias(COLUMN_TYPE_ID,
+                                                                      tableAlias))))
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

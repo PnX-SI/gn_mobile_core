@@ -5,6 +5,7 @@ import android.os.Parcelable
 import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
+import fr.geonature.commons.data.helper.EntityHelper.column
 
 /**
  * Base taxon.
@@ -87,12 +88,14 @@ abstract class AbstractTaxon : Parcelable {
 
     override fun writeToParcel(dest: Parcel?,
                                flags: Int) {
-        dest?.writeLong(id)
-        dest?.writeString(name)
-        dest?.writeParcelable(taxonomy,
-                              flags)
-        dest?.writeString(description)
-        dest?.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
+        dest?.also {
+            it.writeLong(id)
+            it.writeString(name)
+            it.writeParcelable(taxonomy,
+                               flags)
+            it.writeString(description)
+            it.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
+        }
     }
 
     companion object {
@@ -106,10 +109,28 @@ abstract class AbstractTaxon : Parcelable {
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_HERITAGE = "heritage"
 
-        val DEFAULT_PROJECTION = arrayOf(COLUMN_ID,
-                                         COLUMN_NAME,
-                                         *Taxonomy.DEFAULT_PROJECTION,
-                                         COLUMN_DESCRIPTION,
-                                         COLUMN_HERITAGE)
+        /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String): Array<Pair<String, String>> {
+            return arrayOf(column(COLUMN_ID,
+                                  tableAlias),
+                           column(COLUMN_NAME,
+                                  tableAlias),
+                           *Taxonomy.defaultProjection(tableAlias),
+                           column(COLUMN_DESCRIPTION,
+                                  tableAlias),
+                           column(COLUMN_HERITAGE,
+                                  tableAlias))
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String): String {
+            return column(columnName,
+                          tableAlias).second
+        }
     }
 }

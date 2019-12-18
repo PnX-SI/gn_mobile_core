@@ -19,20 +19,24 @@
 
         <activity android:name=".ui.home.HomeActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.login.LoginActivity"
+            android:label="@string/activity_login_title"
+            android:theme="@style/AppTheme.Login"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".ui.settings.PreferencesActivity"
-            android:label="@string/activity_preferences_title">
-        </activity>
+            android:label="@string/activity_preferences_title" />
 
         <provider
             android:name=".data.MainContentProvider"
             android:authorities="fr.geonature.sync.provider"
             android:exported="true"
-            android:readPermission="@string/permission_read"/>
+            android:readPermission="@string/permission_read" />
 
     </application>
 

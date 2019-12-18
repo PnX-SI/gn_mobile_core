@@ -2,8 +2,10 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.Taxon.Companion.defaultProjection
 import fr.geonature.commons.data.Taxon.Companion.fromCursor
-import org.junit.Assert
+import fr.geonature.commons.data.helper.EntityHelper.column
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -61,18 +63,18 @@ class TaxonTest {
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(4)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(5)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
         `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getString(5)).thenReturn("True")
+        `when`(cursor.getInt(5)).thenReturn(1)
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -92,12 +94,22 @@ class TaxonTest {
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenReturn(2)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenReturn(3)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
+
+        defaultProjection().forEachIndexed { index, c ->
+            when (c) {
+                in arrayOf(column(AbstractTaxon.COLUMN_DESCRIPTION,
+                                  Taxon.TABLE_NAME),
+                           column(AbstractTaxon.COLUMN_HERITAGE,
+                                  Taxon.TABLE_NAME)) -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
+                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                }
+                else -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                }
+            }
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
@@ -132,12 +144,21 @@ class TaxonTest {
     fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_ID)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_NAME)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_KINGDOM)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(Taxonomy.COLUMN_GROUP)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(AbstractTaxon.COLUMN_DESCRIPTION)).thenReturn(-1)
-        `when`(cursor.getColumnIndex(AbstractTaxon.COLUMN_HERITAGE)).thenReturn(-1)
+
+        defaultProjection().forEach { c ->
+            when (c) {
+                in arrayOf(column(AbstractTaxon.COLUMN_DESCRIPTION,
+                                  Taxon.TABLE_NAME),
+                           column(AbstractTaxon.COLUMN_HERITAGE,
+                                  Taxon.TABLE_NAME)) -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
+                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                }
+                else -> {
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                }
+            }
+        }
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -171,12 +192,18 @@ class TaxonTest {
 
     @Test
     fun testDefaultProjection() {
-        Assert.assertArrayEquals(arrayOf(AbstractTaxon.COLUMN_ID,
-                                         AbstractTaxon.COLUMN_NAME,
-                                         Taxonomy.COLUMN_KINGDOM,
-                                         Taxonomy.COLUMN_GROUP,
-                                         AbstractTaxon.COLUMN_DESCRIPTION,
-                                         AbstractTaxon.COLUMN_HERITAGE),
-                                 AbstractTaxon.DEFAULT_PROJECTION)
+        assertArrayEquals(arrayOf(Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_ID}\"",
+                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_ID}"),
+                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_NAME}\"",
+                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME}"),
+                                  Pair("${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
+                                      "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
+                                  Pair("${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
+                                      "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"),
+                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_DESCRIPTION}\"",
+                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"),
+                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_HERITAGE}\"",
+                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}")),
+                          defaultProjection())
     }
 }

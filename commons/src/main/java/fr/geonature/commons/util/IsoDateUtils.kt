@@ -1,7 +1,6 @@
 package fr.geonature.commons.util
 
 import android.annotation.SuppressLint
-import fr.geonature.commons.util.StringUtils.isEmpty
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -26,7 +25,7 @@ object IsoDateUtils {
 
     @SuppressLint("SimpleDateFormat")
     fun toDate(str: String?): Date? {
-        if (isEmpty(str)) return null
+        if (str.isNullOrBlank()) return null
 
         return try {
             sdfDateTime.parse(str)

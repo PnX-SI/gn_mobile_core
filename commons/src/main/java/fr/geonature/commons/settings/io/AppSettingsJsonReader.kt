@@ -1,6 +1,5 @@
 package fr.geonature.commons.settings.io
 
-import android.text.TextUtils
 import android.util.JsonReader
 import android.util.Log
 import fr.geonature.commons.input.AbstractInput
@@ -24,7 +23,7 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
      * @return a [IAppSettings] instance from the `JSON` string or `null` if something goes wrong
      */
     fun read(json: String?): AS? {
-        if (TextUtils.isEmpty(json)) {
+        if (json.isNullOrBlank()) {
             return null
         }
 

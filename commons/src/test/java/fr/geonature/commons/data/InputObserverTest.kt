@@ -2,7 +2,9 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
+import fr.geonature.commons.data.InputObserver.Companion.defaultProjection
 import fr.geonature.commons.data.InputObserver.Companion.fromCursor
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -34,9 +36,11 @@ class InputObserverTest {
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_LASTNAME)).thenReturn(1)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_FIRSTNAME)).thenReturn(2)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn("lastname")
         `when`(cursor.getString(2)).thenReturn("firstname")
@@ -56,9 +60,11 @@ class InputObserverTest {
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_ID)).thenReturn(0)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_LASTNAME)).thenReturn(-1)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_FIRSTNAME)).thenReturn(-1)
+
+        defaultProjection().forEachIndexed { index, c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+        }
+
         `when`(cursor.getLong(0)).thenReturn(1234)
         `when`(cursor.getString(1)).thenReturn(null)
         `when`(cursor.getString(2)).thenReturn(null)
@@ -75,10 +81,17 @@ class InputObserverTest {
     }
 
     @Test
-    fun testCreateFromClosedCursor() {
+    fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.isClosed).thenReturn(true)
+
+        defaultProjection().forEach { c ->
+            `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+        }
+
+        `when`(cursor.getLong(0)).thenReturn(0)
+        `when`(cursor.getString(1)).thenReturn(null)
+        `when`(cursor.getString(2)).thenReturn(null)
 
         // when getting InputObserver instance from Cursor
         val inputObserver = fromCursor(cursor)
@@ -88,15 +101,10 @@ class InputObserverTest {
     }
 
     @Test
-    fun testCreateFromInvalidCursor() {
+    fun testCreateFromClosedCursor() {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_ID)).thenThrow(IllegalArgumentException::class.java)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_LASTNAME)).thenReturn(-1)
-        `when`(cursor.getColumnIndexOrThrow(InputObserver.COLUMN_FIRSTNAME)).thenReturn(-1)
-        `when`(cursor.getLong(0)).thenReturn(0)
-        `when`(cursor.getString(1)).thenReturn(null)
-        `when`(cursor.getString(2)).thenReturn(null)
+        `when`(cursor.isClosed).thenReturn(true)
 
         // when getting InputObserver instance from Cursor
         val inputObserver = fromCursor(cursor)
@@ -123,5 +131,16 @@ class InputObserverTest {
         // then
         assertEquals(inputObserver,
                      InputObserver.CREATOR.createFromParcel(parcel))
+    }
+
+    @Test
+    fun testDefaultProjection() {
+        assertArrayEquals(arrayOf(Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_ID}\"",
+                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_ID}"),
+                                  Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_LASTNAME}\"",
+                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME}"),
+                                  Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_FIRSTNAME}\"",
+                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME}")),
+                          defaultProjection())
     }
 }

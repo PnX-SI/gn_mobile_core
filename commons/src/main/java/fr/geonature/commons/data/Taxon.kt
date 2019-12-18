@@ -5,7 +5,8 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import androidx.room.Entity
-import fr.geonature.commons.util.get
+import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.get
 
 /**
  * Describes a taxon.
@@ -38,30 +39,65 @@ class Taxon : AbstractTaxon {
         const val TABLE_NAME = "taxa"
 
         /**
+         * Gets the default projection.
+         */
+        fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
+            return AbstractTaxon.defaultProjection(tableAlias)
+        }
+
+        /**
+         * Gets alias from given column name.
+         */
+        fun getColumnAlias(columnName: String,
+                           tableAlias: String = TABLE_NAME): String {
+            return column(columnName,
+                          tableAlias).second
+        }
+
+        /**
+         * Apply custom filter.
+         */
+        fun filter(queryString: String?): Pair<String?, Array<String>?> {
+            return if (queryString.isNullOrBlank()) Pair(null,
+                                                         null)
+            else {
+                val filter = "%$queryString%"
+                Pair("${getColumnAlias(COLUMN_NAME)} LIKE ?",
+                     arrayOf(filter))
+            }
+        }
+
+        /**
          * Create a new [Taxon] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
          *
          * @return A newly created [Taxon] instance
          */
-        fun fromCursor(cursor: Cursor): Taxon? {
+        fun fromCursor(cursor: Cursor,
+                       tableAlias: String = TABLE_NAME): Taxon? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                val taxonomy = Taxonomy.fromCursor(cursor) ?: return null
+                val taxonomy = Taxonomy.fromCursor(cursor,
+                                                   tableAlias) ?: return null
 
-                Taxon(requireNotNull(cursor.get(COLUMN_ID)),
-                      requireNotNull(cursor.get(COLUMN_NAME)),
+                Taxon(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
+                                                               tableAlias))),
+                      requireNotNull(cursor.get(getColumnAlias(COLUMN_NAME,
+                                                               tableAlias))),
                       taxonomy,
-                      cursor.get(COLUMN_DESCRIPTION),
-                      requireNotNull(cursor.get(COLUMN_HERITAGE,
+                      cursor.get(getColumnAlias(COLUMN_DESCRIPTION,
+                                                tableAlias)),
+                      requireNotNull(cursor.get(getColumnAlias(COLUMN_HERITAGE,
+                                                               tableAlias),
                                                 false)))
             }
-            catch (iae: IllegalArgumentException) {
+            catch (e: Exception) {
                 Log.w(TAG,
-                      iae.message)
+                      e.message)
 
                 null
             }

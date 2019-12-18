@@ -20,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.atMost
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
@@ -71,8 +72,8 @@ class InputManagerTest {
         inputManager.input.observeForever(observerForInput)
 
         inputManager.preferenceManager.edit()
-            .clear()
-            .commit()
+                .clear()
+                .commit()
     }
 
     @Test
@@ -201,7 +202,7 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndExportInput() {
+    fun testSaveAndExportExistingInput() {
         // given an Input to save and export
         val input = DummyInput().apply { id = 1234 }
 
@@ -212,6 +213,26 @@ class InputManagerTest {
 
         // then
         assertTrue(saved)
+        assertTrue(exported)
+
+        val noSuchInput = runBlocking { inputManager.readInput(input.id) }
+        assertNull(noSuchInput)
+
+        verify(observerForListOfInputs,
+               times(2)).onChanged(emptyList())
+        verify(observerForInput,
+               times(2)).onChanged(null)
+    }
+
+    @Test
+    fun testSaveAndExportInput() {
+        // given an Input to save and export
+        val input = DummyInput().apply { id = 1234 }
+
+        // when exporting this Input
+        val exported = runBlocking { inputManager.exportInput(input) }
+
+        // then
         assertTrue(exported)
 
         val noSuchInput = runBlocking { inputManager.readInput(input.id) }

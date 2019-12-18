@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import fr.geonature.commons.data.Dataset
+import fr.geonature.commons.data.DefaultNomenclature
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Nomenclature
 import fr.geonature.commons.data.NomenclatureTaxonomy
@@ -16,16 +18,30 @@ import fr.geonature.commons.model.MountPoint
 import fr.geonature.commons.util.FileUtils.getDatabaseFolder
 import fr.geonature.commons.util.FileUtils.getFile
 import fr.geonature.sync.BuildConfig
+import fr.geonature.sync.data.dao.DatasetDao
+import fr.geonature.sync.data.dao.DefaultNomenclatureDao
+import fr.geonature.sync.data.dao.InputObserverDao
+import fr.geonature.sync.data.dao.NomenclatureDao
+import fr.geonature.sync.data.dao.NomenclatureTaxonomyDao
+import fr.geonature.sync.data.dao.NomenclatureTypeDao
+import fr.geonature.sync.data.dao.TaxonAreaDao
+import fr.geonature.sync.data.dao.TaxonDao
+import fr.geonature.sync.data.dao.TaxonomyDao
 
 /**
  * The Room database.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Database(entities = [InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class, NomenclatureType::class, Nomenclature::class, NomenclatureTaxonomy::class],
-          version = 12,
+@Database(entities = [Dataset::class, InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class, NomenclatureType::class, Nomenclature::class, NomenclatureTaxonomy::class, DefaultNomenclature::class],
+          version = 15,
           exportSchema = false)
 abstract class LocalDatabase : RoomDatabase() {
+
+    /**
+     * @return The DAO for the [Dataset.TABLE_NAME] table.
+     */
+    abstract fun datasetDao(): DatasetDao
 
     /**
      * @return The DAO for the [InputObserver.TABLE_NAME] table.
@@ -62,6 +78,11 @@ abstract class LocalDatabase : RoomDatabase() {
      */
     abstract fun nomenclatureTaxonomyDao(): NomenclatureTaxonomyDao
 
+    /**
+     * @return The DAO for the [DefaultNomenclature.TABLE_NAME] table.
+     */
+    abstract fun defaultNomenclatureDao(): DefaultNomenclatureDao
+
     companion object {
 
         private val TAG = LocalDatabase::class.java.name
@@ -90,14 +111,14 @@ abstract class LocalDatabase : RoomDatabase() {
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG,
-                      "Loading local database '" + localDatabase.absolutePath + "'...")
+                      "Loading local database '${localDatabase.absolutePath}'...")
             }
 
             return Room.databaseBuilder(context.applicationContext,
                                         LocalDatabase::class.java,
                                         localDatabase.absolutePath)
-                .fallbackToDestructiveMigration()
-                .build()
+                    .fallbackToDestructiveMigration()
+                    .build()
         }
     }
 }

@@ -6,11 +6,9 @@ import android.util.Log
 import fr.geonature.commons.BuildConfig
 import fr.geonature.commons.R
 import fr.geonature.commons.model.MountPoint
-import fr.geonature.commons.util.StringUtils.isEmpty
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.ArrayList
-import java.util.Arrays
 import java.util.HashSet
 import java.util.Scanner
 import java.util.TreeSet
@@ -32,7 +30,7 @@ object MountPointUtils {
     fun getInternalStorage(): MountPoint {
         val externalStorage = System.getenv("EXTERNAL_STORAGE")
 
-        if (isEmpty(externalStorage)) {
+        if (externalStorage.isNullOrBlank()) {
             val mountPoint = MountPoint(Environment.getExternalStorageDirectory().absolutePath,
                                         MountPoint.StorageType.INTERNAL)
 
@@ -44,7 +42,7 @@ object MountPointUtils {
             return mountPoint
         }
 
-        val mountPoint = MountPoint(externalStorage!!,
+        val mountPoint = MountPoint(externalStorage,
                                     MountPoint.StorageType.INTERNAL)
 
         if (BuildConfig.DEBUG) {
@@ -74,11 +72,9 @@ object MountPointUtils {
 
         while (mountPointIterator.hasNext() && externalMountPoint == null) {
             val mountPoint = mountPointIterator.next()
-            val checkStorageState =
-                storageStates.isEmpty() || Arrays.asList(*storageStates).contains(mountPoint.getStorageState())
-            externalMountPoint =
-                if (mountPoint.storageType == MountPoint.StorageType.EXTERNAL && checkStorageState) mountPoint
-                else null
+            val checkStorageState = storageStates.isEmpty() || listOf(*storageStates).contains(mountPoint.getStorageState())
+            externalMountPoint = if (mountPoint.storageType == MountPoint.StorageType.EXTERNAL && checkStorageState) mountPoint
+            else null
         }
 
         if (BuildConfig.DEBUG) {
@@ -249,7 +245,7 @@ object MountPointUtils {
 
                 val path = file.absolutePath
                 val mountPoint = buildMountPoint(path.substring(0,
-                                                                path.indexOf("/Android")),
+                                                                path.indexOf("/Android").coerceAtLeast(0)),
                                                  if (firstPrimaryStorage) MountPoint.StorageType.INTERNAL else MountPoint.StorageType.EXTERNAL)
 
                 if (mountPoint !== null) {
@@ -274,16 +270,16 @@ object MountPointUtils {
 
             var secondaryStorage = System.getenv("SECONDARY_STORAGE")
 
-            if (isEmpty(secondaryStorage)) {
+            if (secondaryStorage.isNullOrBlank()) {
                 secondaryStorage = System.getenv("EXTERNAL_SDCARD_STORAGE")
             }
 
-            if (!isEmpty(secondaryStorage)) {
-                val paths = secondaryStorage!!.split(":".toRegex())
-                    .dropLastWhile {
-                        it.isEmpty()
-                    }
-                    .toTypedArray()
+            if (!secondaryStorage.isNullOrBlank()) {
+                val paths = secondaryStorage.split(":".toRegex())
+                        .dropLastWhile {
+                            it.isEmpty()
+                        }
+                        .toTypedArray()
                 var firstSecondaryStorage = true
 
                 for (path in paths) {
@@ -325,33 +321,32 @@ object MountPointUtils {
                 while (scanner.hasNext()) {
                     var line = scanner.nextLine()
 
-                    if (isEmpty(line)) {
+                    if (line.isNullOrBlank()) {
                         continue
                     }
 
                     line = line.trim { it <= ' ' }
 
                     var storageType: MountPoint.StorageType? = null
+
                     // parse line comment
                     if (line.startsWith("#")) {
-                        when {
-                            line.contains("internal") -> storageType =
-                                MountPoint.StorageType.INTERNAL
-                            line.contains("external") -> storageType =
-                                MountPoint.StorageType.EXTERNAL
-                            line.contains("usb") -> storageType = MountPoint.StorageType.USB
+                        storageType = when {
+                            line.contains("internal") -> MountPoint.StorageType.INTERNAL
+                            line.contains("external") -> MountPoint.StorageType.EXTERNAL
+                            line.contains("usb") -> MountPoint.StorageType.USB
                             else -> // storage type not found from line comment. Continue anyway
-                                storageType = null
+                                null
                         }
                     }
 
                     // parse 'media_type' only it the storage type was not found from line comment
                     if (line.startsWith("media_type") && storageType == null) {
                         val tokens = line.split("\\s".toRegex())
-                            .dropLastWhile {
-                                it.isEmpty()
-                            }
-                            .toTypedArray()
+                                .dropLastWhile {
+                                    it.isEmpty()
+                                }
+                                .toTypedArray()
 
                         if (tokens.size == 3) {
                             if (tokens[2].contains("usb")) {
@@ -363,10 +358,10 @@ object MountPointUtils {
                     // parse 'dev_mount'
                     if (line.startsWith("dev_mount") && storageType != null) {
                         val tokens = line.split("\\s".toRegex())
-                            .dropLastWhile {
-                                it.isEmpty()
-                            }
-                            .toTypedArray()
+                                .dropLastWhile {
+                                    it.isEmpty()
+                                }
+                                .toTypedArray()
 
                         if (tokens.size >= 3) {
                             val mountPoint = buildMountPoint(tokens[2],
@@ -411,10 +406,10 @@ object MountPointUtils {
 
                     if (line.startsWith("/dev/block/vold") || line.startsWith("/dev/fuse")) {
                         val tokens = line.split("\\s".toRegex())
-                            .dropLastWhile {
-                                it.isEmpty()
-                            }
-                            .toTypedArray()
+                                .dropLastWhile {
+                                    it.isEmpty()
+                                }
+                                .toTypedArray()
 
                         if (tokens.size >= 2) {
                             val mountPoint = buildMountPoint(tokens[1],
@@ -459,7 +454,7 @@ object MountPointUtils {
 
     private fun buildMountPoint(mountPath: String,
                                 storageType: MountPoint.StorageType): MountPoint? {
-        return buildMountPoint(File(mountPath),
+        return buildMountPoint(File(if (mountPath.isBlank()) "/" else mountPath),
                                storageType)
     }
 }
