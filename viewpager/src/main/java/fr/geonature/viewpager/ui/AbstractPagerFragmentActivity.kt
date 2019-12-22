@@ -11,10 +11,10 @@ import fr.geonature.viewpager.BuildConfig
 import fr.geonature.viewpager.R
 import fr.geonature.viewpager.pager.Pager
 import fr.geonature.viewpager.pager.PagerManager
+import java.util.ArrayList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 /**
  * Basic [ViewPager] implementation as [AppCompatActivity].
@@ -22,8 +22,8 @@ import java.util.ArrayList
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
-                                               View.OnClickListener,
-                                               ViewPager.OnPageChangeListener {
+    View.OnClickListener,
+    ViewPager.OnPageChangeListener {
 
     lateinit var pagerManager: PagerManager
     lateinit var adapter: SimpleFragmentPagerAdapter
@@ -41,8 +41,10 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         pagerManager = PagerManager(application)
 
-        adapter = SimpleFragmentPagerAdapter(this,
-                                             supportFragmentManager)
+        adapter = SimpleFragmentPagerAdapter(
+            this,
+            supportFragmentManager
+        )
         viewPager = findViewById(R.id.pager)
         viewPager.adapter = adapter
 
@@ -55,12 +57,18 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         GlobalScope.launch(Dispatchers.Main) {
             if (intent.hasExtra(EXTRA_PAGER_ID)) {
-                pager = pagerManager.load(intent.getLongExtra(EXTRA_PAGER_ID,
-                                                              0L))
+                pager = pagerManager.load(
+                    intent.getLongExtra(
+                        EXTRA_PAGER_ID,
+                        0L
+                    )
+                )
 
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG,
-                          "onCreate, pager loaded: $pager")
+                    Log.d(
+                        TAG,
+                        "onCreate, pager loaded: $pager"
+                    )
                 }
             }
 
@@ -93,10 +101,11 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
                 }
 
                 if (fragment == null) {
-                    Log.w(TAG,
-                          "onPostCreate: no fragment found at position $i")
-                }
-                else {
+                    Log.w(
+                        TAG,
+                        "onPostCreate: no fragment found at position $i"
+                    )
+                } else {
                     adapter.fragments[fragment.getResourceTitle()] = (fragment as Fragment?)!!
                 }
             }
@@ -114,7 +123,8 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
             title = adapter.getPageTitle(viewPager.currentItem)
 
             previousButton.isEnabled = viewPager.currentItem > 0
-            previousButton.visibility = if (viewPager.currentItem > 0) View.VISIBLE else View.INVISIBLE
+            previousButton.visibility =
+                if (viewPager.currentItem > 0) View.VISIBLE else View.INVISIBLE
             previousButton.setOnClickListener(this@AbstractPagerFragmentActivity)
 
             nextButton.isEnabled = false
@@ -123,8 +133,10 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(KEY_PAGER,
-                               pager)
+        outState.putParcelable(
+            KEY_PAGER,
+            pager
+        )
 
         super.onSaveInstanceState(outState)
     }
@@ -165,16 +177,19 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         when (v.id) {
             R.id.previousButton -> {
                 if (viewPager.currentItem > 0) {
-                    viewPager.setCurrentItem(viewPager.currentItem - 1,
-                                             true)
+                    viewPager.setCurrentItem(
+                        viewPager.currentItem - 1,
+                        true
+                    )
                 }
             }
             R.id.nextButton -> {
                 if (viewPager.currentItem < adapter.count - 1) {
-                    viewPager.setCurrentItem(viewPager.currentItem + 1,
-                                             true)
-                }
-                else if (viewPager.currentItem == adapter.count - 1) {
+                    viewPager.setCurrentItem(
+                        viewPager.currentItem + 1,
+                        true
+                    )
+                } else if (viewPager.currentItem == adapter.count - 1) {
                     // the last page
                     performFinishAction()
                 }
@@ -186,16 +201,20 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         // nothing to do ...
     }
 
-    override fun onPageScrolled(position: Int,
-                                positionOffset: Float,
-                                positionOffsetPixels: Int) {
+    override fun onPageScrolled(
+        position: Int,
+        positionOffset: Float,
+        positionOffsetPixels: Int
+    ) {
         // nothing to do ...
     }
 
     override fun onPageSelected(position: Int) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG,
-                  "onPageSelected: $position")
+            Log.d(
+                TAG,
+                "onPageSelected: $position"
+            )
         }
 
         // sets default paging control
@@ -205,8 +224,10 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         val fragmentAtPreviousPosition = getPageFragment(position - 1)
 
         if (position > 0 && !(fragmentAtPreviousPosition == null || fragmentAtPreviousPosition.validate())) {
-            viewPager.setCurrentItem(position - 1,
-                                     true)
+            viewPager.setCurrentItem(
+                position - 1,
+                true
+            )
             return
         }
 
@@ -247,8 +268,10 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         val currentItem = viewPager.currentItem
 
         if (currentItem > 0) {
-            viewPager.setCurrentItem(currentItem - 1,
-                                     true)
+            viewPager.setCurrentItem(
+                currentItem - 1,
+                true
+            )
         }
     }
 
@@ -260,19 +283,25 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
             if (fragment != null && fragment.validate()) {
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG,
-                          "goToNextPage: " + fragment.getResourceTitle())
+                    Log.d(
+                        TAG,
+                        "goToNextPage: " + fragment.getResourceTitle()
+                    )
                 }
 
-                viewPager.setCurrentItem(currentItem + 1,
-                                         true)
+                viewPager.setCurrentItem(
+                    currentItem + 1,
+                    true
+                )
             }
         }
     }
 
     fun goToPage(position: Int) {
-        viewPager.setCurrentItem(position,
-                                 true)
+        viewPager.setCurrentItem(
+            position,
+            true
+        )
     }
 
     fun goToPageByKey(key: Int) {
@@ -280,27 +309,36 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         if (fragment is IValidateFragment) {
             if (BuildConfig.DEBUG) {
-                Log.d(TAG,
-                      "goToPageByKey: key '$key'")
+                Log.d(
+                    TAG,
+                    "goToPageByKey: key '$key'"
+                )
             }
 
-            viewPager.setCurrentItem(ArrayList(adapter.fragments.values).lastIndexOf(fragment),
-                                     true)
-        }
-        else {
-            Log.w(TAG,
-                  "goToPageByKey: key '$key' undefined")
+            viewPager.setCurrentItem(
+                ArrayList(adapter.fragments.values).lastIndexOf(fragment),
+                true
+            )
+        } else {
+            Log.w(
+                TAG,
+                "goToPageByKey: key '$key' undefined"
+            )
         }
     }
 
     fun goToFirstPage() {
-        viewPager.setCurrentItem(0,
-                                 true)
+        viewPager.setCurrentItem(
+            0,
+            true
+        )
     }
 
     fun goToLastPage() {
-        viewPager.setCurrentItem(adapter.count - 1,
-                                 true)
+        viewPager.setCurrentItem(
+            adapter.count - 1,
+            true
+        )
     }
 
     /**
@@ -318,8 +356,10 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         }
 
         if (pageFragment == null) {
-            Log.w(TAG,
-                  "getCurrentPageFragment: no fragment found at position $currentItem")
+            Log.w(
+                TAG,
+                "getCurrentPageFragment: no fragment found at position $currentItem"
+            )
         }
 
         return pageFragment
@@ -335,16 +375,19 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         val currentItem = viewPager.currentItem
 
         val fragment =
-            supportFragmentManager.findFragmentByTag("android:switcher:" + R.id.pager + ":" + (position
-                ?: currentItem))
+            supportFragmentManager.findFragmentByTag(
+                "android:switcher:" + R.id.pager + ":" + (position
+                    ?: currentItem)
+            )
 
         return if (fragment != null && fragment is IValidateFragment) {
             fragment
-        }
-        else {
-            Log.w(TAG,
-                  "getPageFragment: no fragment found through getSupportFragmentManager() at position " + (position
-                      ?: currentItem))
+        } else {
+            Log.w(
+                TAG,
+                "getPageFragment: no fragment found through getSupportFragmentManager() at position " + (position
+                    ?: currentItem)
+            )
 
             null
         }

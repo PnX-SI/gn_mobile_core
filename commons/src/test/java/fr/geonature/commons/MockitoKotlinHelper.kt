@@ -17,18 +17,15 @@ object MockitoKotlinHelper {
      */
     fun <T> eq(obj: T): T = Mockito.eq(obj)
 
-
     /**
      * Returns Mockito.any() as nullable type to avoid [IllegalStateException] when null is returned.
      */
     fun <T> any(type: Class<T>): T = Mockito.any(type)
 
-
     /**
      * Returns ArgumentCaptor.capture() as nullable type to avoid [IllegalStateException] when null is returned.
      */
     fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()
-
 
     /**
      * Helper function for creating an argumentCaptor in kotlin.

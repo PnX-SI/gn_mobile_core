@@ -39,23 +39,31 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
 
     init {
         SettingsUtils.getGeoNatureServerUrl(application)
-                ?.also {
-                    geoNatureAPIClient = GeoNatureAPIClient.instance(application,
-                                                                     it)
-                            .value
-                }
+            ?.also {
+                geoNatureAPIClient = GeoNatureAPIClient.instance(
+                    application,
+                    it
+                )
+                    .value
+            }
     }
 
-    fun login(username: String,
-              password: String,
-              applicationId: Int) {
+    fun login(
+        username: String,
+        password: String,
+        applicationId: Int
+    ) {
         val geoNatureAPIClient = geoNatureAPIClient ?: return
 
         viewModelScope.launch {
             try {
-                val authLoginResponse = geoNatureAPIClient.authLogin(AuthCredentials(username,
-                                                                                     password,
-                                                                                     applicationId))
+                val authLoginResponse = geoNatureAPIClient.authLogin(
+                    AuthCredentials(
+                        username,
+                        password,
+                        applicationId
+                    )
+                )
 
                 if (!authLoginResponse.isSuccessful) {
                     val authLoginError = buildErrorResponse(authLoginResponse)
@@ -66,8 +74,7 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
                             "password" -> LoginResult(error = R.string.login_failed_password)
                             else -> LoginResult(error = R.string.login_failed)
                         }
-                    }
-                    else {
+                    } else {
                         LoginResult(error = R.string.login_failed)
                     }
 
@@ -83,22 +90,25 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
 
                 authManager.setAuthLogin(authLogin)
                 _loginResult.value = LoginResult(success = authLogin)
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 _loginResult.value = LoginResult(error = R.string.login_failed)
             }
         }
     }
 
-    fun loginDataChanged(username: String,
-                         password: String) {
+    fun loginDataChanged(
+        username: String,
+        password: String
+    ) {
         if (!isUserNameValid(username)) {
-            _loginFormState.value = LoginFormState(usernameError = R.string.login_form_username_invalid)
+            _loginFormState.value =
+                LoginFormState(usernameError = R.string.login_form_username_invalid)
             return
         }
 
         if (!isPasswordValid(password)) {
-            _loginFormState.value = LoginFormState(passwordError = R.string.login_form_password_invalid)
+            _loginFormState.value =
+                LoginFormState(passwordError = R.string.login_form_password_invalid)
             return
         }
 
@@ -128,8 +138,10 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
     private fun buildErrorResponse(response: Response<AuthLogin>): AuthLoginError? {
         val type = object : TypeToken<AuthLoginError>() {}.type
 
-        return Gson().fromJson(response.errorBody()!!.charStream(),
-                               type)
+        return Gson().fromJson(
+            response.errorBody()!!.charStream(),
+            type
+        )
     }
 
     /**
@@ -137,19 +149,24 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    data class LoginFormState(@StringRes
-                              val usernameError: Int? = null,
-                              @StringRes
-                              val passwordError: Int? = null, val isValid: Boolean = false)
+    data class LoginFormState(
+        @StringRes
+        val usernameError: Int? = null,
+        @StringRes
+        val passwordError: Int? = null,
+        val isValid: Boolean = false
+    )
 
     /**
      * Authentication result: success (user details) or errorResourceId message.
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    data class LoginResult(val success: AuthLogin? = null,
-                           @StringRes
-                           val error: Int? = null) {
+    data class LoginResult(
+        val success: AuthLogin? = null,
+        @StringRes
+        val error: Int? = null
+    ) {
 
         fun hasError(): Boolean {
             return error != null

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- https://developer.android.com/training/articles/security-config -->
+<?xml version="1.0" encoding="utf-8"?><!-- https://developer.android.com/training/articles/security-config -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">geonature.fr</domain>

@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="fr.geonature.viewpager"/>
+<manifest package="fr.geonature.viewpager" />

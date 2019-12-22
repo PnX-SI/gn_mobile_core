@@ -23,12 +23,18 @@ class NomenclatureTypeTest {
 
     @Test
     fun testEquals() {
-        assertEquals(NomenclatureType(1234,
-                                      "SGR",
-                                      "label"),
-                     NomenclatureType(1234,
-                                      "SGR",
-                                      "label"))
+        assertEquals(
+            NomenclatureType(
+                1234,
+                "SGR",
+                "label"
+            ),
+            NomenclatureType(
+                1234,
+                "SGR",
+                "label"
+            )
+        )
     }
 
     @Test
@@ -49,40 +55,60 @@ class NomenclatureTypeTest {
 
         // then
         assertNotNull(nomenclatureType)
-        assertEquals(NomenclatureType(1234,
-                                      "SGR",
-                                      "label"),
-                     nomenclatureType)
+        assertEquals(
+            NomenclatureType(
+                1234,
+                "SGR",
+                "label"
+            ),
+            nomenclatureType
+        )
     }
 
     @Test
     fun testParcelable() {
         // given a nomenclature type instance
-        val nomenclatureType = NomenclatureType(1234,
-                                                "SGR",
-                                                "label")
+        val nomenclatureType = NomenclatureType(
+            1234,
+            "SGR",
+            "label"
+        )
 
         // when we obtain a Parcel object to write the nomenclature type instance to it
         val parcel = Parcel.obtain()
-        nomenclatureType.writeToParcel(parcel,
-                                       0)
+        nomenclatureType.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(nomenclatureType,
-                     NomenclatureType.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            nomenclatureType,
+            NomenclatureType.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"
+                ),
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"
+                ),
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

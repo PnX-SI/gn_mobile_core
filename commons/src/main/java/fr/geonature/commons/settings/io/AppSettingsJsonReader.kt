@@ -29,10 +29,11 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
 
         try {
             return read(StringReader(json))
-        }
-        catch (e: Exception) {
-            Log.w(TAG,
-                  e.message)
+        } catch (e: Exception) {
+            Log.w(
+                TAG,
+                e.message
+            )
         }
 
         return null
@@ -47,8 +48,10 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
      *
      * @throws IOException if something goes wrong
      */
-    @Throws(IOException::class,
-            IllegalArgumentException::class)
+    @Throws(
+        IOException::class,
+        IllegalArgumentException::class
+    )
     fun read(reader: Reader): AS {
         val jsonReader = JsonReader(reader)
         val appSettings = read(jsonReader)
@@ -66,8 +69,10 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
      *
      * @throws IOException if something goes wrong
      */
-    @Throws(IOException::class,
-            IllegalArgumentException::class)
+    @Throws(
+        IOException::class,
+        IllegalArgumentException::class
+    )
     private fun read(reader: JsonReader): AS {
         val appSettings = onAppSettingsJsonReaderListener.createAppSettings()
 
@@ -75,9 +80,11 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
 
         while (reader.hasNext()) {
             when (val keyName = reader.nextName()) {
-                else -> onAppSettingsJsonReaderListener.readAdditionalAppSettingsData(reader,
-                                                                                      keyName,
-                                                                                      appSettings)
+                else -> onAppSettingsJsonReaderListener.readAdditionalAppSettingsData(
+                    reader,
+                    keyName,
+                    appSettings
+                )
             }
         }
 
@@ -103,18 +110,22 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
         /**
          * Reading some additional data to set to the given [IAppSettings].
          *
-         * @param reader  the current @code JsonReader} to use
+         * @param reader the current @code JsonReader} to use
          * @param keyName the JSON key read
-         * @param appSettings   the current [AbstractInput] to use
+         * @param appSettings the current [AbstractInput] to use
          *
          * @throws IOException if something goes wrong
          * @throws IllegalArgumentException if invalid parameter was given
          */
-        @Throws(IOException::class,
-                IllegalArgumentException::class)
-        fun readAdditionalAppSettingsData(reader: JsonReader,
-                                          keyName: String,
-                                          appSettings: T)
+        @Throws(
+            IOException::class,
+            IllegalArgumentException::class
+        )
+        fun readAdditionalAppSettingsData(
+            reader: JsonReader,
+            keyName: String,
+            appSettings: T
+        )
     }
 
     companion object {

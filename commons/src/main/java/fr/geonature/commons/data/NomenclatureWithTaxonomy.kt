@@ -13,12 +13,14 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
 
     var taxonony: Taxonomy? = null
 
-    constructor(nomenclatureWithType: NomenclatureWithType) : super(nomenclatureWithType.id,
-                                                                    nomenclatureWithType.code,
-                                                                    nomenclatureWithType.hierarchy,
-                                                                    nomenclatureWithType.defaultLabel,
-                                                                    nomenclatureWithType.typeId,
-                                                                    nomenclatureWithType.type)
+    constructor(nomenclatureWithType: NomenclatureWithType) : super(
+        nomenclatureWithType.id,
+        nomenclatureWithType.code,
+        nomenclatureWithType.hierarchy,
+        nomenclatureWithType.defaultLabel,
+        nomenclatureWithType.typeId,
+        nomenclatureWithType.type
+    )
 
     internal constructor(source: Parcel) : super(source) {
         taxonony = source.readParcelable(Taxonomy::class.java.classLoader)
@@ -41,13 +43,19 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
         return result
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
-        super.writeToParcel(dest,
-                            flags)
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
+        super.writeToParcel(
+            dest,
+            flags
+        )
 
-        dest?.writeParcelable(taxonony,
-                              flags)
+        dest?.writeParcelable(
+            taxonony,
+            flags
+        )
     }
 
     companion object {
@@ -56,8 +64,10 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
          * Gets the default projection.
          */
         fun defaultProjection(): Array<Pair<String, String>> {
-            return arrayOf(*NomenclatureWithType.defaultProjection(),
-                           *NomenclatureTaxonomy.defaultProjection())
+            return arrayOf(
+                *NomenclatureWithType.defaultProjection(),
+                *NomenclatureTaxonomy.defaultProjection()
+            )
         }
 
         /**
@@ -79,14 +89,15 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<NomenclatureWithTaxonomy> = object : Parcelable.Creator<NomenclatureWithTaxonomy> {
-            override fun createFromParcel(parcel: Parcel): NomenclatureWithTaxonomy {
-                return NomenclatureWithTaxonomy(parcel)
-            }
+        val CREATOR: Parcelable.Creator<NomenclatureWithTaxonomy> =
+            object : Parcelable.Creator<NomenclatureWithTaxonomy> {
+                override fun createFromParcel(parcel: Parcel): NomenclatureWithTaxonomy {
+                    return NomenclatureWithTaxonomy(parcel)
+                }
 
-            override fun newArray(size: Int): Array<NomenclatureWithTaxonomy?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<NomenclatureWithTaxonomy?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

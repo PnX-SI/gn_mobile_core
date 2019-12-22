@@ -30,10 +30,11 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
 
         try {
             return read(StringReader(json))
-        }
-        catch (ioe: IOException) {
-            Log.w(TAG,
-                  ioe.message)
+        } catch (ioe: IOException) {
+            Log.w(
+                TAG,
+                ioe.message
+            )
         }
 
         return null
@@ -65,9 +66,11 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
             when (val keyName = reader.nextName()) {
                 "id" -> input.id = reader.nextLong()
                 "module" -> input.module = reader.nextString()
-                else -> onInputJsonReaderListener.readAdditionalInputData(reader,
-                                                                          keyName,
-                                                                          input)
+                else -> onInputJsonReaderListener.readAdditionalInputData(
+                    reader,
+                    keyName,
+                    input
+                )
             }
         }
 
@@ -93,15 +96,17 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
         /**
          * Reading some additional data to set to the given [AbstractInput].
          *
-         * @param reader  the current @code JsonReader} to use
+         * @param reader the current @code JsonReader} to use
          * @param keyName the JSON key read
-         * @param input   the current [AbstractInput] to use
+         * @param input the current [AbstractInput] to use
          * @throws IOException if something goes wrong
          */
         @Throws(IOException::class)
-        fun readAdditionalInputData(reader: JsonReader,
-                                    keyName: String,
-                                    input: T)
+        fun readAdditionalInputData(
+            reader: JsonReader,
+            keyName: String,
+            input: T
+        )
     }
 
     companion object {

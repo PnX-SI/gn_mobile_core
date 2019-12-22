@@ -22,46 +22,76 @@ class DefaultNomenclatureWithTypeTest {
 
     @Test
     fun testEquals() {
-        assertEquals(DefaultNomenclatureWithType("occtax",
-                                                 2),
-                     DefaultNomenclatureWithType("occtax",
-                                                 2))
+        assertEquals(
+            DefaultNomenclatureWithType(
+                "occtax",
+                2
+            ),
+            DefaultNomenclatureWithType(
+                "occtax",
+                2
+            )
+        )
 
-        assertEquals(DefaultNomenclatureWithType("occtax",
-                                                 2,
-                                                 NomenclatureWithType(2,
-                                                                      "SN",
-                                                                      "1234:002",
-                                                                      "label",
-                                                                      1234)),
-                     DefaultNomenclatureWithType("occtax",
-                                                 2,
-                                                 NomenclatureWithType(2,
-                                                                      "SN",
-                                                                      "1234:002",
-                                                                      "label",
-                                                                      1234)))
+        assertEquals(
+            DefaultNomenclatureWithType(
+                "occtax",
+                2,
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234
+                )
+            ),
+            DefaultNomenclatureWithType(
+                "occtax",
+                2,
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234
+                )
+            )
+        )
 
-        assertEquals(DefaultNomenclatureWithType("occtax",
-                                                 2,
-                                                 NomenclatureWithType(2,
-                                                                      "SN",
-                                                                      "1234:002",
-                                                                      "label",
-                                                                      1234,
-                                                                      NomenclatureType(1234,
-                                                                                       "SGR",
-                                                                                       "label"))),
-                     DefaultNomenclatureWithType("occtax",
-                                                 2,
-                                                 NomenclatureWithType(2,
-                                                                      "SN",
-                                                                      "1234:002",
-                                                                      "label",
-                                                                      1234,
-                                                                      NomenclatureType(1234,
-                                                                                       "SGR",
-                                                                                       "label"))))
+        assertEquals(
+            DefaultNomenclatureWithType(
+                "occtax",
+                2,
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            ),
+            DefaultNomenclatureWithType(
+                "occtax",
+                2,
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            )
+        )
     }
 
     @Test
@@ -89,17 +119,25 @@ class DefaultNomenclatureWithTypeTest {
 
         // then
         assertNotNull(defaultNomenclatureWithNomenclature)
-        assertEquals(DefaultNomenclatureWithType("occtax",
-                                                 2,
-                                                 NomenclatureWithType(2,
-                                                                      "SN",
-                                                                      "1234:002",
-                                                                      "label",
-                                                                      1234,
-                                                                      NomenclatureType(1234,
-                                                                                       "SGR",
-                                                                                       "label"))),
-                     defaultNomenclatureWithNomenclature)
+        assertEquals(
+            DefaultNomenclatureWithType(
+                "occtax",
+                2,
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            ),
+            defaultNomenclatureWithNomenclature
+        )
     }
 
     @Test
@@ -109,7 +147,9 @@ class DefaultNomenclatureWithTypeTest {
 
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in NomenclatureWithType.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                in NomenclatureWithType.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
+                    IllegalArgumentException::class.java
+                )
                 else -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
             }
         }
@@ -122,61 +162,98 @@ class DefaultNomenclatureWithTypeTest {
 
         // then
         assertNotNull(defaultNomenclatureWithNomenclature)
-        assertEquals(DefaultNomenclatureWithType("occtax",
-                                                 2),
-                     defaultNomenclatureWithNomenclature)
+        assertEquals(
+            DefaultNomenclatureWithType(
+                "occtax",
+                2
+            ),
+            defaultNomenclatureWithNomenclature
+        )
     }
 
     @Test
     fun testParcelable() {
         // given a default nomenclature instance
-        val defaultNomenclatureWithNomenclature = DefaultNomenclatureWithType("occtax",
-                                                                              2,
-                                                                              NomenclatureWithType(2,
-                                                                                                   "SN",
-                                                                                                   "1234:002",
-                                                                                                   "label",
-                                                                                                   1234,
-                                                                                                   NomenclatureType(1234,
-                                                                                                                    "SGR",
-                                                                                                                    "label")))
+        val defaultNomenclatureWithNomenclature = DefaultNomenclatureWithType(
+            "occtax",
+            2,
+            NomenclatureWithType(
+                2,
+                "SN",
+                "1234:002",
+                "label",
+                1234,
+                NomenclatureType(
+                    1234,
+                    "SGR",
+                    "label"
+                )
+            )
+        )
 
         // when we obtain a Parcel object to write the nomenclature with taxonomy instance to it
         val parcel = Parcel.obtain()
-        defaultNomenclatureWithNomenclature.writeToParcel(parcel,
-                                                          0)
+        defaultNomenclatureWithNomenclature.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(defaultNomenclatureWithNomenclature,
-                     DefaultNomenclatureWithType.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            defaultNomenclatureWithNomenclature,
+            DefaultNomenclatureWithType.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
-                                       "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_ID}\"",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_CODE}\"",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_HIERARCHY}\"",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_DEFAULT_LABEL}\"",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_TYPE_ID}\"",
-                                       "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}"),
-                                  Pair("${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_MODULE}\"",
-                                       "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_MODULE}"),
-                                  Pair("${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}\"",
-                                       "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"
+                ),
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"
+                ),
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_ID}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_CODE}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_HIERARCHY}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_DEFAULT_LABEL}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_TYPE_ID}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}"
+                ),
+                Pair(
+                    "${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_MODULE}\"",
+                    "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_MODULE}"
+                ),
+                Pair(
+                    "${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}\"",
+                    "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}"
+                )
+            ),
+            defaultProjection()
+        )
     }
-
 }

@@ -51,20 +51,25 @@ data class Dataset(
      * The creation date of this dataset.
      */
     @ColumnInfo(name = COLUMN_CREATED_AT)
-    var createdAt: Date?) : Parcelable {
+    var createdAt: Date?
+) : Parcelable {
 
-    private constructor(source: Parcel) : this(source.readLong(),
-                                               source.readString()!!,
-                                               source.readString(),
-                                               source.readByte() == 1.toByte(),
-                                               source.readSerializable() as Date)
+    private constructor(source: Parcel) : this(
+        source.readLong(),
+        source.readString()!!,
+        source.readString(),
+        source.readByte() == 1.toByte(),
+        source.readSerializable() as Date
+    )
 
     override fun describeContents(): Int {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeLong(id)
             it.writeString(name)
@@ -97,25 +102,41 @@ data class Dataset(
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_ID,
-                                  tableAlias),
-                           column(COLUMN_NAME,
-                                  tableAlias),
-                           column(COLUMN_DESCRIPTION,
-                                  tableAlias),
-                           column(COLUMN_ACTIVE,
-                                  tableAlias),
-                           column(COLUMN_CREATED_AT,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_ID,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_NAME,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_DESCRIPTION,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_ACTIVE,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_CREATED_AT,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
@@ -125,28 +146,59 @@ data class Dataset(
          *
          * @return A newly created [Dataset] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): Dataset? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): Dataset? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                Dataset(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
-                                                                 tableAlias))),
-                        requireNotNull(cursor.get(getColumnAlias(COLUMN_NAME,
-                                                                 tableAlias))),
-                        cursor.get(getColumnAlias(COLUMN_DESCRIPTION,
-                                                  tableAlias)),
-                        requireNotNull(cursor.get(getColumnAlias(COLUMN_ACTIVE,
-                                                                 tableAlias),
-                                                  false)),
-                        cursor.get(getColumnAlias(COLUMN_CREATED_AT,
-                                                  tableAlias)))
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                Dataset(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_ID,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_NAME,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_DESCRIPTION,
+                            tableAlias
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_ACTIVE,
+                                tableAlias
+                            ),
+                            false
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_CREATED_AT,
+                            tableAlias
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }

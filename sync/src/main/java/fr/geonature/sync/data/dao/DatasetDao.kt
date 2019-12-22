@@ -21,23 +21,35 @@ abstract class DatasetDao : BaseDao<Dataset>() {
 
         init {
             selectQueryBuilder.columns(*Dataset.defaultProjection())
-                    .orderBy(column(Dataset.COLUMN_NAME,
-                                    entityTableName).second,
-                             ASC,
-                             false)
+                .orderBy(
+                    column(
+                        Dataset.COLUMN_NAME,
+                        entityTableName
+                    ).second,
+                    ASC,
+                    false
+                )
         }
 
         fun whereActive(): QB {
-            selectQueryBuilder.andWhere("${column(Dataset.COLUMN_ACTIVE,
-                                                  entityTableName).second} = 1")
+            selectQueryBuilder.andWhere(
+                "${column(
+                    Dataset.COLUMN_ACTIVE,
+                    entityTableName
+                ).second} = 1"
+            )
 
             return this
         }
 
         fun whereId(id: Long?): QB {
-            selectQueryBuilder.andWhere("${column(Dataset.COLUMN_ID,
-                                                  entityTableName).second} = ?",
-                                        id)
+            selectQueryBuilder.andWhere(
+                "${column(
+                    Dataset.COLUMN_ID,
+                    entityTableName
+                ).second} = ?",
+                id
+            )
 
             return this
         }

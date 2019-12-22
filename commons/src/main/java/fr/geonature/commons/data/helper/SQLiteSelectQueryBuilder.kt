@@ -28,10 +28,16 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun from(tableName: String,
-             alias: String? = null): SQLiteSelectQueryBuilder {
-        tables.add(Pair(tableName,
-                        alias))
+    fun from(
+        tableName: String,
+        alias: String? = null
+    ): SQLiteSelectQueryBuilder {
+        tables.add(
+            Pair(
+                tableName,
+                alias
+            )
+        )
 
         return this
     }
@@ -68,10 +74,16 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun column(columnName: String,
-               alias: String? = null): SQLiteSelectQueryBuilder {
-        this.columns(Pair(columnName,
-                          alias))
+    fun column(
+        columnName: String,
+        alias: String? = null
+    ): SQLiteSelectQueryBuilder {
+        this.columns(
+            Pair(
+                columnName,
+                alias
+            )
+        )
 
         return this
     }
@@ -81,13 +93,19 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun join(joinOperator: JoinOperator = JoinOperator.DEFAULT,
-             tableName: String,
-             joinConstraint: String,
-             alias: String? = null,
-             vararg bindArgs: Any): SQLiteSelectQueryBuilder {
-        this.joinClauses.add(Pair("${joinOperator.operator.let { if (it.isBlank()) "" else "$it " }}JOIN $tableName${if (alias.isNullOrBlank()) "" else " AS $alias"} ON $joinConstraint",
-                                  bindArgs.toList().toTypedArray()))
+    fun join(
+        joinOperator: JoinOperator = JoinOperator.DEFAULT,
+        tableName: String,
+        joinConstraint: String,
+        alias: String? = null,
+        vararg bindArgs: Any
+    ): SQLiteSelectQueryBuilder {
+        this.joinClauses.add(
+            Pair(
+                "${joinOperator.operator.let { if (it.isBlank()) "" else "$it " }}JOIN $tableName${if (alias.isNullOrBlank()) "" else " AS $alias"} ON $joinConstraint",
+                bindArgs.toList().toTypedArray()
+            )
+        )
 
         return this
     }
@@ -97,15 +115,19 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun innerJoin(tableName: String,
-                  joinConstraint: String,
-                  alias: String? = null,
-                  vararg bindArgs: Any): SQLiteSelectQueryBuilder {
-        return join(JoinOperator.INNER,
-                    tableName,
-                    joinConstraint,
-                    alias,
-                    *bindArgs)
+    fun innerJoin(
+        tableName: String,
+        joinConstraint: String,
+        alias: String? = null,
+        vararg bindArgs: Any
+    ): SQLiteSelectQueryBuilder {
+        return join(
+            JoinOperator.INNER,
+            tableName,
+            joinConstraint,
+            alias,
+            *bindArgs
+        )
     }
 
     /**
@@ -113,15 +135,19 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun leftJoin(tableName: String,
-                 joinConstraint: String,
-                 alias: String? = null,
-                 vararg bindArgs: Any): SQLiteSelectQueryBuilder {
-        return join(JoinOperator.LEFT,
-                    tableName,
-                    joinConstraint,
-                    alias,
-                    *bindArgs)
+    fun leftJoin(
+        tableName: String,
+        joinConstraint: String,
+        alias: String? = null,
+        vararg bindArgs: Any
+    ): SQLiteSelectQueryBuilder {
+        return join(
+            JoinOperator.LEFT,
+            tableName,
+            joinConstraint,
+            alias,
+            *bindArgs
+        )
     }
 
     /**
@@ -129,12 +155,18 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun where(whereClause: String,
-              vararg bindArgs: Any?): SQLiteSelectQueryBuilder {
+    fun where(
+        whereClause: String,
+        vararg bindArgs: Any?
+    ): SQLiteSelectQueryBuilder {
         with(this.wheres) {
             clear()
-            add(Pair(whereClause,
-                     bindArgs.asList().toTypedArray()))
+            add(
+                Pair(
+                    whereClause,
+                    bindArgs.asList().toTypedArray()
+                )
+            )
         }
 
         return this
@@ -145,10 +177,16 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun andWhere(whereClause: String,
-                 vararg bindArgs: Any?): SQLiteSelectQueryBuilder {
-        this.wheres.add(Pair("${if (this.wheres.isEmpty()) "" else " AND "}($whereClause)",
-                             bindArgs.toList().toTypedArray()))
+    fun andWhere(
+        whereClause: String,
+        vararg bindArgs: Any?
+    ): SQLiteSelectQueryBuilder {
+        this.wheres.add(
+            Pair(
+                "${if (this.wheres.isEmpty()) "" else " AND "}($whereClause)",
+                bindArgs.toList().toTypedArray()
+            )
+        )
 
         return this
     }
@@ -158,10 +196,16 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun orWhere(whereClause: String,
-                vararg bindArgs: Any?): SQLiteSelectQueryBuilder {
-        this.wheres.add(Pair("${if (this.wheres.isEmpty()) "" else " OR "}($whereClause)",
-                             bindArgs.toList().toTypedArray()))
+    fun orWhere(
+        whereClause: String,
+        vararg bindArgs: Any?
+    ): SQLiteSelectQueryBuilder {
+        this.wheres.add(
+            Pair(
+                "${if (this.wheres.isEmpty()) "" else " OR "}($whereClause)",
+                bindArgs.toList().toTypedArray()
+            )
+        )
 
         return this
     }
@@ -209,16 +253,22 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun orderBy(columnName: String,
-                orderingTerm: OrderingTerm = OrderingTerm.ASC,
-                caseSensitive: Boolean = true): SQLiteSelectQueryBuilder {
+    fun orderBy(
+        columnName: String,
+        orderingTerm: OrderingTerm = OrderingTerm.ASC,
+        caseSensitive: Boolean = true
+    ): SQLiteSelectQueryBuilder {
         if (this.columns.none { pair -> pair.first == columnName || pair.second == columnName }) {
             throw IllegalArgumentException("No selected column found with name or alias '$columnName' on which to apply ORDER BY")
         }
 
-        this.orderBy.add(Triple(columnName,
-                                caseSensitive,
-                                orderingTerm))
+        this.orderBy.add(
+            Triple(
+                columnName,
+                caseSensitive,
+                orderingTerm
+            )
+        )
 
         return this
     }
@@ -231,8 +281,10 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      *
      * @return this
      */
-    fun limit(limit: Number,
-              offset: Number? = null): SQLiteSelectQueryBuilder {
+    fun limit(
+        limit: Number,
+        offset: Number? = null
+    ): SQLiteSelectQueryBuilder {
         this.limit = "LIMIT $limit${if (offset == null) "" else ", $offset"}"
 
         return this
@@ -250,24 +302,27 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         }
 
         val bindArgs = mutableListOf<Any?>()
-        val selectedColumns = this.columns.joinToString(", ") { pair -> "${pair.first}${if (pair.second.isNullOrBlank()) "" else " AS ${pair.second}"}" }
+        val selectedColumns =
+            this.columns.joinToString(", ") { pair -> "${pair.first}${if (pair.second.isNullOrBlank()) "" else " AS ${pair.second}"}" }
                 .ifBlank { "*" }
-        val tables = this.tables.joinToString(", ") { pair -> "${pair.first}${if (pair.second.isNullOrBlank()) "" else " ${pair.second}"}" }
+        val tables =
+            this.tables.joinToString(", ") { pair -> "${pair.first}${if (pair.second.isNullOrBlank()) "" else " ${pair.second}"}" }
         val joinClauses = this.joinClauses.joinToString("\n") { pair ->
             pair.second?.toList()
-                    ?.also { bindArgs.addAll(it) }
+                ?.also { bindArgs.addAll(it) }
             pair.first
         }
         val whereClauses = this.wheres.joinToString("\n ") { pair ->
             pair.second?.toList()
-                    ?.also { bindArgs.addAll(it) }
+                ?.also { bindArgs.addAll(it) }
             pair.first
         }
-                .let { if (it.isEmpty()) it else "WHERE $it" }
+            .let { if (it.isEmpty()) it else "WHERE $it" }
         val groupByClauses = this.groupBy.joinToString(", ")
-                .let { if (it.isEmpty()) it else "GROUP BY $it" }
+            .let { if (it.isEmpty()) it else "GROUP BY $it" }
         val havingClause = if (this.having.isNullOrBlank()) "" else "HAVING ${this.having}"
-        val orderByClauses = this.orderBy.joinToString(", ") { pair -> "${pair.first}${if (pair.second) " " else " COLLATE NOCASE "}${pair.third.name}" }
+        val orderByClauses =
+            this.orderBy.joinToString(", ") { pair -> "${pair.first}${if (pair.second) " " else " COLLATE NOCASE "}${pair.third.name}" }
                 .let { if (it.isEmpty()) it else "ORDER BY $it" }
 
         val sql = """
@@ -280,15 +335,20 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 |$orderByClauses
                 |${this.limit}
             """.trimMargin()
-                .trim()
-                .replace("\n{2,}".toRegex(RegexOption.MULTILINE),
-                         "\n")
+            .trim()
+            .replace(
+                "\n{2,}".toRegex(RegexOption.MULTILINE),
+                "\n"
+            )
 
         Log.d(TAG,
-              "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}")
+            "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}"
+        )
 
-        return SimpleSQLiteQuery(sql,
-                                 bindArgs.toTypedArray())
+        return SimpleSQLiteQuery(
+            sql,
+            bindArgs.toTypedArray()
+        )
     }
 
     enum class JoinOperator(val operator: String) {
@@ -311,10 +371,18 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
          *
          * @return A builder to create a query
          */
-        fun from(tableName: String,
-                 alias: String? = null): SQLiteSelectQueryBuilder {
-            return SQLiteSelectQueryBuilder(mutableSetOf(Pair(tableName,
-                                                              alias)))
+        fun from(
+            tableName: String,
+            alias: String? = null
+        ): SQLiteSelectQueryBuilder {
+            return SQLiteSelectQueryBuilder(
+                mutableSetOf(
+                    Pair(
+                        tableName,
+                        alias
+                    )
+                )
+            )
         }
     }
 }

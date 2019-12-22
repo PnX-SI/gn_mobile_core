@@ -22,10 +22,16 @@ class DefaultNomenclatureTest {
 
     @Test
     fun testEquals() {
-        assertEquals(DefaultNomenclature("occtax",
-                                         1234),
-                     DefaultNomenclature("occtax",
-                                         1234))
+        assertEquals(
+            DefaultNomenclature(
+                "occtax",
+                1234
+            ),
+            DefaultNomenclature(
+                "occtax",
+                1234
+            )
+        )
     }
 
     @Test
@@ -45,36 +51,54 @@ class DefaultNomenclatureTest {
 
         // then
         assertNotNull(defaultNomenclature)
-        assertEquals(DefaultNomenclature("occtax",
-                                         1234),
-                     defaultNomenclature)
+        assertEquals(
+            DefaultNomenclature(
+                "occtax",
+                1234
+            ),
+            defaultNomenclature
+        )
     }
 
     @Test
     fun testParcelable() {
         // given a default nomenclature instance
-        val defaultNomenclature = DefaultNomenclature("occtax",
-                                                      1234)
+        val defaultNomenclature = DefaultNomenclature(
+            "occtax",
+            1234
+        )
 
         // when we obtain a Parcel object to write this default nomenclature instance to it
         val parcel = Parcel.obtain()
-        defaultNomenclature.writeToParcel(parcel,
-                                          0)
+        defaultNomenclature.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(defaultNomenclature,
-                     DefaultNomenclature.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            defaultNomenclature,
+            DefaultNomenclature.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_MODULE}\"",
-                                       "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_MODULE}"),
-                                  Pair("${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}\"",
-                                       "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_MODULE}\"",
+                    "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_MODULE}"
+                ),
+                Pair(
+                    "${DefaultNomenclature.TABLE_NAME}.\"${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}\"",
+                    "${DefaultNomenclature.TABLE_NAME}_${DefaultNomenclature.COLUMN_NOMENCLATURE_ID}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

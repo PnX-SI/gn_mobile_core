@@ -13,24 +13,30 @@ open class NomenclatureWithType : Nomenclature {
 
     var type: NomenclatureType? = null
 
-    constructor(id: Long,
-                code: String,
-                hierarchy: String,
-                defaultLabel: String,
-                typeId: Long,
-                type: NomenclatureType? = null) : super(id,
-                                                        code,
-                                                        hierarchy,
-                                                        defaultLabel,
-                                                        typeId) {
+    constructor(
+        id: Long,
+        code: String,
+        hierarchy: String,
+        defaultLabel: String,
+        typeId: Long,
+        type: NomenclatureType? = null
+    ) : super(
+        id,
+        code,
+        hierarchy,
+        defaultLabel,
+        typeId
+    ) {
         this.type = type
     }
 
-    constructor(nomenclature: Nomenclature) : super(nomenclature.id,
-                                                    nomenclature.code,
-                                                    nomenclature.hierarchy,
-                                                    nomenclature.defaultLabel,
-                                                    nomenclature.typeId)
+    constructor(nomenclature: Nomenclature) : super(
+        nomenclature.id,
+        nomenclature.code,
+        nomenclature.hierarchy,
+        nomenclature.defaultLabel,
+        nomenclature.typeId
+    )
 
     internal constructor(source: Parcel) : super(source) {
         type = source.readParcelable(NomenclatureType::class.java.classLoader)
@@ -53,13 +59,19 @@ open class NomenclatureWithType : Nomenclature {
         return result
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
-        super.writeToParcel(dest,
-                            flags)
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
+        super.writeToParcel(
+            dest,
+            flags
+        )
 
-        dest?.writeParcelable(type,
-                              flags)
+        dest?.writeParcelable(
+            type,
+            flags
+        )
     }
 
     companion object {
@@ -68,8 +80,10 @@ open class NomenclatureWithType : Nomenclature {
          * Gets the default projection.
          */
         fun defaultProjection(): Array<Pair<String, String>> {
-            return arrayOf(*NomenclatureType.defaultProjection(),
-                           *Nomenclature.defaultProjection())
+            return arrayOf(
+                *NomenclatureType.defaultProjection(),
+                *Nomenclature.defaultProjection()
+            )
         }
 
         /**
@@ -91,14 +105,15 @@ open class NomenclatureWithType : Nomenclature {
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<NomenclatureWithType> = object : Parcelable.Creator<NomenclatureWithType> {
-            override fun createFromParcel(parcel: Parcel): NomenclatureWithType {
-                return NomenclatureWithType(parcel)
-            }
+        val CREATOR: Parcelable.Creator<NomenclatureWithType> =
+            object : Parcelable.Creator<NomenclatureWithType> {
+                override fun createFromParcel(parcel: Parcel): NomenclatureWithType {
+                    return NomenclatureWithType(parcel)
+                }
 
-            override fun newArray(size: Int): Array<NomenclatureWithType?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<NomenclatureWithType?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

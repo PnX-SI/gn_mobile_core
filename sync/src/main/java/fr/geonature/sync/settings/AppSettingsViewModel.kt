@@ -9,5 +9,7 @@ import fr.geonature.sync.settings.io.OnAppSettingsJsonReaderListenerImpl
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSettingsViewModel(application: Application) : AppSettingsViewModel<AppSettings>(application,
-                                                                                         OnAppSettingsJsonReaderListenerImpl())
+class AppSettingsViewModel(application: Application) : AppSettingsViewModel<AppSettings>(
+    application,
+    OnAppSettingsJsonReaderListenerImpl()
+)

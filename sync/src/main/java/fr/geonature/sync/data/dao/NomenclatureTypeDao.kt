@@ -21,9 +21,13 @@ abstract class NomenclatureTypeDao : BaseDao<NomenclatureType>() {
 
         init {
             selectQueryBuilder.columns(*NomenclatureType.defaultProjection())
-                    .orderBy(column(NomenclatureType.COLUMN_MNEMONIC,
-                                    entityTableName).second,
-                             ASC)
+                .orderBy(
+                    column(
+                        NomenclatureType.COLUMN_MNEMONIC,
+                        entityTableName
+                    ).second,
+                    ASC
+                )
         }
     }
 }

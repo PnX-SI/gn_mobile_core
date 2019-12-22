@@ -7,7 +7,9 @@ import org.json.JSONObject
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-data class SyncInput(val packageInfo: PackageInfo,
-                     val filePath: String,
-                     val module: String,
-                     val payload: JSONObject)
+data class SyncInput(
+    val packageInfo: PackageInfo,
+    val filePath: String,
+    val module: String,
+    val payload: JSONObject
+)

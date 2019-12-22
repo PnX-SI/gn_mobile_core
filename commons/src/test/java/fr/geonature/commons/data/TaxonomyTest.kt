@@ -24,57 +24,115 @@ class TaxonomyTest {
 
     @Test
     fun testEquals() {
-        assertEquals(Taxonomy("Animalia",
-                              "Ascidies"),
-                     Taxonomy("Animalia",
-                              "Ascidies"))
+        assertEquals(
+            Taxonomy(
+                "Animalia",
+                "Ascidies"
+            ),
+            Taxonomy(
+                "Animalia",
+                "Ascidies"
+            )
+        )
     }
 
     @Test
     fun testSanitizeValues() {
-        assertEquals(Taxonomy(ANY,
-                              ANY),
-                     Taxonomy("",
-                              ""))
+        assertEquals(
+            Taxonomy(
+                ANY,
+                ANY
+            ),
+            Taxonomy(
+                "",
+                ""
+            )
+        )
 
-        assertEquals(Taxonomy(ANY,
-                              ANY),
-                     Taxonomy("all",
-                              "all"))
+        assertEquals(
+            Taxonomy(
+                ANY,
+                ANY
+            ),
+            Taxonomy(
+                "all",
+                "all"
+            )
+        )
 
-        assertEquals(Taxonomy("Animalia",
-                              ANY),
-                     Taxonomy("Animalia",
-                              "all"))
+        assertEquals(
+            Taxonomy(
+                "Animalia",
+                ANY
+            ),
+            Taxonomy(
+                "Animalia",
+                "all"
+            )
+        )
 
-        assertEquals(Taxonomy(ANY,
-                              ANY),
-                     Taxonomy("Autre",
-                              "Autre"))
+        assertEquals(
+            Taxonomy(
+                ANY,
+                ANY
+            ),
+            Taxonomy(
+                "Autre",
+                "Autre"
+            )
+        )
 
-        assertEquals(Taxonomy(ANY,
-                              ANY),
-                     Taxonomy("Autres",
-                              "Autres"))
+        assertEquals(
+            Taxonomy(
+                ANY,
+                ANY
+            ),
+            Taxonomy(
+                "Autres",
+                "Autres"
+            )
+        )
 
-        assertEquals(Taxonomy(ANY,
-                              ANY),
-                     Taxonomy("autres",
-                              "autre"))
+        assertEquals(
+            Taxonomy(
+                ANY,
+                ANY
+            ),
+            Taxonomy(
+                "autres",
+                "autre"
+            )
+        )
 
-        assertEquals(Taxonomy(ANY,
-                              ANY),
-                     Taxonomy("AUTRES",
-                              "AUTRE"))
+        assertEquals(
+            Taxonomy(
+                ANY,
+                ANY
+            ),
+            Taxonomy(
+                "AUTRES",
+                "AUTRE"
+            )
+        )
 
-        assertEquals(Taxonomy("Animalia",
-                              ANY),
-                     Taxonomy("Animalia",
-                              "autre"))
+        assertEquals(
+            Taxonomy(
+                "Animalia",
+                ANY
+            ),
+            Taxonomy(
+                "Animalia",
+                "autre"
+            )
+        )
 
-        assertEquals(Taxonomy("Animalia",
-                              ANY),
-                     Taxonomy("Animalia"))
+        assertEquals(
+            Taxonomy(
+                "Animalia",
+                ANY
+            ),
+            Taxonomy("Animalia")
+        )
     }
 
     @Test
@@ -94,36 +152,54 @@ class TaxonomyTest {
 
         // then
         assertNotNull(taxonomy)
-        assertEquals(Taxonomy("Animalia",
-                              "Ascidies"),
-                     taxonomy)
+        assertEquals(
+            Taxonomy(
+                "Animalia",
+                "Ascidies"
+            ),
+            taxonomy
+        )
     }
 
     @Test
     fun testParcelable() {
         // given a Taxonomy instance
-        val taxonomy = Taxonomy("Animalia",
-                                "Ascidies")
+        val taxonomy = Taxonomy(
+            "Animalia",
+            "Ascidies"
+        )
 
         // when we obtain a Parcel object to write the Taxonomy instance to it
         val parcel = Parcel.obtain()
-        taxonomy.writeToParcel(parcel,
-                               0)
+        taxonomy.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(taxonomy,
-                     Taxonomy.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            taxonomy,
+            Taxonomy.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${Taxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
-                                       "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
-                                  Pair("${Taxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
-                                       "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${Taxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
+                    "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"
+                ),
+                Pair(
+                    "${Taxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
+                    "${Taxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

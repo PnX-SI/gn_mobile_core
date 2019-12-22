@@ -16,8 +16,10 @@ data class DummyAppSettings(var attribute: String? = null) : IAppSettings {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.writeString(attribute)
     }
 

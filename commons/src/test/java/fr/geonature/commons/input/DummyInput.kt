@@ -15,7 +15,7 @@ class DummyInput : AbstractInput {
 
     override fun getTaxaFromParcel(source: Parcel): List<AbstractInputTaxon> {
         val inputTaxa = source.createTypedArrayList(DummyInputTaxon.CREATOR)
-        return inputTaxa?: emptyList()
+        return inputTaxa ?: emptyList()
     }
 
     companion object CREATOR : Parcelable.Creator<DummyInput> {

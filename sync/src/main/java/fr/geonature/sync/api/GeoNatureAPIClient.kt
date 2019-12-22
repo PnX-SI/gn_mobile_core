@@ -25,8 +25,10 @@ import retrofit2.converter.gson.GsonConverterFactory
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class GeoNatureAPIClient private constructor(context: Context,
-                                             baseUrl: String) {
+class GeoNatureAPIClient private constructor(
+    context: Context,
+    baseUrl: String
+) {
     private val geoNatureService: GeoNatureService
 
     init {
@@ -38,39 +40,41 @@ class GeoNatureAPIClient private constructor(context: Context,
         }
 
         val client = OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
-                // save cookie interceptor
-                .addInterceptor { chain ->
-                    val originalResponse = chain.proceed(chain.request())
+            .addInterceptor(loggingInterceptor)
+            // save cookie interceptor
+            .addInterceptor { chain ->
+                val originalResponse = chain.proceed(chain.request())
 
-                    originalResponse.headers("Set-Cookie")
-                            .firstOrNull()
-                            ?.also {
-                                authManager.setCookie(it)
-                            }
+                originalResponse.headers("Set-Cookie")
+                    .firstOrNull()
+                    ?.also {
+                        authManager.setCookie(it)
+                    }
 
-                    originalResponse
-                }
-                // set cookie interceptor
-                .addInterceptor { chain ->
-                    val builder = chain.request()
-                            .newBuilder()
+                originalResponse
+            }
+            // set cookie interceptor
+            .addInterceptor { chain ->
+                val builder = chain.request()
+                    .newBuilder()
 
-                    authManager.getCookie()
-                            ?.also {
-                                builder.addHeader("Cookie",
-                                                  it)
-                            }
+                authManager.getCookie()
+                    ?.also {
+                        builder.addHeader(
+                            "Cookie",
+                            it
+                        )
+                    }
 
-                    chain.proceed(builder.build())
-                }
-                .build()
+                chain.proceed(builder.build())
+            }
+            .build()
 
         val retrofit = Retrofit.Builder()
-                .baseUrl("$baseUrl/")
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()))
-                .build()
+            .baseUrl("$baseUrl/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()))
+            .build()
 
         geoNatureService = retrofit.create(GeoNatureService::class.java)
     }
@@ -79,11 +83,17 @@ class GeoNatureAPIClient private constructor(context: Context,
         return geoNatureService.authLogin(authCredentials)
     }
 
-    fun sendInput(module: String,
-                  input: JSONObject): Call<ResponseBody> {
-        return geoNatureService.sendInput(module,
-                                          RequestBody.create(MediaType.parse("application/json; charset=utf-8"),
-                                                             input.toString()))
+    fun sendInput(
+        module: String,
+        input: JSONObject
+    ): Call<ResponseBody> {
+        return geoNatureService.sendInput(
+            module,
+            RequestBody.create(
+                MediaType.parse("application/json; charset=utf-8"),
+                input.toString()
+            )
+        )
     }
 
     fun getMetaDatasets(): Call<ResponseBody> {
@@ -116,10 +126,12 @@ class GeoNatureAPIClient private constructor(context: Context,
 
     companion object {
 
-        fun instance(context: Context,
-                     baseUrl: String): Lazy<GeoNatureAPIClient> = lazy {
+        fun instance(
+            context: Context,
+            baseUrl: String
+        ): Lazy<GeoNatureAPIClient> = lazy {
             GeoNatureAPIClient(context,
-                               baseUrl.also { if (it.endsWith('/')) it.dropLast(1) })
+                baseUrl.also { if (it.endsWith('/')) it.dropLast(1) })
         }
     }
 }

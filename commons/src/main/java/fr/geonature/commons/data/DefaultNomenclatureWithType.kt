@@ -13,15 +13,21 @@ class DefaultNomenclatureWithType : DefaultNomenclature {
 
     var nomenclatureWithType: NomenclatureWithType? = null
 
-    constructor(module: String,
-                nomenclatureId: Long,
-                nomenclatureWithType: NomenclatureWithType? = null) : super(module,
-                                                                            nomenclatureId) {
+    constructor(
+        module: String,
+        nomenclatureId: Long,
+        nomenclatureWithType: NomenclatureWithType? = null
+    ) : super(
+        module,
+        nomenclatureId
+    ) {
         this.nomenclatureWithType = nomenclatureWithType
     }
 
-    constructor(defaultNomenclature: DefaultNomenclature) : super(defaultNomenclature.module,
-                                                                  defaultNomenclature.nomenclatureId)
+    constructor(defaultNomenclature: DefaultNomenclature) : super(
+        defaultNomenclature.module,
+        defaultNomenclature.nomenclatureId
+    )
 
     private constructor(source: Parcel) : super(source) {
         nomenclatureWithType = source.readParcelable(Nomenclature::class.java.classLoader)
@@ -44,13 +50,19 @@ class DefaultNomenclatureWithType : DefaultNomenclature {
         return result
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
-        super.writeToParcel(dest,
-                            flags)
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
+        super.writeToParcel(
+            dest,
+            flags
+        )
 
-        dest?.writeParcelable(nomenclatureWithType,
-                              flags)
+        dest?.writeParcelable(
+            nomenclatureWithType,
+            flags
+        )
     }
 
     companion object {
@@ -59,8 +71,10 @@ class DefaultNomenclatureWithType : DefaultNomenclature {
          * Gets the default projection.
          */
         fun defaultProjection(): Array<Pair<String, String>> {
-            return arrayOf(*NomenclatureWithType.defaultProjection(),
-                           *DefaultNomenclature.defaultProjection())
+            return arrayOf(
+                *NomenclatureWithType.defaultProjection(),
+                *DefaultNomenclature.defaultProjection()
+            )
         }
 
         /**
@@ -80,14 +94,15 @@ class DefaultNomenclatureWithType : DefaultNomenclature {
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<DefaultNomenclatureWithType> = object : Parcelable.Creator<DefaultNomenclatureWithType> {
-            override fun createFromParcel(parcel: Parcel): DefaultNomenclatureWithType {
-                return DefaultNomenclatureWithType(parcel)
-            }
+        val CREATOR: Parcelable.Creator<DefaultNomenclatureWithType> =
+            object : Parcelable.Creator<DefaultNomenclatureWithType> {
+                override fun createFromParcel(parcel: Parcel): DefaultNomenclatureWithType {
+                    return DefaultNomenclatureWithType(parcel)
+                }
 
-            override fun newArray(size: Int): Array<DefaultNomenclatureWithType?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<DefaultNomenclatureWithType?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

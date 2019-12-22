@@ -33,9 +33,11 @@ import fr.geonature.sync.data.dao.TaxonomyDao
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Database(entities = [Dataset::class, InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class, NomenclatureType::class, Nomenclature::class, NomenclatureTaxonomy::class, DefaultNomenclature::class],
-          version = 15,
-          exportSchema = false)
+@Database(
+    entities = [Dataset::class, InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class, NomenclatureType::class, Nomenclature::class, NomenclatureTaxonomy::class, DefaultNomenclature::class],
+    version = 15,
+    exportSchema = false
+)
 abstract class LocalDatabase : RoomDatabase() {
 
     /**
@@ -105,20 +107,28 @@ abstract class LocalDatabase : RoomDatabase() {
         }
 
         private fun buildDatabase(context: Context): LocalDatabase {
-            val localDatabase = getFile(getDatabaseFolder(context,
-                                                          MountPoint.StorageType.INTERNAL),
-                                        "data.db")
+            val localDatabase = getFile(
+                getDatabaseFolder(
+                    context,
+                    MountPoint.StorageType.INTERNAL
+                ),
+                "data.db"
+            )
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG,
-                      "Loading local database '${localDatabase.absolutePath}'...")
+                Log.d(
+                    TAG,
+                    "Loading local database '${localDatabase.absolutePath}'..."
+                )
             }
 
-            return Room.databaseBuilder(context.applicationContext,
-                                        LocalDatabase::class.java,
-                                        localDatabase.absolutePath)
-                    .fallbackToDestructiveMigration()
-                    .build()
+            return Room.databaseBuilder(
+                context.applicationContext,
+                LocalDatabase::class.java,
+                localDatabase.absolutePath
+            )
+                .fallbackToDestructiveMigration()
+                .build()
         }
     }
 }

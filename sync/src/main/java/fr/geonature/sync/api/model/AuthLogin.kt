@@ -12,4 +12,5 @@ data class AuthLogin(
     @SerializedName("user")
     val user: AuthUser,
     @SerializedName("expires")
-    val expires: Date)
+    val expires: Date
+)

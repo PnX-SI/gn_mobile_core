@@ -19,27 +19,43 @@ abstract class InputObserverDao : BaseDao<InputObserver>() {
 
         init {
             selectQueryBuilder.columns(*InputObserver.defaultProjection())
-                    .orderBy(column(InputObserver.COLUMN_LASTNAME,
-                                    entityTableName).second,
-                             ASC,
-                             false)
-                    .orderBy(column(InputObserver.COLUMN_FIRSTNAME,
-                                    entityTableName).second,
-                             ASC,
-                             false)
+                .orderBy(
+                    column(
+                        InputObserver.COLUMN_LASTNAME,
+                        entityTableName
+                    ).second,
+                    ASC,
+                    false
+                )
+                .orderBy(
+                    column(
+                        InputObserver.COLUMN_FIRSTNAME,
+                        entityTableName
+                    ).second,
+                    ASC,
+                    false
+                )
         }
 
         fun whereIdsIn(vararg id: Long): QB {
-            selectQueryBuilder.where("${column(InputObserver.COLUMN_ID,
-                                               entityTableName).second} IN (${id.joinToString(",")})")
+            selectQueryBuilder.where(
+                "${column(
+                    InputObserver.COLUMN_ID,
+                    entityTableName
+                ).second} IN (${id.joinToString(",")})"
+            )
 
             return this
         }
 
         fun whereId(id: Long?): QB {
-            selectQueryBuilder.where("${column(InputObserver.COLUMN_ID,
-                                               entityTableName).second} = ?",
-                                     id)
+            selectQueryBuilder.where(
+                "${column(
+                    InputObserver.COLUMN_ID,
+                    entityTableName
+                ).second} = ?",
+                id
+            )
 
             return this
         }

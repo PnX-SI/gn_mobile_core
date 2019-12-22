@@ -17,9 +17,13 @@ import fr.geonature.commons.data.helper.get
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = NomenclatureType.TABLE_NAME,
-        indices = [Index(value = [NomenclatureType.COLUMN_MNEMONIC],
-                         unique = true)])
+@Entity(
+    tableName = NomenclatureType.TABLE_NAME,
+    indices = [Index(
+        value = [NomenclatureType.COLUMN_MNEMONIC],
+        unique = true
+    )]
+)
 data class NomenclatureType(
 
     /**
@@ -33,18 +37,23 @@ data class NomenclatureType(
     var mnemonic: String,
 
     @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
-    var defaultLabel: String) : Parcelable {
+    var defaultLabel: String
+) : Parcelable {
 
-    private constructor(source: Parcel) : this(source.readLong(),
-                                               source.readString()!!,
-                                               source.readString()!!)
+    private constructor(source: Parcel) : this(
+        source.readLong(),
+        source.readString()!!,
+        source.readString()!!
+    )
 
     override fun describeContents(): Int {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeLong(id)
             it.writeString(mnemonic)
@@ -73,21 +82,33 @@ data class NomenclatureType(
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_ID,
-                                  tableAlias),
-                           column(COLUMN_MNEMONIC,
-                                  tableAlias),
-                           column(COLUMN_DEFAULT_LABEL,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_ID,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_MNEMONIC,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_DEFAULT_LABEL,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
@@ -97,38 +118,62 @@ data class NomenclatureType(
          *
          * @return A newly created [NomenclatureType] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): NomenclatureType? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): NomenclatureType? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                NomenclatureType(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
-                                                                          tableAlias))),
-                                 requireNotNull(cursor.get(getColumnAlias(COLUMN_MNEMONIC,
-                                                                          tableAlias))),
-                                 requireNotNull(cursor.get(getColumnAlias(COLUMN_DEFAULT_LABEL,
-                                                                          tableAlias))))
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                NomenclatureType(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_ID,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_MNEMONIC,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_DEFAULT_LABEL,
+                                tableAlias
+                            )
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<NomenclatureType> = object : Parcelable.Creator<NomenclatureType> {
+        val CREATOR: Parcelable.Creator<NomenclatureType> =
+            object : Parcelable.Creator<NomenclatureType> {
 
-            override fun createFromParcel(source: Parcel): NomenclatureType {
-                return NomenclatureType(source)
-            }
+                override fun createFromParcel(source: Parcel): NomenclatureType {
+                    return NomenclatureType(source)
+                }
 
-            override fun newArray(size: Int): Array<NomenclatureType?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<NomenclatureType?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

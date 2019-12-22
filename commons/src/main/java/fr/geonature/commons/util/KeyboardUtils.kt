@@ -15,8 +15,10 @@ object KeyboardUtils {
      * Hides the soft keyboard from given View.
      */
     fun hideSoftKeyboard(view: View) {
-        (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?)?.hideSoftInputFromWindow(view.windowToken,
-                                                                                                                      0)
+        (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?)?.hideSoftInputFromWindow(
+            view.windowToken,
+            0
+        )
     }
 
     /**
@@ -25,8 +27,10 @@ object KeyboardUtils {
     fun showSoftKeyboard(view: View) {
         (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?)?.also {
             view.requestFocus()
-            it.showSoftInput(view,
-                             0)
+            it.showSoftInput(
+                view,
+                0
+            )
         }
     }
 }

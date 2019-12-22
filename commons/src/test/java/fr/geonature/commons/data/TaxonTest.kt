@@ -25,38 +25,68 @@ class TaxonTest {
 
     @Test
     fun testEquals() {
-        assertEquals(Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies"),
-                           "desc",
-                           true),
-                     Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies"),
-                           "desc",
-                           true))
+        assertEquals(
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                ),
+                "desc",
+                true
+            ),
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                ),
+                "desc",
+                true
+            )
+        )
 
-        assertEquals(Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies"),
-                           "desc"),
-                     Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies"),
-                           "desc"))
+        assertEquals(
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                ),
+                "desc"
+            ),
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                ),
+                "desc"
+            )
+        )
 
-        assertEquals(Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies")),
-                     Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies")))
+        assertEquals(
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            ),
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            )
+        )
     }
 
     @Test
@@ -81,13 +111,19 @@ class TaxonTest {
 
         // then
         assertNotNull(taxon)
-        assertEquals(Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies"),
-                           "desc",
-                           true),
-                     taxon)
+        assertEquals(
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                ),
+                "desc",
+                true
+            ),
+            taxon
+        )
     }
 
     @Test
@@ -97,10 +133,16 @@ class TaxonTest {
 
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in arrayOf(column(AbstractTaxon.COLUMN_DESCRIPTION,
-                                  Taxon.TABLE_NAME),
-                           column(AbstractTaxon.COLUMN_HERITAGE,
-                                  Taxon.TABLE_NAME)) -> {
+                in arrayOf(
+                    column(
+                        AbstractTaxon.COLUMN_DESCRIPTION,
+                        Taxon.TABLE_NAME
+                    ),
+                    column(
+                        AbstractTaxon.COLUMN_HERITAGE,
+                        Taxon.TABLE_NAME
+                    )
+                ) -> {
                     `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
                     `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
                 }
@@ -120,11 +162,17 @@ class TaxonTest {
 
         // then
         assertNotNull(taxon)
-        assertEquals(Taxon(1234,
-                           "taxon_01",
-                           Taxonomy("Animalia",
-                                    "Ascidies")),
-                     taxon)
+        assertEquals(
+            Taxon(
+                1234,
+                "taxon_01",
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            ),
+            taxon
+        )
     }
 
     @Test
@@ -147,15 +195,23 @@ class TaxonTest {
 
         defaultProjection().forEach { c ->
             when (c) {
-                in arrayOf(column(AbstractTaxon.COLUMN_DESCRIPTION,
-                                  Taxon.TABLE_NAME),
-                           column(AbstractTaxon.COLUMN_HERITAGE,
-                                  Taxon.TABLE_NAME)) -> {
+                in arrayOf(
+                    column(
+                        AbstractTaxon.COLUMN_DESCRIPTION,
+                        Taxon.TABLE_NAME
+                    ),
+                    column(
+                        AbstractTaxon.COLUMN_HERITAGE,
+                        Taxon.TABLE_NAME
+                    )
+                ) -> {
                     `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
                     `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
                 }
                 else -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
+                        IllegalArgumentException::class.java
+                    )
                 }
             }
         }
@@ -170,40 +226,64 @@ class TaxonTest {
     @Test
     fun testParcelable() {
         // given a Taxon
-        val taxon = Taxon(1234,
-                          "taxon_01",
-                          Taxonomy("Animalia",
-                                   "Ascidies"),
-                          "desc",
-                          true)
+        val taxon = Taxon(
+            1234,
+            "taxon_01",
+            Taxonomy(
+                "Animalia",
+                "Ascidies"
+            ),
+            "desc",
+            true
+        )
 
         // when we obtain a Parcel object to write the Taxon instance to it
         val parcel = Parcel.obtain()
-        taxon.writeToParcel(parcel,
-                            0)
+        taxon.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(taxon,
-                     Taxon.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            taxon,
+            Taxon.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_ID}\"",
-                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_ID}"),
-                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_NAME}\"",
-                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME}"),
-                                  Pair("${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
-                                      "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
-                                  Pair("${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
-                                      "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"),
-                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_DESCRIPTION}\"",
-                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"),
-                                  Pair("${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_HERITAGE}\"",
-                                      "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_ID}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_ID}"
+                ),
+                Pair(
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_NAME}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME}"
+                ),
+                Pair(
+                    "${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
+                    "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"
+                ),
+                Pair(
+                    "${Taxon.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
+                    "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"
+                ),
+                Pair(
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_DESCRIPTION}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"
+                ),
+                Pair(
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_HERITAGE}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

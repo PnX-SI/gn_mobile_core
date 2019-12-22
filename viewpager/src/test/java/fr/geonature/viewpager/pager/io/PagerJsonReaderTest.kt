@@ -1,5 +1,6 @@
 package fr.geonature.viewpager.pager.io
 
+import java.io.StringReader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -7,7 +8,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.io.StringReader
 
 /**
  * Unit test for [PagerJsonReader].
@@ -43,12 +43,18 @@ class PagerJsonReaderTest {
 
         // then
         assertNotNull(pager)
-        assertEquals(0,
-                     pager.id)
-        assertEquals(0,
-                     pager.size)
-        assertEquals(0,
-                     pager.position)
+        assertEquals(
+            0,
+            pager.id
+        )
+        assertEquals(
+            0,
+            pager.size
+        )
+        assertEquals(
+            0,
+            pager.position
+        )
         assertTrue(pager.history.isEmpty())
     }
 
@@ -72,21 +78,37 @@ class PagerJsonReaderTest {
 
         // then
         assertNotNull(pager)
-        assertEquals(1234L,
-                     pager.id)
-        assertEquals(5,
-                     pager.size)
-        assertEquals(3,
-                     pager.position)
-        assertEquals(4,
-                     pager.history.size)
-        assertEquals(Integer.valueOf(2),
-                     pager.history.pollLast())
-        assertEquals(Integer.valueOf(3),
-                     pager.history.pollLast())
-        assertEquals(Integer.valueOf(4),
-                     pager.history.pollLast())
-        assertEquals(Integer.valueOf(1),
-                     pager.history.pollLast())
+        assertEquals(
+            1234L,
+            pager.id
+        )
+        assertEquals(
+            5,
+            pager.size
+        )
+        assertEquals(
+            3,
+            pager.position
+        )
+        assertEquals(
+            4,
+            pager.history.size
+        )
+        assertEquals(
+            Integer.valueOf(2),
+            pager.history.pollLast()
+        )
+        assertEquals(
+            Integer.valueOf(3),
+            pager.history.pollLast()
+        )
+        assertEquals(
+            Integer.valueOf(4),
+            pager.history.pollLast()
+        )
+        assertEquals(
+            Integer.valueOf(1),
+            pager.history.pollLast()
+        )
     }
 }

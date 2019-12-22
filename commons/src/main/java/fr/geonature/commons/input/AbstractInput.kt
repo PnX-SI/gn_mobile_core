@@ -18,7 +18,8 @@ abstract class AbstractInput(
     /**
      * The module type of this AbstractInput.
      */
-    var module: String) : Parcelable {
+    var module: String
+) : Parcelable {
 
     var id: Long = generateId()
     var date: Date = Date()
@@ -31,7 +32,7 @@ abstract class AbstractInput(
         this.id = source.readLong()
         this.date = source.readSerializable() as Date
         this.datasetId = source.readLong()
-                .takeIf { it != -1L }
+            .takeIf { it != -1L }
 
         val inputObserverId = source.readLong()
 
@@ -52,8 +53,10 @@ abstract class AbstractInput(
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeString(module)
             it.writeLong(this.id)
@@ -116,7 +119,7 @@ abstract class AbstractInput(
      */
     fun getInputObserverIds(): Set<Long> {
         return this.inputObserverIds.drop(1)
-                .toSet()
+            .toSet()
     }
 
     fun clearAllInputObservers() {
@@ -125,10 +128,12 @@ abstract class AbstractInput(
 
     fun setPrimaryInputObserverId(id: Long) {
         val inputObservers = this.inputObserverIds.toMutableList()
-                .apply {
-                    add(0,
-                        id)
-                }
+            .apply {
+                add(
+                    0,
+                    id
+                )
+            }
         this.inputObserverIds.clear()
         this.inputObserverIds.addAll(inputObservers)
     }
@@ -207,18 +212,24 @@ abstract class AbstractInput(
      */
     private fun generateId(): Long {
         val now = Calendar.getInstance()
-        now.set(Calendar.MILLISECOND,
-                0)
+        now.set(
+            Calendar.MILLISECOND,
+            0
+        )
 
         val start = Calendar.getInstance()
-        start.set(2016,
-                  Calendar.JANUARY,
-                  1,
-                  0,
-                  0,
-                  0)
-        start.set(Calendar.MILLISECOND,
-                  0)
+        start.set(
+            2016,
+            Calendar.JANUARY,
+            1,
+            0,
+            0,
+            0
+        )
+        start.set(
+            Calendar.MILLISECOND,
+            0
+        )
 
         return (now.timeInMillis - start.timeInMillis) / 1000
     }

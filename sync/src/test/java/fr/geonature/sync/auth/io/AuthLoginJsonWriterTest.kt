@@ -23,21 +23,27 @@ class AuthLoginJsonWriterTest {
     @Test
     fun testWriteAuthLogin() {
         // given an AuthLogin instance
-        val authLogin = AuthLogin(AuthUser(1234L,
-                                           "Admin",
-                                           "Test",
-                                           3,
-                                           1,
-                                           "admin"),
-                                  toDate("2019-11-19T09:30:00Z")!!)
+        val authLogin = AuthLogin(
+            AuthUser(
+                1234L,
+                "Admin",
+                "Test",
+                3,
+                1,
+                "admin"
+            ),
+            toDate("2019-11-19T09:30:00Z")!!
+        )
 
         // when write this AuthLogin as JSON string
         val json = authLoginJsonWriter.setIndent("  ")
-                .write(authLogin)
+            .write(authLogin)
 
         // then
         assertNotNull(json)
-        Assert.assertEquals(getFixture("auth_login.json"),
-                            json)
+        Assert.assertEquals(
+            getFixture("auth_login.json"),
+            json
+        )
     }
 }

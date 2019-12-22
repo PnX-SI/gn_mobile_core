@@ -30,13 +30,14 @@ class PagerManager(application: Application) {
     suspend fun load(pagerId: Long? = null): Pager = withContext(Dispatchers.IO) {
         // read input as JSON from shared preferences
         val json = if (pagerId == null) null
-        else preferenceManager.getString(buildPagerPreferenceKey(pagerId),
-                                         null)
+        else preferenceManager.getString(
+            buildPagerPreferenceKey(pagerId),
+            null
+        )
 
         if (TextUtils.isEmpty(json)) {
             Pager()
-        }
-        else pagerJsonReader.read(json) ?: Pager()
+        } else pagerJsonReader.read(json) ?: Pager()
     }
 
     /**
@@ -48,13 +49,17 @@ class PagerManager(application: Application) {
         val pagerAsJson = pagerJsonWriter.write(pager)
 
         if (TextUtils.isEmpty(pagerAsJson)) {
-            Log.w(TAG,
-                  "failed to save pager metadata $pager")
+            Log.w(
+                TAG,
+                "failed to save pager metadata $pager"
+            )
         }
 
         preferenceManager.edit()
-            .putString(buildPagerPreferenceKey(pager.id),
-                       pagerAsJson)
+            .putString(
+                buildPagerPreferenceKey(pager.id),
+                pagerAsJson
+            )
             .apply()
 
         preferenceManager.contains(buildPagerPreferenceKey(pager.id))

@@ -16,32 +16,54 @@ class ProviderTest {
 
     @Test
     fun testBuildUri() {
-        assertEquals("content://${Provider.AUTHORITY}/taxa",
-                     buildUri("taxa").toString())
+        assertEquals(
+            "content://${Provider.AUTHORITY}/taxa",
+            buildUri("taxa").toString()
+        )
 
-        assertEquals("content://${Provider.AUTHORITY}/taxa/123",
-                     buildUri("taxa",
-                              123.toString()).toString())
+        assertEquals(
+            "content://${Provider.AUTHORITY}/taxa/123",
+            buildUri(
+                "taxa",
+                123.toString()
+            ).toString()
+        )
 
-        assertEquals("content://${Provider.AUTHORITY}/taxa/area/123",
-                     buildUri("taxa",
-                              "area/${123}").toString())
+        assertEquals(
+            "content://${Provider.AUTHORITY}/taxa/area/123",
+            buildUri(
+                "taxa",
+                "area/123"
+            ).toString()
+        )
 
-        assertEquals("content://${Provider.AUTHORITY}/taxa/area/123",
-                     buildUri("taxa",
-                              "area",
-                              123.toString()).toString())
+        assertEquals(
+            "content://${Provider.AUTHORITY}/taxa/area/123",
+            buildUri(
+                "taxa",
+                "area",
+                123.toString()
+            ).toString()
+        )
 
-        assertEquals("content://${Provider.AUTHORITY}/taxa/area/123",
-                     buildUri("taxa",
-                              "area",
-                              "",
-                              123.toString()).toString())
+        assertEquals(
+            "content://${Provider.AUTHORITY}/taxa/area/123",
+            buildUri(
+                "taxa",
+                "area",
+                "",
+                123.toString()
+            ).toString()
+        )
 
-        assertEquals("content://${Provider.AUTHORITY}/taxa/area/123",
-                     buildUri("taxa",
-                              "area",
-                              "  ",
-                              123.toString()).toString())
+        assertEquals(
+            "content://${Provider.AUTHORITY}/taxa/area/123",
+            buildUri(
+                "taxa",
+                "area",
+                "  ",
+                123.toString()
+            ).toString()
+        )
     }
 }

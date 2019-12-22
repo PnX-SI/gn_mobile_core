@@ -16,14 +16,15 @@ import java.io.IOException
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class MountPoint : Parcelable,
-                   Comparable<MountPoint> {
+    Comparable<MountPoint> {
 
     val mountPath: File
     val storageType: StorageType
 
     constructor(
         mountPath: String,
-        storageType: StorageType) {
+        storageType: StorageType
+    ) {
         var resolvedMountPath: String
 
         try {
@@ -32,8 +33,7 @@ class MountPoint : Parcelable,
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "MountPoint: '$mountPath', canonical path: '$resolvedMountPath'")
             }
-        }
-        catch (ioe: IOException) {
+        } catch (ioe: IOException) {
             resolvedMountPath = mountPath
 
             Log.w(TAG, "MountPoint: failed to get the canonical path of '$mountPath'")
@@ -58,8 +58,7 @@ class MountPoint : Parcelable,
 
         if (mountPath.canWrite()) {
             storageState = Environment.MEDIA_MOUNTED
-        }
-        else if (mountPath.canRead()) {
+        } else if (mountPath.canRead()) {
             storageState = Environment.MEDIA_MOUNTED_READ_ONLY
         }
 
@@ -72,7 +71,8 @@ class MountPoint : Parcelable,
 
     override fun writeToParcel(
         dest: Parcel,
-        flags: Int) {
+        flags: Int
+    ) {
         dest.writeSerializable(mountPath)
         dest.writeSerializable(storageType)
     }
@@ -80,9 +80,7 @@ class MountPoint : Parcelable,
     override fun compareTo(other: MountPoint): Int {
         return if (storageType == other.storageType) {
             mountPath.compareTo(other.mountPath)
-        }
-        else storageType.compareTo(other.storageType)
-
+        } else storageType.compareTo(other.storageType)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -147,4 +145,3 @@ class MountPoint : Parcelable,
         }
     }
 }
-

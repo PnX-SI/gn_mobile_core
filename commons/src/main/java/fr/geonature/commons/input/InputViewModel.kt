@@ -17,9 +17,11 @@ import kotlinx.coroutines.launch
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-open class InputViewModel<I : AbstractInput>(application: Application,
-                                             inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
-                                             inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>) : AndroidViewModel(application) {
+open class InputViewModel<I : AbstractInput>(
+    application: Application,
+    inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
+    inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>
+) : AndroidViewModel(application) {
 
     private val inputManager = InputManager.getInstance(application,
                                                         inputJsonReaderListener,

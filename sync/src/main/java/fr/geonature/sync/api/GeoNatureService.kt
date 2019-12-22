@@ -23,14 +23,18 @@ import retrofit2.http.Path
 interface GeoNatureService {
 
     @POST("geonature/api/auth/login")
-    suspend fun authLogin(@Body
-                          authCredentials: AuthCredentials): Response<AuthLogin>
+    suspend fun authLogin(
+        @Body
+        authCredentials: AuthCredentials
+    ): Response<AuthLogin>
 
     @POST("geonature/api/{module}/releve")
-    fun sendInput(@Path("module")
-                  module: String,
-                  @Body
-                  input: RequestBody): Call<ResponseBody>
+    fun sendInput(
+        @Path("module")
+        module: String,
+        @Body
+        input: RequestBody
+    ): Call<ResponseBody>
 
     @GET("geonature/api/meta/datasets")
     fun getMetaDatasets(): Call<ResponseBody>
@@ -51,6 +55,8 @@ interface GeoNatureService {
     fun getNomenclatures(): Call<List<NomenclatureType>>
 
     @GET("geonature/api/{module}/defaultNomenclatures")
-    fun getDefaultNomenclaturesValues(@Path("module")
-                                      module: String): Call<ResponseBody>
+    fun getDefaultNomenclaturesValues(
+        @Path("module")
+        module: String
+    ): Call<ResponseBody>
 }

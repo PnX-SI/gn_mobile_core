@@ -31,10 +31,11 @@ class TaxonomyJsonReader {
 
         try {
             return read(StringReader(json))
-        }
-        catch (ioe: IOException) {
-            Log.w(TAG,
-                  ioe.message)
+        } catch (ioe: IOException) {
+            Log.w(
+                TAG,
+                ioe.message
+            )
         }
 
         return emptyList()
@@ -72,8 +73,7 @@ class TaxonomyJsonReader {
 
                     if (TextUtils.isEmpty(key)) {
                         kingdom = null
-                    }
-                    else {
+                    } else {
                         kingdom = key
                         taxonomyAsMap[kingdom!!] = mutableSetOf(Taxonomy.ANY)
                     }
@@ -81,8 +81,7 @@ class TaxonomyJsonReader {
                 BEGIN_ARRAY -> {
                     if (TextUtils.isEmpty(kingdom)) {
                         reader.skipValue()
-                    }
-                    else {
+                    } else {
                         reader.beginArray()
                         while (reader.hasNext()) {
                             val group = reader.nextString()
@@ -97,8 +96,10 @@ class TaxonomyJsonReader {
                 }
                 else -> {
                     reader.skipValue()
-                    Log.w(TAG,
-                          "Invalid object properties JSON token $jsonToken while reading taxonomy")
+                    Log.w(
+                        TAG,
+                        "Invalid object properties JSON token $jsonToken while reading taxonomy"
+                    )
                 }
             }
         }
@@ -108,8 +109,10 @@ class TaxonomyJsonReader {
         return taxonomyAsMap.keys.asSequence()
             .map { kingdomAsKey ->
                 taxonomyAsMap[kingdomAsKey]?.map { group ->
-                    Taxonomy(kingdomAsKey,
-                             group)
+                    Taxonomy(
+                        kingdomAsKey,
+                        group
+                    )
                 } ?: emptyList()
             }
             .filter { it.isNotEmpty() }
@@ -123,8 +126,7 @@ class TaxonomyJsonReader {
                         o2.kingdom == Taxonomy.ANY -> 1
                         else -> kingdomCompare
                     }
-                }
-                else {
+                } else {
                     val groupCompare = o1.group.compareTo(o2.group)
 
                     if (groupCompare != 0) {
@@ -133,8 +135,7 @@ class TaxonomyJsonReader {
                             o2.group == Taxonomy.ANY -> 1
                             else -> groupCompare
                         }
-                    }
-                    else {
+                    } else {
                         groupCompare
                     }
                 }

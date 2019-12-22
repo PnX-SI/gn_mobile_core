@@ -8,14 +8,14 @@ import fr.geonature.commons.model.MountPoint.StorageType.INTERNAL
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import fr.geonature.commons.util.FileUtils.getFile
 import fr.geonature.commons.util.FileUtils.getRootFolder
+import java.io.File
+import java.io.FileReader
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileReader
-import java.io.IOException
 
 /**
  * Manage [IAppSettings].
@@ -23,10 +23,13 @@ import java.io.IOException
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSettingsManager<AS : IAppSettings> private constructor(internal val application: Application,
-                                                                onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>) {
+class AppSettingsManager<AS : IAppSettings> private constructor(
+    internal val application: Application,
+    onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>
+) {
 
-    private val appSettingsJsonReader: AppSettingsJsonReader<AS> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
+    private val appSettingsJsonReader: AppSettingsJsonReader<AS> =
+        AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     private val _appSettings: MutableLiveData<AS> = MutableLiveData()
     val appSettings: LiveData<AS> = _appSettings
@@ -34,8 +37,10 @@ class AppSettingsManager<AS : IAppSettings> private constructor(internal val app
     init {
         GlobalScope.launch(Main) {
             withContext(IO) {
-                getRootFolder(application,
-                              INTERNAL).mkdirs()
+                getRootFolder(
+                    application,
+                    INTERNAL
+                ).mkdirs()
             }
         }
     }
@@ -57,40 +62,49 @@ class AppSettingsManager<AS : IAppSettings> private constructor(internal val app
         if (currentLoadedAppSettings == null) {
             val settingsJsonFile = getAppSettingsAsFile()
 
-            Log.i(TAG,
-                  "Loading settings from '${settingsJsonFile.absolutePath}'...")
+            Log.i(
+                TAG,
+                "Loading settings from '${settingsJsonFile.absolutePath}'..."
+            )
 
             if (!settingsJsonFile.exists()) {
-                Log.w(TAG,
-                      "'${settingsJsonFile.absolutePath}' not found")
+                Log.w(
+                    TAG,
+                    "'${settingsJsonFile.absolutePath}' not found"
+                )
                 null
-            }
-            else {
+            } else {
                 try {
                     val appSettings = appSettingsJsonReader.read(FileReader(settingsJsonFile))
 
-                    Log.i(TAG,
-                          "Settings loaded")
+                    Log.i(
+                        TAG,
+                        "Settings loaded"
+                    )
 
                     appSettings
-                }
-                catch (e: IOException) {
-                    Log.w(TAG,
-                          "Failed to load '${settingsJsonFile.name}'")
+                } catch (e: IOException) {
+                    Log.w(
+                        TAG,
+                        "Failed to load '${settingsJsonFile.name}'"
+                    )
 
                     null
                 }
             }
-        }
-        else {
+        } else {
             currentLoadedAppSettings
         }.also { _appSettings.postValue(it) }
     }
 
     internal fun getAppSettingsAsFile(): File {
-        return getFile(getRootFolder(application,
-                                     INTERNAL),
-                       getAppSettingsFilename())
+        return getFile(
+            getRootFolder(
+                application,
+                INTERNAL
+            ),
+            getAppSettingsFilename()
+        )
     }
 
     companion object {
@@ -107,11 +121,15 @@ class AppSettingsManager<AS : IAppSettings> private constructor(internal val app
          * @return The singleton instance of [AppSettingsManager].
          */
         @Suppress("UNCHECKED_CAST")
-        fun <AS : IAppSettings> getInstance(application: Application,
-                                            onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>): AppSettingsManager<AS> = INSTANCE as AppSettingsManager<AS>?
+        fun <AS : IAppSettings> getInstance(
+            application: Application,
+            onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>
+        ): AppSettingsManager<AS> = INSTANCE as AppSettingsManager<AS>?
             ?: synchronized(this) {
-                INSTANCE as AppSettingsManager<AS>? ?: AppSettingsManager(application,
-                                                                          onAppSettingsJsonJsonReaderListener).also { INSTANCE = it }
+                INSTANCE as AppSettingsManager<AS>? ?: AppSettingsManager(
+                    application,
+                    onAppSettingsJsonJsonReaderListener
+                ).also { INSTANCE = it }
             }
     }
 }

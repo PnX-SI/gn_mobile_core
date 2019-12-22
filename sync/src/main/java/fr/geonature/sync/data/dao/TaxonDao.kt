@@ -23,30 +23,46 @@ abstract class TaxonDao : BaseDao<Taxon>() {
 
         init {
             selectQueryBuilder.columns(*Taxon.defaultProjection())
-                    .orderBy(column(AbstractTaxon.COLUMN_NAME,
-                                    entityTableName).second,
-                             ASC)
+                .orderBy(
+                    column(
+                        AbstractTaxon.COLUMN_NAME,
+                        entityTableName
+                    ).second,
+                    ASC
+                )
         }
 
         fun withArea(id: Long?): QB {
             if (id == null) return this
 
             selectQueryBuilder.columns(*TaxonArea.defaultProjection())
-                    .leftJoin(TaxonArea.TABLE_NAME,
-                              "${column(TaxonArea.COLUMN_TAXON_ID,
-                                        TaxonArea.TABLE_NAME).second} = ${column(AbstractTaxon.COLUMN_ID,
-                                                                                 entityTableName).second} AND ${column(TaxonArea.COLUMN_AREA_ID,
-                                                                                                                       TaxonArea.TABLE_NAME).second} = ?",
-                              TaxonArea.TABLE_NAME,
-                              id)
+                .leftJoin(
+                    TaxonArea.TABLE_NAME,
+                    "${column(
+                        TaxonArea.COLUMN_TAXON_ID,
+                        TaxonArea.TABLE_NAME
+                    ).second} = ${column(
+                        AbstractTaxon.COLUMN_ID,
+                        entityTableName
+                    ).second} AND ${column(
+                        TaxonArea.COLUMN_AREA_ID,
+                        TaxonArea.TABLE_NAME
+                    ).second} = ?",
+                    TaxonArea.TABLE_NAME,
+                    id
+                )
 
             return this
         }
 
         fun whereId(id: Long?): QB {
-            selectQueryBuilder.where("${column(AbstractTaxon.COLUMN_ID,
-                                               entityTableName).second} = ?",
-                                     id)
+            selectQueryBuilder.where(
+                "${column(
+                    AbstractTaxon.COLUMN_ID,
+                    entityTableName
+                ).second} = ?",
+                id
+            )
 
             return this
         }

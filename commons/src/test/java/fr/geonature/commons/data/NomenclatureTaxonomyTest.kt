@@ -22,12 +22,22 @@ class NomenclatureTaxonomyTest {
 
     @Test
     fun testEquals() {
-        assertEquals(NomenclatureTaxonomy(1234,
-                                          Taxonomy("Animalia",
-                                                   "Ascidies")),
-                     NomenclatureTaxonomy(1234,
-                                          Taxonomy("Animalia",
-                                                   "Ascidies")))
+        assertEquals(
+            NomenclatureTaxonomy(
+                1234,
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            ),
+            NomenclatureTaxonomy(
+                1234,
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            )
+        )
     }
 
     @Test
@@ -48,20 +58,36 @@ class NomenclatureTaxonomyTest {
 
         // then
         assertNotNull(nomenclatureTaxonomy)
-        assertEquals(NomenclatureTaxonomy(1234,
-                                          Taxonomy("Animalia",
-                                                   "Ascidies")),
-                     nomenclatureTaxonomy)
+        assertEquals(
+            NomenclatureTaxonomy(
+                1234,
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            ),
+            nomenclatureTaxonomy
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}\"",
-                                       "${NomenclatureTaxonomy.TABLE_NAME}_${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}"),
-                                  Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
-                                       "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
-                                  Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
-                                       "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${NomenclatureTaxonomy.TABLE_NAME}.\"${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}\"",
+                    "${NomenclatureTaxonomy.TABLE_NAME}_${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}"
+                ),
+                Pair(
+                    "${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
+                    "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"
+                ),
+                Pair(
+                    "${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
+                    "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

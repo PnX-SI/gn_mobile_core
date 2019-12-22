@@ -24,8 +24,10 @@ class DataSyncView : ConstraintLayout {
     private lateinit var textViewMessage: TextView
     private lateinit var textViewLastSynchronizedDate: TextView
 
-    private val stateAnimation = AlphaAnimation(0.0f,
-                                                1.0f).apply {
+    private val stateAnimation = AlphaAnimation(
+        0.0f,
+        1.0f
+    ).apply {
         duration = 250
         startOffset = 10
         repeatMode = Animation.REVERSE
@@ -33,50 +35,80 @@ class DataSyncView : ConstraintLayout {
     }
 
     constructor(context: Context) : super(context) {
-        init(null,
-             0)
+        init(
+            null,
+            0
+        )
     }
 
-    constructor(context: Context,
-                attrs: AttributeSet) : super(context,
-                                             attrs) {
-        init(attrs,
-             0)
+    constructor(
+        context: Context,
+        attrs: AttributeSet
+    ) : super(
+        context,
+        attrs
+    ) {
+        init(
+            attrs,
+            0
+        )
     }
 
-    constructor(context: Context,
-                attrs: AttributeSet,
-                defStyleAttr: Int) : super(context,
-                                           attrs,
-                                           defStyleAttr) {
-        init(attrs,
-             defStyleAttr)
+    constructor(
+        context: Context,
+        attrs: AttributeSet,
+        defStyleAttr: Int
+    ) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
+        init(
+            attrs,
+            defStyleAttr
+        )
     }
 
     fun setState(state: WorkInfo.State) {
         when (state) {
             WorkInfo.State.RUNNING -> {
-                iconStatus.setTextColor(ResourcesCompat.getColor(resources,
-                                                                 R.color.status_pending,
-                                                                 context?.theme))
+                iconStatus.setTextColor(
+                    ResourcesCompat.getColor(
+                        resources,
+                        R.color.status_pending,
+                        context?.theme
+                    )
+                )
                 iconStatus.startAnimation(stateAnimation)
             }
             WorkInfo.State.FAILED -> {
-                iconStatus.setTextColor(ResourcesCompat.getColor(resources,
-                                                                 R.color.status_ko,
-                                                                 context?.theme))
+                iconStatus.setTextColor(
+                    ResourcesCompat.getColor(
+                        resources,
+                        R.color.status_ko,
+                        context?.theme
+                    )
+                )
                 iconStatus.clearAnimation()
             }
             WorkInfo.State.SUCCEEDED -> {
-                iconStatus.setTextColor(ResourcesCompat.getColor(resources,
-                                                                 R.color.status_ok,
-                                                                 context?.theme))
+                iconStatus.setTextColor(
+                    ResourcesCompat.getColor(
+                        resources,
+                        R.color.status_ok,
+                        context?.theme
+                    )
+                )
                 iconStatus.clearAnimation()
             }
             else -> {
-                iconStatus.setTextColor(ResourcesCompat.getColor(resources,
-                                                                 R.color.status_unknown,
-                                                                 context?.theme))
+                iconStatus.setTextColor(
+                    ResourcesCompat.getColor(
+                        resources,
+                        R.color.status_unknown,
+                        context?.theme
+                    )
+                )
                 iconStatus.clearAnimation()
             }
         }
@@ -87,18 +119,25 @@ class DataSyncView : ConstraintLayout {
     }
 
     fun setLastSynchronizedDate(lastSynchronized: Date?) {
-        val formatLastSynchronizedDate = if (lastSynchronized == null) context.getString(R.string.sync_last_synchronization_never)
-        else DateFormat.format(context.getString(R.string.sync_last_synchronization_date),
-                               lastSynchronized)
+        val formatLastSynchronizedDate =
+            if (lastSynchronized == null) context.getString(R.string.sync_last_synchronization_never)
+            else DateFormat.format(
+                context.getString(R.string.sync_last_synchronization_date),
+                lastSynchronized
+            )
 
         textViewLastSynchronizedDate.text = formatLastSynchronizedDate
     }
 
-    private fun init(attrs: AttributeSet?,
-                     defStyle: Int) {
-        View.inflate(context,
-                     R.layout.view_sync_data,
-                     this)
+    private fun init(
+        attrs: AttributeSet?,
+        defStyle: Int
+    ) {
+        View.inflate(
+            context,
+            R.layout.view_sync_data,
+            this
+        )
 
         iconStatus = findViewById(android.R.id.icon)
         textViewMessage = findViewById(android.R.id.message)

@@ -11,4 +11,5 @@ data class AuthLoginError(
     @SerializedName("type")
     val type: String,
     @SerializedName("msg")
-    val message: String)
+    val message: String
+)

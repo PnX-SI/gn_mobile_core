@@ -11,9 +11,13 @@ import androidx.viewpager.widget.ViewPager
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class EnablePagingViewPager(context: Context,
-                            attrs: AttributeSet) : ViewPager(context,
-                                                             attrs) {
+class EnablePagingViewPager(
+    context: Context,
+    attrs: AttributeSet
+) : ViewPager(
+    context,
+    attrs
+) {
 
     private var pagingEnabled = false
     private var pagingPreviousEnabled = false

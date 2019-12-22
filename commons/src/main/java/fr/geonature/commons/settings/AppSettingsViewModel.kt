@@ -14,11 +14,15 @@ import kotlinx.coroutines.launch
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-open class AppSettingsViewModel<AS : IAppSettings>(application: Application,
-                                                   onAppSettingsJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>) : AndroidViewModel(application) {
+open class AppSettingsViewModel<AS : IAppSettings>(
+    application: Application,
+    onAppSettingsJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>
+) : AndroidViewModel(application) {
 
-    internal val appSettingsManager: AppSettingsManager<AS> = AppSettingsManager.getInstance(application,
-                                                                                             onAppSettingsJsonReaderListener)
+    internal val appSettingsManager: AppSettingsManager<AS> = AppSettingsManager.getInstance(
+        application,
+        onAppSettingsJsonReaderListener
+    )
 
     fun getAppSettingsFilename(): String {
         return appSettingsManager.getAppSettingsFilename()
@@ -37,7 +41,8 @@ open class AppSettingsViewModel<AS : IAppSettings>(application: Application,
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    class Factory<T : AppSettingsViewModel<AS>, AS : IAppSettings>(val creator: () -> T) : ViewModelProvider.Factory {
+    class Factory<T : AppSettingsViewModel<AS>, AS : IAppSettings>(val creator: () -> T) :
+        ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST") return creator() as T
         }

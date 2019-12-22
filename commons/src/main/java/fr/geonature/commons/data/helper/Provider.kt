@@ -20,18 +20,22 @@ object Provider {
     /**
      * Check if 'READ' permission is granted for content provider.
      */
-    val checkReadPermission: (Context, String?) -> Boolean = { context, permission -> context.getString(R.string.permission_read) == permission }
+    val checkReadPermission: (Context, String?) -> Boolean =
+        { context, permission -> context.getString(R.string.permission_read) == permission }
 
     /**
      * Build resource [Uri].
      */
-    fun buildUri(resource: String,
-                 vararg path: String): Uri {
+    fun buildUri(
+        resource: String,
+        vararg path: String
+    ): Uri {
 
         val baseUri = Uri.parse("content://$AUTHORITY/$resource")
 
         return if (path.isEmpty()) baseUri
         else withAppendedPath(baseUri,
-                              path.asSequence().filter { it.isNotBlank() }.joinToString("/"))
+            path.asSequence().filter { it.isNotBlank() }.joinToString("/")
+        )
     }
 }
