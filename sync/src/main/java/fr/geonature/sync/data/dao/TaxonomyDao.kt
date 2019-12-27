@@ -21,6 +21,13 @@ abstract class TaxonomyDao : BaseDao<Taxonomy>() {
 
         init {
             selectQueryBuilder.columns(*Taxonomy.defaultProjection())
+                .column(
+                    "CASE ${column(
+                        Taxonomy.COLUMN_GROUP,
+                        entityTableName
+                    ).first} WHEN '${Taxonomy.ANY}' THEN 0 ELSE 1 END",
+                    "type"
+                )
                 .orderBy(
                     column(
                         Taxonomy.COLUMN_KINGDOM,
@@ -28,6 +35,7 @@ abstract class TaxonomyDao : BaseDao<Taxonomy>() {
                     ).second,
                     ASC
                 )
+                .orderBy("type", ASC)
                 .orderBy(
                     column(
                         Taxonomy.COLUMN_GROUP,
