@@ -155,4 +155,48 @@ abstract class AbstractTaxon : Parcelable {
             ).second
         }
     }
+
+    /**
+     * Filter query builder.
+     */
+    open class Filter(internal val tableAlias: String) {
+        internal val wheres = mutableListOf<Pair<String, Array<*>?>>()
+
+        /**
+         * Filter by name.
+         *
+         * @return this
+         */
+        fun byName(queryString: String?): Filter {
+            if (queryString.isNullOrBlank()) {
+                return this
+            }
+
+            this.wheres.add(
+                Pair(
+                    "(${getColumnAlias(
+                        COLUMN_NAME, tableAlias
+                    )} LIKE ?)",
+                    arrayOf("%$queryString%")
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Builds the WHERE clause as selection for this filter.
+         */
+        fun build(): Pair<String, Array<Any?>> {
+            val bindArgs = mutableListOf<Any?>()
+
+            val whereClauses = this.wheres.joinToString(" AND ") { pair ->
+                pair.second?.toList()
+                    ?.also { bindArgs.addAll(it) }
+                pair.first
+            }
+
+            return Pair(whereClauses, bindArgs.toTypedArray())
+        }
+    }
 }

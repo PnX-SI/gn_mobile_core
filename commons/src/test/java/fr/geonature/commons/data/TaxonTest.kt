@@ -286,4 +286,38 @@ class TaxonTest {
             defaultProjection()
         )
     }
+
+    @Test
+    fun testFilter() {
+        val taxonFilterByNameAndTaxonomy = (Taxon.Filter().byName("as") as Taxon.Filter).byTaxonomy(
+            Taxonomy(
+                "Animalia",
+                "Ascidies"
+            )
+        ).build()
+
+        assertEquals(
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
+            taxonFilterByNameAndTaxonomy.first
+        )
+        assertArrayEquals(
+            arrayOf("%as%", "Animalia", "Ascidies"),
+            taxonFilterByNameAndTaxonomy.second
+        )
+
+        val taxonFilterByNameAndKingdom = (Taxon.Filter().byName("as") as Taxon.Filter).byTaxonomy(
+            Taxonomy(
+                "Animalia"
+            )
+        ).build()
+
+        assertEquals(
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
+            taxonFilterByNameAndKingdom.first
+        )
+        assertArrayEquals(
+            arrayOf("%as%", "Animalia", Taxonomy.ANY),
+            taxonFilterByNameAndKingdom.second
+        )
+    }
 }

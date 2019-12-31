@@ -65,23 +65,6 @@ class Taxon : AbstractTaxon {
         }
 
         /**
-         * Apply custom filter.
-         */
-        fun filter(queryString: String?): Pair<String?, Array<String>?> {
-            return if (queryString.isNullOrBlank()) Pair(
-                null,
-                null
-            )
-            else {
-                val filter = "%$queryString%"
-                Pair(
-                    "${getColumnAlias(COLUMN_NAME)} LIKE ?",
-                    arrayOf(filter)
-                )
-            }
-        }
-
-        /**
          * Create a new [Taxon] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
@@ -156,6 +139,33 @@ class Taxon : AbstractTaxon {
             override fun newArray(size: Int): Array<Taxon?> {
                 return arrayOfNulls(size)
             }
+        }
+    }
+
+    /**
+     * Filter query builder.
+     */
+    class Filter : AbstractTaxon.Filter(TABLE_NAME) {
+
+        /**
+         * Filter by taxonomy.
+         *
+         * @return this
+         */
+        fun byTaxonomy(taxonomy: Taxonomy): Filter {
+            this.wheres.add(
+                Pair(
+                    "((${Taxonomy.getColumnAlias(
+                        Taxonomy.COLUMN_KINGDOM, tableAlias
+                    )} = ?) AND (${Taxonomy.getColumnAlias(
+                        Taxonomy.COLUMN_GROUP,
+                        tableAlias
+                    )} = ?))",
+                    arrayOf(taxonomy.kingdom, taxonomy.group)
+                )
+            )
+
+            return this
         }
     }
 }
