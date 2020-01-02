@@ -7,7 +7,9 @@ import fr.geonature.commons.data.Taxonomy.Companion.defaultProjection
 import fr.geonature.commons.data.Taxonomy.Companion.fromCursor
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
@@ -68,6 +70,16 @@ class TaxonomyTest {
             Taxonomy(
                 "Animalia",
                 "all"
+            )
+        )
+
+        assertEquals(
+            Taxonomy(
+                "Animalia",
+                ANY
+            ),
+            Taxonomy(
+                "Animalia"
             )
         )
 
@@ -200,6 +212,26 @@ class TaxonomyTest {
                 )
             ),
             defaultProjection()
+        )
+    }
+
+    @Test
+    fun testIsAny() {
+        assertFalse(
+            Taxonomy(
+                "Animalia",
+                "Ascidies"
+            ).isAny()
+        )
+        assertFalse(
+            Taxonomy(
+                "Animalia"
+            ).isAny()
+        )
+        assertTrue(
+            Taxonomy(
+                ""
+            ).isAny()
         )
     }
 }

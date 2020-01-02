@@ -9,6 +9,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
@@ -312,12 +313,28 @@ class TaxonTest {
         ).build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
             taxonFilterByNameAndKingdom.first
         )
         assertArrayEquals(
-            arrayOf("%as%", "Animalia", Taxonomy.ANY),
+            arrayOf("%as%", "Animalia"),
             taxonFilterByNameAndKingdom.second
         )
+
+        val taxonFilterByKingdom = Taxon.Filter().byKingdom("Animalia").build()
+
+        assertEquals(
+            "(${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
+            taxonFilterByKingdom.first
+        )
+        assertArrayEquals(
+            arrayOf("Animalia"),
+            taxonFilterByKingdom.second
+        )
+
+        val taxonFilterByAnyTaxonomy = Taxon.Filter().byTaxonomy(Taxonomy("")).build()
+
+        assertEquals("", taxonFilterByAnyTaxonomy.first)
+        assertTrue(taxonFilterByAnyTaxonomy.second.isEmpty())
     }
 }

@@ -153,6 +153,14 @@ class Taxon : AbstractTaxon {
          * @return this
          */
         fun byTaxonomy(taxonomy: Taxonomy): Filter {
+            if (taxonomy.isAny()) {
+                return this
+            }
+
+            if (taxonomy.group == Taxonomy.ANY) {
+                return byKingdom(taxonomy.kingdom)
+            }
+
             this.wheres.add(
                 Pair(
                     "((${Taxonomy.getColumnAlias(
@@ -162,6 +170,24 @@ class Taxon : AbstractTaxon {
                         tableAlias
                     )} = ?))",
                     arrayOf(taxonomy.kingdom, taxonomy.group)
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Filter by taxonomy kingdom.
+         *
+         * @return this
+         */
+        fun byKingdom(kingdom: String): Filter {
+            this.wheres.add(
+                Pair(
+                    "(${Taxonomy.getColumnAlias(
+                        Taxonomy.COLUMN_KINGDOM, tableAlias
+                    )} = ?)",
+                    arrayOf(kingdom)
                 )
             )
 

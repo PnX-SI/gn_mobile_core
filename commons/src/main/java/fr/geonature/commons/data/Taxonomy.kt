@@ -28,7 +28,7 @@ class Taxonomy : Parcelable {
 
     constructor(
         kingdom: String,
-        group: String? = null
+        group: String? = ANY
     ) {
         this.kingdom = sanitizeValue(kingdom)
         this.group = sanitizeValue(group)
@@ -72,6 +72,10 @@ class Taxonomy : Parcelable {
 
     override fun toString(): String {
         return "Taxonomy(kingdom='$kingdom', group='$group')"
+    }
+
+    fun isAny(): Boolean {
+        return kingdom == ANY && group == ANY
     }
 
     companion object {
