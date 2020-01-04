@@ -1,10 +1,12 @@
 package fr.geonature.sync.util
 
 import android.content.Context
+import android.os.Environment
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
+import fr.geonature.commons.util.MountPointUtils
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import java.text.DateFormat
@@ -45,6 +47,19 @@ object SettingsUtils {
                 summary = getGeoNatureServerUrl(preferenceScreen.context)
                 setOnPreferenceChangeListener(onPreferenceChangeListener)
             }
+
+        preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_storage_internal_key))
+            ?.summary = MountPointUtils.getInternalStorage().mountPath.absolutePath
+        MountPointUtils.getExternalStorage(
+            preferenceScreen.context, Environment.MEDIA_MOUNTED,
+            Environment.MEDIA_MOUNTED_READ_ONLY
+        )?.also { mountPoint ->
+            preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_storage_external_key))
+                ?.also {
+                    it.summary = mountPoint.mountPath.absolutePath
+                    it.isEnabled = true
+                }
+        }
 
         preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_about_app_version_key))
             ?.summary = context.getString(
