@@ -20,4 +20,5 @@ data class Nomenclature(
     @SerializedName("label_default")
     val defaultLabel: String,
 
-    val taxref: List<NomenclatureTaxonomy>)
+    val taxref: List<NomenclatureTaxonomy>
+)

@@ -23,31 +23,37 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
     private val dataSyncManager = DataSyncManager.getInstance(getApplication())
-            .also {
-                it.getLastSynchronizedDate()
-            }
-
-    val syncOutputStatus: LiveData<List<WorkInfo>> = workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)
-    val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
-    val syncMessage: LiveData<String> = dataSyncManager.syncMessage
-    val serverStatus: LiveData<ServerStatus> = Transformations.map(dataSyncManager.serverStatus) { serverStatus ->
-        if (serverStatus == null) return@map serverStatus
-
-        when (serverStatus) {
-            ServerStatus.FORBIDDEN, ServerStatus.INTERNAL_SERVER_ERROR -> cancelTasks()
+        .also {
+            it.getLastSynchronizedDate()
         }
 
-        serverStatus
-    }
+    val syncOutputStatus: LiveData<List<WorkInfo>> =
+        workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+    val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
+    val syncMessage: LiveData<String> = dataSyncManager.syncMessage
+    val serverStatus: LiveData<ServerStatus> =
+        Transformations.map(dataSyncManager.serverStatus) { serverStatus ->
+            if (serverStatus == null) return@map serverStatus
+
+            when (serverStatus) {
+                ServerStatus.FORBIDDEN, ServerStatus.INTERNAL_SERVER_ERROR -> cancelTasks()
+            }
+
+            serverStatus
+        }
 
     fun startSync() {
         val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
 
-        val continuation = workManager.beginUniqueWork(DataSyncWorker.DATA_SYNC_WORKER,
-                                                       ExistingWorkPolicy.KEEP,
-                                                       OneTimeWorkRequest.Builder(DataSyncWorker::class.java).addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG).setConstraints(constraints).build())
+        val continuation = workManager.beginUniqueWork(
+            DataSyncWorker.DATA_SYNC_WORKER,
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequest.Builder(DataSyncWorker::class.java).addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG).setConstraints(
+                constraints
+            ).build()
+        )
 
         // start the work
         continuation.enqueue()

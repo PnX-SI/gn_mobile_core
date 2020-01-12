@@ -24,12 +24,18 @@ class InputObserverTest {
 
     @Test
     fun testEquals() {
-        assertEquals(InputObserver(1234,
-                                   "lastname",
-                                   "firstname"),
-                     InputObserver(1234,
-                                   "lastname",
-                                   "firstname"))
+        assertEquals(
+            InputObserver(
+                1234,
+                "lastname",
+                "firstname"
+            ),
+            InputObserver(
+                1234,
+                "lastname",
+                "firstname"
+            )
+        )
     }
 
     @Test
@@ -50,10 +56,14 @@ class InputObserverTest {
 
         // then
         assertNotNull(inputObserver)
-        assertEquals(InputObserver(1234,
-                                   "lastname",
-                                   "firstname"),
-                     inputObserver)
+        assertEquals(
+            InputObserver(
+                1234,
+                "lastname",
+                "firstname"
+            ),
+            inputObserver
+        )
     }
 
     @Test
@@ -74,10 +84,14 @@ class InputObserverTest {
 
         // then
         assertNotNull(inputObserver)
-        assertEquals(InputObserver(1234,
-                                   null,
-                                   null),
-                     inputObserver)
+        assertEquals(
+            InputObserver(
+                1234,
+                null,
+                null
+            ),
+            inputObserver
+        )
     }
 
     @Test
@@ -116,31 +130,47 @@ class InputObserverTest {
     @Test
     fun testParcelable() {
         // given InputObserver
-        val inputObserver = InputObserver(1234,
-                                          "lastname",
-                                          "firstname")
+        val inputObserver = InputObserver(
+            1234,
+            "lastname",
+            "firstname"
+        )
 
         // when we obtain a Parcel object to write the InputObserver instance to it
         val parcel = Parcel.obtain()
-        inputObserver.writeToParcel(parcel,
-                                    0)
+        inputObserver.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(inputObserver,
-                     InputObserver.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            inputObserver,
+            InputObserver.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_ID}\"",
-                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_ID}"),
-                                  Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_LASTNAME}\"",
-                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME}"),
-                                  Pair("${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_FIRSTNAME}\"",
-                                       "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_ID}\"",
+                    "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_ID}"
+                ),
+                Pair(
+                    "${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_LASTNAME}\"",
+                    "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME}"
+                ),
+                Pair(
+                    "${InputObserver.TABLE_NAME}.\"${InputObserver.COLUMN_FIRSTNAME}\"",
+                    "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

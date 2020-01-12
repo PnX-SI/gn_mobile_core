@@ -17,8 +17,10 @@ import java.util.Date
  *
  * @return the value of that column or the default value as fallback if given
  */
-inline fun <reified T> Cursor.get(columnName: String,
-                                  defaultValue: T? = null): T? {
+inline fun <reified T> Cursor.get(
+    columnName: String,
+    defaultValue: T? = null
+): T? {
     val columnIndex = if (defaultValue == null) getColumnIndexOrThrow(columnName) else getColumnIndex(columnName)
 
     return when (T::class) {

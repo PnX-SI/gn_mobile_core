@@ -15,8 +15,10 @@ import java.util.Locale
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = Taxonomy.TABLE_NAME,
-        primaryKeys = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP])
+@Entity(
+    tableName = Taxonomy.TABLE_NAME,
+    primaryKeys = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP]
+)
 class Taxonomy : Parcelable {
 
     @ColumnInfo(name = COLUMN_KINGDOM)
@@ -24,14 +26,18 @@ class Taxonomy : Parcelable {
     @ColumnInfo(name = COLUMN_GROUP)
     var group: String
 
-    constructor(kingdom: String,
-                group: String? = null) {
+    constructor(
+        kingdom: String,
+        group: String? = ANY
+    ) {
         this.kingdom = sanitizeValue(kingdom)
         this.group = sanitizeValue(group)
     }
 
-    private constructor(source: Parcel) : this(source.readString()!!,
-                                               source.readString())
+    private constructor(source: Parcel) : this(
+        source.readString()!!,
+        source.readString()
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -54,8 +60,10 @@ class Taxonomy : Parcelable {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeString(kingdom)
             it.writeString(group)
@@ -64,6 +72,10 @@ class Taxonomy : Parcelable {
 
     override fun toString(): String {
         return "Taxonomy(kingdom='$kingdom', group='$group')"
+    }
+
+    fun isAny(): Boolean {
+        return kingdom == ANY && group == ANY
     }
 
     companion object {
@@ -84,11 +96,14 @@ class Taxonomy : Parcelable {
         const val ANY = "any"
 
         private val sanitizeValue: (String?) -> String = { value ->
-            if (value == null || value.isEmpty() || arrayOf("autre",
-                                                            "all").any {
+            if (value == null || value.isEmpty() || arrayOf(
+                    "autre",
+                    "all"
+                ).any {
                     value.toLowerCase(Locale.ROOT)
-                            .startsWith(it)
-                }) ANY
+                        .startsWith(it)
+                }
+            ) ANY
             else value
         }
 
@@ -96,19 +111,29 @@ class Taxonomy : Parcelable {
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_KINGDOM,
-                                  tableAlias),
-                           column(COLUMN_GROUP,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_KINGDOM,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_GROUP,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
@@ -118,21 +143,38 @@ class Taxonomy : Parcelable {
          *
          * @return A newly created [Taxonomy] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): Taxonomy? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): Taxonomy? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                Taxonomy(requireNotNull(cursor.get(getColumnAlias(COLUMN_KINGDOM,
-                                                                  tableAlias))),
-                         requireNotNull(cursor.get(getColumnAlias(COLUMN_GROUP,
-                                                                  tableAlias))))
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                Taxonomy(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_KINGDOM,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_GROUP,
+                                tableAlias
+                            )
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }

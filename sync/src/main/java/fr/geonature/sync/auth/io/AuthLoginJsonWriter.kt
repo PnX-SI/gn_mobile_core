@@ -50,12 +50,15 @@ class AuthLoginJsonWriter {
         val writer = StringWriter()
 
         try {
-            write(writer,
-                  authLogin)
-        }
-        catch (ioe: IOException) {
-            Log.w(TAG,
-                  ioe.message)
+            write(
+                writer,
+                authLogin
+            )
+        } catch (ioe: IOException) {
+            Log.w(
+                TAG,
+                ioe.message
+            )
 
             return null
         }
@@ -66,52 +69,62 @@ class AuthLoginJsonWriter {
     /**
      * Convert the given [AuthLogin] as `JSON` and write it to the given `Writer`.
      *
-     * @param out   the `Writer` to use
+     * @param out the `Writer` to use
      * @param authLogin the [AuthLogin] to convert
      * @throws IOException if something goes wrong
      */
     @Throws(IOException::class)
-    fun write(out: Writer,
-              authLogin: AuthLogin) {
+    fun write(
+        out: Writer,
+        authLogin: AuthLogin
+    ) {
         val writer = JsonWriter(out)
         writer.setIndent(this.indent)
-        writeAuthLogin(writer,
-                       authLogin)
+        writeAuthLogin(
+            writer,
+            authLogin
+        )
         writer.flush()
         writer.close()
     }
 
     @Throws(IOException::class)
-    private fun writeAuthLogin(writer: JsonWriter,
-                               authLogin: AuthLogin) {
+    private fun writeAuthLogin(
+        writer: JsonWriter,
+        authLogin: AuthLogin
+    ) {
         writer.beginObject()
 
-        writeAuthUser(writer,
-                      authLogin.user)
+        writeAuthUser(
+            writer,
+            authLogin.user
+        )
         writer.name("expires")
-                .value(toIsoDateString(authLogin.expires))
+            .value(toIsoDateString(authLogin.expires))
 
         writer.endObject()
     }
 
     @Throws(IOException::class)
-    private fun writeAuthUser(writer: JsonWriter,
-                              authUser: AuthUser) {
+    private fun writeAuthUser(
+        writer: JsonWriter,
+        authUser: AuthUser
+    ) {
         writer.name("user")
-                .beginObject()
+            .beginObject()
 
         writer.name("id")
-                .value(authUser.id)
+            .value(authUser.id)
         writer.name("lastname")
-                .value(authUser.lastname)
+            .value(authUser.lastname)
         writer.name("firstname")
-                .value(authUser.firstname)
+            .value(authUser.firstname)
         writer.name("application_id")
-                .value(authUser.applicationId)
+            .value(authUser.applicationId)
         writer.name("organism_id")
-                .value(authUser.organismId)
+            .value(authUser.organismId)
         writer.name("login")
-                .value(authUser.login)
+            .value(authUser.login)
 
         writer.endObject()
     }

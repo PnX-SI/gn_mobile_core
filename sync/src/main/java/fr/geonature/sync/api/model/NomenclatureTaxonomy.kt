@@ -13,4 +13,5 @@ data class NomenclatureTaxonomy(
     val kingdom: String,
 
     @SerializedName("group2_inpn")
-    val group: String)
+    val group: String
+)

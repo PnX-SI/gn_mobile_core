@@ -33,10 +33,11 @@ class AuthLoginJsonReader {
 
         try {
             return read(StringReader(json))
-        }
-        catch (ioe: IOException) {
-            Log.w(TAG,
-                  ioe.message)
+        } catch (ioe: IOException) {
+            Log.w(
+                TAG,
+                ioe.message
+            )
         }
 
         return null
@@ -79,8 +80,10 @@ class AuthLoginJsonReader {
             return null
         }
 
-        return AuthLogin(authUser,
-                         expires)
+        return AuthLogin(
+            authUser,
+            expires
+        )
     }
 
     @Throws(IOException::class)
@@ -112,12 +115,14 @@ class AuthLoginJsonReader {
             return null
         }
 
-        return AuthUser(id,
-                        lastname,
-                        firstname,
-                        applicationId,
-                        organismId,
-                        login)
+        return AuthUser(
+            id,
+            lastname,
+            firstname,
+            applicationId,
+            organismId,
+            login
+        )
     }
 
     companion object {

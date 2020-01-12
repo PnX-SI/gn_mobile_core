@@ -1,5 +1,7 @@
 # Sync
 
+![sync_launcher](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
+
 Synchronize local database through GeoNature API:
 
 - Users (e.g. Observers)

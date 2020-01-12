@@ -22,4 +22,5 @@ data class TaxrefArea(
     val numberOfObservers: Int,
 
     @SerializedName("last_date")
-    val lastUpdatedAt: Date)
+    val lastUpdatedAt: Date
+)

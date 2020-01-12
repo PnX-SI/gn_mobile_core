@@ -7,20 +7,24 @@ import com.google.gson.annotations.SerializedName
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AuthUser(id: Long,
-               lastname: String,
-               firstname: String,
+class AuthUser(
+    id: Long,
+    lastname: String,
+    firstname: String,
 
-               @SerializedName("id_application")
-               val applicationId: Int,
+    @SerializedName("id_application")
+    val applicationId: Int,
 
-               @SerializedName("id_organisme")
-               val organismId: Int,
+    @SerializedName("id_organisme")
+    val organismId: Int,
 
-               @SerializedName("identifiant")
-               val login: String) : User(id,
-                                         lastname,
-                                         firstname) {
+    @SerializedName("identifiant")
+    val login: String
+) : User(
+    id,
+    lastname,
+    firstname
+) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

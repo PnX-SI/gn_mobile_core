@@ -15,20 +15,28 @@ import fr.geonature.commons.data.helper.get
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = NomenclatureTaxonomy.TABLE_NAME,
-        primaryKeys = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID, Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
-        indices = [Index(value = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP])],
-        foreignKeys = [ForeignKey(entity = Nomenclature::class,
-                                  parentColumns = [Nomenclature.COLUMN_ID],
-                                  childColumns = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID],
-                                  onDelete = ForeignKey.CASCADE), ForeignKey(entity = Taxonomy::class,
-                                                                             parentColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
-                                                                             childColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
-                                                                             onDelete = ForeignKey.CASCADE)])
-class NomenclatureTaxonomy(@ColumnInfo(name = COLUMN_NOMENCLATURE_ID)
-                           var nomenclatureId: Long,
-                           @Embedded
-                           var taxonomy: Taxonomy) {
+@Entity(
+    tableName = NomenclatureTaxonomy.TABLE_NAME,
+    primaryKeys = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID, Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
+    indices = [Index(value = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP])],
+    foreignKeys = [ForeignKey(
+        entity = Nomenclature::class,
+        parentColumns = [Nomenclature.COLUMN_ID],
+        childColumns = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID],
+        onDelete = ForeignKey.CASCADE
+    ), ForeignKey(
+        entity = Taxonomy::class,
+        parentColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
+        childColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
+        onDelete = ForeignKey.CASCADE
+    )]
+)
+class NomenclatureTaxonomy(
+    @ColumnInfo(name = COLUMN_NOMENCLATURE_ID)
+    var nomenclatureId: Long,
+    @Embedded
+    var taxonomy: Taxonomy
+) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -62,21 +70,33 @@ class NomenclatureTaxonomy(@ColumnInfo(name = COLUMN_NOMENCLATURE_ID)
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_NOMENCLATURE_ID,
-                                  tableAlias),
-                           column(Taxonomy.COLUMN_KINGDOM,
-                                  tableAlias),
-                           column(Taxonomy.COLUMN_GROUP,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_NOMENCLATURE_ID,
+                    tableAlias
+                ),
+                column(
+                    Taxonomy.COLUMN_KINGDOM,
+                    tableAlias
+                ),
+                column(
+                    Taxonomy.COLUMN_GROUP,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
@@ -86,23 +106,36 @@ class NomenclatureTaxonomy(@ColumnInfo(name = COLUMN_NOMENCLATURE_ID)
          *
          * @return A newly created [NomenclatureTaxonomy] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): NomenclatureTaxonomy? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): NomenclatureTaxonomy? {
             if (cursor.isClosed) {
                 return null
             }
 
-            val taxonomy = Taxonomy.fromCursor(cursor,
-                                               tableAlias) ?: return null
+            val taxonomy = Taxonomy.fromCursor(
+                cursor,
+                tableAlias
+            ) ?: return null
 
             return try {
-                NomenclatureTaxonomy(requireNotNull(cursor.get(getColumnAlias(COLUMN_NOMENCLATURE_ID,
-                                                                              tableAlias))),
-                                     taxonomy)
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                NomenclatureTaxonomy(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_NOMENCLATURE_ID,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    taxonomy
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }

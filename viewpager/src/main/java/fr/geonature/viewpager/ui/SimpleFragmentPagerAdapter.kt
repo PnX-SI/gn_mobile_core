@@ -12,9 +12,13 @@ import java.util.ArrayList
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class SimpleFragmentPagerAdapter internal constructor(private val context: Context,
-                                                      fm: FragmentManager) : FragmentPagerAdapter(fm,
-                                                                                                  BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+class SimpleFragmentPagerAdapter internal constructor(
+    private val context: Context,
+    fm: FragmentManager
+) : FragmentPagerAdapter(
+    fm,
+    BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+) {
 
     val fragments: MutableMap<Int, Fragment> = LinkedHashMap()
 
@@ -30,11 +34,12 @@ class SimpleFragmentPagerAdapter internal constructor(private val context: Conte
         val fragment = getItem(position)
 
         return if (fragment is IValidateFragment) {
-            context.getString(R.string.page_title,
-                              position + 1,
-                              context.getText(fragment.getResourceTitle()))
-        }
-        else {
+            context.getString(
+                R.string.page_title,
+                position + 1,
+                context.getText(fragment.getResourceTitle())
+            )
+        } else {
             null
         }
     }

@@ -13,19 +13,25 @@ import fr.geonature.commons.data.helper.get
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = Taxon.TABLE_NAME,
-        primaryKeys = [AbstractTaxon.COLUMN_ID])
+@Entity(
+    tableName = Taxon.TABLE_NAME,
+    primaryKeys = [AbstractTaxon.COLUMN_ID]
+)
 class Taxon : AbstractTaxon {
 
-    constructor(id: Long,
-                name: String,
-                taxonomy: Taxonomy,
-                description: String? = null,
-                heritage: Boolean = false) : super(id,
-                                                   name,
-                                                   taxonomy,
-                                                   description,
-                                                   heritage)
+    constructor(
+        id: Long,
+        name: String,
+        taxonomy: Taxonomy,
+        description: String? = null,
+        heritage: Boolean = false
+    ) : super(
+        id,
+        name,
+        taxonomy,
+        description,
+        heritage
+    )
 
     private constructor(source: Parcel) : super(source)
 
@@ -48,23 +54,14 @@ class Taxon : AbstractTaxon {
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
-        }
-
-        /**
-         * Apply custom filter.
-         */
-        fun filter(queryString: String?): Pair<String?, Array<String>?> {
-            return if (queryString.isNullOrBlank()) Pair(null,
-                                                         null)
-            else {
-                val filter = "%$queryString%"
-                Pair("${getColumnAlias(COLUMN_NAME)} LIKE ?",
-                     arrayOf(filter))
-            }
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
@@ -74,30 +71,59 @@ class Taxon : AbstractTaxon {
          *
          * @return A newly created [Taxon] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): Taxon? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): Taxon? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                val taxonomy = Taxonomy.fromCursor(cursor,
-                                                   tableAlias) ?: return null
+                val taxonomy = Taxonomy.fromCursor(
+                    cursor,
+                    tableAlias
+                ) ?: return null
 
-                Taxon(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
-                                                               tableAlias))),
-                      requireNotNull(cursor.get(getColumnAlias(COLUMN_NAME,
-                                                               tableAlias))),
-                      taxonomy,
-                      cursor.get(getColumnAlias(COLUMN_DESCRIPTION,
-                                                tableAlias)),
-                      requireNotNull(cursor.get(getColumnAlias(COLUMN_HERITAGE,
-                                                               tableAlias),
-                                                false)))
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                Taxon(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_ID,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_NAME,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    taxonomy,
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_DESCRIPTION,
+                            tableAlias
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_HERITAGE,
+                                tableAlias
+                            ),
+                            false
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }
@@ -113,6 +139,59 @@ class Taxon : AbstractTaxon {
             override fun newArray(size: Int): Array<Taxon?> {
                 return arrayOfNulls(size)
             }
+        }
+    }
+
+    /**
+     * Filter query builder.
+     */
+    class Filter : AbstractTaxon.Filter(TABLE_NAME) {
+
+        /**
+         * Filter by taxonomy.
+         *
+         * @return this
+         */
+        fun byTaxonomy(taxonomy: Taxonomy): Filter {
+            if (taxonomy.isAny()) {
+                return this
+            }
+
+            if (taxonomy.group == Taxonomy.ANY) {
+                return byKingdom(taxonomy.kingdom)
+            }
+
+            this.wheres.add(
+                Pair(
+                    "((${Taxonomy.getColumnAlias(
+                        Taxonomy.COLUMN_KINGDOM, tableAlias
+                    )} = ?) AND (${Taxonomy.getColumnAlias(
+                        Taxonomy.COLUMN_GROUP,
+                        tableAlias
+                    )} = ?))",
+                    arrayOf(taxonomy.kingdom, taxonomy.group)
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Filter by taxonomy kingdom.
+         *
+         * @return this
+         */
+        fun byKingdom(kingdom: String): Filter {
+            this.wheres.add(
+                Pair(
+                    "(${Taxonomy.getColumnAlias(
+                        Taxonomy.COLUMN_KINGDOM, tableAlias
+                    )} = ?)",
+                    arrayOf(kingdom)
+                )
+            )
+
+            return this
         }
     }
 }

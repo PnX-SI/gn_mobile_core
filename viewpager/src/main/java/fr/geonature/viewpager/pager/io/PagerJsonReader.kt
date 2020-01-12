@@ -32,10 +32,11 @@ class PagerJsonReader {
 
         try {
             return read(StringReader(json))
-        }
-        catch (ioe: IOException) {
-            Log.w(TAG,
-                  ioe.message)
+        } catch (ioe: IOException) {
+            Log.w(
+                TAG,
+                ioe.message
+            )
         }
 
         return null

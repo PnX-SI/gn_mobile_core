@@ -1,13 +1,13 @@
 package fr.geonature.viewpager.pager.io
 
 import fr.geonature.viewpager.pager.Pager
+import java.io.StringWriter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.io.StringWriter
 
 /**
  * Unit test for [PagerJsonWriter].
@@ -30,8 +30,10 @@ class PagerJsonWriterTest {
 
         // when write this pager as JSON string
         val writer = StringWriter()
-        pagerJsonWriter.write(writer,
-                              pager)
+        pagerJsonWriter.write(
+            writer,
+            pager
+        )
 
         // then
         assertNotNull(writer.toString())
@@ -47,8 +49,10 @@ class PagerJsonWriterTest {
             .append('}')
             .toString()
 
-        assertEquals(expectedJsonString,
-                     writer.toString())
+        assertEquals(
+            expectedJsonString,
+            writer.toString()
+        )
     }
 
     @Test
@@ -64,8 +68,10 @@ class PagerJsonWriterTest {
 
         // when write this pager as JSON string
         val writer = StringWriter()
-        pagerJsonWriter.write(writer,
-                              pager)
+        pagerJsonWriter.write(
+            writer,
+            pager
+        )
 
         // then
         assertNotNull(writer.toString())
@@ -81,7 +87,9 @@ class PagerJsonWriterTest {
             .append('}')
             .toString()
 
-        assertEquals(expectedJsonString,
-                     writer.toString())
+        assertEquals(
+            expectedJsonString,
+            writer.toString()
+        )
     }
 }

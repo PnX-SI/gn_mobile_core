@@ -21,30 +21,60 @@ abstract class TaxonomyDao : BaseDao<Taxonomy>() {
 
         init {
             selectQueryBuilder.columns(*Taxonomy.defaultProjection())
-                    .orderBy(column(Taxonomy.COLUMN_KINGDOM,
-                                    entityTableName).second,
-                             ASC)
-                    .orderBy(column(Taxonomy.COLUMN_GROUP,
-                                    entityTableName).second,
-                             ASC)
+                .column(
+                    "CASE ${column(
+                        Taxonomy.COLUMN_GROUP,
+                        entityTableName
+                    ).first} WHEN '${Taxonomy.ANY}' THEN 0 ELSE 1 END",
+                    "type"
+                )
+                .orderBy(
+                    column(
+                        Taxonomy.COLUMN_KINGDOM,
+                        entityTableName
+                    ).second,
+                    ASC
+                )
+                .orderBy("type", ASC)
+                .orderBy(
+                    column(
+                        Taxonomy.COLUMN_GROUP,
+                        entityTableName
+                    ).second,
+                    ASC
+                )
         }
 
         fun whereKingdom(kingdom: String): QB {
-            selectQueryBuilder.where("${column(Taxonomy.COLUMN_KINGDOM,
-                                               entityTableName).second} LIKE ?",
-                                     kingdom)
+            selectQueryBuilder.where(
+                "${column(
+                    Taxonomy.COLUMN_KINGDOM,
+                    entityTableName
+                ).second} LIKE ?",
+                kingdom
+            )
 
             return this
         }
 
-        fun whereKingdomAndGroup(kingdom: String,
-                                 group: String): QB {
-            selectQueryBuilder.where("${column(Taxonomy.COLUMN_KINGDOM,
-                                               entityTableName).second} LIKE ?",
-                                     kingdom)
-                    .andWhere("${column(Taxonomy.COLUMN_GROUP,
-                                        entityTableName).second} LIKE ?",
-                              group)
+        fun whereKingdomAndGroup(
+            kingdom: String,
+            group: String
+        ): QB {
+            selectQueryBuilder.where(
+                "${column(
+                    Taxonomy.COLUMN_KINGDOM,
+                    entityTableName
+                ).second} LIKE ?",
+                kingdom
+            )
+                .andWhere(
+                    "${column(
+                        Taxonomy.COLUMN_GROUP,
+                        entityTableName
+                    ).second} LIKE ?",
+                    group
+                )
 
             return this
         }

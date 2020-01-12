@@ -28,14 +28,18 @@ class PagerTest {
 
         // when we obtain a Parcel object to write the Pager instance to it
         val parcel = Parcel.obtain()
-        pager.writeToParcel(parcel,
-                            0)
+        pager.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(pager,
-                     Pager.createFromParcel(parcel))
+        assertEquals(
+            pager,
+            Pager.createFromParcel(parcel)
+        )
     }
 }

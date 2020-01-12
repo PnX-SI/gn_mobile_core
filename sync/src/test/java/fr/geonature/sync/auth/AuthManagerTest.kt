@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthUser
+import java.util.Calendar
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -13,7 +14,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.util.Calendar
 
 /**
  * Unit tests about [AuthManager].
@@ -30,8 +30,8 @@ class AuthManagerTest {
         val application = ApplicationProvider.getApplicationContext<Application>()
         authManager = AuthManager.getInstance(application)
         authManager.preferenceManager.edit()
-                .clear()
-                .commit()
+            .clear()
+            .commit()
     }
 
     @Test
@@ -52,8 +52,10 @@ class AuthManagerTest {
         val cookie = authManager.getCookie()
 
         // then
-        assertEquals("c_1234",
-                     cookie)
+        assertEquals(
+            "c_1234",
+            cookie
+        )
     }
 
     @Test
@@ -68,18 +70,26 @@ class AuthManagerTest {
     @Test
     fun testSaveAndGetAuthLogin() {
         // given an AuthLogin instance to save and read
-        val authLogin = AuthLogin(AuthUser(1234L,
-                                           "Admin",
-                                           "Test",
-                                           3,
-                                           1,
-                                           "admin"),
-                                  Calendar.getInstance().apply {
-                                      add(Calendar.DAY_OF_YEAR,
-                                          7)
-                                      set(Calendar.MILLISECOND,
-                                          0)
-                                  }.time)
+        val authLogin = AuthLogin(
+            AuthUser(
+                1234L,
+                "Admin",
+                "Test",
+                3,
+                1,
+                "admin"
+            ),
+            Calendar.getInstance().apply {
+                add(
+                    Calendar.DAY_OF_YEAR,
+                    7
+                )
+                set(
+                    Calendar.MILLISECOND,
+                    0
+                )
+            }.time
+        )
 
         // when saving this AuthLogin
         val saved = runBlocking { authManager.setAuthLogin(authLogin) }
@@ -92,23 +102,31 @@ class AuthManagerTest {
 
         // then
         assertNotNull(authLoginFromManager)
-        assertEquals(authLogin,
-                     authLoginFromManager)
+        assertEquals(
+            authLogin,
+            authLoginFromManager
+        )
     }
 
     @Test
     fun testSaveAndGetExpiredAuthLogin() {
         // given an expired AuthLogin instance to save and read
-        val authLogin = AuthLogin(AuthUser(1234L,
-                                           "Admin",
-                                           "Test",
-                                           3,
-                                           1,
-                                           "admin"),
-                                  Calendar.getInstance().apply {
-                                      add(Calendar.DAY_OF_YEAR,
-                                          -1)
-                                  }.time)
+        val authLogin = AuthLogin(
+            AuthUser(
+                1234L,
+                "Admin",
+                "Test",
+                3,
+                1,
+                "admin"
+            ),
+            Calendar.getInstance().apply {
+                add(
+                    Calendar.DAY_OF_YEAR,
+                    -1
+                )
+            }.time
+        )
 
         // when saving this AuthLogin
         val saved = runBlocking { authManager.setAuthLogin(authLogin) }

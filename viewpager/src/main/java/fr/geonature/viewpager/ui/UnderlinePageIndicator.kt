@@ -17,12 +17,16 @@ import fr.geonature.viewpager.R
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class UnderlinePageIndicator @JvmOverloads constructor(context: Context,
-                                                       attrs: AttributeSet? = null,
-                                                       defStyleAttr: Int = R.attr.underlinePageIndicatorStyle) : View(context,
-                                                                                                                      attrs,
-                                                                                                                      defStyleAttr),
-                                                                                                                 IPagerIndicator {
+class UnderlinePageIndicator @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = R.attr.underlinePageIndicatorStyle
+) : View(
+    context,
+    attrs,
+    defStyleAttr
+),
+    IPagerIndicator {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -34,8 +38,10 @@ class UnderlinePageIndicator @JvmOverloads constructor(context: Context,
     private var selectedColor = 0
 
     init {
-        init(attrs,
-             defStyleAttr)
+        init(
+            attrs,
+            defStyleAttr
+        )
     }
 
     override fun setViewPager(viewPager: ViewPager) {
@@ -55,8 +61,10 @@ class UnderlinePageIndicator @JvmOverloads constructor(context: Context,
         invalidate()
     }
 
-    override fun setViewPager(viewPager: ViewPager,
-                              initialPosition: Int) {
+    override fun setViewPager(
+        viewPager: ViewPager,
+        initialPosition: Int
+    ) {
         setViewPager(viewPager)
         setCurrentItem(initialPosition)
     }
@@ -73,9 +81,11 @@ class UnderlinePageIndicator @JvmOverloads constructor(context: Context,
         invalidate()
     }
 
-    override fun onPageScrolled(position: Int,
-                                positionOffset: Float,
-                                positionOffsetPixels: Int) {
+    override fun onPageScrolled(
+        position: Int,
+        positionOffset: Float,
+        positionOffsetPixels: Int
+    ) {
         currentPage = position
         this.positionOffset = positionOffset
         invalidate()
@@ -137,27 +147,35 @@ class UnderlinePageIndicator @JvmOverloads constructor(context: Context,
         val top = paddingTop.toFloat()
         val bottom = (height - paddingBottom).toFloat()
 
-        canvas.drawRect(left,
-                        top,
-                        right,
-                        bottom,
-                        paint)
+        canvas.drawRect(
+            left,
+            top,
+            right,
+            bottom,
+            paint
+        )
     }
 
-    private fun init(attrs: AttributeSet?,
-                     defStyle: Int) {
+    private fun init(
+        attrs: AttributeSet?,
+        defStyle: Int
+    ) {
         if (isInEditMode) {
             return
         }
 
         // retrieve styles attributes
-        val typedArray = context.obtainStyledAttributes(attrs,
-                                                        R.styleable.UnderlinePageIndicator,
-                                                        defStyle,
-                                                        0)
+        val typedArray = context.obtainStyledAttributes(
+            attrs,
+            R.styleable.UnderlinePageIndicator,
+            defStyle,
+            0
+        )
 
-        selectedColor = typedArray.getColor(R.styleable.UnderlinePageIndicator_selectedColor,
-                                            Color.BLUE)
+        selectedColor = typedArray.getColor(
+            R.styleable.UnderlinePageIndicator_selectedColor,
+            Color.BLUE
+        )
 
         typedArray.recycle()
     }
@@ -171,10 +189,14 @@ class UnderlinePageIndicator @JvmOverloads constructor(context: Context,
             currentPage = source.readInt()
         }
 
-        override fun writeToParcel(dest: Parcel,
-                                   flags: Int) {
-            super.writeToParcel(dest,
-                                flags)
+        override fun writeToParcel(
+            dest: Parcel,
+            flags: Int
+        ) {
+            super.writeToParcel(
+                dest,
+                flags
+            )
 
             dest.writeInt(currentPage)
         }

@@ -24,56 +24,96 @@ class NomenclatureWithTaxonomyTest {
 
     @Test
     fun testEquals() {
-        assertEquals(NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234)),
-                     NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234)))
+        assertEquals(
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234
+                )
+            ),
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234
+                )
+            )
+        )
 
-        assertEquals(NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234,
-                                                                   NomenclatureType(1234,
-                                                                                    "SGR",
-                                                                                    "label"))),
-                     NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234,
-                                                                   NomenclatureType(1234,
-                                                                                    "SGR",
-                                                                                    "label"))))
+        assertEquals(
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            ),
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            )
+        )
 
-        assertEquals(NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234,
-                                                                   NomenclatureType(1234,
-                                                                                    "SGR",
-                                                                                    "label"))).also {
-            it.taxonony = Taxonomy("Animalia",
-                                   "Ascidies")
+        assertEquals(NomenclatureWithTaxonomy(
+            NomenclatureWithType(
+                2,
+                "SN",
+                "1234:002",
+                "label",
+                1234,
+                NomenclatureType(
+                    1234,
+                    "SGR",
+                    "label"
+                )
+            )
+        ).also {
+            it.taxonony = Taxonomy(
+                "Animalia",
+                "Ascidies"
+            )
         },
-                     NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234,
-                                                                   NomenclatureType(1234,
-                                                                                    "SGR",
-                                                                                    "label"))).also {
-                         it.taxonony = Taxonomy("Animalia",
-                                                "Ascidies")
-                     })
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            ).also {
+                it.taxonony = Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            })
     }
 
     @Test
@@ -102,18 +142,28 @@ class NomenclatureWithTaxonomyTest {
 
         // then
         assertNotNull(nomenclatureWithTaxonomy)
-        assertEquals(NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234,
-                                                                   NomenclatureType(1234,
-                                                                                    "SGR",
-                                                                                    "label"))).also {
-            it.taxonony = Taxonomy("Animalia",
-                                   "Ascidies")
-        },
-                     nomenclatureWithTaxonomy)
+        assertEquals(
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            ).also {
+                it.taxonony = Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            },
+            nomenclatureWithTaxonomy
+        )
     }
 
     @Test
@@ -123,7 +173,9 @@ class NomenclatureWithTaxonomyTest {
 
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in NomenclatureTaxonomy.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                in NomenclatureTaxonomy.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
+                    IllegalArgumentException::class.java
+                )
                 else -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
             }
         }
@@ -142,15 +194,23 @@ class NomenclatureWithTaxonomyTest {
 
         // then
         assertNotNull(nomenclatureWithTaxonomy)
-        assertEquals(NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                   "SN",
-                                                                   "1234:002",
-                                                                   "label",
-                                                                   1234,
-                                                                   NomenclatureType(1234,
-                                                                                    "SGR",
-                                                                                    "label"))),
-                     nomenclatureWithTaxonomy)
+        assertEquals(
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            ),
+            nomenclatureWithTaxonomy
+        )
     }
 
     @Test
@@ -160,8 +220,12 @@ class NomenclatureWithTaxonomyTest {
 
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in NomenclatureTaxonomy.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
-                else -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                in NomenclatureTaxonomy.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(
+                    index
+                )
+                else -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
+                    IllegalArgumentException::class.java
+                )
             }
         }
 
@@ -175,55 +239,93 @@ class NomenclatureWithTaxonomyTest {
     @Test
     fun testParcelable() {
         // given a nomenclature with taxonomy instance
-        val nomenclatureWithTaxonomy = NomenclatureWithTaxonomy(NomenclatureWithType(2,
-                                                                                     "SN",
-                                                                                     "1234:002",
-                                                                                     "label",
-                                                                                     1234,
-                                                                                     NomenclatureType(1234,
-                                                                                                      "SGR",
-                                                                                                      "label"))).also {
-            it.taxonony = Taxonomy("Animalia",
-                                   "Ascidies")
+        val nomenclatureWithTaxonomy = NomenclatureWithTaxonomy(
+            NomenclatureWithType(
+                2,
+                "SN",
+                "1234:002",
+                "label",
+                1234,
+                NomenclatureType(
+                    1234,
+                    "SGR",
+                    "label"
+                )
+            )
+        ).also {
+            it.taxonony = Taxonomy(
+                "Animalia",
+                "Ascidies"
+            )
         }
 
         // when we obtain a Parcel object to write the nomenclature with taxonomy instance to it
         val parcel = Parcel.obtain()
-        nomenclatureWithTaxonomy.writeToParcel(parcel,
-                                               0)
+        nomenclatureWithTaxonomy.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(nomenclatureWithTaxonomy,
-                     NomenclatureWithTaxonomy.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            nomenclatureWithTaxonomy,
+            NomenclatureWithTaxonomy.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
-                                      "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
-                                      "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"),
-                                  Pair("${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
-                                      "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_ID}\"",
-                                      "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_CODE}\"",
-                                      "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_HIERARCHY}\"",
-                                      "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_DEFAULT_LABEL}\"",
-                                      "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}"),
-                                  Pair("${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_TYPE_ID}\"",
-                                      "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}"),
-                                  Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}\"",
-                                      "${NomenclatureTaxonomy.TABLE_NAME}_${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}"),
-                                  Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
-                                      "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"),
-                                  Pair("${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
-                                      "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_ID}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_ID}"
+                ),
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_MNEMONIC}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_MNEMONIC}"
+                ),
+                Pair(
+                    "${NomenclatureType.TABLE_NAME}.\"${NomenclatureType.COLUMN_DEFAULT_LABEL}\"",
+                    "${NomenclatureType.TABLE_NAME}_${NomenclatureType.COLUMN_DEFAULT_LABEL}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_ID}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_ID}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_CODE}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_CODE}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_HIERARCHY}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_HIERARCHY}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_DEFAULT_LABEL}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_DEFAULT_LABEL}"
+                ),
+                Pair(
+                    "${Nomenclature.TABLE_NAME}.\"${Nomenclature.COLUMN_TYPE_ID}\"",
+                    "${Nomenclature.TABLE_NAME}_${Nomenclature.COLUMN_TYPE_ID}"
+                ),
+                Pair(
+                    "${NomenclatureTaxonomy.TABLE_NAME}.\"${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}\"",
+                    "${NomenclatureTaxonomy.TABLE_NAME}_${NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID}"
+                ),
+                Pair(
+                    "${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_KINGDOM}\"",
+                    "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM}"
+                ),
+                Pair(
+                    "${NomenclatureTaxonomy.TABLE_NAME}.\"${Taxonomy.COLUMN_GROUP}\"",
+                    "${NomenclatureTaxonomy.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

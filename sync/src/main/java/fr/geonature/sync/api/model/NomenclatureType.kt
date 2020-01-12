@@ -18,4 +18,5 @@ data class NomenclatureType(
     val defaultLabel: String,
 
     @SerializedName("nomenclatures")
-    val nomenclatures: List<Nomenclature>)
+    val nomenclatures: List<Nomenclature>
+)

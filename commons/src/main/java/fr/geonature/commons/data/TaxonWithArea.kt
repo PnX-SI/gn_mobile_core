@@ -13,24 +13,30 @@ class TaxonWithArea : AbstractTaxon {
 
     var taxonArea: TaxonArea? = null
 
-    constructor(id: Long,
-                name: String,
-                taxonomy: Taxonomy,
-                description: String? = null,
-                heritage: Boolean = false,
-                taxonArea: TaxonArea?) : super(id,
-                                               name,
-                                               taxonomy,
-                                               description,
-                                               heritage) {
+    constructor(
+        id: Long,
+        name: String,
+        taxonomy: Taxonomy,
+        description: String? = null,
+        heritage: Boolean = false,
+        taxonArea: TaxonArea?
+    ) : super(
+        id,
+        name,
+        taxonomy,
+        description,
+        heritage
+    ) {
         this.taxonArea = taxonArea
     }
 
-    constructor(taxon: Taxon) : super(taxon.id,
-                                      taxon.name,
-                                      taxon.taxonomy,
-                                      taxon.description,
-                                      taxon.heritage)
+    constructor(taxon: Taxon) : super(
+        taxon.id,
+        taxon.name,
+        taxon.taxonomy,
+        taxon.description,
+        taxon.heritage
+    )
 
     private constructor(source: Parcel) : super(source) {
         taxonArea = source.readParcelable(TaxonArea::class.java.classLoader)
@@ -53,13 +59,19 @@ class TaxonWithArea : AbstractTaxon {
         return result
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
-        super.writeToParcel(dest,
-                            flags)
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
+        super.writeToParcel(
+            dest,
+            flags
+        )
 
-        dest?.writeParcelable(taxonArea,
-                              flags)
+        dest?.writeParcelable(
+            taxonArea,
+            flags
+        )
     }
 
     companion object {
@@ -68,8 +80,10 @@ class TaxonWithArea : AbstractTaxon {
          * Gets the default projection.
          */
         fun defaultProjection(): Array<Pair<String, String>> {
-            return arrayOf(*Taxon.defaultProjection(),
-                           *TaxonArea.defaultProjection())
+            return arrayOf(
+                *Taxon.defaultProjection(),
+                *TaxonArea.defaultProjection()
+            )
         }
 
         /**
@@ -91,14 +105,15 @@ class TaxonWithArea : AbstractTaxon {
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<TaxonWithArea> = object : Parcelable.Creator<TaxonWithArea> {
-            override fun createFromParcel(parcel: Parcel): TaxonWithArea {
-                return TaxonWithArea(parcel)
-            }
+        val CREATOR: Parcelable.Creator<TaxonWithArea> =
+            object : Parcelable.Creator<TaxonWithArea> {
+                override fun createFromParcel(parcel: Parcel): TaxonWithArea {
+                    return TaxonWithArea(parcel)
+                }
 
-            override fun newArray(size: Int): Array<TaxonWithArea?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<TaxonWithArea?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

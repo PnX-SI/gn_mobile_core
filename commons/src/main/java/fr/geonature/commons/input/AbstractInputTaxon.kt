@@ -40,9 +40,13 @@ abstract class AbstractInputTaxon : Parcelable {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
-        dest?.writeParcelable(taxon,
-                              flags)
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
+        dest?.writeParcelable(
+            taxon,
+            flags
+        )
     }
 }

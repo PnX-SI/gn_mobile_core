@@ -19,18 +19,22 @@ import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import fr.geonature.sync.util.SettingsUtils
+import java.util.Date
 import org.json.JSONObject
 import retrofit2.Response
-import java.util.Date
 
 /**
  * Local data synchronization worker.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class DataSyncWorker(appContext: Context,
-                     workerParams: WorkerParameters) : Worker(appContext,
-                                                              workerParams) {
+class DataSyncWorker(
+    appContext: Context,
+    workerParams: WorkerParameters
+) : Worker(
+    appContext,
+    workerParams
+) {
 
     private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
 
@@ -41,26 +45,34 @@ class DataSyncWorker(appContext: Context,
 
         val geoNatureServerUrl = SettingsUtils.getGeoNatureServerUrl(applicationContext)
 
-        Log.i(TAG,
-              "starting local data synchronization from '$geoNatureServerUrl'...")
+        Log.i(
+            TAG,
+            "starting local data synchronization from '$geoNatureServerUrl'..."
+        )
 
         if (geoNatureServerUrl.isNullOrBlank()) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_url_configuration))
-            Log.w(TAG,
-                  "No GeoNature server configured")
+            Log.w(
+                TAG,
+                "No GeoNature server configured"
+            )
 
             return Result.failure()
         }
 
-        val geoNatureServiceClient = GeoNatureAPIClient.instance(applicationContext,
-                                                                 geoNatureServerUrl)
-                .value
+        val geoNatureServiceClient = GeoNatureAPIClient.instance(
+            applicationContext,
+            geoNatureServerUrl
+        )
+            .value
 
         val syncDatasetResult = syncDataset(geoNatureServiceClient)
 
         if (syncDatasetResult is Result.Failure) {
-            Log.i(TAG,
-                  "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms")
+            Log.i(
+                TAG,
+                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
+            )
 
             return syncDatasetResult
         }
@@ -68,8 +80,10 @@ class DataSyncWorker(appContext: Context,
         val syncInputObserversResult = syncInputObservers(geoNatureServiceClient)
 
         if (syncInputObserversResult is Result.Failure) {
-            Log.i(TAG,
-                  "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms")
+            Log.i(
+                TAG,
+                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
+            )
 
             return syncInputObserversResult
         }
@@ -77,8 +91,10 @@ class DataSyncWorker(appContext: Context,
         val syncTaxonomyRanksResult = syncTaxonomyRanks(geoNatureServiceClient)
 
         if (syncTaxonomyRanksResult is Result.Failure) {
-            Log.i(TAG,
-                  "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms")
+            Log.i(
+                TAG,
+                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
+            )
 
             return syncTaxonomyRanksResult
         }
@@ -86,16 +102,20 @@ class DataSyncWorker(appContext: Context,
         val syncTaxaResult = syncTaxa(geoNatureServiceClient)
 
         if (syncTaxaResult is Result.Failure) {
-            Log.i(TAG,
-                  "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms")
+            Log.i(
+                TAG,
+                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
+            )
 
             return syncTaxaResult
         }
 
         val syncNomenclatureResult = syncNomenclature(geoNatureServiceClient)
 
-        Log.i(TAG,
-              "local data synchronization ${if (syncNomenclatureResult is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms")
+        Log.i(
+            TAG,
+            "local data synchronization ${if (syncNomenclatureResult is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms"
+        )
 
         if (syncNomenclatureResult is Result.Success) {
             dataSyncManager.updateLastSynchronizedDate()
@@ -108,7 +128,7 @@ class DataSyncWorker(appContext: Context,
     private fun syncDataset(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val response = geoNatureServiceClient.getMetaDatasets()
-                    .execute()
+                .execute()
 
             checkResponse(response).run {
                 if (this is Result.Failure) {
@@ -119,19 +139,24 @@ class DataSyncWorker(appContext: Context,
             val jsonString = response.body()?.string() ?: return Result.failure()
             val dataset = DatasetJsonReader().read(jsonString)
 
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_dataset,
-                                                                               dataset.size))
+            dataSyncManager.syncMessage.postValue(
+                applicationContext.getString(
+                    R.string.sync_data_dataset,
+                    dataset.size
+                )
+            )
 
-            Log.i(TAG,
-                  "dataset to update: ${dataset.size}")
+            Log.i(
+                TAG,
+                "dataset to update: ${dataset.size}"
+            )
 
             LocalDatabase.getInstance(applicationContext)
-                    .datasetDao()
-                    .insert(*dataset.toTypedArray())
+                .datasetDao()
+                .insert(*dataset.toTypedArray())
 
             Result.success()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
 
             Result.failure()
@@ -141,7 +166,7 @@ class DataSyncWorker(appContext: Context,
     private fun syncInputObservers(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val response = geoNatureServiceClient.getUsers()
-                    .execute()
+                .execute()
 
             checkResponse(response).run {
                 if (this is Result.Failure) {
@@ -151,25 +176,32 @@ class DataSyncWorker(appContext: Context,
 
             val users = response.body() ?: return Result.failure()
             val inputObservers = users.map {
-                InputObserver(it.id,
-                              it.lastname,
-                              it.firstname)
+                InputObserver(
+                    it.id,
+                    it.lastname,
+                    it.firstname
+                )
             }
-                    .toTypedArray()
+                .toTypedArray()
 
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_observers,
-                                                                               users.size))
+            dataSyncManager.syncMessage.postValue(
+                applicationContext.getString(
+                    R.string.sync_data_observers,
+                    users.size
+                )
+            )
 
-            Log.i(TAG,
-                  "users to update: ${users.size}")
+            Log.i(
+                TAG,
+                "users to update: ${users.size}"
+            )
 
             LocalDatabase.getInstance(applicationContext)
-                    .inputObserverDao()
-                    .insert(*inputObservers)
+                .inputObserverDao()
+                .insert(*inputObservers)
 
             Result.success()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
 
             Result.failure()
@@ -179,7 +211,7 @@ class DataSyncWorker(appContext: Context,
     private fun syncTaxonomyRanks(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val taxonomyRanksResponse = geoNatureServiceClient.getTaxonomyRanks()
-                    .execute()
+                .execute()
 
             checkResponse(taxonomyRanksResponse).run {
                 if (this is Result.Failure) {
@@ -190,16 +222,17 @@ class DataSyncWorker(appContext: Context,
             val jsonString = taxonomyRanksResponse.body()?.string() ?: return Result.failure()
             val taxonomy = TaxonomyJsonReader().read(jsonString)
 
-            Log.i(TAG,
-                  "taxonomy to update: ${taxonomy.size}")
+            Log.i(
+                TAG,
+                "taxonomy to update: ${taxonomy.size}"
+            )
 
             LocalDatabase.getInstance(applicationContext)
-                    .taxonomyDao()
-                    .insert(*taxonomy.toTypedArray())
+                .taxonomyDao()
+                .insert(*taxonomy.toTypedArray())
 
             Result.success()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
 
             Result.failure()
@@ -209,7 +242,7 @@ class DataSyncWorker(appContext: Context,
     private fun syncTaxa(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val taxrefResponse = geoNatureServiceClient.getTaxref()
-                    .execute()
+                .execute()
 
             checkResponse(taxrefResponse).run {
                 if (this is Result.Failure) {
@@ -218,7 +251,7 @@ class DataSyncWorker(appContext: Context,
             }
 
             val taxrefAreasResponse = geoNatureServiceClient.getTaxrefAreas()
-                    .execute()
+                .execute()
 
             checkResponse(taxrefAreasResponse).run {
                 if (this is Result.Failure) {
@@ -230,46 +263,59 @@ class DataSyncWorker(appContext: Context,
             val taxrefAreas = taxrefAreasResponse.body() ?: return Result.failure()
 
             val taxa = taxref.map {
-                Taxon(it.id,
-                      it.name,
-                      Taxonomy(it.kingdom,
-                               it.group),
-                      null)
+                Taxon(
+                    it.id,
+                    it.name,
+                    Taxonomy(
+                        it.kingdom,
+                        it.group
+                    ),
+                    null
+                )
             }
-                    .toTypedArray()
+                .toTypedArray()
 
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_taxa,
-                                                                               taxa.size))
+            dataSyncManager.syncMessage.postValue(
+                applicationContext.getString(
+                    R.string.sync_data_taxa,
+                    taxa.size
+                )
+            )
 
-            Log.i(TAG,
-                  "taxa to update: ${taxa.size}")
+            Log.i(
+                TAG,
+                "taxa to update: ${taxa.size}"
+            )
 
             LocalDatabase.getInstance(applicationContext)
-                    .taxonDao()
-                    .insert(*taxa)
+                .taxonDao()
+                .insert(*taxa)
 
             val taxonAreas = taxrefAreas.asSequence()
-                    .filter { taxrefArea -> taxa.any { it.id == taxrefArea.taxrefId } }
-                    .map {
-                        TaxonArea(it.taxrefId,
-                                  it.areaId,
-                                  it.color,
-                                  it.numberOfObservers,
-                                  it.lastUpdatedAt)
-                    }
-                    .toList()
-                    .toTypedArray()
+                .filter { taxrefArea -> taxa.any { it.id == taxrefArea.taxrefId } }
+                .map {
+                    TaxonArea(
+                        it.taxrefId,
+                        it.areaId,
+                        it.color,
+                        it.numberOfObservers,
+                        it.lastUpdatedAt
+                    )
+                }
+                .toList()
+                .toTypedArray()
 
-            Log.i(TAG,
-                  "taxa with areas to update: ${taxonAreas.size}")
+            Log.i(
+                TAG,
+                "taxa with areas to update: ${taxonAreas.size}"
+            )
 
             LocalDatabase.getInstance(applicationContext)
-                    .taxonAreaDao()
-                    .insert(*taxonAreas)
+                .taxonAreaDao()
+                .insert(*taxonAreas)
 
             Result.success()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
 
             Result.failure()
@@ -279,7 +325,7 @@ class DataSyncWorker(appContext: Context,
     private fun syncNomenclature(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val nomenclatureResponse = geoNatureServiceClient.getNomenclatures()
-                    .execute()
+                .execute()
 
             checkResponse(nomenclatureResponse).run {
                 if (this is Result.Failure) {
@@ -289,65 +335,91 @@ class DataSyncWorker(appContext: Context,
 
             val nomenclatureTypes = nomenclatureResponse.body() ?: return Result.failure()
             val validNomenclatureTypesToUpdate = nomenclatureTypes.asSequence()
-                    .filter { it.id > 0 }
-                    .filter { it.nomenclatures.isNotEmpty() }
+                .filter { it.id > 0 }
+                .filter { it.nomenclatures.isNotEmpty() }
 
             val nomenclatureTypesToUpdate = validNomenclatureTypesToUpdate.map {
-                NomenclatureType(it.id,
-                                 it.mnemonic,
-                                 it.defaultLabel)
+                NomenclatureType(
+                    it.id,
+                    it.mnemonic,
+                    it.defaultLabel
+                )
             }
-                    .toList()
-                    .toTypedArray()
+                .toList()
+                .toTypedArray()
 
-            Log.i(TAG,
-                  "nomenclature types to update: ${nomenclatureTypesToUpdate.size}")
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_nomenclature_type,
-                                                                               nomenclatureTypesToUpdate.size))
+            Log.i(
+                TAG,
+                "nomenclature types to update: ${nomenclatureTypesToUpdate.size}"
+            )
+            dataSyncManager.syncMessage.postValue(
+                applicationContext.getString(
+                    R.string.sync_data_nomenclature_type,
+                    nomenclatureTypesToUpdate.size
+                )
+            )
 
             val nomenclaturesToUpdate = validNomenclatureTypesToUpdate.map { nomenclatureType ->
                 nomenclatureType.nomenclatures.asSequence()
-                        .filter { it.id > 0 }
-                        .map {
-                            Nomenclature(it.id,
-                                         it.code,
-                                         if (TextUtils.isEmpty(it.hierarchy)) nomenclatureType.id.toString() else it.hierarchy!!,
-                                         it.defaultLabel,
-                                         nomenclatureType.id)
-                        }
+                    .filter { it.id > 0 }
+                    .map {
+                        Nomenclature(
+                            it.id,
+                            it.code,
+                            if (TextUtils.isEmpty(it.hierarchy)) nomenclatureType.id.toString() else it.hierarchy!!,
+                            it.defaultLabel,
+                            nomenclatureType.id
+                        )
+                    }
             }
-                    .flatMap { it.asSequence() }
-                    .toList()
-                    .toTypedArray()
+                .flatMap { it.asSequence() }
+                .toList()
+                .toTypedArray()
 
-            val nomenclaturesTaxonomyToUpdate = validNomenclatureTypesToUpdate.map { it.nomenclatures }
+            val nomenclaturesTaxonomyToUpdate =
+                validNomenclatureTypesToUpdate.map { it.nomenclatures }
                     .flatMap { it.asSequence() }
                     .filter { it.id > 0 }
                     .map { nomenclature ->
-                        (if (nomenclature.taxref.isEmpty()) arrayOf(fr.geonature.sync.api.model.NomenclatureTaxonomy(Taxonomy.ANY,
-                                                                                                                     Taxonomy.ANY))
+                        (if (nomenclature.taxref.isEmpty()) arrayOf(
+                            fr.geonature.sync.api.model.NomenclatureTaxonomy(
+                                Taxonomy.ANY,
+                                Taxonomy.ANY
+                            )
+                        )
                         else nomenclature.taxref.toTypedArray()).asSequence()
-                                .map {
-                                    Taxonomy(it.kingdom,
-                                             it.group)
-                                }
-                                .distinct()
-                                .map {
-                                    NomenclatureTaxonomy(nomenclature.id,
-                                                         it)
-                                }
+                            .map {
+                                Taxonomy(
+                                    it.kingdom,
+                                    it.group
+                                )
+                            }
+                            .distinct()
+                            .map {
+                                NomenclatureTaxonomy(
+                                    nomenclature.id,
+                                    it
+                                )
+                            }
                     }
                     .flatMap { it.asSequence() }
                     .toList()
                     .toTypedArray()
 
-            Log.i(TAG,
-                  "nomenclature to update: ${nomenclaturesToUpdate.size}")
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_nomenclature,
-                                                                               nomenclaturesToUpdate.size))
+            Log.i(
+                TAG,
+                "nomenclature to update: ${nomenclaturesToUpdate.size}"
+            )
+            dataSyncManager.syncMessage.postValue(
+                applicationContext.getString(
+                    R.string.sync_data_nomenclature,
+                    nomenclaturesToUpdate.size
+                )
+            )
 
             // TODO: fetch available GeoNature modules
-            val defaultNomenclatureResponse = geoNatureServiceClient.getDefaultNomenclaturesValues("occtax")
+            val defaultNomenclatureResponse =
+                geoNatureServiceClient.getDefaultNomenclaturesValues("occtax")
                     .execute()
 
             checkResponse(defaultNomenclatureResponse).run {
@@ -359,44 +431,51 @@ class DataSyncWorker(appContext: Context,
             val jsonString = defaultNomenclatureResponse.body()?.string() ?: return Result.failure()
             val defaultNomenclatureAsJson = JSONObject(jsonString)
             val defaultNomenclaturesToUpdate = defaultNomenclatureAsJson.keys()
-                    .asSequence()
-                    .filter { mnemonic ->
-                        nomenclatureTypesToUpdate.find { it.mnemonic == mnemonic } != null
-                    }
-                    .map {
-                        DefaultNomenclature("occtax",
-                                            defaultNomenclatureAsJson.getLong(it))
-                    }
-                    .toList()
-                    .toTypedArray()
+                .asSequence()
+                .filter { mnemonic ->
+                    nomenclatureTypesToUpdate.find { it.mnemonic == mnemonic } != null
+                }
+                .map {
+                    DefaultNomenclature(
+                        "occtax",
+                        defaultNomenclatureAsJson.getLong(it)
+                    )
+                }
+                .toList()
+                .toTypedArray()
 
-            Log.i(TAG,
-                  "nomenclature default values to update: ${defaultNomenclaturesToUpdate.size}")
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_nomenclature_default,
-                                                                               defaultNomenclaturesToUpdate.size))
+            Log.i(
+                TAG,
+                "nomenclature default values to update: ${defaultNomenclaturesToUpdate.size}"
+            )
+            dataSyncManager.syncMessage.postValue(
+                applicationContext.getString(
+                    R.string.sync_data_nomenclature_default,
+                    defaultNomenclaturesToUpdate.size
+                )
+            )
 
             LocalDatabase.getInstance(applicationContext)
-                    .run {
-                        this.nomenclatureTypeDao()
-                                .insert(*nomenclatureTypesToUpdate)
-                        this.nomenclatureDao()
-                                .insert(*nomenclaturesToUpdate)
-                        this.nomenclatureTaxonomyDao()
-                                .insert(*nomenclaturesTaxonomyToUpdate)
-                        this.defaultNomenclatureDao()
-                                .insert(*defaultNomenclaturesToUpdate)
-                    }
+                .run {
+                    this.nomenclatureTypeDao()
+                        .insert(*nomenclatureTypesToUpdate)
+                    this.nomenclatureDao()
+                        .insert(*nomenclaturesToUpdate)
+                    this.nomenclatureTaxonomyDao()
+                        .insert(*nomenclaturesTaxonomyToUpdate)
+                    this.defaultNomenclatureDao()
+                        .insert(*defaultNomenclaturesToUpdate)
+                }
 
             Result.success()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
 
             Result.failure()
         }
     }
 
-    private fun checkResponse(response: Response<*>):Result {
+    private fun checkResponse(response: Response<*>): Result {
         // not connected
         if (response.code() == 403) {
             dataSyncManager.serverStatus.postValue(ServerStatus.FORBIDDEN)

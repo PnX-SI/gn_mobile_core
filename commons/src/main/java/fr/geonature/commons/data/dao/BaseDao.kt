@@ -60,8 +60,10 @@ abstract class BaseDao<T> {
      * Gets the default query builder for this DAO.
      */
     fun createQueryBuilder(): SQLiteSelectQueryBuilder {
-        return SQLiteSelectQueryBuilder.from(entityTableName,
-                                             entityTableName)
+        return SQLiteSelectQueryBuilder.from(
+            entityTableName,
+            entityTableName
+        )
     }
 
     /**
@@ -71,14 +73,18 @@ abstract class BaseDao<T> {
 
         protected val selectQueryBuilder: SQLiteSelectQueryBuilder = createQueryBuilder()
 
-        fun whereSelection(selection: String?,
-                           selectionArgs: Array<Any>? = null): QB {
+        fun whereSelection(
+            selection: String?,
+            selectionArgs: Array<Any>? = null
+        ): QB {
             if (selection.isNullOrBlank()) {
                 return this
             }
 
-            selectQueryBuilder.andWhere(selection,
-                                        *selectionArgs ?: emptyArray())
+            selectQueryBuilder.andWhere(
+                selection,
+                *selectionArgs ?: emptyArray()
+            )
 
             return this
         }

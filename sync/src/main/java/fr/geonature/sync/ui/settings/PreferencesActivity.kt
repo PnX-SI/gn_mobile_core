@@ -22,8 +22,10 @@ class PreferencesActivity : AppCompatActivity() {
 
         // Display the fragment as the main content.
         supportFragmentManager.beginTransaction()
-            .replace(android.R.id.content,
-                     PreferencesFragment.newInstance())
+            .replace(
+                android.R.id.content,
+                PreferencesFragment.newInstance()
+            )
             .commit()
     }
 
@@ -40,8 +42,10 @@ class PreferencesActivity : AppCompatActivity() {
     companion object {
 
         fun newIntent(context: Context): Intent {
-            return Intent(context,
-                          PreferencesActivity::class.java)
+            return Intent(
+                context,
+                PreferencesActivity::class.java
+            )
         }
     }
 }

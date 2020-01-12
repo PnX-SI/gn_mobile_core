@@ -15,29 +15,39 @@ import fr.geonature.commons.data.helper.get
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = DefaultNomenclature.TABLE_NAME,
-        primaryKeys = [DefaultNomenclature.COLUMN_MODULE, DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
-        foreignKeys = [ForeignKey(entity = Nomenclature::class,
-                                  parentColumns = [Nomenclature.COLUMN_ID],
-                                  childColumns = [DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
-                                  onDelete = ForeignKey.CASCADE)])
+@Entity(
+    tableName = DefaultNomenclature.TABLE_NAME,
+    primaryKeys = [DefaultNomenclature.COLUMN_MODULE, DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
+    foreignKeys = [ForeignKey(
+        entity = Nomenclature::class,
+        parentColumns = [Nomenclature.COLUMN_ID],
+        childColumns = [DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
+        onDelete = ForeignKey.CASCADE
+    )]
+)
 open class DefaultNomenclature : Parcelable {
 
     @ColumnInfo(name = COLUMN_MODULE)
     var module: String
 
-    @ColumnInfo(name = COLUMN_NOMENCLATURE_ID,
-                index = true)
+    @ColumnInfo(
+        name = COLUMN_NOMENCLATURE_ID,
+        index = true
+    )
     var nomenclatureId: Long
 
-    constructor(module: String,
-                nomenclatureId: Long) {
+    constructor(
+        module: String,
+        nomenclatureId: Long
+    ) {
         this.module = module
         this.nomenclatureId = nomenclatureId
     }
 
-    internal constructor(source: Parcel) : this(source.readString()!!,
-                                                source.readLong())
+    internal constructor(source: Parcel) : this(
+        source.readString()!!,
+        source.readLong()
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -60,8 +70,10 @@ open class DefaultNomenclature : Parcelable {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeString(module)
             it.writeLong(nomenclatureId)
@@ -84,19 +96,29 @@ open class DefaultNomenclature : Parcelable {
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_MODULE,
-                                  tableAlias),
-                           column(COLUMN_NOMENCLATURE_ID,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_MODULE,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_NOMENCLATURE_ID,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
@@ -106,36 +128,54 @@ open class DefaultNomenclature : Parcelable {
          *
          * @return A newly created [DefaultNomenclature] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): DefaultNomenclature? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): DefaultNomenclature? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                DefaultNomenclature(requireNotNull(cursor.get(getColumnAlias(COLUMN_MODULE,
-                                                                             tableAlias))),
-                                    requireNotNull(cursor.get(getColumnAlias(COLUMN_NOMENCLATURE_ID,
-                                                                             tableAlias))))
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                DefaultNomenclature(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_MODULE,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_NOMENCLATURE_ID,
+                                tableAlias
+                            )
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<DefaultNomenclature> = object : Parcelable.Creator<DefaultNomenclature> {
+        val CREATOR: Parcelable.Creator<DefaultNomenclature> =
+            object : Parcelable.Creator<DefaultNomenclature> {
 
-            override fun createFromParcel(source: Parcel): DefaultNomenclature {
-                return DefaultNomenclature(source)
-            }
+                override fun createFromParcel(source: Parcel): DefaultNomenclature {
+                    return DefaultNomenclature(source)
+                }
 
-            override fun newArray(size: Int): Array<DefaultNomenclature?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<DefaultNomenclature?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

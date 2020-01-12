@@ -14,7 +14,8 @@ import java.util.Date
  */
 class DataSyncManager private constructor(applicationContext: Context) {
 
-    private val preferenceManager: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+    private val preferenceManager: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
     private val _lastSynchronizedDate: MutableLiveData<Date?> = MutableLiveData()
     val lastSynchronizedDate: LiveData<Date?> = _lastSynchronizedDate
@@ -25,17 +26,20 @@ class DataSyncManager private constructor(applicationContext: Context) {
         val now = Date()
 
         preferenceManager.edit()
-            .putLong(KEY_PREFERENCE_SYNC_DATE,
-                     now.time)
+            .putLong(
+                KEY_PREFERENCE_SYNC_DATE,
+                now.time
+            )
             .apply()
 
         _lastSynchronizedDate.postValue(now)
     }
 
     fun getLastSynchronizedDate(): Date? {
-        val timestamp = preferenceManager.getLong(KEY_PREFERENCE_SYNC_DATE,
-                                                  0)
-
+        val timestamp = preferenceManager.getLong(
+            KEY_PREFERENCE_SYNC_DATE,
+            0
+        )
 
         if (timestamp == 0L) {
             _lastSynchronizedDate.postValue(null)

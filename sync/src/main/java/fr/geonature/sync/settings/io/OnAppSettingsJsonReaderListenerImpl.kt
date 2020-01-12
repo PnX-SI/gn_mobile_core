@@ -9,14 +9,17 @@ import fr.geonature.sync.settings.AppSettings
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class OnAppSettingsJsonReaderListenerImpl : AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AppSettings> {
+class OnAppSettingsJsonReaderListenerImpl :
+    AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AppSettings> {
     override fun createAppSettings(): AppSettings {
         return AppSettings()
     }
 
-    override fun readAdditionalAppSettingsData(reader: JsonReader,
-                                               keyName: String,
-                                               appSettings: AppSettings) {
+    override fun readAdditionalAppSettingsData(
+        reader: JsonReader,
+        keyName: String,
+        appSettings: AppSettings
+    ) {
         when (keyName) {
             "application_id" -> appSettings.applicationId = reader.nextInt()
         }

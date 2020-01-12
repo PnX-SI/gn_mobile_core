@@ -3,12 +3,12 @@
 
     <declare-styleable name="ViewPagerIndicator">
         <!-- style of the indicator -->
-        <attr name="underlinePageIndicatorStyle" format="reference"/>
+        <attr name="underlinePageIndicatorStyle" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="UnderlinePageIndicator">
         <!-- color of the selected line that represents the current selected page -->
-        <attr name="selectedColor" format="color"/>
+        <attr name="selectedColor" format="color" />
     </declare-styleable>
 
 </resources>

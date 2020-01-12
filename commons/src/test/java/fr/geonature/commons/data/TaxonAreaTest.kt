@@ -5,6 +5,8 @@ import android.os.Parcel
 import fr.geonature.commons.data.TaxonArea.Companion.defaultProjection
 import fr.geonature.commons.data.TaxonArea.Companion.fromCursor
 import fr.geonature.commons.data.helper.EntityHelper.column
+import java.time.Instant
+import java.util.Date
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -14,8 +16,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
-import java.time.Instant
-import java.util.Date
 
 /**
  * Unit tests about [TaxonArea].
@@ -29,27 +29,39 @@ class TaxonAreaTest {
     fun testEquals() {
         val now = Date.from(Instant.now())
 
-        assertEquals(TaxonArea(1234,
-                               10,
-                               "red",
-                               3,
-                               now),
-                     TaxonArea(1234,
-                               10,
-                               "red",
-                               3,
-                               now))
+        assertEquals(
+            TaxonArea(
+                1234,
+                10,
+                "red",
+                3,
+                now
+            ),
+            TaxonArea(
+                1234,
+                10,
+                "red",
+                3,
+                now
+            )
+        )
 
-        assertEquals(TaxonArea(1234,
-                               10,
-                               null,
-                               3,
-                               now),
-                     TaxonArea(1234,
-                               10,
-                               null,
-                               3,
-                               now))
+        assertEquals(
+            TaxonArea(
+                1234,
+                10,
+                null,
+                3,
+                now
+            ),
+            TaxonArea(
+                1234,
+                10,
+                null,
+                3,
+                now
+            )
+        )
     }
 
     @Test
@@ -73,12 +85,16 @@ class TaxonAreaTest {
 
         // then
         assertNotNull(taxonArea)
-        assertEquals(TaxonArea(1234,
-                               10,
-                               "red",
-                               3,
-                               Date.from(Instant.parse("2016-10-28T08:15:00Z"))),
-                     taxonArea)
+        assertEquals(
+            TaxonArea(
+                1234,
+                10,
+                "red",
+                3,
+                Date.from(Instant.parse("2016-10-28T08:15:00Z"))
+            ),
+            taxonArea
+        )
     }
 
     @Test
@@ -88,12 +104,20 @@ class TaxonAreaTest {
 
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in arrayOf(column(TaxonArea.COLUMN_COLOR,
-                                  TaxonArea.TABLE_NAME),
-                           column(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
-                                  TaxonArea.TABLE_NAME),
-                           column(TaxonArea.COLUMN_LAST_UPDATED_AT,
-                                  TaxonArea.TABLE_NAME)) -> {
+                in arrayOf(
+                    column(
+                        TaxonArea.COLUMN_COLOR,
+                        TaxonArea.TABLE_NAME
+                    ),
+                    column(
+                        TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
+                        TaxonArea.TABLE_NAME
+                    ),
+                    column(
+                        TaxonArea.COLUMN_LAST_UPDATED_AT,
+                        TaxonArea.TABLE_NAME
+                    )
+                ) -> {
                     `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
                     `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
                 }
@@ -114,12 +138,16 @@ class TaxonAreaTest {
 
         // then
         assertNotNull(taxonArea)
-        assertEquals(TaxonArea(1234,
-                               10,
-                               "#00000000",
-                               0,
-                               null),
-                     taxonArea)
+        assertEquals(
+            TaxonArea(
+                1234,
+                10,
+                "#00000000",
+                0,
+                null
+            ),
+            taxonArea
+        )
     }
 
     @Test
@@ -142,17 +170,27 @@ class TaxonAreaTest {
 
         defaultProjection().forEach { c ->
             when (c) {
-                in arrayOf(column(TaxonArea.COLUMN_COLOR,
-                                  TaxonArea.TABLE_NAME),
-                           column(TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
-                                  TaxonArea.TABLE_NAME),
-                           column(TaxonArea.COLUMN_LAST_UPDATED_AT,
-                                  TaxonArea.TABLE_NAME)) -> {
+                in arrayOf(
+                    column(
+                        TaxonArea.COLUMN_COLOR,
+                        TaxonArea.TABLE_NAME
+                    ),
+                    column(
+                        TaxonArea.COLUMN_NUMBER_OF_OBSERVERS,
+                        TaxonArea.TABLE_NAME
+                    ),
+                    column(
+                        TaxonArea.COLUMN_LAST_UPDATED_AT,
+                        TaxonArea.TABLE_NAME
+                    )
+                ) -> {
                     `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
                     `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
                 }
                 else -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
+                        IllegalArgumentException::class.java
+                    )
                 }
             }
         }
@@ -173,37 +211,57 @@ class TaxonAreaTest {
     @Test
     fun testParcelable() {
         // given a TaxonArea
-        val taxonArea = TaxonArea(1234,
-                                  10,
-                                  "red",
-                                  3,
-                                  Date.from(Instant.now()))
+        val taxonArea = TaxonArea(
+            1234,
+            10,
+            "red",
+            3,
+            Date.from(Instant.now())
+        )
 
         // when we obtain a Parcel object to write the TaxonWithArea instance to it
         val parcel = Parcel.obtain()
-        taxonArea.writeToParcel(parcel,
-                                0)
+        taxonArea.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(taxonArea,
-                     TaxonArea.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            taxonArea,
+            TaxonArea.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_TAXON_ID}\"",
-                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_TAXON_ID}"),
-                                  Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_AREA_ID}\"",
-                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_AREA_ID}"),
-                                  Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_COLOR}\"",
-                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR}"),
-                                  Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}\"",
-                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}"),
-                                  Pair("${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_LAST_UPDATED_AT}\"",
-                                       "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_LAST_UPDATED_AT}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_TAXON_ID}\"",
+                    "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_TAXON_ID}"
+                ),
+                Pair(
+                    "${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_AREA_ID}\"",
+                    "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_AREA_ID}"
+                ),
+                Pair(
+                    "${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_COLOR}\"",
+                    "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR}"
+                ),
+                Pair(
+                    "${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}\"",
+                    "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_NUMBER_OF_OBSERVERS}"
+                ),
+                Pair(
+                    "${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_LAST_UPDATED_AT}\"",
+                    "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_LAST_UPDATED_AT}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

@@ -20,11 +20,13 @@ interface IPagerIndicator : ViewPager.OnPageChangeListener {
     /**
      * Bind the indicator to a [ViewPager].
      *
-     * @param viewPager       the [ViewPager] to bind
+     * @param viewPager the [ViewPager] to bind
      * @param initialPosition the current position of the [ViewPager]
      */
-    fun setViewPager(viewPager: ViewPager,
-                     initialPosition: Int)
+    fun setViewPager(
+        viewPager: ViewPager,
+        initialPosition: Int
+    )
 
     /**
      * Set the current page of both the [ViewPager] and indicator.

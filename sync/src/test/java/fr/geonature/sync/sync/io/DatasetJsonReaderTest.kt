@@ -62,16 +62,24 @@ class DatasetJsonReaderTest {
 
         // then
         assertNotNull(dataset)
-        assertArrayEquals(arrayOf(Dataset(18L,
-                                          "Dataset #1",
-                                          "Description of Dataset #1",
-                                          true,
-                                          datasetJsonReader.toDate("2019-10-30 22:32:16.591174")),
-                                  Dataset(19L,
-                                          "Dataset #2",
-                                          "Description of Dataset #2",
-                                          false,
-                                          datasetJsonReader.toDate("2019-11-13 10:08:47.762240"))),
-                          dataset.toTypedArray())
+        assertArrayEquals(
+            arrayOf(
+                Dataset(
+                    18L,
+                    "Dataset #1",
+                    "Description of Dataset #1",
+                    true,
+                    datasetJsonReader.toDate("2019-10-30 22:32:16.591174")
+                ),
+                Dataset(
+                    19L,
+                    "Dataset #2",
+                    "Description of Dataset #2",
+                    false,
+                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")
+                )
+            ),
+            dataset.toTypedArray()
+        )
     }
 }

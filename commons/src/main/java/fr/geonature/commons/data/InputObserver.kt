@@ -36,18 +36,23 @@ data class InputObserver(
      * The first name of the input observer.
      */
     @ColumnInfo(name = COLUMN_FIRSTNAME)
-    var firstname: String?) : Parcelable {
+    var firstname: String?
+) : Parcelable {
 
-    private constructor(source: Parcel) : this(source.readLong(),
-                                               source.readString(),
-                                               source.readString())
+    private constructor(source: Parcel) : this(
+        source.readLong(),
+        source.readString(),
+        source.readString()
+    )
 
     override fun describeContents(): Int {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeLong(id)
             it.writeString(lastname)
@@ -83,34 +88,52 @@ data class InputObserver(
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_ID,
-                                  tableAlias),
-                           column(COLUMN_LASTNAME,
-                                  tableAlias),
-                           column(COLUMN_FIRSTNAME,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_ID,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_LASTNAME,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_FIRSTNAME,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
          * Apply custom filter.
          */
         fun filter(queryString: String?): Pair<String?, Array<String>?> {
-            return if (queryString.isNullOrBlank()) Pair(null,
-                                                         null)
+            return if (queryString.isNullOrBlank()) Pair(
+                null,
+                null
+            )
             else {
                 val filter = "%$queryString%"
-                Pair("${getColumnAlias(COLUMN_LASTNAME)} LIKE ? OR ${getColumnAlias(COLUMN_FIRSTNAME)} LIKE ?",
-                     arrayOf(filter,
-                             filter))
+                Pair(
+                    "${getColumnAlias(COLUMN_LASTNAME)} LIKE ? OR ${getColumnAlias(COLUMN_FIRSTNAME)} LIKE ?",
+                    arrayOf(
+                        filter,
+                        filter
+                    )
+                )
             }
         }
 
@@ -121,38 +144,58 @@ data class InputObserver(
          *
          * @return A newly created [InputObserver] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): InputObserver? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): InputObserver? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                InputObserver(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
-                                                                       tableAlias))),
-                              cursor.get(getColumnAlias(COLUMN_LASTNAME,
-                                                        tableAlias)),
-                              cursor.get(getColumnAlias(COLUMN_FIRSTNAME,
-                                                        tableAlias)))
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                InputObserver(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_ID,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_LASTNAME,
+                            tableAlias
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_FIRSTNAME,
+                            tableAlias
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<InputObserver> = object : Parcelable.Creator<InputObserver> {
+        val CREATOR: Parcelable.Creator<InputObserver> =
+            object : Parcelable.Creator<InputObserver> {
 
-            override fun createFromParcel(source: Parcel): InputObserver {
-                return InputObserver(source)
-            }
+                override fun createFromParcel(source: Parcel): InputObserver {
+                    return InputObserver(source)
+                }
 
-            override fun newArray(size: Int): Array<InputObserver?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<InputObserver?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

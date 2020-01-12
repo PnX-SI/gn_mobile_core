@@ -2,7 +2,6 @@ package fr.geonature.sync
 
 import android.app.Application
 import android.util.Log
-
 import fr.geonature.commons.util.MountPointUtils
 
 /**
@@ -15,10 +14,14 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        Log.i(TAG,
-              "internal storage: " + MountPointUtils.getInternalStorage())
-        Log.i(TAG,
-              "external storage: " + MountPointUtils.getExternalStorage(this))
+        Log.i(
+            TAG,
+            "internal storage: " + MountPointUtils.getInternalStorage()
+        )
+        Log.i(
+            TAG,
+            "external storage: " + MountPointUtils.getExternalStorage(this)
+        )
     }
 
     companion object {

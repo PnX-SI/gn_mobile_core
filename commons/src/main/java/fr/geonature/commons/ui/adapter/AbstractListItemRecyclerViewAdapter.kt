@@ -12,7 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnListItemRecyclerViewAdapterListener<T>) : RecyclerView.Adapter<AbstractListItemRecyclerViewAdapter<T>.AbstractViewHolder>() {
+abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnListItemRecyclerViewAdapterListener<T>) :
+    RecyclerView.Adapter<AbstractListItemRecyclerViewAdapter<T>.AbstractViewHolder>() {
 
     internal val items = mutableListOf<T>()
 
@@ -24,55 +25,78 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                 listener.showEmptyTextView(itemCount == 0)
             }
 
-            override fun onItemRangeChanged(positionStart: Int,
-                                            itemCount: Int) {
-                super.onItemRangeChanged(positionStart,
-                                         itemCount)
+            override fun onItemRangeChanged(
+                positionStart: Int,
+                itemCount: Int
+            ) {
+                super.onItemRangeChanged(
+                    positionStart,
+                    itemCount
+                )
 
                 listener.showEmptyTextView(itemCount == 0)
             }
 
-            override fun onItemRangeInserted(positionStart: Int,
-                                             itemCount: Int) {
-                super.onItemRangeInserted(positionStart,
-                                          itemCount)
+            override fun onItemRangeInserted(
+                positionStart: Int,
+                itemCount: Int
+            ) {
+                super.onItemRangeInserted(
+                    positionStart,
+                    itemCount
+                )
 
                 listener.showEmptyTextView(false)
             }
 
-            override fun onItemRangeRemoved(positionStart: Int,
-                                            itemCount: Int) {
-                super.onItemRangeRemoved(positionStart,
-                                         itemCount)
+            override fun onItemRangeRemoved(
+                positionStart: Int,
+                itemCount: Int
+            ) {
+                super.onItemRangeRemoved(
+                    positionStart,
+                    itemCount
+                )
 
                 listener.showEmptyTextView(itemCount == 0)
             }
         })
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup,
-                                    viewType: Int): AbstractViewHolder {
-        return getViewHolder(LayoutInflater.from(parent.context)
-                                 .inflate(viewType,
-                                          parent,
-                                          false)
-                             ,
-                             viewType)
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): AbstractViewHolder {
+        return getViewHolder(
+            LayoutInflater.from(parent.context)
+                .inflate(
+                    viewType,
+                    parent,
+                    false
+                ),
+            viewType
+        )
     }
 
     override fun getItemCount(): Int {
         return items.size
     }
 
-    override fun onBindViewHolder(holder: AbstractViewHolder,
-                                  position: Int) {
-        holder.bind(position,
-                    items[position])
+    override fun onBindViewHolder(
+        holder: AbstractViewHolder,
+        position: Int
+    ) {
+        holder.bind(
+            position,
+            items[position]
+        )
     }
 
     override fun getItemViewType(position: Int): Int {
-        return getLayoutResourceId(position,
-                                   items[position])
+        return getLayoutResourceId(
+            position,
+            items[position]
+        )
     }
 
     /**
@@ -83,10 +107,11 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
             this.items.addAll(newItems)
 
             if (this.items.isNotEmpty()) {
-                notifyItemRangeInserted(0,
-                                        this.items.size)
-            }
-            else {
+                notifyItemRangeInserted(
+                    0,
+                    this.items.size
+                )
+            } else {
                 notifyDataSetChanged()
             }
 
@@ -109,20 +134,28 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                 return newItems.size
             }
 
-            override fun areItemsTheSame(oldItemPosition: Int,
-                                         newItemPosition: Int): Boolean {
-                return this@AbstractListItemRecyclerViewAdapter.areItemsTheSame(this@AbstractListItemRecyclerViewAdapter.items,
-                                                                                newItems,
-                                                                                oldItemPosition,
-                                                                                newItemPosition)
+            override fun areItemsTheSame(
+                oldItemPosition: Int,
+                newItemPosition: Int
+            ): Boolean {
+                return this@AbstractListItemRecyclerViewAdapter.areItemsTheSame(
+                    this@AbstractListItemRecyclerViewAdapter.items,
+                    newItems,
+                    oldItemPosition,
+                    newItemPosition
+                )
             }
 
-            override fun areContentsTheSame(oldItemPosition: Int,
-                                            newItemPosition: Int): Boolean {
-                return this@AbstractListItemRecyclerViewAdapter.areContentsTheSame(this@AbstractListItemRecyclerViewAdapter.items,
-                                                                                   newItems,
-                                                                                   oldItemPosition,
-                                                                                   newItemPosition)
+            override fun areContentsTheSame(
+                oldItemPosition: Int,
+                newItemPosition: Int
+            ): Boolean {
+                return this@AbstractListItemRecyclerViewAdapter.areContentsTheSame(
+                    this@AbstractListItemRecyclerViewAdapter.items,
+                    newItems,
+                    oldItemPosition,
+                    newItemPosition
+                )
             }
         })
 
@@ -135,11 +168,15 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
     /**
      * Add or insert item at given position.
      */
-    fun add(item: T,
-            index: Int = -1) {
+    fun add(
+        item: T,
+        index: Int = -1
+    ) {
         val position = if (index < 0 || index > this.items.size) this.items.size else index
-        this.items.add(position,
-                       item)
+        this.items.add(
+            position,
+            item
+        )
 
         notifyItemInserted(position)
     }
@@ -175,35 +212,45 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
     /**
      * Gets the [AbstractViewHolder] implementation for given view type.
      */
-    protected abstract fun getViewHolder(view: View,
-                                         viewType: Int): AbstractViewHolder
+    protected abstract fun getViewHolder(
+        view: View,
+        viewType: Int
+    ): AbstractViewHolder
 
     /**
      * Gets the layout resource Id at given position.
      */
     @LayoutRes
-    protected abstract fun getLayoutResourceId(position: Int,
-                                               item: T): Int
+    protected abstract fun getLayoutResourceId(
+        position: Int,
+        item: T
+    ): Int
 
     /**
      * Called by the `DiffUtil` to decide whether two object represent the same item.
      */
-    protected abstract fun areItemsTheSame(oldItems: List<T>,
-                                           newItems: List<T>,
-                                           oldItemPosition: Int,
-                                           newItemPosition: Int): Boolean
+    protected abstract fun areItemsTheSame(
+        oldItems: List<T>,
+        newItems: List<T>,
+        oldItemPosition: Int,
+        newItemPosition: Int
+    ): Boolean
 
     /**
      * Called by the `DiffUtil` when it wants to check whether two items have the same data.
      */
-    protected abstract fun areContentsTheSame(oldItems: List<T>,
-                                              newItems: List<T>,
-                                              oldItemPosition: Int,
-                                              newItemPosition: Int): Boolean
+    protected abstract fun areContentsTheSame(
+        oldItems: List<T>,
+        newItems: List<T>,
+        oldItemPosition: Int,
+        newItemPosition: Int
+    ): Boolean
 
     abstract inner class AbstractViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(position: Int,
-                 item: T) {
+        fun bind(
+            position: Int,
+            item: T
+        ) {
             onBind(item)
 
             with(itemView) {
@@ -211,8 +258,10 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                     listener.onClick(item)
                 }
                 setOnLongClickListener {
-                    listener.onLongClicked(position,
-                                           item)
+                    listener.onLongClicked(
+                        position,
+                        item
+                    )
                     true
                 }
             }
@@ -238,8 +287,10 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
          *
          * @param item the selected item
          */
-        fun onLongClicked(position: Int,
-                          item: T)
+        fun onLongClicked(
+            position: Int,
+            item: T
+        )
 
         /**
          * Whether to show an empty text view when data changed.

@@ -23,8 +23,10 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
         super.onPostCreate(savedInstanceState)
 
         historyPrevious =
-            savedInstanceState != null && savedInstanceState.getBoolean(KEY_HISTORY_PREVIOUS,
-                                                                        false)
+            savedInstanceState != null && savedInstanceState.getBoolean(
+                KEY_HISTORY_PREVIOUS,
+                false
+            )
 
         val pager = pager ?: return
 
@@ -33,13 +35,19 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
         else View.INVISIBLE
     }
 
-    override fun onSaveInstanceState(outState: Bundle?,
-                                     outPersistentState: PersistableBundle?) {
-        outState?.putBoolean(KEY_HISTORY_PREVIOUS,
-                             historyPrevious)
+    override fun onSaveInstanceState(
+        outState: Bundle?,
+        outPersistentState: PersistableBundle?
+    ) {
+        outState?.putBoolean(
+            KEY_HISTORY_PREVIOUS,
+            historyPrevious
+        )
 
-        super.onSaveInstanceState(outState,
-                                  outPersistentState)
+        super.onSaveInstanceState(
+            outState,
+            outPersistentState
+        )
     }
 
     override fun onClick(v: View) {
@@ -48,10 +56,11 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
             R.id.nextButton -> {
                 if (viewPager.currentItem < (adapter.count - 1)) {
                     historyPrevious = false
-                    viewPager.setCurrentItem(viewPager.currentItem + 1,
-                                             true)
-                }
-                else if (viewPager.currentItem == (adapter.count - 1)) {
+                    viewPager.setCurrentItem(
+                        viewPager.currentItem + 1,
+                        true
+                    )
+                } else if (viewPager.currentItem == (adapter.count - 1)) {
                     // the last page
                     performFinishAction()
                 }
@@ -59,9 +68,11 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
         }
     }
 
-    override fun onPageScrolled(position: Int,
-                                positionOffset: Float,
-                                positionOffsetPixels: Int) {
+    override fun onPageScrolled(
+        position: Int,
+        positionOffset: Float,
+        positionOffsetPixels: Int
+    ) {
         if ((positionOffset > 0.0f) && (scrollState == ViewPager.SCROLL_STATE_DRAGGING)) {
             historyPrevious = this.positionOffset > positionOffset
             this.positionOffset = positionOffset
@@ -79,8 +90,10 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
 
     override fun onPageSelected(position: Int) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG,
-                  "onPageSelected, position: $position, previous: $historyPrevious")
+            Log.d(
+                TAG,
+                "onPageSelected, position: $position, previous: $historyPrevious"
+            )
         }
 
         val pager = pager ?: return
@@ -91,8 +104,7 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
         if (historyPrevious) {
             if (pager.history.isEmpty()) {
                 historyPrevious = false
-            }
-            else {
+            } else {
                 // go back in the navigation history
                 val fragment = getPageFragment(position)
 
@@ -110,15 +122,13 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
 
                         return
                     }
-                }
-                else {
+                } else {
                     goToPreviousPage()
 
                     return
                 }
             }
-        }
-        else {
+        } else {
             val fragment = getPageFragment(pager.position)
 
             if (fragment != null && (pager.history.isEmpty() || pager.history.last != fragment.getResourceTitle()) && !restorePager) {
@@ -131,8 +141,10 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
 
                 if (position > 0 && !(getLastFragmentInHistory == null || getLastFragmentInHistory.validate())) {
                     if (BuildConfig.DEBUG) {
-                        Log.d(TAG,
-                              "onPageSelected: previous fragment " + getLastFragmentInHistory.javaClass.name + " is not valid")
+                        Log.d(
+                            TAG,
+                            "onPageSelected: previous fragment " + getLastFragmentInHistory.javaClass.name + " is not valid"
+                        )
                     }
 
                     goToPreviousPage()
@@ -167,20 +179,17 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
             if (fragment.getPagingToPreviousEnabled()) {
                 previousButton.isEnabled = position > 0
                 previousButton.visibility = if (position > 0) View.VISIBLE else View.INVISIBLE
-            }
-            else {
+            } else {
                 previousButton.visibility = View.INVISIBLE
             }
 
             if (fragment.getPagingToForwardEnabled()) {
                 nextButton.isEnabled = fragment.validate()
                 nextButton.visibility = View.VISIBLE
-            }
-            else {
+            } else {
                 nextButton.visibility = View.INVISIBLE
             }
-        }
-        else {
+        } else {
             previousButton.isEnabled = position > 0
             previousButton.visibility = if (position > 0) View.VISIBLE else View.INVISIBLE
 
@@ -192,8 +201,10 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
         pager.position = position
 
         if (BuildConfig.DEBUG) {
-            Log.d(TAG,
-                  "onPageSelected: $pager")
+            Log.d(
+                TAG,
+                "onPageSelected: $pager"
+            )
         }
     }
 

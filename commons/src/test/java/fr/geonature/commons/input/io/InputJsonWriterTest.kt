@@ -49,11 +49,17 @@ class InputJsonWriterTest {
         assertNotNull(json)
 
         // then
-        verify(onInputJsonWriterListener,
-               atMost(1)).writeAdditionalInputData(any(JsonWriter::class.java),
-                                                   any(DummyInput::class.java))
+        verify(
+            onInputJsonWriterListener,
+            atMost(1)
+        ).writeAdditionalInputData(
+            any(JsonWriter::class.java),
+            any(DummyInput::class.java)
+        )
 
-        assertEquals(FixtureHelper.getFixture("input_empty.json"),
-                     json)
+        assertEquals(
+            FixtureHelper.getFixture("input_empty.json"),
+            json
+        )
     }
 }

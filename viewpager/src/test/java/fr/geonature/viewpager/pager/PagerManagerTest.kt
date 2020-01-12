@@ -31,8 +31,10 @@ class PagerManagerTest {
 
         // then
         assertNotNull(pager)
-        assertEquals(0,
-                     pager.id)
+        assertEquals(
+            0,
+            pager.id
+        )
     }
 
     @Test
@@ -42,8 +44,10 @@ class PagerManagerTest {
 
         // then
         assertNotNull(pager)
-        assertEquals(0,
-                     pager.id)
+        assertEquals(
+            0,
+            pager.id
+        )
     }
 
     @Test
@@ -68,8 +72,10 @@ class PagerManagerTest {
 
         // then
         assertNotNull(loadedPager)
-        assertEquals(pager,
-                     loadedPager)
+        assertEquals(
+            pager,
+            loadedPager
+        )
     }
 
     @Test
@@ -97,12 +103,18 @@ class PagerManagerTest {
         val noSuchPager = runBlocking { pagerManager.load(pager.id) }
 
         assertNotNull(noSuchPager)
-        assertEquals(0,
-                     noSuchPager.id)
-        assertEquals(0,
-                     noSuchPager.size)
-        assertEquals(0,
-                     noSuchPager.position)
+        assertEquals(
+            0,
+            noSuchPager.id
+        )
+        assertEquals(
+            0,
+            noSuchPager.size
+        )
+        assertEquals(
+            0,
+            noSuchPager.position
+        )
         assertTrue(noSuchPager.history.isEmpty())
     }
 }

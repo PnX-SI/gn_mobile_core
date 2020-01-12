@@ -52,30 +52,39 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
 
         appSettingsViewModel = ViewModelProvider(this,
-                                                 fr.geonature.commons.settings.AppSettingsViewModel.Factory { AppSettingsViewModel(application) }).get(AppSettingsViewModel::class.java)
+            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
+                AppSettingsViewModel(
+                    application
+                )
+            }).get(AppSettingsViewModel::class.java)
         authLoginViewModel = ViewModelProvider(this,
-                                               AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
-                .apply {
-                    isLoggedIn.observe(this@HomeActivity,
-                                       Observer {
-                                           this@HomeActivity.isLoggedIn = it
-                                           invalidateOptionsMenu()
-                                       })
-                }
+            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
+            .apply {
+                isLoggedIn.observe(this@HomeActivity,
+                    Observer {
+                        this@HomeActivity.isLoggedIn = it
+                        invalidateOptionsMenu()
+                    })
+            }
         dataSyncViewModel = ViewModelProvider(this,
-                                              DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
+            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
         packageInfoViewModel = ViewModelProvider(this,
-                                                 PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(PackageInfoViewModel::class.java)
+            PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
+            PackageInfoViewModel::class.java
+        )
 
-        adapter = PackageInfoRecyclerViewAdapter(object : AbstractListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<PackageInfo> {
+        adapter = PackageInfoRecyclerViewAdapter(object :
+            AbstractListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<PackageInfo> {
             override fun onClick(item: PackageInfo) {
                 item.launchIntent?.run {
                     startActivity(this)
                 }
             }
 
-            override fun onLongClicked(position: Int,
-                                       item: PackageInfo) {
+            override fun onLongClicked(
+                position: Int,
+                item: PackageInfo
+            ) {
                 // nothing to do...
             }
 
@@ -85,14 +94,20 @@ class HomeActivity : AppCompatActivity() {
                 }
 
                 if (show) {
-                    emptyTextView.startAnimation(loadAnimation(this@HomeActivity,
-                                                               android.R.anim.fade_in))
+                    emptyTextView.startAnimation(
+                        loadAnimation(
+                            this@HomeActivity,
+                            android.R.anim.fade_in
+                        )
+                    )
                     emptyTextView.visibility = View.VISIBLE
-
-                }
-                else {
-                    emptyTextView.startAnimation(loadAnimation(this@HomeActivity,
-                                                               android.R.anim.fade_out))
+                } else {
+                    emptyTextView.startAnimation(
+                        loadAnimation(
+                            this@HomeActivity,
+                            android.R.anim.fade_out
+                        )
+                    )
                     emptyTextView.visibility = View.GONE
                 }
             }
@@ -102,8 +117,10 @@ class HomeActivity : AppCompatActivity() {
             layoutManager = LinearLayoutManager(context)
             adapter = this@HomeActivity.adapter
 
-            val dividerItemDecoration = DividerItemDecoration(context,
-                                                              (layoutManager as LinearLayoutManager).orientation)
+            val dividerItemDecoration = DividerItemDecoration(
+                context,
+                (layoutManager as LinearLayoutManager).orientation
+            )
             addItemDecoration(dividerItemDecoration)
         }
 
@@ -118,8 +135,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.settings,
-                             menu)
+        menuInflater.inflate(
+            R.menu.settings,
+            menu
+        )
 
         if (menu is MenuBuilder) {
             menu.setOptionalIconsVisible(true)
@@ -130,9 +149,9 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.menu_login)
-                ?.isVisible = !isLoggedIn
+            ?.isVisible = !isLoggedIn
         menu?.findItem(R.id.menu_logout)
-                ?.isVisible = isLoggedIn
+            ?.isVisible = isLoggedIn
 
         return super.onPrepareOptionsMenu(menu)
     }
@@ -149,13 +168,15 @@ class HomeActivity : AppCompatActivity() {
             }
             R.id.menu_logout -> {
                 authLoginViewModel.logout()
-                        .observe(this,
-                                 Observer {
-                                     Toast.makeText(this,
-                                                    R.string.toast_logout_success,
-                                                    Toast.LENGTH_SHORT)
-                                             .show()
-                                 })
+                    .observe(this,
+                        Observer {
+                            Toast.makeText(
+                                this,
+                                R.string.toast_logout_success,
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        })
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -164,44 +185,46 @@ class HomeActivity : AppCompatActivity() {
 
     private fun startSync() {
         dataSyncViewModel.syncOutputStatus.takeIf { !it.hasActiveObservers() }
-                ?.observe(this,
-                          Observer {
-                              if (it == null || it.isEmpty()) {
-                                  return@Observer
-                              }
+            ?.observe(this,
+                Observer {
+                    if (it == null || it.isEmpty()) {
+                        return@Observer
+                    }
 
-                              val workInfo = it[0]
-                              dataSyncView.setState(workInfo.state)
-                          })
+                    val workInfo = it[0]
+                    dataSyncView.setState(workInfo.state)
+                })
         dataSyncViewModel.lastSynchronizedDate.takeIf { !it.hasActiveObservers() }
-                ?.observe(this,
-                          Observer {
-                              dataSyncView.setLastSynchronizedDate(it)
-                          })
+            ?.observe(this,
+                Observer {
+                    dataSyncView.setLastSynchronizedDate(it)
+                })
         dataSyncViewModel.syncMessage.takeIf { !it.hasActiveObservers() }
-                ?.observe(this,
-                          Observer {
-                              dataSyncView.setMessage(it)
-                          })
+            ?.observe(this,
+                Observer {
+                    dataSyncView.setMessage(it)
+                })
         dataSyncViewModel.serverStatus.takeIf { !it.hasActiveObservers() }
-                ?.observe(this,
-                          Observer {
-                              if (it == null) return@Observer
+            ?.observe(this,
+                Observer {
+                    if (it == null) return@Observer
 
-                              when (it) {
-                                  ServerStatus.INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
-                                  ServerStatus.FORBIDDEN -> {
-                                      packageInfoViewModel.cancelTasks()
+                    when (it) {
+                        ServerStatus.INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
+                        ServerStatus.FORBIDDEN -> {
+                            packageInfoViewModel.cancelTasks()
 
-                                      Toast.makeText(this,
-                                                     R.string.toast_not_connected,
-                                                     Toast.LENGTH_SHORT)
-                                              .show()
+                            Toast.makeText(
+                                this,
+                                R.string.toast_not_connected,
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
 
-                                      startActivity(LoginActivity.newIntent(this))
-                                  }
-                              }
-                          })
+                            startActivity(LoginActivity.newIntent(this))
+                        }
+                    }
+                })
 
         GlobalScope.launch(Main) {
             delay(250)
@@ -217,27 +240,30 @@ class HomeActivity : AppCompatActivity() {
 
             packageInfoViewModel.getInstalledApplications()
             packageInfoViewModel.packageInfos.observe(this@HomeActivity,
-                                                      Observer {
-                                                          progress.visibility = View.GONE
-                                                          adapter.setItems(it)
-                                                      })
+                Observer {
+                    progress.visibility = View.GONE
+                    adapter.setItems(it)
+                })
         }
     }
 
     private fun loadAppSettings() {
         appSettingsViewModel.getAppSettings<AppSettings>()
-                .observe(this,
-                         Observer {
-                             if (it == null) {
-                                 Snackbar.make(homeContent,
-                                               getString(R.string.snackbar_settings_not_found,
-                                                         appSettingsViewModel.getAppSettingsFilename()),
-                                               Snackbar.LENGTH_LONG)
-                                         .show()
-                             }
-                             else {
-                                 appSettings = it
-                             }
-                         })
+            .observe(this,
+                Observer {
+                    if (it == null) {
+                        Snackbar.make(
+                            homeContent,
+                            getString(
+                                R.string.snackbar_settings_not_found,
+                                appSettingsViewModel.getAppSettingsFilename()
+                            ),
+                            Snackbar.LENGTH_LONG
+                        )
+                            .show()
+                    } else {
+                        appSettings = it
+                    }
+                })
     }
 }

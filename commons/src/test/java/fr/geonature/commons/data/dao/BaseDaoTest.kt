@@ -21,8 +21,10 @@ class BaseDaoTest {
 
     @Test
     fun testTableName() {
-        assertEquals(SimpleEntity.TABLE_NAME,
-                     SimpleEntityDao().entityTableName)
+        assertEquals(
+            SimpleEntity.TABLE_NAME,
+            SimpleEntityDao().entityTableName
+        )
     }
 
     @Test(expected = NoSuchFieldException::class)
@@ -34,69 +36,86 @@ class BaseDaoTest {
     fun getSimpleQueryBuilder() {
         // given a simple query builder from DAO
         val sqLiteQuery = SimpleEntityDao().createQueryBuilder()
-                .build()
+            .build()
 
         // then
         assertNotNull(sqLiteQuery)
-        assertEquals("""
+        assertEquals(
+            """
             SELECT *
             FROM entity_table entity_table
         """.trimIndent(),
-                     sqLiteQuery.sql)
+            sqLiteQuery.sql
+        )
     }
 
     @Test
     fun getSimpleQueryBuilderFromQB() {
         // given a simple query builder from DAO
         val sqLiteQuery = SimpleEntityDao().QB()
-                .getQueryBuilder()
-                .build()
+            .getQueryBuilder()
+            .build()
 
         // then
         assertNotNull(sqLiteQuery)
-        assertEquals("""
+        assertEquals(
+            """
             SELECT *
             FROM entity_table entity_table
         """.trimIndent(),
-                     sqLiteQuery.sql)
+            sqLiteQuery.sql
+        )
     }
 
     @Test
     fun getQueryBuilderWithSelectionWithNoArgs() {
         // given a simple query builder from DAO
-        val sqLiteQuery = (SimpleEntityDao().QB().whereSelection("col = 1") as SimpleEntityDao.QB).getQueryBuilder()
+        val sqLiteQuery =
+            (SimpleEntityDao().QB().whereSelection("col = 1") as SimpleEntityDao.QB).getQueryBuilder()
                 .build()
 
         // then
         assertNotNull(sqLiteQuery)
-        assertEquals("""
+        assertEquals(
+            """
             SELECT *
             FROM entity_table entity_table
             WHERE (col = 1)
         """.trimIndent(),
-                     sqLiteQuery.sql)
-        assertEquals(0,
-                     sqLiteQuery.argCount)
+            sqLiteQuery.sql
+        )
+        assertEquals(
+            0,
+            sqLiteQuery.argCount
+        )
     }
 
     @Test
     fun getQueryBuilderWithSelectionWithArgs() {
         // given a simple query builder from DAO
-        val sqLiteQuery = (SimpleEntityDao().QB().whereSelection("col = ? OR col = ?",
-                                                                 arrayOf(12,
-                                                                         "some_args")) as SimpleEntityDao.QB).getQueryBuilder()
-                .build()
+        val sqLiteQuery = (SimpleEntityDao().QB().whereSelection(
+            "col = ? OR col = ?",
+            arrayOf(
+                12,
+                "some_args"
+            )
+        ) as SimpleEntityDao.QB).getQueryBuilder()
+            .build()
 
         // then
         assertNotNull(sqLiteQuery)
-        assertEquals("""
+        assertEquals(
+            """
             SELECT *
             FROM entity_table entity_table
             WHERE (col = ? OR col = ?)
         """.trimIndent(),
-                     sqLiteQuery.sql)
-        assertEquals(2,
-                     sqLiteQuery.argCount)
+            sqLiteQuery.sql
+        )
+        assertEquals(
+            2,
+            sqLiteQuery.argCount
+        )
     }
 
     @Entity

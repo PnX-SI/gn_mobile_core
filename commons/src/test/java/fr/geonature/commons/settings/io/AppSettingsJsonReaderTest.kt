@@ -54,11 +54,17 @@ class AppSettingsJsonReaderTest {
 
     @Test
     fun testReadAppSettingsFromJsonString() {
-        `when`(onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(any(JsonReader::class.java),
-                                                                                 eq("attribute"),
-                                                                                 any(DummyAppSettings::class.java))).then {
-            assertEquals("value",
-                         (it.getArgument(0) as JsonReader).nextString())
+        `when`(
+            onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(
+                any(JsonReader::class.java),
+                eq("attribute"),
+                any(DummyAppSettings::class.java)
+            )
+        ).then {
+            assertEquals(
+                "value",
+                (it.getArgument(0) as JsonReader).nextString()
+            )
         }
 
         // given app settings to read
@@ -68,10 +74,14 @@ class AppSettingsJsonReaderTest {
         val appSettings = appSettingsJsonReader.read(json)
 
         // then
-        verify(onAppSettingsJsonJsonReaderListener,
-               atMost(1)).readAdditionalAppSettingsData(any(JsonReader::class.java),
-                                                        eq("attribute"),
-                                                        any(DummyAppSettings::class.java))
+        verify(
+            onAppSettingsJsonJsonReaderListener,
+            atMost(1)
+        ).readAdditionalAppSettingsData(
+            any(JsonReader::class.java),
+            eq("attribute"),
+            any(DummyAppSettings::class.java)
+        )
 
         assertNotNull(appSettings)
     }

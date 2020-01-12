@@ -62,25 +62,39 @@ class InputJsonReaderTest {
         val input = inputJsonReader.read(json)
 
         // then
-        verify(onInputJsonReaderListener,
-               never()).readAdditionalInputData(any(JsonReader::class.java),
-                                                any(String::class.java),
-                                                any(DummyInput::class.java))
+        verify(
+            onInputJsonReaderListener,
+            never()
+        ).readAdditionalInputData(
+            any(JsonReader::class.java),
+            any(String::class.java),
+            any(DummyInput::class.java)
+        )
 
         assertNotNull(input)
-        assertEquals(1234L,
-                     input?.id)
-        assertEquals("dummy",
-                     input?.module)
+        assertEquals(
+            1234L,
+            input?.id
+        )
+        assertEquals(
+            "dummy",
+            input?.module
+        )
     }
 
     @Test
     fun testReadInput() {
-        `when`(onInputJsonReaderListener.readAdditionalInputData(any(JsonReader::class.java),
-                                                                 eq("date"),
-                                                                 any(DummyInput::class.java))).then {
-            assertEquals("2016-10-28",
-                         (it.getArgument(0) as JsonReader).nextString())
+        `when`(
+            onInputJsonReaderListener.readAdditionalInputData(
+                any(JsonReader::class.java),
+                eq("date"),
+                any(DummyInput::class.java)
+            )
+        ).then {
+            assertEquals(
+                "2016-10-28",
+                (it.getArgument(0) as JsonReader).nextString()
+            )
         }
 
         // given an input file to read
@@ -90,10 +104,14 @@ class InputJsonReaderTest {
         val input = inputJsonReader.read(json)
 
         // then
-        verify(onInputJsonReaderListener,
-               atMost(1)).readAdditionalInputData(any(JsonReader::class.java),
-                                                  eq("date"),
-                                                  any(DummyInput::class.java))
+        verify(
+            onInputJsonReaderListener,
+            atMost(1)
+        ).readAdditionalInputData(
+            any(JsonReader::class.java),
+            eq("date"),
+            any(DummyInput::class.java)
+        )
 
         assertNotNull(input)
     }

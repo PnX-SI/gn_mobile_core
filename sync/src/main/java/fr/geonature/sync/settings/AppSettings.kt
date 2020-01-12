@@ -17,8 +17,10 @@ data class AppSettings(var applicationId: Int = 0) : IAppSettings {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.writeInt(applicationId)
     }
 

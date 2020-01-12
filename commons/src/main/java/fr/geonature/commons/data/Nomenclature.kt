@@ -37,18 +37,22 @@ open class Nomenclature : Parcelable {
     @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
     var defaultLabel: String
 
-    @ForeignKey(entity = NomenclatureType::class,
-                parentColumns = [NomenclatureType.COLUMN_ID],
-                childColumns = [COLUMN_TYPE_ID],
-                onDelete = CASCADE)
+    @ForeignKey(
+        entity = NomenclatureType::class,
+        parentColumns = [NomenclatureType.COLUMN_ID],
+        childColumns = [COLUMN_TYPE_ID],
+        onDelete = CASCADE
+    )
     @ColumnInfo(name = COLUMN_TYPE_ID)
     var typeId: Long
 
-    constructor(id: Long,
-                code: String,
-                hierarchy: String,
-                defaultLabel: String,
-                typeId: Long) {
+    constructor(
+        id: Long,
+        code: String,
+        hierarchy: String,
+        defaultLabel: String,
+        typeId: Long
+    ) {
         this.id = id
         this.code = code
         this.hierarchy = hierarchy
@@ -56,11 +60,13 @@ open class Nomenclature : Parcelable {
         this.typeId = typeId
     }
 
-    internal constructor(source: Parcel) : this(source.readLong(),
-                                                source.readString()!!,
-                                                source.readString()!!,
-                                                source.readString()!!,
-                                                source.readLong())
+    internal constructor(source: Parcel) : this(
+        source.readLong(),
+        source.readString()!!,
+        source.readString()!!,
+        source.readString()!!,
+        source.readLong()
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -89,8 +95,10 @@ open class Nomenclature : Parcelable {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeLong(id)
             it.writeString(code)
@@ -123,25 +131,41 @@ open class Nomenclature : Parcelable {
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String = TABLE_NAME): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_ID,
-                                  tableAlias),
-                           column(COLUMN_CODE,
-                                  tableAlias),
-                           column(COLUMN_HIERARCHY,
-                                  tableAlias),
-                           column(COLUMN_DEFAULT_LABEL,
-                                  tableAlias),
-                           column(COLUMN_TYPE_ID,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_ID,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_CODE,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_HIERARCHY,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_DEFAULT_LABEL,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_TYPE_ID,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String = TABLE_NAME): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String = TABLE_NAME
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
         }
 
         /**
@@ -151,27 +175,62 @@ open class Nomenclature : Parcelable {
          *
          * @return A newly created [Nomenclature] instance
          */
-        fun fromCursor(cursor: Cursor,
-                       tableAlias: String = TABLE_NAME): Nomenclature? {
+        fun fromCursor(
+            cursor: Cursor,
+            tableAlias: String = TABLE_NAME
+        ): Nomenclature? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                Nomenclature(requireNotNull(cursor.get(getColumnAlias(COLUMN_ID,
-                                                                      tableAlias))),
-                             requireNotNull(cursor.get(getColumnAlias(COLUMN_CODE,
-                                                                      tableAlias))),
-                             requireNotNull(cursor.get(getColumnAlias(COLUMN_HIERARCHY,
-                                                                      tableAlias))),
-                             requireNotNull(cursor.get(getColumnAlias(COLUMN_DEFAULT_LABEL,
-                                                                      tableAlias))),
-                             requireNotNull(cursor.get(getColumnAlias(COLUMN_TYPE_ID,
-                                                                      tableAlias))))
-            }
-            catch (e: Exception) {
-                Log.w(TAG,
-                      e.message)
+                Nomenclature(
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_ID,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_CODE,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_HIERARCHY,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_DEFAULT_LABEL,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_TYPE_ID,
+                                tableAlias
+                            )
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e.message
+                )
 
                 null
             }

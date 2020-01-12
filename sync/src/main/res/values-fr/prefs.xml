@@ -3,6 +3,9 @@
 
     <string name="preference_category_server">Serveur GeoNature</string>
     <string name="preference_category_server_url">URL</string>
+    <string name="preference_category_storage">Mémoire</string>
+    <string name="preference_category_storage_internal">Mémoire interne</string>
+    <string name="preference_category_storage_external">Mémoire externe</string>
     <string name="preference_category_about">A propos</string>
     <string name="preference_category_about_app_version">Version de l\'application</string>
 

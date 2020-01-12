@@ -33,10 +33,11 @@ class DatasetJsonReader {
 
         try {
             return read(StringReader(json))
-        }
-        catch (ioe: IOException) {
-            Log.w(TAG,
-                  ioe.message)
+        } catch (ioe: IOException) {
+            Log.w(
+                TAG,
+                ioe.message
+            )
         }
 
         return emptyList()
@@ -112,25 +113,28 @@ class DatasetJsonReader {
             return null
         }
 
-        return Dataset(id,
-                       name,
-                       description,
-                       active,
-                       createdAt)
+        return Dataset(
+            id,
+            name,
+            description,
+            active,
+            createdAt
+        )
     }
 
     internal fun toDate(str: String?): Date? {
         if (str.isNullOrBlank()) return null
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
-                                   Locale.getDefault()).apply {
+        val sdf = SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss",
+            Locale.getDefault()
+        ).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
 
         return try {
             sdf.parse(str)
-        }
-        catch (pe: ParseException) {
+        } catch (pe: ParseException) {
             null
         }
     }

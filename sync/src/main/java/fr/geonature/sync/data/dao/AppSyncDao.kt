@@ -15,19 +15,24 @@ import fr.geonature.commons.util.FileUtils.getInputsFolder
  */
 class AppSyncDao(private val context: Context) {
 
-    private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val sharedPreferences: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(context)
 
     fun findByPackageId(packageId: String?): Cursor {
         val cursor = MatrixCursor(AppSync.defaultProjection().map { it.second }.toTypedArray())
 
         if (packageId.isNullOrBlank()) return cursor
 
-        val lastSync = this.sharedPreferences.getString("sync.$packageId.${AppSync.COLUMN_LAST_SYNC}",
-                                                        null)
+        val lastSync = this.sharedPreferences.getString(
+            "sync.$packageId.${AppSync.COLUMN_LAST_SYNC}",
+            null
+        )
 
-        val values = arrayOf(packageId,
-                             lastSync,
-                             countInputsToSynchronize(packageId))
+        val values = arrayOf(
+            packageId,
+            lastSync,
+            countInputsToSynchronize(packageId)
+        )
 
         cursor.addRow(values)
 
@@ -35,9 +40,11 @@ class AppSyncDao(private val context: Context) {
     }
 
     private fun countInputsToSynchronize(packageId: String): Number {
-        return getInputsFolder(context,
-                               packageId).walkTopDown()
-                .filter { it.extension == "json" }
-                .count()
+        return getInputsFolder(
+            context,
+            packageId
+        ).walkTopDown()
+            .filter { it.extension == "json" }
+            .count()
     }
 }

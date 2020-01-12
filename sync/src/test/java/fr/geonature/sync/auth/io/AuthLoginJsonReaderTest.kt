@@ -48,13 +48,19 @@ class AuthLoginJsonReaderTest {
         val authLogin = authLoginJsonReader.read(json)
 
         assertNotNull(authLogin)
-        assertEquals(AuthLogin(AuthUser(1234L,
-                                        "Admin",
-                                        "Test",
-                                        3,
-                                        1,
-                                        "admin"),
-                               toDate("2019-11-19T09:30:00Z")!!),
-                     authLogin)
+        assertEquals(
+            AuthLogin(
+                AuthUser(
+                    1234L,
+                    "Admin",
+                    "Test",
+                    3,
+                    1,
+                    "admin"
+                ),
+                toDate("2019-11-19T09:30:00Z")!!
+            ),
+            authLogin
+        )
     }
 }

@@ -45,14 +45,18 @@ object PermissionUtils {
      * @param context the current `Context`.
      * @param permissions a set of permissions being checked
      */
-    fun checkSelfPermissions(context: Context,
-                             vararg permissions: String): Boolean {
+    fun checkSelfPermissions(
+        context: Context,
+        vararg permissions: String
+    ): Boolean {
         var granted = true
         val iterator = permissions.iterator()
 
         while (iterator.hasNext() && granted) {
-            granted = ActivityCompat.checkSelfPermission(context,
-                                                         iterator.next()) == PackageManager.PERMISSION_GRANTED
+            granted = ActivityCompat.checkSelfPermission(
+                context,
+                iterator.next()
+            ) == PackageManager.PERMISSION_GRANTED
         }
 
         return granted
@@ -61,20 +65,24 @@ object PermissionUtils {
     /**
      * Determines whether the user have been granted a set of permissions.
      *
-     * @param context                       the current `Context`.
+     * @param context the current `Context`.
      * @param onCheckSelfPermissionListener the callback to use to notify if these permissions was
      * granted or not
-     * @param permissions                   a set of permissions being checked
+     * @param permissions a set of permissions being checked
      */
-    fun checkSelfPermissions(context: Context,
-                             onCheckSelfPermissionListener: OnCheckSelfPermissionListener,
-                             @NonNull
-                             vararg permissions: String) {
-        if (checkSelfPermissions(context,
-                                 *permissions)) {
+    fun checkSelfPermissions(
+        context: Context,
+        onCheckSelfPermissionListener: OnCheckSelfPermissionListener,
+        @NonNull
+        vararg permissions: String
+    ) {
+        if (checkSelfPermissions(
+                context,
+                *permissions
+            )
+        ) {
             onCheckSelfPermissionListener.onPermissionsGranted()
-        }
-        else {
+        } else {
             onCheckSelfPermissionListener.onRequestPermissions(*permissions)
         }
     }
@@ -85,41 +93,50 @@ object PermissionUtils {
      * If a permission has been denied previously, a `Snackbar` will prompt the user to grant
      * the permission, otherwise it is requested directly.
      *
-     * @param activity                  the current `Activity`
-     * @param snackbarParentView        the parent view on which to display the `Snackbar`
+     * @param activity the current `Activity`
+     * @param snackbarParentView the parent view on which to display the `Snackbar`
      * @param snackbarMessageResourceId the message resource ID to display
-     * @param requestCode               application specific request code to match with a result
+     * @param requestCode application specific request code to match with a result
      * reported to `ActivityCompat.OnRequestPermissionsResultCallback#onRequestPermissionsResult(int, String[], int[])`.
-     * @param permissions               a set of permissions to request
+     * @param permissions a set of permissions to request
      */
-    fun requestPermissions(activity: Activity,
-                           snackbarParentView: View,
-                           snackbarMessageResourceId: Int,
-                           requestCode: Int,
-                           vararg permissions: String) {
+    fun requestPermissions(
+        activity: Activity,
+        snackbarParentView: View,
+        snackbarMessageResourceId: Int,
+        requestCode: Int,
+        vararg permissions: String
+    ) {
         var shouldShowRequestPermissions = false
         val iterator = permissions.iterator()
 
         while (iterator.hasNext() && !shouldShowRequestPermissions) {
-            shouldShowRequestPermissions = ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                                                                                               iterator.next())
+            shouldShowRequestPermissions = ActivityCompat.shouldShowRequestPermissionRationale(
+                activity,
+                iterator.next()
+            )
         }
 
         if (shouldShowRequestPermissions) {
-            Snackbar.make(snackbarParentView,
-                          snackbarMessageResourceId,
-                          BaseTransientBottomBar.LENGTH_INDEFINITE)
+            Snackbar.make(
+                snackbarParentView,
+                snackbarMessageResourceId,
+                BaseTransientBottomBar.LENGTH_INDEFINITE
+            )
                 .setAction(android.R.string.ok) {
-                    ActivityCompat.requestPermissions(activity,
-                                                      permissions,
-                                                      requestCode)
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        permissions,
+                        requestCode
+                    )
                 }
                 .show()
-        }
-        else {
-            ActivityCompat.requestPermissions(activity,
-                                              permissions,
-                                              requestCode)
+        } else {
+            ActivityCompat.requestPermissions(
+                activity,
+                permissions,
+                requestCode
+            )
         }
     }
 
@@ -129,38 +146,46 @@ object PermissionUtils {
      * If a permission has been denied previously, a `Snackbar` will prompt the user to grant
      * the permission, otherwise it is requested directly.
      *
-     * @param fragment                  the current `Fragment`
-     * @param snackbarParentView        the parent view on which to display the `Snackbar`
+     * @param fragment the current `Fragment`
+     * @param snackbarParentView the parent view on which to display the `Snackbar`
      * @param snackbarMessageResourceId the message resource ID to display
-     * @param requestCode               application specific request code to match with a result
+     * @param requestCode application specific request code to match with a result
      * reported to `ActivityCompat.OnRequestPermissionsResultCallback#onRequestPermissionsResult(int, String[], int[])`.
-     * @param permissions               a set of permissions to request
+     * @param permissions a set of permissions to request
      */
-    fun requestPermissions(fragment: Fragment,
-                           snackbarParentView: View,
-                           snackbarMessageResourceId: Int,
-                           requestCode: Int,
-                           vararg permissions: String) {
+    fun requestPermissions(
+        fragment: Fragment,
+        snackbarParentView: View,
+        snackbarMessageResourceId: Int,
+        requestCode: Int,
+        vararg permissions: String
+    ) {
         var shouldShowRequestPermissions = false
         val iterator = permissions.iterator()
 
         while (iterator.hasNext() && !shouldShowRequestPermissions) {
-            shouldShowRequestPermissions = fragment.shouldShowRequestPermissionRationale(iterator.next())
+            shouldShowRequestPermissions =
+                fragment.shouldShowRequestPermissionRationale(iterator.next())
         }
 
         if (shouldShowRequestPermissions) {
-            Snackbar.make(snackbarParentView,
-                          snackbarMessageResourceId,
-                          BaseTransientBottomBar.LENGTH_INDEFINITE)
+            Snackbar.make(
+                snackbarParentView,
+                snackbarMessageResourceId,
+                BaseTransientBottomBar.LENGTH_INDEFINITE
+            )
                 .setAction(android.R.string.ok) {
-                    fragment.requestPermissions(permissions,
-                                                requestCode)
+                    fragment.requestPermissions(
+                        permissions,
+                        requestCode
+                    )
                 }
                 .show()
-        }
-        else {
-            fragment.requestPermissions(permissions,
-                                        requestCode)
+        } else {
+            fragment.requestPermissions(
+                permissions,
+                requestCode
+            )
         }
     }
 

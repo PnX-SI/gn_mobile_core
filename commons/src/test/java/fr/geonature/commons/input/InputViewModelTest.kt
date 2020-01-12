@@ -42,18 +42,24 @@ class InputViewModelTest {
         doReturn(DummyInput()).`when`(onInputJsonReaderListener)
             .createInput()
 
-        inputViewModel = spy(DummyInputViewModel(ApplicationProvider.getApplicationContext(),
-                                                 onInputJsonReaderListener,
-                                                 onInputJsonWriterListener))
+        inputViewModel = spy(
+            DummyInputViewModel(
+                ApplicationProvider.getApplicationContext(),
+                onInputJsonReaderListener,
+                onInputJsonWriterListener
+            )
+        )
     }
 
     @Test
     fun testCreateFromFactory() {
         // given Factory
         val factory = InputViewModel.Factory {
-            DummyInputViewModel(ApplicationProvider.getApplicationContext(),
-                                onInputJsonReaderListener,
-                                onInputJsonWriterListener)
+            DummyInputViewModel(
+                ApplicationProvider.getApplicationContext(),
+                onInputJsonReaderListener,
+                onInputJsonWriterListener
+            )
         }
 
         // when create InputViewModel instance from this factory
@@ -63,9 +69,13 @@ class InputViewModelTest {
         assertNotNull(viewModelFromFactory)
     }
 
-    class DummyInputViewModel(application: Application,
-                              inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>,
-                              inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>) : InputViewModel<DummyInput>(application,
-                                                                                                                                           inputJsonReaderListener,
-                                                                                                                                           inputJsonWriterListener)
+    class DummyInputViewModel(
+        application: Application,
+        inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>,
+        inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>
+    ) : InputViewModel<DummyInput>(
+        application,
+        inputJsonReaderListener,
+        inputJsonWriterListener
+    )
 }

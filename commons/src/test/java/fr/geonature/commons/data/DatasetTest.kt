@@ -4,6 +4,8 @@ import android.database.Cursor
 import android.os.Parcel
 import fr.geonature.commons.data.Dataset.Companion.defaultProjection
 import fr.geonature.commons.data.Dataset.Companion.fromCursor
+import java.time.Instant
+import java.util.Date
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -13,8 +15,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
-import java.time.Instant
-import java.util.Date
 
 /**
  * Unit tests about [Dataset].
@@ -28,16 +28,22 @@ class DatasetTest {
     fun testEquals() {
         val now = Date.from(Instant.now())
 
-        assertEquals(Dataset(1234,
-                             "Dataset #1",
-                             "description",
-                             true,
-                             now),
-                     Dataset(1234,
-                             "Dataset #1",
-                             "description",
-                             true,
-                             now))
+        assertEquals(
+            Dataset(
+                1234,
+                "Dataset #1",
+                "description",
+                true,
+                now
+            ),
+            Dataset(
+                1234,
+                "Dataset #1",
+                "description",
+                true,
+                now
+            )
+        )
     }
 
     @Test
@@ -61,12 +67,16 @@ class DatasetTest {
 
         // then
         assertNotNull(dataset)
-        assertEquals(Dataset(1234,
-                             "Dataset #1",
-                             "description",
-                             true,
-                             Date.from(Instant.parse("2016-10-28T08:15:00Z"))),
-                     dataset)
+        assertEquals(
+            Dataset(
+                1234,
+                "Dataset #1",
+                "description",
+                true,
+                Date.from(Instant.parse("2016-10-28T08:15:00Z"))
+            ),
+            dataset
+        )
     }
 
     @Test
@@ -85,37 +95,57 @@ class DatasetTest {
     @Test
     fun testParcelable() {
         // given a dataset
-        val dataset = Dataset(1234,
-                              "Dataset #1",
-                              "description",
-                              true,
-                              Date.from(Instant.now()))
+        val dataset = Dataset(
+            1234,
+            "Dataset #1",
+            "description",
+            true,
+            Date.from(Instant.now())
+        )
 
         // when we obtain a Parcel object to write the dataset instance to it
         val parcel = Parcel.obtain()
-        dataset.writeToParcel(parcel,
-                              0)
+        dataset.writeToParcel(
+            parcel,
+            0
+        )
 
         // reset the parcel for reading
         parcel.setDataPosition(0)
 
         // then
-        assertEquals(dataset,
-                     Dataset.CREATOR.createFromParcel(parcel))
+        assertEquals(
+            dataset,
+            Dataset.CREATOR.createFromParcel(parcel)
+        )
     }
 
     @Test
     fun testDefaultProjection() {
-        assertArrayEquals(arrayOf(Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_ID}\"",
-                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ID}"),
-                                  Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_NAME}\"",
-                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME}"),
-                                  Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_DESCRIPTION}\"",
-                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION}"),
-                                  Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_ACTIVE}\"",
-                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ACTIVE}"),
-                                  Pair("${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_CREATED_AT}\"",
-                                       "${Dataset.TABLE_NAME}_${Dataset.COLUMN_CREATED_AT}")),
-                          defaultProjection())
+        assertArrayEquals(
+            arrayOf(
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_ID}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ID}"
+                ),
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_NAME}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME}"
+                ),
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_DESCRIPTION}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION}"
+                ),
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_ACTIVE}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ACTIVE}"
+                ),
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_CREATED_AT}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_CREATED_AT}"
+                )
+            ),
+            defaultProjection()
+        )
     }
 }

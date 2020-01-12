@@ -29,12 +29,10 @@ object IsoDateUtils {
 
         return try {
             sdfDateTime.parse(str)
-        }
-        catch (pe: ParseException) {
+        } catch (pe: ParseException) {
             try {
                 sdfDate.parse(str)
-            }
-            catch (pe: ParseException) {
+            } catch (pe: ParseException) {
                 return null
             }
         }

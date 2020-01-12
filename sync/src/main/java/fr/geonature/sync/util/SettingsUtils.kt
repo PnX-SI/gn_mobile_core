@@ -1,10 +1,12 @@
 package fr.geonature.sync.util
 
 import android.content.Context
+import android.os.Environment
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
+import fr.geonature.commons.util.MountPointUtils
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import java.text.DateFormat
@@ -26,16 +28,19 @@ object SettingsUtils {
      */
     fun getGeoNatureServerUrl(context: Context): String? {
         return PreferenceManager.getDefaultSharedPreferences(context)
-            .getString(context.getString(R.string.preference_category_server_url_key),
-                       null)
+            .getString(
+                context.getString(R.string.preference_category_server_url_key),
+                null
+            )
     }
 
     fun updatePreferences(preferenceScreen: PreferenceScreen) {
         val context = preferenceScreen.context
-        val onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
-            preference.summary = newValue.toString()
-            true
-        }
+        val onPreferenceChangeListener =
+            Preference.OnPreferenceChangeListener { preference, newValue ->
+                preference.summary = newValue.toString()
+                true
+            }
 
         preferenceScreen.findPreference<EditTextPreference?>(context.getString(R.string.preference_category_server_url_key))
             ?.apply {
@@ -43,10 +48,25 @@ object SettingsUtils {
                 setOnPreferenceChangeListener(onPreferenceChangeListener)
             }
 
+        preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_storage_internal_key))
+            ?.summary = MountPointUtils.getInternalStorage().mountPath.absolutePath
+        MountPointUtils.getExternalStorage(
+            preferenceScreen.context, Environment.MEDIA_MOUNTED,
+            Environment.MEDIA_MOUNTED_READ_ONLY
+        )?.also { mountPoint ->
+            preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_storage_external_key))
+                ?.also {
+                    it.summary = mountPoint.mountPath.absolutePath
+                    it.isEnabled = true
+                }
+        }
+
         preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_about_app_version_key))
-            ?.summary = context.getString(R.string.app_version,
-                                          BuildConfig.VERSION_NAME,
-                                          BuildConfig.VERSION_CODE,
-                                          DateFormat.getDateTimeInstance().format(Date(BuildConfig.BUILD_DATE.toLong())))
+            ?.summary = context.getString(
+            R.string.app_version,
+            BuildConfig.VERSION_NAME,
+            BuildConfig.VERSION_CODE,
+            DateFormat.getDateTimeInstance().format(Date(BuildConfig.BUILD_DATE.toLong()))
+        )
     }
 }

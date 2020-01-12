@@ -22,7 +22,8 @@ import kotlinx.coroutines.launch
 class PackageInfoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
-    private val packageInfoManager: PackageInfoManager = PackageInfoManager.getInstance(getApplication())
+    private val packageInfoManager: PackageInfoManager =
+        PackageInfoManager.getInstance(getApplication())
 
     val packageInfos: LiveData<List<PackageInfo>> = packageInfoManager.packageInfos
 
@@ -39,18 +40,22 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun startSyncInputs(packageInfo: PackageInfo) {
         val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
 
-        val continuation = workManager.beginUniqueWork(InputsSyncWorker.workName(packageInfo.packageName),
-                                                       ExistingWorkPolicy.KEEP,
-                                                       OneTimeWorkRequest.Builder(InputsSyncWorker::class.java)
-                                                               .addTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
-                                                               .setConstraints(constraints)
-                                                               .setInputData(Data.Builder()
-                                                                                     .putString(InputsSyncWorker.KEY_PACKAGE_NAME, packageInfo.packageName)
-                                                                                     .build())
-                                                               .build())
+        val continuation = workManager.beginUniqueWork(
+            InputsSyncWorker.workName(packageInfo.packageName),
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequest.Builder(InputsSyncWorker::class.java)
+                .addTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
+                .setConstraints(constraints)
+                .setInputData(
+                    Data.Builder()
+                        .putString(InputsSyncWorker.KEY_PACKAGE_NAME, packageInfo.packageName)
+                        .build()
+                )
+                .build()
+        )
 
         // start the work
         continuation.enqueue()

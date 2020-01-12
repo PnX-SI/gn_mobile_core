@@ -58,22 +58,26 @@ class InputManagerTest {
                 return DummyInput()
             }
 
-            override fun readAdditionalInputData(reader: JsonReader,
-                                                 keyName: String,
-                                                 input: DummyInput) {
+            override fun readAdditionalInputData(
+                reader: JsonReader,
+                keyName: String,
+                input: DummyInput
+            ) {
             }
         }
 
         val application = getApplicationContext<Application>()
-        inputManager = InputManager.getInstance(application,
-                                                onInputJsonReaderListener,
-                                                onInputJsonWriterListener)
+        inputManager = InputManager.getInstance(
+            application,
+            onInputJsonReaderListener,
+            onInputJsonWriterListener
+        )
         inputManager.inputs.observeForever(observerForListOfInputs)
         inputManager.input.observeForever(observerForInput)
 
         inputManager.preferenceManager.edit()
-                .clear()
-                .commit()
+            .clear()
+            .commit()
     }
 
     @Test
@@ -107,10 +111,14 @@ class InputManagerTest {
         val inputs = runBlocking { inputManager.readInputs() }
 
         // then
-        assertArrayEquals(arrayOf(input1.id,
-                                  input2.id,
-                                  input3.id),
-                          inputs.map { it.id }.toTypedArray())
+        assertArrayEquals(
+            arrayOf(
+                input1.id,
+                input2.id,
+                input3.id
+            ),
+            inputs.map { it.id }.toTypedArray()
+        )
 
         verify(observerForListOfInputs).onChanged(inputs)
     }
@@ -140,30 +148,42 @@ class InputManagerTest {
 
         // then
         assertNotNull(readInput)
-        assertEquals(input.id,
-                     readInput!!.id)
-        assertEquals(input.module,
-                     readInput.module)
+        assertEquals(
+            input.id,
+            readInput!!.id
+        )
+        assertEquals(
+            input.module,
+            readInput.module
+        )
 
         // when reading this Input as default Input from manager
         val defaultInput = runBlocking { inputManager.readInput() }
 
         // then
         assertNotNull(defaultInput)
-        assertEquals(input.id,
-                     defaultInput!!.id)
-        assertEquals(input.module,
-                     defaultInput.module)
+        assertEquals(
+            input.id,
+            defaultInput!!.id
+        )
+        assertEquals(
+            input.module,
+            defaultInput.module
+        )
 
         // when reading this Input as current Input from manager
         val currentInput = runBlocking { inputManager.readCurrentInput() }
 
         // then
         assertNotNull(currentInput)
-        assertEquals(input.id,
-                     currentInput!!.id)
-        assertEquals(input.module,
-                     currentInput.module)
+        assertEquals(
+            input.id,
+            currentInput!!.id
+        )
+        assertEquals(
+            input.module,
+            currentInput.module
+        )
 
         verify(observerForInput).onChanged(readInput)
     }
@@ -188,8 +208,10 @@ class InputManagerTest {
 
         assertNull(noSuchInput)
 
-        verify(observerForInput,
-               atMost(2)).onChanged(null)
+        verify(
+            observerForInput,
+            atMost(2)
+        ).onChanged(null)
     }
 
     @Test
@@ -218,10 +240,14 @@ class InputManagerTest {
         val noSuchInput = runBlocking { inputManager.readInput(input.id) }
         assertNull(noSuchInput)
 
-        verify(observerForListOfInputs,
-               times(2)).onChanged(emptyList())
-        verify(observerForInput,
-               times(2)).onChanged(null)
+        verify(
+            observerForListOfInputs,
+            times(2)
+        ).onChanged(emptyList())
+        verify(
+            observerForInput,
+            times(2)
+        ).onChanged(null)
     }
 
     @Test

@@ -28,17 +28,25 @@ class FileUtilsTest {
 
     @Test
     fun testGetRelativeSharedPath() {
-        assertEquals("Android/data/fr.geonature.sync/",
-                     getRelativeSharedPath("fr.geonature.sync"))
+        assertEquals(
+            "Android/data/fr.geonature.sync/",
+            getRelativeSharedPath("fr.geonature.sync")
+        )
 
-        assertEquals("Android/data/fr.geonature.commons.test/",
-                     getRelativeSharedPath(application.packageName))
+        assertEquals(
+            "Android/data/fr.geonature.commons.test/",
+            getRelativeSharedPath(application.packageName)
+        )
     }
 
     @Test
     fun testGetInputsFolder() {
         assertTrue(getInputsFolder(application).absolutePath.contains("/Android/data/fr.geonature.commons.test/inputs"))
-        assertTrue(getInputsFolder(application,
-                                   "fr.geonature.sync").absolutePath.contains("/Android/data/fr.geonature.sync/inputs"))
+        assertTrue(
+            getInputsFolder(
+                application,
+                "fr.geonature.sync"
+            ).absolutePath.contains("/Android/data/fr.geonature.sync/inputs")
+        )
     }
 }

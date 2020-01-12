@@ -19,9 +19,11 @@ import kotlinx.coroutines.withContext
 class PackageInfoManager private constructor(private val applicationContext: Context) {
 
     private val pm = applicationContext.packageManager
-    private val sharedUserId = pm.getPackageInfo(applicationContext.packageName,
-                                                 PackageManager.GET_META_DATA)
-            .sharedUserId
+    private val sharedUserId = pm.getPackageInfo(
+        applicationContext.packageName,
+        PackageManager.GET_META_DATA
+    )
+        .sharedUserId
 
     private val availablePackageInfos = mutableMapOf<String, PackageInfo>()
     private val _packageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
@@ -34,30 +36,36 @@ class PackageInfoManager private constructor(private val applicationContext: Con
         availablePackageInfos.clear()
 
         pm.getInstalledApplications(PackageManager.GET_META_DATA)
-                .asSequence()
-                .filter { it.packageName.startsWith(sharedUserId) }
-                .filter { it.packageName != applicationContext.packageName }
-                .map {
-                    PackageInfo(it.packageName,
-                                pm.getApplicationLabel(it).toString(),
-                                pm.getPackageInfo(it.packageName,
-                                                  PackageManager.GET_META_DATA).versionName,
-                                pm.getApplicationIcon(it.packageName),
-                                pm.getLaunchIntentForPackage(it.packageName))
-                }
-                .onEach { availablePackageInfos[it.packageName] = it }
-                .toList()
-                .also {
-                    _packageInfos.postValue(it)
-                }
+            .asSequence()
+            .filter { it.packageName.startsWith(sharedUserId) }
+            .filter { it.packageName != applicationContext.packageName }
+            .map {
+                PackageInfo(
+                    it.packageName,
+                    pm.getApplicationLabel(it).toString(),
+                    pm.getPackageInfo(
+                        it.packageName,
+                        PackageManager.GET_META_DATA
+                    ).versionName,
+                    pm.getApplicationIcon(it.packageName),
+                    pm.getLaunchIntentForPackage(it.packageName)
+                )
+            }
+            .onEach { availablePackageInfos[it.packageName] = it }
+            .toList()
+            .also {
+                _packageInfos.postValue(it)
+            }
     }
 
     /**
      * Updates given [PackageInfo] status.
      */
-    fun updatePackageInfo(packageName: String,
-                          state: WorkInfo.State,
-                          syncInputs: List<SyncInput>): PackageInfo? {
+    fun updatePackageInfo(
+        packageName: String,
+        state: WorkInfo.State,
+        syncInputs: List<SyncInput>
+    ): PackageInfo? {
         val packageInfoToUpdate = availablePackageInfos[packageName]?.copy()?.apply {
             syncInputs.let {
                 inputs.also {

@@ -32,8 +32,7 @@ class PagerJsonWriter {
 
         try {
             write(writer, pager)
-        }
-        catch (ioe: IOException) {
+        } catch (ioe: IOException) {
             Log.w(TAG, ioe.message)
 
             return null
@@ -45,15 +44,16 @@ class PagerJsonWriter {
     /**
      * Convert the given [Pager] as `JSON` and write it to the given `Writer`.
      *
-     * @param out   the `Writer` to use
+     * @param out the `Writer` to use
      * @param pager the [Pager] to convert
      *
      * @throws IOException if something goes wrong
      */
     @Throws(IOException::class)
     fun write(
-            out: Writer,
-            pager: Pager) {
+        out: Writer,
+        pager: Pager
+    ) {
         val writer = JsonWriter(out)
         write(writer, pager)
         writer.flush()
@@ -62,16 +62,17 @@ class PagerJsonWriter {
 
     @Throws(IOException::class)
     private fun write(
-            writer: JsonWriter,
-            pager: Pager) {
+        writer: JsonWriter,
+        pager: Pager
+    ) {
 
         writer.beginObject()
         writer.name("id")
-                .value(pager.id)
+            .value(pager.id)
         writer.name("size")
-                .value(pager.size.toLong())
+            .value(pager.size.toLong())
         writer.name("position")
-                .value(pager.position.toLong())
+            .value(pager.position.toLong())
 
         writer.name("history")
         writer.beginArray()

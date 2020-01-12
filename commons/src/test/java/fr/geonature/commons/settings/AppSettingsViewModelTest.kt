@@ -45,8 +45,12 @@ class AppSettingsViewModelTest {
         doReturn("fr.geonature.commons").`when`(application)
             .packageName
 
-        appSettingsViewModel = spy(DummyAppSettingsViewModel(application,
-                                                             onAppSettingsJsonJsonReaderListener))
+        appSettingsViewModel = spy(
+            DummyAppSettingsViewModel(
+                application,
+                onAppSettingsJsonJsonReaderListener
+            )
+        )
         appSettingsManager = spy(appSettingsViewModel.appSettingsManager)
         appSettingsManager.appSettings.observeForever(observer)
     }
@@ -55,8 +59,10 @@ class AppSettingsViewModelTest {
     fun testCreateFromFactory() {
         // given Factory
         val factory = AppSettingsViewModel.Factory {
-            DummyAppSettingsViewModel(application,
-                                      onAppSettingsJsonJsonReaderListener)
+            DummyAppSettingsViewModel(
+                application,
+                onAppSettingsJsonJsonReaderListener
+            )
         }
 
         // when create AppSettingsViewModel instance from this factory
@@ -66,7 +72,11 @@ class AppSettingsViewModelTest {
         assertNotNull(appSettingsViewModelFromFactory)
     }
 
-    class DummyAppSettingsViewModel(application: Application,
-                                    onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>) : AppSettingsViewModel<DummyAppSettings>(application,
-                                                                                                                                                                                           onAppSettingsJsonJsonReaderListener)
+    class DummyAppSettingsViewModel(
+        application: Application,
+        onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
+    ) : AppSettingsViewModel<DummyAppSettings>(
+        application,
+        onAppSettingsJsonJsonReaderListener
+    )
 }

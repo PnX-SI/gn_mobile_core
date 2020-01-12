@@ -15,7 +15,7 @@ import androidx.lifecycle.Observer
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class OneTimeObserver<T>(private val handler: (T?) -> Unit) : Observer<T>,
-                                                             LifecycleOwner {
+    LifecycleOwner {
     private val lifecycle = LifecycleRegistry(this)
 
     init {

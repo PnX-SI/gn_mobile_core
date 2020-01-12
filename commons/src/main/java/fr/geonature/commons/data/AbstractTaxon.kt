@@ -41,11 +41,13 @@ abstract class AbstractTaxon : Parcelable {
     @ColumnInfo(name = COLUMN_HERITAGE)
     var heritage: Boolean = false
 
-    constructor(id: Long,
-                name: String,
-                taxonomy: Taxonomy,
-                description: String? = null,
-                heritage: Boolean = false) {
+    constructor(
+        id: Long,
+        name: String,
+        taxonomy: Taxonomy,
+        description: String? = null,
+        heritage: Boolean = false
+    ) {
         this.id = id
         this.name = name
         this.taxonomy = taxonomy
@@ -53,11 +55,13 @@ abstract class AbstractTaxon : Parcelable {
         this.heritage = heritage
     }
 
-    constructor(source: Parcel) : this(source.readLong(),
-                                       source.readString()!!,
-                                       source.readParcelable(Taxonomy::class.java.classLoader)!!,
-                                       source.readString(),
-                                       source.readByte() == 1.toByte())
+    constructor(source: Parcel) : this(
+        source.readLong(),
+        source.readString()!!,
+        source.readParcelable(Taxonomy::class.java.classLoader)!!,
+        source.readString(),
+        source.readByte() == 1.toByte()
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -86,13 +90,17 @@ abstract class AbstractTaxon : Parcelable {
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel?,
-                               flags: Int) {
+    override fun writeToParcel(
+        dest: Parcel?,
+        flags: Int
+    ) {
         dest?.also {
             it.writeLong(id)
             it.writeString(name)
-            it.writeParcelable(taxonomy,
-                               flags)
+            it.writeParcelable(
+                taxonomy,
+                flags
+            )
             it.writeString(description)
             it.writeByte((if (heritage) 1 else 0).toByte()) // as boolean value
         }
@@ -113,24 +121,82 @@ abstract class AbstractTaxon : Parcelable {
          * Gets the default projection.
          */
         fun defaultProjection(tableAlias: String): Array<Pair<String, String>> {
-            return arrayOf(column(COLUMN_ID,
-                                  tableAlias),
-                           column(COLUMN_NAME,
-                                  tableAlias),
-                           *Taxonomy.defaultProjection(tableAlias),
-                           column(COLUMN_DESCRIPTION,
-                                  tableAlias),
-                           column(COLUMN_HERITAGE,
-                                  tableAlias))
+            return arrayOf(
+                column(
+                    COLUMN_ID,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_NAME,
+                    tableAlias
+                ),
+                *Taxonomy.defaultProjection(tableAlias),
+                column(
+                    COLUMN_DESCRIPTION,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_HERITAGE,
+                    tableAlias
+                )
+            )
         }
 
         /**
          * Gets alias from given column name.
          */
-        fun getColumnAlias(columnName: String,
-                           tableAlias: String): String {
-            return column(columnName,
-                          tableAlias).second
+        fun getColumnAlias(
+            columnName: String,
+            tableAlias: String
+        ): String {
+            return column(
+                columnName,
+                tableAlias
+            ).second
+        }
+    }
+
+    /**
+     * Filter query builder.
+     */
+    open class Filter(internal val tableAlias: String) {
+        internal val wheres = mutableListOf<Pair<String, Array<*>?>>()
+
+        /**
+         * Filter by name.
+         *
+         * @return this
+         */
+        fun byName(queryString: String?): Filter {
+            if (queryString.isNullOrBlank()) {
+                return this
+            }
+
+            this.wheres.add(
+                Pair(
+                    "(${getColumnAlias(
+                        COLUMN_NAME, tableAlias
+                    )} LIKE ?)",
+                    arrayOf("%$queryString%")
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Builds the WHERE clause as selection for this filter.
+         */
+        fun build(): Pair<String, Array<Any?>> {
+            val bindArgs = mutableListOf<Any?>()
+
+            val whereClauses = this.wheres.joinToString(" AND ") { pair ->
+                pair.second?.toList()
+                    ?.also { bindArgs.addAll(it) }
+                pair.first
+            }
+
+            return Pair(whereClauses, bindArgs.toTypedArray())
         }
     }
 }
