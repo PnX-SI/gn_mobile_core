@@ -262,6 +262,7 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         if (currentItem < adapter.count) {
             val fragment = getPageFragment(currentItem)
             nextButton.isEnabled = fragment == null || fragment.validate()
+            supportActionBar?.subtitle = fragment?.getSubtitle()
         }
     }
 
