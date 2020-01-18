@@ -4,8 +4,6 @@ import android.database.Cursor
 import android.os.Parcel
 import fr.geonature.commons.data.Dataset.Companion.defaultProjection
 import fr.geonature.commons.data.Dataset.Companion.fromCursor
-import java.time.Instant
-import java.util.Date
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -15,6 +13,8 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
+import java.time.Instant
+import java.util.Date
 
 /**
  * Unit tests about [Dataset].
@@ -31,6 +31,7 @@ class DatasetTest {
         assertEquals(
             Dataset(
                 1234,
+                "occtax",
                 "Dataset #1",
                 "description",
                 true,
@@ -38,6 +39,7 @@ class DatasetTest {
             ),
             Dataset(
                 1234,
+                "occtax",
                 "Dataset #1",
                 "description",
                 true,
@@ -57,10 +59,11 @@ class DatasetTest {
         }
 
         `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("Dataset #1")
-        `when`(cursor.getString(2)).thenReturn("description")
-        `when`(cursor.getInt(3)).thenReturn(1)
-        `when`(cursor.getLong(4)).thenReturn(1477642500000)
+        `when`(cursor.getString(1)).thenReturn("occtax")
+        `when`(cursor.getString(2)).thenReturn("Dataset #1")
+        `when`(cursor.getString(3)).thenReturn("description")
+        `when`(cursor.getInt(4)).thenReturn(1)
+        `when`(cursor.getLong(5)).thenReturn(1477642500000)
 
         // when getting a dataset instance from Cursor
         val dataset = fromCursor(cursor)
@@ -70,6 +73,7 @@ class DatasetTest {
         assertEquals(
             Dataset(
                 1234,
+                "occtax",
                 "Dataset #1",
                 "description",
                 true,
@@ -97,6 +101,7 @@ class DatasetTest {
         // given a dataset
         val dataset = Dataset(
             1234,
+            "occtax",
             "Dataset #1",
             "description",
             true,
@@ -127,6 +132,10 @@ class DatasetTest {
                 Pair(
                     "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_ID}\"",
                     "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ID}"
+                ),
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_MODULE}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_MODULE}"
                 ),
                 Pair(
                     "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_NAME}\"",

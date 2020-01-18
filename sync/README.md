@@ -36,9 +36,9 @@ Base URI: `content://fr.geonature.sync.provider`
 | URI                                                | Parameters                              | Description                                                                                               |
 | -------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | **\<Base URI\>**/app_sync/\*                       | String                                  | Fetch synchronization status by application package ID (e.g. `fr.geonature.occtax`)                       |
-| **\<Base URI\>**/dataset                           | n/a                                     | Fetch all dataset                                                                                         |
-| **\<Base URI\>**/dataset/active                    | n/a                                     | Fetch all active dataset                                                                                  |
-| **\<Base URI\>**/dataset/#                         | Number                                  | Fetch dataset by ID                                                                                       |
+| **\<Base URI\>**/dataset/\*                        | String                                  | Fetch all dataset from given application package ID (e.g. `fr.geonature.occtax`)                          |
+| **\<Base URI\>**/dataset/\*/active                 | String                                  | Fetch all active dataset from given application package ID (e.g. `fr.geonature.occtax`)                   |
+| **\<Base URI\>**/dataset/\*/#                      | String, Number                          | Fetch dataset by ID from given application package ID (e.g. `fr.geonature.occtax`)                        |
 | **\<Base URI\>**/observers                         | n/a                                     | Fetch all registered observers                                                                            |
 | **\<Base URI\>**/observers/\*                      | String (list of comma separated values) | Fetch all registered observers matching a list of IDs                                                     |
 | **\<Base URI\>**/observers/#                       | Number                                  | Fetch an observer by ID                                                                                   |

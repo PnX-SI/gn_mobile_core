@@ -77,9 +77,7 @@ class DatasetJsonReader {
         reader.beginArray()
 
         while (reader.hasNext()) {
-            readDataset(reader)?.also {
-                dataset.add(it)
-            }
+            dataset.addAll(readDataset(reader))
         }
 
         reader.endArray()
@@ -87,7 +85,7 @@ class DatasetJsonReader {
         return dataset
     }
 
-    private fun readDataset(reader: JsonReader): Dataset? {
+    private fun readDataset(reader: JsonReader): List<Dataset> {
         reader.beginObject()
 
         var id: Long? = null
@@ -95,6 +93,7 @@ class DatasetJsonReader {
         var description: String? = null
         var active = false
         var createdAt: Date? = null
+        val modules = mutableListOf<String>()
 
         while (reader.hasNext()) {
             when (reader.nextName()) {
@@ -103,23 +102,64 @@ class DatasetJsonReader {
                 "dataset_desc" -> description = reader.nextString()
                 "active" -> active = reader.nextBoolean()
                 "meta_create_date" -> createdAt = toDate(reader.nextString())
+                "modules" -> modules.addAll(readDatasetModules(reader))
                 else -> reader.skipValue()
             }
         }
 
         reader.endObject()
 
-        if (id == null || name.isNullOrBlank() || description.isNullOrBlank() || createdAt == null) {
-            return null
+        if (id == null || name.isNullOrBlank() || description.isNullOrBlank() || createdAt == null || modules.isEmpty()) {
+            return emptyList()
         }
 
-        return Dataset(
-            id,
-            name,
-            description,
-            active,
-            createdAt
-        )
+        return modules.asSequence()
+            .distinct()
+            .map {
+                Dataset(
+                    id,
+                    it,
+                    name,
+                    description,
+                    active,
+                    createdAt
+                )
+            }
+            .toList()
+    }
+
+    private fun readDatasetModules(reader: JsonReader): List<String> {
+        val modules = mutableListOf<String>()
+
+        reader.beginArray()
+
+        while (reader.hasNext()) {
+            readDatasetModule(reader)?.also {
+                modules.add(it)
+            }
+        }
+
+        reader.endArray()
+
+        return modules.toList()
+    }
+
+    private fun readDatasetModule(reader: JsonReader): String? {
+        var module: String? = null
+
+        reader.beginObject()
+
+        while (reader.hasNext()) {
+            when (reader.nextName()) {
+                "module_path" -> module = reader.nextString()
+                    .toLowerCase(Locale.ROOT)
+                else -> reader.skipValue()
+            }
+        }
+
+        reader.endObject()
+
+        return module
     }
 
     internal fun toDate(str: String?): Date? {

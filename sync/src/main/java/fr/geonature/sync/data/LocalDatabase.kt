@@ -34,8 +34,18 @@ import fr.geonature.sync.data.dao.TaxonomyDao
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @Database(
-    entities = [Dataset::class, InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class, NomenclatureType::class, Nomenclature::class, NomenclatureTaxonomy::class, DefaultNomenclature::class],
-    version = 15,
+    entities = [
+        Dataset::class,
+        InputObserver::class,
+        Taxonomy::class,
+        Taxon::class,
+        TaxonArea::class,
+        NomenclatureType::class,
+        Nomenclature::class,
+        NomenclatureTaxonomy::class,
+        DefaultNomenclature::class
+    ],
+    version = 16,
     exportSchema = false
 )
 abstract class LocalDatabase : RoomDatabase() {
