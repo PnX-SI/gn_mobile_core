@@ -19,9 +19,9 @@ import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import fr.geonature.sync.util.SettingsUtils
+import java.util.Date
 import org.json.JSONObject
 import retrofit2.Response
-import java.util.Date
 
 /**
  * Local data synchronization worker.
