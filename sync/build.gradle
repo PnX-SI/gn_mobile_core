@@ -37,6 +37,14 @@ android {
         }
     }
 
+    flavorDimensions "version"
+    productFlavors {
+        pne {
+        }
+        pnv {
+        }
+    }
+
     testOptions {
         unitTests {
             includeAndroidResources = true

@@ -53,3 +53,11 @@ Base URI: `content://fr.geonature.sync.provider`
 | **\<Base URI\>**/nomenclature_types/\*/default     | String                                  | Fetch all default nomenclature definitions from given application package ID (e.g. `fr.geonature.occtax`) |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*    | String, String                          | Fetch all nomenclature definitions from given type, matching a given kingdom                              |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*/\* | String, String, String                  | Fetch all nomenclature definitions from given type, matching a given kingdom and group                    |
+
+## Full Build
+
+A full build can be executed with the following command:
+
+```
+../gradlew clean assembleDebug
+```
