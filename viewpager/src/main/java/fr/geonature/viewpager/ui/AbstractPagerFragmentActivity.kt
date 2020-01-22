@@ -11,10 +11,10 @@ import fr.geonature.viewpager.BuildConfig
 import fr.geonature.viewpager.R
 import fr.geonature.viewpager.pager.Pager
 import fr.geonature.viewpager.pager.PagerManager
-import java.util.ArrayList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.ArrayList
 
 /**
  * Basic [ViewPager] implementation as [AppCompatActivity].
@@ -233,6 +233,7 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         // updates title
         title = adapter.getPageTitle(position)
+        supportActionBar?.subtitle = adapter.getPageSubtitle(position)
 
         val fragmentAtPosition = getPageFragment(position)
 
@@ -261,6 +262,7 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         if (currentItem < adapter.count) {
             val fragment = getPageFragment(currentItem)
             nextButton.isEnabled = fragment == null || fragment.validate()
+            supportActionBar?.subtitle = fragment?.getSubtitle()
         }
     }
 

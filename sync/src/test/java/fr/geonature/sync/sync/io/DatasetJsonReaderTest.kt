@@ -66,6 +66,7 @@ class DatasetJsonReaderTest {
             arrayOf(
                 Dataset(
                     18L,
+                    "occtax",
                     "Dataset #1",
                     "Description of Dataset #1",
                     true,
@@ -73,6 +74,15 @@ class DatasetJsonReaderTest {
                 ),
                 Dataset(
                     19L,
+                    "occtax",
+                    "Dataset #2",
+                    "Description of Dataset #2",
+                    false,
+                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")
+                ),
+                Dataset(
+                    19L,
+                    "occhab",
                     "Dataset #2",
                     "Description of Dataset #2",
                     false,

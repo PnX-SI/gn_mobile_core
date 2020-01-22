@@ -164,11 +164,19 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
+        val module =
+            uri.pathSegments
+                .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
+                .take(1)
+                .firstOrNull()
+                ?.substringAfterLast(".")
+
         val onlyActive = uri.lastPathSegment == "active"
 
         return LocalDatabase.getInstance(context)
             .datasetDao()
             .QB()
+            .whereModule(module)
             .also {
                 if (onlyActive) {
                     it.whereActive()
@@ -181,9 +189,17 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
+        val module =
+            uri.pathSegments
+                .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
+                .take(1)
+                .firstOrNull()
+                ?.substringAfterLast(".")
+
         return LocalDatabase.getInstance(context)
             .datasetDao()
             .QB()
+            .whereModule(module)
             .whereId(uri.lastPathSegment?.toLongOrNull())
             .cursor()
     }
@@ -241,7 +257,8 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val lastPathSegments =
-            uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
+            uri.pathSegments
+                .drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
                 .take(2)
 
         return LocalDatabase.getInstance(context)
@@ -310,7 +327,8 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
-        val taxonId = uri.pathSegments.asSequence()
+        val taxonId = uri.pathSegments
+            .asSequence()
             .map { it.toLongOrNull() }
             .filterNotNull()
             .firstOrNull()
@@ -335,9 +353,11 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val module =
-            uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            uri.pathSegments
+                .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
                 .take(1)
                 .firstOrNull()
+                ?.substringAfterLast(".")
 
         return LocalDatabase.getInstance(context)
             .nomenclatureDao()
@@ -352,10 +372,12 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val mnemonic =
-            uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            uri.pathSegments
+                .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
                 .take(1)
                 .firstOrNull()
-        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf("items") + 1)
+        val lastPathSegments = uri.pathSegments
+            .drop(uri.pathSegments.indexOf("items") + 1)
             .take(2)
 
         return LocalDatabase.getInstance(context)
@@ -406,17 +428,17 @@ class MainContentProvider : ContentProvider() {
             )
             addURI(
                 AUTHORITY,
-                Dataset.TABLE_NAME,
+                "${Dataset.TABLE_NAME}/*",
                 DATASET
             )
             addURI(
                 AUTHORITY,
-                "${Dataset.TABLE_NAME}/active",
+                "${Dataset.TABLE_NAME}/*/active",
                 DATASET_ACTIVE
             )
             addURI(
                 AUTHORITY,
-                "${Dataset.TABLE_NAME}/#",
+                "${Dataset.TABLE_NAME}/*/#",
                 DATASET_ID
             )
             addURI(

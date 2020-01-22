@@ -161,6 +161,7 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
 
         // updates title
         title = adapter.getPageTitle(position)
+        supportActionBar?.subtitle = adapter.getPageSubtitle(position)
 
         // refreshes the current view if needed
         if (fragment != null) {

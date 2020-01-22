@@ -20,6 +20,13 @@ interface IValidateFragment {
     fun getResourceTitle(): Int
 
     /**
+     * Returns the view subtitle.
+     *
+     * @return view subtitle
+     */
+    fun getSubtitle(): CharSequence?
+
+    /**
      * Enables or not the paging control.
      *
      * @return `true` if the paging control is enabled.

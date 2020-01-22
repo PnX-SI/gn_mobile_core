@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: "kotlin-kapt"
 
-version = "0.2.0"
+version = "0.2.1"
 
 android {
     compileSdkVersion 28
@@ -34,6 +34,14 @@ android {
             debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "version"
+    productFlavors {
+        pne {
+        }
+        pnv {
         }
     }
 

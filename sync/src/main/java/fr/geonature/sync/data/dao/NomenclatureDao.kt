@@ -106,24 +106,45 @@ abstract class NomenclatureDao : BaseDao<Nomenclature>() {
                 return this
             }
 
+            val filterKingdom = kingdom.takeUnless { it.isNullOrBlank() } ?: Taxonomy.ANY
+            val filterGroup =
+                group.takeUnless { it.isNullOrBlank() || filterKingdom == Taxonomy.ANY }
+                    ?: Taxonomy.ANY
+
             selectQueryBuilder.columns(*NomenclatureTaxonomy.defaultProjection())
-                .leftJoin(NomenclatureTaxonomy.TABLE_NAME,
+                .join(
+                    DEFAULT,
+                    NomenclatureTaxonomy.TABLE_NAME,
                     "${column(
                         NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID,
                         NomenclatureTaxonomy.TABLE_NAME
                     ).second} = ${column(
                         Nomenclature.COLUMN_ID,
                         entityTableName
-                    ).second} AND (${column(
+                    ).second} AND (((${column(
                         Taxonomy.COLUMN_KINGDOM,
                         NomenclatureTaxonomy.TABLE_NAME
                     ).second} = ?) AND (${column(
                         Taxonomy.COLUMN_GROUP,
                         NomenclatureTaxonomy.TABLE_NAME
-                    ).second} = ?)",
+                    ).second} = ?)) OR ((${column(
+                        Taxonomy.COLUMN_KINGDOM,
+                        NomenclatureTaxonomy.TABLE_NAME
+                    ).second} = ?) AND (${column(
+                        Taxonomy.COLUMN_GROUP,
+                        NomenclatureTaxonomy.TABLE_NAME
+                    ).second} = ?)) OR ((${column(
+                        Taxonomy.COLUMN_KINGDOM,
+                        NomenclatureTaxonomy.TABLE_NAME
+                    ).second} = ?) AND (${column(
+                        Taxonomy.COLUMN_GROUP,
+                        NomenclatureTaxonomy.TABLE_NAME
+                    ).second} = ?)))",
                     NomenclatureTaxonomy.TABLE_NAME,
-                    kingdom.takeUnless { it.isNullOrBlank() } ?: Taxonomy.ANY,
-                    group.takeUnless { it.isNullOrBlank() } ?: Taxonomy.ANY)
+                    filterKingdom, filterGroup,
+                    filterKingdom, Taxonomy.ANY,
+                    Taxonomy.ANY, Taxonomy.ANY
+                )
 
             return this
         }

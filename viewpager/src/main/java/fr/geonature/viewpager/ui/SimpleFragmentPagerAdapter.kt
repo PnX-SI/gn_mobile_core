@@ -43,4 +43,14 @@ class SimpleFragmentPagerAdapter internal constructor(
             null
         }
     }
+
+    fun getPageSubtitle(position: Int): CharSequence? {
+        val fragment = getItem(position)
+
+        return if (fragment is IValidateFragment) {
+            fragment.getSubtitle()
+        } else {
+            null
+        }
+    }
 }

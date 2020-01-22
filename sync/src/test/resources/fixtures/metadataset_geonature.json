@@ -43,7 +43,24 @@
       "id_nomenclature_dataset_objectif": 415,
       "unique_dataset_id": "463e4904-a94c-476a-aead-e31f926bc498",
       "validable": null,
-      "bbox_north": null
+      "bbox_north": null,
+      "modules": [
+        {
+          "active_backend": true,
+          "module_label": "Occtax",
+          "module_picto": "fa-map-marker",
+          "module_path": "occtax",
+          "module_doc_url": null,
+          "module_comment": null,
+          "module_code": "OCCTAX",
+          "module_group": null,
+          "module_target": "_self",
+          "active_frontend": true,
+          "module_desc": null,
+          "module_external_url": null,
+          "id_module": 4
+        }
+      ]
     },
     {
       "id_nomenclature_resource_type": 324,
@@ -88,7 +105,39 @@
       "id_nomenclature_dataset_objectif": 415,
       "unique_dataset_id": "fcc3d898-610f-47a8-912c-424304bb523c",
       "validable": null,
-      "bbox_north": null
+      "bbox_north": null,
+      "modules": [
+        {
+          "active_backend": true,
+          "module_label": "Occtax",
+          "module_picto": "fa-map-marker",
+          "module_path": "occtax",
+          "module_doc_url": null,
+          "module_comment": null,
+          "module_code": "OCCTAX",
+          "module_group": null,
+          "module_target": "_self",
+          "active_frontend": true,
+          "module_desc": null,
+          "module_external_url": null,
+          "id_module": 4
+        },
+        {
+          "active_backend": true,
+          "module_label": "Occhab",
+          "module_picto": "fa-leaf",
+          "module_path": "occhab",
+          "module_doc_url": null,
+          "module_comment": null,
+          "module_code": "OCCHAB",
+          "module_group": null,
+          "module_target": "_self",
+          "active_frontend": true,
+          "module_desc": null,
+          "module_external_url": null,
+          "id_module": 5
+        }
+      ]
     }
   ]
 }

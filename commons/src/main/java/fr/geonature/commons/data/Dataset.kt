@@ -7,7 +7,6 @@ import android.provider.BaseColumns
 import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
@@ -19,15 +18,24 @@ import java.util.Date
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = Dataset.TABLE_NAME)
+@Entity(
+    tableName = Dataset.TABLE_NAME,
+    primaryKeys = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE]
+)
 @TypeConverters(Converters::class)
 data class Dataset(
+
     /**
      * The unique ID of the input observer.
      */
-    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
     var id: Long,
+
+    /**
+     * The related module of this dataset.
+     */
+    @ColumnInfo(name = COLUMN_MODULE)
+    var module: String,
 
     /**
      * The name of the dataset.
@@ -57,6 +65,7 @@ data class Dataset(
     private constructor(source: Parcel) : this(
         source.readLong(),
         source.readString()!!,
+        source.readString()!!,
         source.readString(),
         source.readByte() == 1.toByte(),
         source.readSerializable() as Date
@@ -72,6 +81,7 @@ data class Dataset(
     ) {
         dest?.also {
             it.writeLong(id)
+            it.writeString(module)
             it.writeString(name)
             it.writeString(description)
             it.writeByte((if (active) 1 else 0).toByte()) // as boolean value
@@ -93,6 +103,7 @@ data class Dataset(
          */
         const val COLUMN_ID = BaseColumns._ID
 
+        const val COLUMN_MODULE = "module"
         const val COLUMN_NAME = "name"
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_ACTIVE = "active"
@@ -105,6 +116,10 @@ data class Dataset(
             return arrayOf(
                 column(
                     COLUMN_ID,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_MODULE,
                     tableAlias
                 ),
                 column(
@@ -160,6 +175,14 @@ data class Dataset(
                         cursor.get(
                             getColumnAlias(
                                 COLUMN_ID,
+                                tableAlias
+                            )
+                        )
+                    ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_MODULE,
                                 tableAlias
                             )
                         )
