@@ -1,10 +1,9 @@
 package fr.geonature.sync.sync
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.preference.PreferenceManager
+import fr.geonature.sync.data.dao.AppSyncDao
 import java.util.Date
 
 /**
@@ -14,8 +13,7 @@ import java.util.Date
  */
 class DataSyncManager private constructor(applicationContext: Context) {
 
-    private val preferenceManager: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(applicationContext)
+    private val appSyncDao = AppSyncDao(applicationContext)
 
     private val _lastSynchronizedDate: MutableLiveData<Date?> = MutableLiveData()
     val lastSynchronizedDate: LiveData<Date?> = _lastSynchronizedDate
@@ -23,39 +21,17 @@ class DataSyncManager private constructor(applicationContext: Context) {
     val serverStatus: MutableLiveData<ServerStatus> = MutableLiveData()
 
     fun updateLastSynchronizedDate() {
-        val now = Date()
-
-        preferenceManager.edit()
-            .putLong(
-                KEY_PREFERENCE_SYNC_DATE,
-                now.time
-            )
-            .apply()
-
-        _lastSynchronizedDate.postValue(now)
+        _lastSynchronizedDate.postValue(appSyncDao.updateLastSynchronizedDate())
     }
 
     fun getLastSynchronizedDate(): Date? {
-        val timestamp = preferenceManager.getLong(
-            KEY_PREFERENCE_SYNC_DATE,
-            0
-        )
+        val lastSynchronizedDate = appSyncDao.getLastSynchronizedDate()
+        _lastSynchronizedDate.postValue(lastSynchronizedDate)
 
-        if (timestamp == 0L) {
-            _lastSynchronizedDate.postValue(null)
-
-            return null
-        }
-
-        val synchronizedDate = Date(timestamp)
-        _lastSynchronizedDate.postValue(synchronizedDate)
-
-        return synchronizedDate
+        return lastSynchronizedDate
     }
 
     companion object {
-
-        private const val KEY_PREFERENCE_SYNC_DATE = "key_preference_sync_date"
 
         @Volatile
         private var INSTANCE: DataSyncManager? = null
