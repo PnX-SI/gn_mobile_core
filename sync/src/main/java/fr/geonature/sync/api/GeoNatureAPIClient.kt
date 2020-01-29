@@ -19,6 +19,7 @@ import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 /**
  * GeoNature API client.
@@ -40,6 +41,14 @@ class GeoNatureAPIClient private constructor(
         }
 
         val client = OkHttpClient.Builder()
+            .readTimeout(
+                60,
+                TimeUnit.SECONDS
+            )
+            .connectTimeout(
+                60,
+                TimeUnit.SECONDS
+            )
             .addInterceptor(loggingInterceptor)
             // save cookie interceptor
             .addInterceptor { chain ->
