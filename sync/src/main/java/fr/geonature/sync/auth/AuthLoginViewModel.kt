@@ -112,7 +112,11 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
             return
         }
 
-        _loginFormState.value = LoginFormState(isValid = true)
+        _loginFormState.value = LoginFormState(
+            isValid = true,
+            usernameError = null,
+            passwordError = null
+        )
     }
 
     fun logout(): LiveData<Boolean> {

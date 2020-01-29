@@ -6,9 +6,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -19,13 +23,18 @@ import fr.geonature.sync.R
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
-import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var appSettingsViewModel: AppSettingsViewModel
     private lateinit var authLoginViewModel: AuthLoginViewModel
     private var appSettings: AppSettings? = null
+
+    private var content: ConstraintLayout? = null
+    private var editTextUsername: EditText? = null
+    private var editTextPassword: EditText? = null
+    private var buttonLogin: Button? = null
+    private var progress: ProgressBar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,8 +48,6 @@ class LoginActivity : AppCompatActivity() {
                 )
             }).get(AppSettingsViewModel::class.java)
 
-        loadAppSettings()
-
         authLoginViewModel = ViewModelProvider(this,
             AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
             .apply {
@@ -49,22 +56,19 @@ class LoginActivity : AppCompatActivity() {
                         val loginState = it ?: return@Observer
 
                         // disable login button unless both username / password is valid
-                        button_login.isEnabled = loginState.isValid && appSettings != null
+                        buttonLogin?.isEnabled = loginState.isValid && appSettings != null
 
-                        if (loginState.usernameError != null) {
-                            edit_text_username.error = getString(loginState.usernameError)
-                        }
-
-                        if (loginState.passwordError != null) {
-                            edit_text_password.error = getString(loginState.passwordError)
-                        }
+                        editTextUsername?.error =
+                            if (loginState.usernameError == null) null else getString(loginState.usernameError)
+                        editTextPassword?.error =
+                            if (loginState.passwordError == null) null else getString(loginState.passwordError)
                     })
 
                 loginResult.observe(this@LoginActivity,
                     Observer {
                         val loginResult = it ?: return@Observer
 
-                        progress.visibility = View.GONE
+                        progress?.visibility = View.GONE
 
                         if (loginResult.hasError()) {
                             showToast(
@@ -83,26 +87,48 @@ class LoginActivity : AppCompatActivity() {
                     })
             }
 
-        edit_text_username.afterTextChanged {
-            authLoginViewModel.loginDataChanged(
-                edit_text_username.text.toString(),
-                edit_text_password.text.toString()
-            )
-        }
+        content = findViewById(R.id.content)
+        progress = findViewById(android.R.id.progress)
 
-        edit_text_password.apply {
+        editTextUsername = findViewById(R.id.edit_text_username)
+        editTextUsername?.apply {
             afterTextChanged {
                 authLoginViewModel.loginDataChanged(
-                    edit_text_username.text.toString(),
-                    edit_text_password.text.toString()
+                    editTextUsername?.text.toString(),
+                    editTextPassword?.text.toString()
                 )
             }
+            setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    authLoginViewModel.loginDataChanged(
+                        editTextUsername?.text.toString(),
+                        editTextPassword?.text.toString()
+                    )
+                }
+            }
+        }
 
+        editTextPassword = findViewById(R.id.edit_text_password)
+        editTextPassword?.apply {
+            afterTextChanged {
+                authLoginViewModel.loginDataChanged(
+                    editTextUsername?.text.toString(),
+                    editTextPassword?.text.toString()
+                )
+            }
+            setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    authLoginViewModel.loginDataChanged(
+                        editTextUsername?.text.toString(),
+                        editTextPassword?.text.toString()
+                    )
+                }
+            }
             setOnEditorActionListener { _, actionId, _ ->
                 when (actionId) {
                     EditorInfo.IME_ACTION_DONE -> performLogin(
-                        edit_text_username.text.toString(),
-                        edit_text_password.text.toString()
+                        editTextUsername?.text.toString(),
+                        editTextPassword?.text.toString()
                     )
                 }
 
@@ -110,12 +136,15 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        button_login.setOnClickListener {
+        buttonLogin = findViewById(R.id.button_login)
+        buttonLogin?.setOnClickListener {
             performLogin(
-                edit_text_username.text.toString(),
-                edit_text_password.text.toString()
+                editTextUsername?.text.toString(),
+                editTextPassword?.text.toString()
             )
         }
+
+        loadAppSettings()
     }
 
     private fun loadAppSettings() {
@@ -123,28 +152,25 @@ class LoginActivity : AppCompatActivity() {
             .observe(this,
                 Observer {
                     if (it == null) {
-                        Snackbar.make(
-                            content,
+                        makeSnackbar(
                             getString(
                                 R.string.snackbar_settings_not_found,
                                 appSettingsViewModel.getAppSettingsFilename()
-                            ),
-                            Snackbar.LENGTH_LONG
-                        )
-                            .addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                                override fun onDismissed(
-                                    transientBottomBar: Snackbar?,
-                                    event: Int
-                                ) {
-                                    super.onDismissed(
-                                        transientBottomBar,
-                                        event
-                                    )
+                            )
+                        )?.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                            override fun onDismissed(
+                                transientBottomBar: Snackbar?,
+                                event: Int
+                            ) {
+                                super.onDismissed(
+                                    transientBottomBar,
+                                    event
+                                )
 
-                                    finish()
-                                }
-                            })
-                            .show()
+                                finish()
+                            }
+                        })
+                            ?.show()
                     } else {
                         appSettings = it
                     }
@@ -157,8 +183,10 @@ class LoginActivity : AppCompatActivity() {
     ) {
         val appSettings = appSettings ?: return
 
-        hideSoftKeyboard(edit_text_password)
-        progress.visibility = View.VISIBLE
+        editTextPassword?.also {
+            hideSoftKeyboard(it)
+        }
+        progress?.visibility = View.VISIBLE
 
         authLoginViewModel.login(
             username,
@@ -177,6 +205,16 @@ class LoginActivity : AppCompatActivity() {
             Toast.LENGTH_LONG
         )
             .show()
+    }
+
+    private fun makeSnackbar(text: CharSequence): Snackbar? {
+        val view = content ?: return null
+
+        return Snackbar.make(
+            view,
+            text,
+            Snackbar.LENGTH_LONG
+        )
     }
 
     companion object {

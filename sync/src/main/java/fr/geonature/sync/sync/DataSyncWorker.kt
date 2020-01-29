@@ -19,9 +19,9 @@ import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import fr.geonature.sync.util.SettingsUtils
-import java.util.Date
 import org.json.JSONObject
 import retrofit2.Response
+import java.util.Date
 
 /**
  * Local data synchronization worker.
@@ -479,6 +479,7 @@ class DataSyncWorker(
         // not connected
         if (response.code() == 403) {
             dataSyncManager.serverStatus.postValue(ServerStatus.FORBIDDEN)
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_not_connected))
 
             return Result.failure()
         }

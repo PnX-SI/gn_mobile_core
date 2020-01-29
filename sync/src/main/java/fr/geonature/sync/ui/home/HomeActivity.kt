@@ -221,7 +221,9 @@ class HomeActivity : AppCompatActivity() {
                             )
                                 .show()
 
-                            startActivity(LoginActivity.newIntent(this))
+                            if (appSettings != null) {
+                                startActivity(LoginActivity.newIntent(this))
+                            }
                         }
                     }
                 })
