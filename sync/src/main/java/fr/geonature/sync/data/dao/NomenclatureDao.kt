@@ -29,7 +29,7 @@ abstract class NomenclatureDao : BaseDao<Nomenclature>() {
             selectQueryBuilder.columns(*Nomenclature.defaultProjection())
                 .orderBy(
                     column(
-                        Nomenclature.COLUMN_HIERARCHY,
+                        Nomenclature.COLUMN_DEFAULT_LABEL,
                         entityTableName
                     ).second,
                     ASC
