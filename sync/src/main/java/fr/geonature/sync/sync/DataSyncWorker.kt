@@ -18,10 +18,9 @@ import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
-import fr.geonature.sync.util.SettingsUtils
-import java.util.Date
 import org.json.JSONObject
 import retrofit2.Response
+import java.util.Date
 
 /**
  * Local data synchronization worker.
@@ -41,32 +40,21 @@ class DataSyncWorker(
     override fun doWork(): Result {
         val startTime = Date()
 
-        dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_start_synchronization))
+        val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
 
-        val geoNatureServerUrl = SettingsUtils.getGeoNatureServerUrl(applicationContext)
-
-        Log.i(
-            TAG,
-            "starting local data synchronization from '$geoNatureServerUrl'..."
-        )
-
-        if (geoNatureServerUrl.isNullOrBlank()) {
+        if (geoNatureAPIClient == null) {
             dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_url_configuration))
-            Log.w(
-                TAG,
-                "No GeoNature server configured"
-            )
-
             return Result.failure()
         }
 
-        val geoNatureServiceClient = GeoNatureAPIClient.instance(
-            applicationContext,
-            geoNatureServerUrl
-        )
-            .value
+        dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_start_synchronization))
 
-        val syncDatasetResult = syncDataset(geoNatureServiceClient)
+        Log.i(
+            TAG,
+            "starting local data synchronization from '${geoNatureAPIClient.geoNatureBaseUrl}'..."
+        )
+
+        val syncDatasetResult = syncDataset(geoNatureAPIClient)
 
         if (syncDatasetResult is Result.Failure) {
             Log.i(
@@ -77,7 +65,7 @@ class DataSyncWorker(
             return syncDatasetResult
         }
 
-        val syncInputObserversResult = syncInputObservers(geoNatureServiceClient)
+        val syncInputObserversResult = syncInputObservers(geoNatureAPIClient)
 
         if (syncInputObserversResult is Result.Failure) {
             Log.i(
@@ -88,7 +76,7 @@ class DataSyncWorker(
             return syncInputObserversResult
         }
 
-        val syncTaxonomyRanksResult = syncTaxonomyRanks(geoNatureServiceClient)
+        val syncTaxonomyRanksResult = syncTaxonomyRanks(geoNatureAPIClient)
 
         if (syncTaxonomyRanksResult is Result.Failure) {
             Log.i(
@@ -99,7 +87,7 @@ class DataSyncWorker(
             return syncTaxonomyRanksResult
         }
 
-        val syncTaxaResult = syncTaxa(geoNatureServiceClient)
+        val syncTaxaResult = syncTaxa(geoNatureAPIClient)
 
         if (syncTaxaResult is Result.Failure) {
             Log.i(
@@ -110,7 +98,7 @@ class DataSyncWorker(
             return syncTaxaResult
         }
 
-        val syncNomenclatureResult = syncNomenclature(geoNatureServiceClient)
+        val syncNomenclatureResult = syncNomenclature(geoNatureAPIClient)
 
         Log.i(
             TAG,
@@ -479,6 +467,7 @@ class DataSyncWorker(
         // not connected
         if (response.code() == 403) {
             dataSyncManager.serverStatus.postValue(ServerStatus.FORBIDDEN)
+            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_not_connected))
 
             return Result.failure()
         }

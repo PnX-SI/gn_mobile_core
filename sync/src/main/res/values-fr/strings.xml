@@ -13,8 +13,9 @@
     <string name="sync_last_synchronization_date">le EEE dd MMM yyyy à kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Jamais</string>
     <string name="sync_start_synchronization">Synchronisation en cours…</string>
-    <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré.</string>
-    <string name="sync_error_server_error">Erreur serveur.</string>
+    <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
+    <string name="sync_error_server_error">Erreur serveur</string>
+    <string name="sync_error_server_not_connected">Non connecté</string>
     <string name="sync_data_dataset">Synchronisation des jeux de données : %1$d</string>
     <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
     <string name="sync_data_taxa">Synchronisation des taxons : %1$d</string>
@@ -24,7 +25,7 @@
     <string name="sync_data_succeeded">Done.</string>
 
     <string name="home_installed_apps">Applications</string>
-    <string name="home_no_available_app">Aucune application compatible trouvée.</string>
+    <string name="home_no_available_app">Aucune application compatible trouvée</string>
     <string name="home_app_version">%1$s (%2$s)</string>
     <plurals name="home_app_inputs">
         <item quantity="one">Relevé à synchronizer : %d</item>
@@ -38,6 +39,7 @@
     <string name="login_form_password_invalid">Mot de passe invalide</string>
     <string name="login_success">Authentification réussie</string>
     <string name="login_failed">Echec lors de l\'authentification</string>
+    <string name="login_failed_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
     <string name="login_failed_login">Utilisateur inconnu</string>
     <string name="login_failed_password">Mot de passe invalide</string>
 

@@ -17,7 +17,8 @@
     <string name="sync_last_synchronization_never">Never</string>
     <string name="sync_start_synchronization">Starting local data synchronization…</string>
     <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
-    <string name="sync_error_server_error">GeoNature server error.</string>
+    <string name="sync_error_server_error">GeoNature server error</string>
+    <string name="sync_error_server_not_connected">Not connected</string>
     <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
     <string name="sync_data_observers">Synchronize observers: %1$d</string>
     <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
@@ -27,7 +28,7 @@
     <string name="sync_data_succeeded">Done.</string>
 
     <string name="home_installed_apps">Available apps</string>
-    <string name="home_no_available_app">No compatible app installed.</string>
+    <string name="home_no_available_app">No compatible app installed</string>
     <string name="home_app_version">%1$s (%2$s)</string>
     <plurals name="home_app_inputs">
         <item quantity="one">Input to synchronize: %d</item>
@@ -41,6 +42,7 @@
     <string name="login_form_password_invalid">Password must not be empty</string>
     <string name="login_success">Successfully authenticated</string>
     <string name="login_failed">Login failed</string>
+    <string name="login_failed_server_url_configuration">Missing GeoNature server configuration</string>
     <string name="login_failed_login">Invalid login</string>
     <string name="login_failed_password">Invalid password</string>
 
