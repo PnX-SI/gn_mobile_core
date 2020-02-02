@@ -1,6 +1,7 @@
 package fr.geonature.sync.api
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.GsonBuilder
 import fr.geonature.sync.api.model.AuthCredentials
 import fr.geonature.sync.api.model.AuthLogin
@@ -9,6 +10,8 @@ import fr.geonature.sync.api.model.Taxref
 import fr.geonature.sync.api.model.TaxrefArea
 import fr.geonature.sync.api.model.User
 import fr.geonature.sync.auth.AuthManager
+import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
+import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
@@ -28,9 +31,11 @@ import java.util.concurrent.TimeUnit
  */
 class GeoNatureAPIClient private constructor(
     context: Context,
-    baseUrl: String
+    val geoNatureBaseUrl: String,
+    taxHubBaseUrl: String
 ) {
     private val geoNatureService: GeoNatureService
+    private val taxHubService: TaxHubService
 
     init {
         val authManager = AuthManager(context)
@@ -79,13 +84,19 @@ class GeoNatureAPIClient private constructor(
             }
             .build()
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("$baseUrl/")
+        geoNatureService = Retrofit.Builder()
+            .baseUrl("$geoNatureBaseUrl/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()))
             .build()
+            .create(GeoNatureService::class.java)
 
-        geoNatureService = retrofit.create(GeoNatureService::class.java)
+        taxHubService = Retrofit.Builder()
+            .baseUrl("$taxHubBaseUrl/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()))
+            .build()
+            .create(TaxHubService::class.java)
     }
 
     suspend fun authLogin(authCredentials: AuthCredentials): Response<AuthLogin> {
@@ -114,11 +125,11 @@ class GeoNatureAPIClient private constructor(
     }
 
     fun getTaxonomyRanks(): Call<ResponseBody> {
-        return geoNatureService.getTaxonomyRanks()
+        return taxHubService.getTaxonomyRanks()
     }
 
     fun getTaxref(): Call<List<Taxref>> {
-        return geoNatureService.getTaxref()
+        return taxHubService.getTaxref()
     }
 
     fun getTaxrefAreas(): Call<List<TaxrefArea>> {
@@ -135,12 +146,45 @@ class GeoNatureAPIClient private constructor(
 
     companion object {
 
+        private val TAG = GeoNatureAPIClient::class.java.name
+
+        private val baseUrl: (String?) -> String? = { url ->
+            url?.also { if (it.endsWith('/')) it.dropLast(1) }
+        }
+
         fun instance(
             context: Context,
-            baseUrl: String
-        ): Lazy<GeoNatureAPIClient> = lazy {
-            GeoNatureAPIClient(context,
-                baseUrl.also { if (it.endsWith('/')) it.dropLast(1) })
+            geoNatureBaseUrl: String? = null,
+            taxHubBaseUrl: String? = null
+        ): GeoNatureAPIClient? {
+            val sanitizeGeoNatureBaseUrl =
+                baseUrl(if (geoNatureBaseUrl.isNullOrBlank()) getGeoNatureServerUrl(context) else geoNatureBaseUrl)
+            val sanitizeTaxHubBaseUrl =
+                baseUrl(if (taxHubBaseUrl.isNullOrBlank()) getTaxHubServerUrl(context) else taxHubBaseUrl)
+
+            if (sanitizeGeoNatureBaseUrl.isNullOrBlank()) {
+                Log.w(
+                    TAG,
+                    "No GeoNature server configured"
+                )
+
+                return null
+            }
+
+            if (sanitizeTaxHubBaseUrl.isNullOrBlank()) {
+                Log.w(
+                    TAG,
+                    "No TaxHub server configured"
+                )
+
+                return null
+            }
+
+            return GeoNatureAPIClient(
+                context,
+                sanitizeGeoNatureBaseUrl,
+                sanitizeTaxHubBaseUrl
+            )
         }
     }
 }

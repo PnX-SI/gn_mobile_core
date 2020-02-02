@@ -42,6 +42,7 @@
     <string name="login_form_password_invalid">Password must not be empty</string>
     <string name="login_success">Successfully authenticated</string>
     <string name="login_failed">Login failed</string>
+    <string name="login_failed_server_url_configuration">Missing GeoNature server configuration</string>
     <string name="login_failed_login">Invalid login</string>
     <string name="login_failed_password">Invalid password</string>
 

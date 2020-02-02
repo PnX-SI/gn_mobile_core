@@ -7,12 +7,11 @@ import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import fr.geonature.commons.util.FileUtils.getInputsFolder
 import fr.geonature.sync.api.GeoNatureAPIClient
-import fr.geonature.sync.util.SettingsUtils
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.File
 
 /**
  * Input synchronization worker.
@@ -40,16 +39,8 @@ class InputsSyncWorker(
             packageInfoManager.packageInfos.value?.firstOrNull { it.packageName == packageName }
                 ?: return@withContext Result.failure()
 
-        val geoNatureServerUrl = SettingsUtils.getGeoNatureServerUrl(applicationContext)
-
-        if (geoNatureServerUrl.isNullOrBlank()) {
-            Log.w(
-                TAG,
-                "No GeoNature server configured"
-            )
-
-            return@withContext Result.failure()
-        }
+        val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
+            ?: return@withContext Result.failure()
 
         Log.i(
             TAG,
@@ -86,14 +77,9 @@ class InputsSyncWorker(
             inputsToSynchronize
         )
 
-        val geoNatureServiceClient = GeoNatureAPIClient.instance(
-            applicationContext,
-            geoNatureServerUrl
-        )
-            .value
         inputsToSynchronize.forEach { syncInput ->
             try {
-                val response = geoNatureServiceClient.sendInput(
+                val response = geoNatureAPIClient.sendInput(
                     syncInput.module,
                     syncInput.payload
                 )

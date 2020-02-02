@@ -29,7 +29,22 @@ object SettingsUtils {
     fun getGeoNatureServerUrl(context: Context): String? {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getString(
-                context.getString(R.string.preference_category_server_url_key),
+                context.getString(R.string.preference_category_server_geonature_url_key),
+                null
+            )
+    }
+
+    /**
+     * Gets the current TaxHub server url to use.
+     *
+     * @param context the current context
+     *
+     * @return the TaxHub server url to use or `null` if not defined
+     */
+    fun getTaxHubServerUrl(context: Context): String? {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+            .getString(
+                context.getString(R.string.preference_category_server_taxhub_url_key),
                 null
             )
     }
@@ -42,9 +57,14 @@ object SettingsUtils {
                 true
             }
 
-        preferenceScreen.findPreference<EditTextPreference?>(context.getString(R.string.preference_category_server_url_key))
+        preferenceScreen.findPreference<EditTextPreference?>(context.getString(R.string.preference_category_server_geonature_url_key))
             ?.apply {
                 summary = getGeoNatureServerUrl(preferenceScreen.context)
+                setOnPreferenceChangeListener(onPreferenceChangeListener)
+            }
+        preferenceScreen.findPreference<EditTextPreference?>(context.getString(R.string.preference_category_server_taxhub_url_key))
+            ?.apply {
+                summary = getTaxHubServerUrl(preferenceScreen.context)
                 setOnPreferenceChangeListener(onPreferenceChangeListener)
             }
 

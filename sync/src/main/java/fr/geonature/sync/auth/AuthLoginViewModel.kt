@@ -3,6 +3,7 @@ package fr.geonature.sync.auth
 import android.app.Application
 import android.text.TextUtils
 import androidx.annotation.StringRes
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,7 +16,6 @@ import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.api.model.AuthCredentials
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthLoginError
-import fr.geonature.sync.util.SettingsUtils
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
@@ -24,10 +24,10 @@ import retrofit2.Response
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AuthLoginViewModel(application: Application) : ViewModel() {
+class AuthLoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val authManager: AuthManager = AuthManager.getInstance(application)
-    private var geoNatureAPIClient: GeoNatureAPIClient? = null
+    private val geoNatureAPIClient: GeoNatureAPIClient? = GeoNatureAPIClient.instance(application)
 
     private val _loginFormState = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginFormState
@@ -38,14 +38,14 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
     val isLoggedIn: LiveData<Boolean> = authManager.isLoggedIn
 
     init {
-        SettingsUtils.getGeoNatureServerUrl(application)
-            ?.also {
-                geoNatureAPIClient = GeoNatureAPIClient.instance(
-                    application,
-                    it
-                )
-                    .value
-            }
+        if (geoNatureAPIClient == null) {
+            _loginResult.value = LoginResult(error = R.string.login_failed_server_url_configuration)
+            _loginFormState.value = LoginFormState(
+                isValid = false,
+                usernameError = null,
+                passwordError = null
+            )
+        }
     }
 
     fun login(
@@ -53,7 +53,10 @@ class AuthLoginViewModel(application: Application) : ViewModel() {
         password: String,
         applicationId: Int
     ) {
-        val geoNatureAPIClient = geoNatureAPIClient ?: return
+        if (geoNatureAPIClient == null) {
+            _loginResult.value = LoginResult(error = R.string.login_failed_server_url_configuration)
+            return
+        }
 
         viewModelScope.launch {
             try {
