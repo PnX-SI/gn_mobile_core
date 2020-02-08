@@ -1,12 +1,12 @@
-package fr.geonature.commons.model
+package fr.geonature.mountpoint.model
 
 import android.os.Environment
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.NonNull
-import fr.geonature.commons.BuildConfig
-import fr.geonature.commons.util.DeviceUtils
+import fr.geonature.mountpoint.BuildConfig
+import fr.geonature.mountpoint.util.DeviceUtils
 import java.io.File
 import java.io.IOException
 
@@ -31,12 +31,18 @@ class MountPoint : Parcelable,
             resolvedMountPath = File(mountPath).canonicalPath
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "MountPoint: '$mountPath', canonical path: '$resolvedMountPath'")
+                Log.d(
+                    TAG,
+                    "MountPoint: '$mountPath', canonical path: '$resolvedMountPath'"
+                )
             }
         } catch (ioe: IOException) {
             resolvedMountPath = mountPath
 
-            Log.w(TAG, "MountPoint: failed to get the canonical path of '$mountPath'")
+            Log.w(
+                TAG,
+                "MountPoint: failed to get the canonical path of '$mountPath'"
+            )
         }
 
         this.mountPath = File(resolvedMountPath)

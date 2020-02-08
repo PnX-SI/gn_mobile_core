@@ -2,7 +2,8 @@ package fr.geonature.sync
 
 import android.app.Application
 import android.util.Log
-import fr.geonature.commons.util.MountPointUtils
+import fr.geonature.mountpoint.util.MountPointUtils.getExternalStorage
+import fr.geonature.mountpoint.util.MountPointUtils.getInternalStorage
 
 /**
  * Base class to maintain global application state.
@@ -16,11 +17,11 @@ class MainApplication : Application() {
 
         Log.i(
             TAG,
-            "internal storage: " + MountPointUtils.getInternalStorage()
+            "internal storage: " + getInternalStorage()
         )
         Log.i(
             TAG,
-            "external storage: " + MountPointUtils.getExternalStorage(this)
+            "external storage: " + getExternalStorage(this)
         )
     }
 

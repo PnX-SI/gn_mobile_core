@@ -7,12 +7,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
-import fr.geonature.commons.util.FileUtils.getInputsFolder
+import fr.geonature.commons.util.getInputsFolder
+import fr.geonature.mountpoint.util.FileUtils
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
 
 /**
  * Manage [AbstractInput]:
@@ -192,7 +193,7 @@ class InputManager<I : AbstractInput> private constructor(
 
     @Throws(IOException::class)
     private fun getInputExportFile(input: AbstractInput): File {
-        val inputDir = getInputsFolder(application)
+        val inputDir = FileUtils.getInputsFolder(application)
         inputDir.mkdirs()
 
         return File(

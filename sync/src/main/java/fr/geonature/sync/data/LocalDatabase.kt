@@ -14,9 +14,10 @@ import fr.geonature.commons.data.NomenclatureType
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.data.Taxonomy
-import fr.geonature.commons.model.MountPoint
-import fr.geonature.commons.util.FileUtils.getDatabaseFolder
-import fr.geonature.commons.util.FileUtils.getFile
+import fr.geonature.commons.util.getDatabaseFolder
+import fr.geonature.mountpoint.model.MountPoint.StorageType.INTERNAL
+import fr.geonature.mountpoint.util.FileUtils
+import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.data.dao.DatasetDao
 import fr.geonature.sync.data.dao.DefaultNomenclatureDao
@@ -118,9 +119,9 @@ abstract class LocalDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context): LocalDatabase {
             val localDatabase = getFile(
-                getDatabaseFolder(
+                FileUtils.getDatabaseFolder(
                     context,
-                    MountPoint.StorageType.INTERNAL
+                    INTERNAL
                 ),
                 "data.db"
             )

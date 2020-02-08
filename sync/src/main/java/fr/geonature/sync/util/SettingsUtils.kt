@@ -6,7 +6,8 @@ import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
-import fr.geonature.commons.util.MountPointUtils
+import fr.geonature.mountpoint.util.MountPointUtils.getExternalStorage
+import fr.geonature.mountpoint.util.MountPointUtils.getInternalStorage
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import java.text.DateFormat
@@ -69,9 +70,10 @@ object SettingsUtils {
             }
 
         preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_storage_internal_key))
-            ?.summary = MountPointUtils.getInternalStorage().mountPath.absolutePath
-        MountPointUtils.getExternalStorage(
-            preferenceScreen.context, Environment.MEDIA_MOUNTED,
+            ?.summary = getInternalStorage().mountPath.absolutePath
+        getExternalStorage(
+            preferenceScreen.context,
+            Environment.MEDIA_MOUNTED,
             Environment.MEDIA_MOUNTED_READ_ONLY
         )?.also { mountPoint ->
             preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_storage_external_key))
