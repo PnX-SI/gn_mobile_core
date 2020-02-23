@@ -4,6 +4,7 @@ import fr.geonature.sync.api.model.Taxref
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.GET
+import retrofit2.http.Path
 
 /**
  * TaxHub API interface definition.
@@ -16,6 +17,9 @@ interface TaxHubService {
     fun getTaxonomyRanks(): Call<ResponseBody>
 
     // TODO: fetch all taxa
-    @GET("api/taxref/allnamebylist/100")
-    fun getTaxref(): Call<List<Taxref>>
+    @GET("api/taxref/allnamebylist/{id}?limit=10000")
+    fun getTaxref(
+        @Path("id")
+        listId: Int
+    ): Call<List<Taxref>>
 }

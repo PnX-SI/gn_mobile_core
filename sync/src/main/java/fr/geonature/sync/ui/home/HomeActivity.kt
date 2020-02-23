@@ -1,5 +1,7 @@
 package fr.geonature.sync.ui.home
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -25,6 +27,7 @@ import fr.geonature.sync.sync.PackageInfoViewModel
 import fr.geonature.sync.sync.ServerStatus
 import fr.geonature.sync.ui.login.LoginActivity
 import fr.geonature.sync.ui.settings.PreferencesActivity
+import fr.geonature.sync.util.observeOnce
 import kotlinx.android.synthetic.main.activity_home.*
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
@@ -38,7 +41,6 @@ import kotlinx.coroutines.launch
  */
 class HomeActivity : AppCompatActivity() {
 
-    private lateinit var appSettingsViewModel: AppSettingsViewModel
     private lateinit var authLoginViewModel: AuthLoginViewModel
     private lateinit var dataSyncViewModel: DataSyncViewModel
     private lateinit var packageInfoViewModel: PackageInfoViewModel
@@ -51,27 +53,9 @@ class HomeActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_home)
 
-        appSettingsViewModel = ViewModelProvider(this,
-            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
-                AppSettingsViewModel(
-                    application
-                )
-            }).get(AppSettingsViewModel::class.java)
-        authLoginViewModel = ViewModelProvider(this,
-            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
-            .apply {
-                isLoggedIn.observe(this@HomeActivity,
-                    Observer {
-                        this@HomeActivity.isLoggedIn = it
-                        invalidateOptionsMenu()
-                    })
-            }
-        dataSyncViewModel = ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
-        packageInfoViewModel = ViewModelProvider(this,
-            PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
-            PackageInfoViewModel::class.java
-        )
+        authLoginViewModel = configureAuthLoginViewModel()
+        dataSyncViewModel = configureDataSyncViewModel()
+        packageInfoViewModel = configurePackageInfoViewModel()
 
         adapter = PackageInfoRecyclerViewAdapter(object :
             AbstractListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<PackageInfo> {
@@ -127,11 +111,16 @@ class HomeActivity : AppCompatActivity() {
         loadAppSettings()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(
+            requestCode,
+            resultCode,
+            data
+        )
 
-        startSync()
-        getInstalledApplications()
+        if (resultCode == Activity.RESULT_OK) {
+            startSync()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -183,89 +172,125 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun startSync() {
-        dataSyncViewModel.syncOutputStatus.takeIf { !it.hasActiveObservers() }
-            ?.observe(this,
-                Observer {
-                    if (it == null || it.isEmpty()) {
-                        return@Observer
-                    }
+    private fun configureAuthLoginViewModel(): AuthLoginViewModel {
+        return ViewModelProvider(this,
+            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
+            .also { vm ->
+                vm.isLoggedIn.observe(this@HomeActivity,
+                    Observer {
+                        this@HomeActivity.isLoggedIn = it
+                        invalidateOptionsMenu()
 
-                    val workInfo = it[0]
-                    dataSyncView.setState(workInfo.state)
-                })
-        dataSyncViewModel.lastSynchronizedDate.takeIf { !it.hasActiveObservers() }
-            ?.observe(this,
-                Observer {
-                    dataSyncView.setLastSynchronizedDate(it)
-                })
-        dataSyncViewModel.syncMessage.takeIf { !it.hasActiveObservers() }
-            ?.observe(this,
-                Observer {
-                    dataSyncView.setMessage(it)
-                })
-        dataSyncViewModel.serverStatus.takeIf { !it.hasActiveObservers() }
-            ?.observe(this,
-                Observer {
-                    if (it == null) return@Observer
-
-                    when (it) {
-                        ServerStatus.INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
-                        ServerStatus.FORBIDDEN -> {
-                            packageInfoViewModel.cancelTasks()
-
-                            Toast.makeText(
-                                this,
-                                R.string.toast_not_connected,
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
-
-                            if (appSettings != null) {
-                                startActivity(LoginActivity.newIntent(this))
-                            }
-                        }
-                    }
-                })
-
-        GlobalScope.launch(Main) {
-            delay(250)
-            dataSyncViewModel.startSync()
-        }
+                    })
+            }
     }
 
-    private fun getInstalledApplications() {
-        GlobalScope.launch(Main) {
-            progress.visibility = View.VISIBLE
+    private fun configureDataSyncViewModel(): DataSyncViewModel {
+        return ViewModelProvider(this,
+            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
+            .also { vm ->
+                vm.syncOutputStatus.takeIf { !it.hasActiveObservers() }
+                    ?.observe(this,
+                        Observer {
+                            if (it == null || it.isEmpty()) {
+                                return@Observer
+                            }
 
-            delay(500)
+                            val workInfo = it[0]
+                            dataSyncView.setState(workInfo.state)
+                        })
+                vm.lastSynchronizedDate.takeIf { !it.hasActiveObservers() }
+                    ?.observe(this,
+                        Observer {
+                            dataSyncView.setLastSynchronizedDate(it)
+                        })
+                vm.syncMessage.takeIf { !it.hasActiveObservers() }
+                    ?.observe(this,
+                        Observer {
+                            dataSyncView.setMessage(it)
+                        })
+                vm.serverStatus.takeIf { !it.hasActiveObservers() }
+                    ?.observe(this,
+                        Observer {
+                            if (it == null) return@Observer
 
-            packageInfoViewModel.getInstalledApplications()
-            packageInfoViewModel.packageInfos.observe(this@HomeActivity,
-                Observer {
-                    progress.visibility = View.GONE
-                    adapter.setItems(it)
-                })
-        }
+                            when (it) {
+                                ServerStatus.INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
+                                ServerStatus.FORBIDDEN -> {
+                                    packageInfoViewModel.cancelTasks()
+
+                                    Toast.makeText(
+                                        this,
+                                        R.string.toast_not_connected,
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+
+                                    if (appSettings != null) {
+                                        startActivityForResult(
+                                            LoginActivity.newIntent(this),
+                                            0
+                                        )
+                                    }
+                                }
+                            }
+                        })
+            }
+    }
+
+    private fun configurePackageInfoViewModel(): PackageInfoViewModel {
+        return ViewModelProvider(this,
+            PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
+            PackageInfoViewModel::class.java
+        )
+            .also { vm ->
+                vm.packageInfos.observe(this@HomeActivity,
+                    Observer {
+                        progress.visibility = View.GONE
+                        adapter.setItems(it)
+                    })
+            }
     }
 
     private fun loadAppSettings() {
-        appSettingsViewModel.getAppSettings<AppSettings>()
-            .observe(this,
-                Observer {
-                    if (it == null) {
-                        Snackbar.make(
-                            homeContent,
-                            getString(
-                                R.string.snackbar_settings_not_found,
-                                appSettingsViewModel.getAppSettingsFilename()
-                            ),
-                            Snackbar.LENGTH_LONG
-                        )
-                            .show()
-                    } else {
-                        appSettings = it
+        ViewModelProvider(this,
+            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
+                AppSettingsViewModel(
+                    application
+                )
+            }).get(AppSettingsViewModel::class.java)
+            .also { vm ->
+                vm.getAppSettings<AppSettings>()
+                    .observeOnce(this) {
+                        if (it == null) {
+                            Snackbar.make(
+                                homeContent,
+                                getString(
+                                    R.string.snackbar_settings_not_found,
+                                    vm.getAppSettingsFilename()
+                                ),
+                                Snackbar.LENGTH_LONG
+                            )
+                                .show()
+                        } else {
+                            appSettings = it
+
+                            startSync()
+                        }
                     }
-                })
+            }
+    }
+
+    private fun startSync() {
+        val appSettings = appSettings ?: return
+
+        GlobalScope.launch(Main) {
+            delay(250)
+            dataSyncViewModel.startSync(appSettings)
+
+            progress.visibility = View.VISIBLE
+            delay(500)
+            packageInfoViewModel.getInstalledApplications()
+        }
     }
 }

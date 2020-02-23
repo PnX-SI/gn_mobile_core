@@ -38,8 +38,11 @@ interface GeoNatureService {
     @GET("api/meta/datasets")
     fun getMetaDatasets(): Call<ResponseBody>
 
-    @GET("api/users/menu/1")
-    fun getUsers(): Call<List<User>>
+    @GET("api/users/menu/{id}")
+    fun getUsers(
+        @Path("id")
+        menuId: Int
+    ): Call<List<User>>
 
     @GET("api/synthese/color_taxon")
     fun getTaxrefAreas(): Call<List<TaxrefArea>>

@@ -9,7 +9,11 @@ import fr.geonature.commons.settings.IAppSettings
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-data class AppSettings(var applicationId: Int = 0) : IAppSettings {
+data class AppSettings(
+    var applicationId: Int = 0,
+    var usersMenuId: Int = 0,
+    var taxrefListId: Int = 0
+) : IAppSettings {
 
     private constructor(source: Parcel) : this(source.readInt())
 
@@ -21,7 +25,11 @@ data class AppSettings(var applicationId: Int = 0) : IAppSettings {
         dest: Parcel?,
         flags: Int
     ) {
-        dest?.writeInt(applicationId)
+        dest?.also {
+            it.writeInt(applicationId)
+            it.writeInt(usersMenuId)
+            it.writeInt(taxrefListId)
+        }
     }
 
     companion object CREATOR : Parcelable.Creator<AppSettings> {
