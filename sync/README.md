@@ -7,7 +7,10 @@ Synchronize local database through GeoNature API:
 
 - Users (e.g. Observers)
 - Taxa (with "color" by areas and taxonomy)
+- Dataset
 - Nomenclature
+
+Synchronize observers inputs from synchronized apps (e.g. "Occtax").
 
 ## Settings
 
@@ -15,15 +18,19 @@ Example:
 
 ```json
 {
-  "application_id": 3
+  "application_id": 3,
+  "users_menu_id": 1,
+  "taxref_list_id": 100
 }
 ```
 
 ### Parameters description
 
-| Parameter        | UI      | Description              |
-| ---------------- | ------- | ------------------------ |
-| `application_id` | &#9744; | GeoNature application ID |
+| Parameter        | UI      | Description                      |
+| ---------------- | ------- | -------------------------------- |
+| `application_id` | &#9744; | GeoNature application ID         |
+| `users_menu_id`  | &#9744; | GeoNature selected users menu ID |
+| `taxref_list_id` | &#9744; | GeoNature selected taxa list ID  |
 
 ## Content Provider
 
