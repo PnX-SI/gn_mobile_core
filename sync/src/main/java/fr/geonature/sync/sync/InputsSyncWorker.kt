@@ -5,7 +5,8 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
-import fr.geonature.commons.util.FileUtils.getInputsFolder
+import fr.geonature.commons.util.getInputsFolder
+import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.api.GeoNatureAPIClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -131,10 +132,11 @@ class InputsSyncWorker(
 
     private suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput> =
         withContext(Dispatchers.IO) {
-            getInputsFolder(
+            FileUtils.getInputsFolder(
                 applicationContext,
                 packageInfo.packageName
-            ).walkTopDown()
+            )
+                .walkTopDown()
                 .filter { f -> f.isFile && f.extension == "json" && f.canRead() }
                 .map {
                     val rawString = it.readText()

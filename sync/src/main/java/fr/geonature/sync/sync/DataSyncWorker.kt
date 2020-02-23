@@ -65,7 +65,13 @@ class DataSyncWorker(
             return syncDatasetResult
         }
 
-        val syncInputObserversResult = syncInputObservers(geoNatureAPIClient)
+        val syncInputObserversResult = syncInputObservers(
+            geoNatureAPIClient,
+            inputData.getInt(
+                INPUT_USERS_MENU_ID,
+                0
+            )
+        )
 
         if (syncInputObserversResult is Result.Failure) {
             Log.i(
@@ -87,7 +93,13 @@ class DataSyncWorker(
             return syncTaxonomyRanksResult
         }
 
-        val syncTaxaResult = syncTaxa(geoNatureAPIClient)
+        val syncTaxaResult = syncTaxa(
+            geoNatureAPIClient,
+            inputData.getInt(
+                INPUT_TAXREF_LIST_ID,
+                0
+            )
+        )
 
         if (syncTaxaResult is Result.Failure) {
             Log.i(
@@ -151,9 +163,12 @@ class DataSyncWorker(
         }
     }
 
-    private fun syncInputObservers(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private fun syncInputObservers(
+        geoNatureServiceClient: GeoNatureAPIClient,
+        menuId: Int
+    ): Result {
         return try {
-            val response = geoNatureServiceClient.getUsers()
+            val response = geoNatureServiceClient.getUsers(menuId)
                 .execute()
 
             checkResponse(response).run {
@@ -227,9 +242,9 @@ class DataSyncWorker(
         }
     }
 
-    private fun syncTaxa(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private fun syncTaxa(geoNatureServiceClient: GeoNatureAPIClient, listId: Int): Result {
         return try {
-            val taxrefResponse = geoNatureServiceClient.getTaxref()
+            val taxrefResponse = geoNatureServiceClient.getTaxref(listId)
                 .execute()
 
             checkResponse(taxrefResponse).run {
@@ -488,5 +503,8 @@ class DataSyncWorker(
         // The name of the synchronisation work
         const val DATA_SYNC_WORKER = "data_sync_worker"
         const val DATA_SYNC_WORKER_TAG = "data_sync_worker_tag"
+
+        const val INPUT_USERS_MENU_ID = "usersMenuId"
+        const val INPUT_TAXREF_LIST_ID = "taxrefListId"
     }
 }

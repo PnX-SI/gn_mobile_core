@@ -8,7 +8,8 @@ import android.preference.PreferenceManager
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.helper.Converters.dateToTimestamp
 import fr.geonature.commons.data.helper.Converters.fromTimestamp
-import fr.geonature.commons.util.FileUtils.getInputsFolder
+import fr.geonature.commons.util.getInputsFolder
+import fr.geonature.mountpoint.util.FileUtils
 import java.util.Date
 
 /**
@@ -41,7 +42,10 @@ class AppSyncDao(private val context: Context) {
         val now = Date()
 
         this.sharedPreferences.edit()
-            .putLong("sync.${AppSync.COLUMN_LAST_SYNC}", dateToTimestamp(now) ?: -1L)
+            .putLong(
+                "sync.${AppSync.COLUMN_LAST_SYNC}",
+                dateToTimestamp(now) ?: -1L
+            )
             .apply()
 
         return now
@@ -57,10 +61,11 @@ class AppSyncDao(private val context: Context) {
     }
 
     private fun countInputsToSynchronize(packageId: String): Number {
-        return getInputsFolder(
+        return FileUtils.getInputsFolder(
             context,
             packageId
-        ).walkTopDown()
+        )
+            .walkTopDown()
             .filter { it.extension == "json" }
             .count()
     }

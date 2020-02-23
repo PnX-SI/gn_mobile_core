@@ -37,7 +37,11 @@ class OnAppSettingsJsonReaderListenerImplTest {
         // then
         assertNotNull(appSettings)
         assertEquals(
-            AppSettings(3),
+            AppSettings(
+                3,
+                1,
+                100
+            ),
             appSettings
         )
     }
@@ -59,7 +63,11 @@ class OnAppSettingsJsonReaderListenerImplTest {
         // then
         assertNotNull(appSettings)
         assertEquals(
-            AppSettings(0),
+            AppSettings(
+                0,
+                0,
+                0
+            ),
             appSettings
         )
     }

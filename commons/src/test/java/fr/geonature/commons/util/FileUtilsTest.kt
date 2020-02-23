@@ -2,9 +2,7 @@ package fr.geonature.commons.util
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
-import fr.geonature.commons.util.FileUtils.getInputsFolder
-import fr.geonature.commons.util.FileUtils.getRelativeSharedPath
-import org.junit.Assert.assertEquals
+import fr.geonature.mountpoint.util.FileUtils
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -27,23 +25,10 @@ class FileUtilsTest {
     }
 
     @Test
-    fun testGetRelativeSharedPath() {
-        assertEquals(
-            "Android/data/fr.geonature.sync/",
-            getRelativeSharedPath("fr.geonature.sync")
-        )
-
-        assertEquals(
-            "Android/data/fr.geonature.commons.test/",
-            getRelativeSharedPath(application.packageName)
-        )
-    }
-
-    @Test
     fun testGetInputsFolder() {
-        assertTrue(getInputsFolder(application).absolutePath.contains("/Android/data/fr.geonature.commons.test/inputs"))
+        assertTrue(FileUtils.getInputsFolder(application).absolutePath.contains("/Android/data/fr.geonature.commons.test/inputs"))
         assertTrue(
-            getInputsFolder(
+            FileUtils.getInputsFolder(
                 application,
                 "fr.geonature.sync"
             ).absolutePath.contains("/Android/data/fr.geonature.sync/inputs")

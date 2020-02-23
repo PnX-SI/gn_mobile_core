@@ -1,11 +1,11 @@
-package fr.geonature.commons.util
+package fr.geonature.mountpoint.util
 
 import android.content.Context
 import android.os.Environment
 import android.util.Log
-import fr.geonature.commons.BuildConfig
-import fr.geonature.commons.R
-import fr.geonature.commons.model.MountPoint
+import fr.geonature.mountpoint.BuildConfig
+import fr.geonature.mountpoint.R
+import fr.geonature.mountpoint.model.MountPoint
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.ArrayList

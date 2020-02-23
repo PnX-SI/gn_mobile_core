@@ -4,18 +4,18 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import fr.geonature.commons.model.MountPoint.StorageType.INTERNAL
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
-import fr.geonature.commons.util.FileUtils.getFile
-import fr.geonature.commons.util.FileUtils.getRootFolder
-import java.io.File
-import java.io.FileReader
-import java.io.IOException
+import fr.geonature.mountpoint.model.MountPoint.StorageType.INTERNAL
+import fr.geonature.mountpoint.util.FileUtils.getFile
+import fr.geonature.mountpoint.util.FileUtils.getRootFolder
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileReader
+import java.io.IOException
 
 /**
  * Manage [IAppSettings].
@@ -40,7 +40,8 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
                 getRootFolder(
                     application,
                     INTERNAL
-                ).mkdirs()
+                )
+                    .mkdirs()
             }
         }
     }

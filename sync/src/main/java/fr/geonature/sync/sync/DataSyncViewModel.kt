@@ -7,11 +7,13 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.work.Constraints
+import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import fr.geonature.sync.settings.AppSettings
 import java.util.Date
 
 /**
@@ -42,7 +44,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             serverStatus
         }
 
-    fun startSync() {
+    fun startSync(appSettings: AppSettings) {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -50,7 +52,15 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         val continuation = workManager.beginUniqueWork(
             DataSyncWorker.DATA_SYNC_WORKER,
             ExistingWorkPolicy.KEEP,
-            OneTimeWorkRequest.Builder(DataSyncWorker::class.java).addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG).setConstraints(
+            OneTimeWorkRequest.Builder(DataSyncWorker::class.java).addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG).setInputData(
+                Data.Builder().putInt(
+                    DataSyncWorker.INPUT_USERS_MENU_ID,
+                    appSettings.usersMenuId
+                ).putInt(
+                    DataSyncWorker.INPUT_TAXREF_LIST_ID,
+                    appSettings.taxrefListId
+                ).build()
+            ).setConstraints(
                 constraints
             ).build()
         )

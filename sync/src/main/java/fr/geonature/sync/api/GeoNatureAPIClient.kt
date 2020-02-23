@@ -40,7 +40,7 @@ class GeoNatureAPIClient private constructor(
     init {
         val authManager = AuthManager(context)
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = HttpLoggingInterceptor.Level.BASIC
             redactHeader("Authorization")
             redactHeader("Cookie")
         }
@@ -120,16 +120,16 @@ class GeoNatureAPIClient private constructor(
         return geoNatureService.getMetaDatasets()
     }
 
-    fun getUsers(): Call<List<User>> {
-        return geoNatureService.getUsers()
+    fun getUsers(menuId: Int): Call<List<User>> {
+        return geoNatureService.getUsers(menuId)
     }
 
     fun getTaxonomyRanks(): Call<ResponseBody> {
         return taxHubService.getTaxonomyRanks()
     }
 
-    fun getTaxref(): Call<List<Taxref>> {
-        return taxHubService.getTaxref()
+    fun getTaxref(listId: Int): Call<List<Taxref>> {
+        return taxHubService.getTaxref(listId)
     }
 
     fun getTaxrefAreas(): Call<List<TaxrefArea>> {

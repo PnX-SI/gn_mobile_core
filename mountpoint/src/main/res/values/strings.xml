@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="storage_status_mounted">mounted (rw)</string>
+    <string name="storage_status_mounted_ro">mounted (ro)</string>
+    <string name="storage_status_unmounted">unmounted</string>
+    <string name="storage_size_b">%1.0f B</string>
+    <string name="storage_size_kb">%1.1f kB</string>
+    <string name="storage_size_mb">%1.1f MB</string>
+    <string name="storage_size_gb">%1.1f GB</string>
+
+</resources>

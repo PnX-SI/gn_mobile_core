@@ -23,10 +23,10 @@ import fr.geonature.sync.R
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
+import fr.geonature.sync.util.observeOnce
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var appSettingsViewModel: AppSettingsViewModel
     private lateinit var authLoginViewModel: AuthLoginViewModel
     private var appSettings: AppSettings? = null
 
@@ -40,13 +40,6 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_login)
-
-        appSettingsViewModel = ViewModelProvider(this,
-            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
-                AppSettingsViewModel(
-                    application
-                )
-            }).get(AppSettingsViewModel::class.java)
 
         authLoginViewModel = ViewModelProvider(this,
             AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
@@ -83,6 +76,7 @@ class LoginActivity : AppCompatActivity() {
                         setResult(Activity.RESULT_OK)
 
                         // Complete and destroy login activity once successful
+                        setResult(Activity.RESULT_OK)
                         finish()
                     })
             }
@@ -148,33 +142,42 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loadAppSettings() {
-        appSettingsViewModel.getAppSettings<AppSettings>()
-            .observe(this,
-                Observer {
-                    if (it == null) {
-                        makeSnackbar(
-                            getString(
-                                R.string.snackbar_settings_not_found,
-                                appSettingsViewModel.getAppSettingsFilename()
-                            )
-                        )?.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                            override fun onDismissed(
-                                transientBottomBar: Snackbar?,
-                                event: Int
-                            ) {
-                                super.onDismissed(
-                                    transientBottomBar,
-                                    event
+        ViewModelProvider(this,
+            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
+                AppSettingsViewModel(
+                    application
+                )
+            }).get(AppSettingsViewModel::class.java)
+            .also { vm ->
+                vm.getAppSettings<AppSettings>()
+                    .observeOnce(this) {
+                        if (it == null) {
+                            makeSnackbar(
+                                getString(
+                                    R.string.snackbar_settings_not_found,
+                                    vm.getAppSettingsFilename()
                                 )
+                            )?.addCallback(object :
+                                BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                                override fun onDismissed(
+                                    transientBottomBar: Snackbar?,
+                                    event: Int
+                                ) {
+                                    super.onDismissed(
+                                        transientBottomBar,
+                                        event
+                                    )
 
-                                finish()
-                            }
-                        })
-                            ?.show()
-                    } else {
-                        appSettings = it
+                                    setResult(Activity.RESULT_CANCELED)
+                                    finish()
+                                }
+                            })
+                                ?.show()
+                        } else {
+                            appSettings = it
+                        }
                     }
-                })
+            }
     }
 
     private fun performLogin(
