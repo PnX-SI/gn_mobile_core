@@ -290,38 +290,53 @@ class TaxonTest {
 
     @Test
     fun testFilter() {
-        val taxonFilterByNameAndTaxonomy = (Taxon.Filter().byName("as") as Taxon.Filter).byTaxonomy(
-            Taxonomy(
-                "Animalia",
-                "Ascidies"
+        val taxonFilterByNameAndTaxonomy =
+            (Taxon.Filter().byNameOrDescription("as") as Taxon.Filter).byTaxonomy(
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
             )
-        ).build()
+                .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
             taxonFilterByNameAndTaxonomy.first
         )
         assertArrayEquals(
-            arrayOf("%as%", "Animalia", "Ascidies"),
+            arrayOf(
+                "%as%",
+                "%as%",
+                "Animalia",
+                "Ascidies"
+            ),
             taxonFilterByNameAndTaxonomy.second
         )
 
-        val taxonFilterByNameAndKingdom = (Taxon.Filter().byName("as") as Taxon.Filter).byTaxonomy(
-            Taxonomy(
-                "Animalia"
+        val taxonFilterByNameAndKingdom =
+            (Taxon.Filter().byNameOrDescription("as") as Taxon.Filter).byTaxonomy(
+                Taxonomy(
+                    "Animalia"
+                )
             )
-        ).build()
+                .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
             taxonFilterByNameAndKingdom.first
         )
         assertArrayEquals(
-            arrayOf("%as%", "Animalia"),
+            arrayOf(
+                "%as%",
+                "%as%",
+                "Animalia"
+            ),
             taxonFilterByNameAndKingdom.second
         )
 
-        val taxonFilterByKingdom = Taxon.Filter().byKingdom("Animalia").build()
+        val taxonFilterByKingdom = Taxon.Filter()
+            .byKingdom("Animalia")
+            .build()
 
         assertEquals(
             "(${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
@@ -332,9 +347,14 @@ class TaxonTest {
             taxonFilterByKingdom.second
         )
 
-        val taxonFilterByAnyTaxonomy = Taxon.Filter().byTaxonomy(Taxonomy("")).build()
+        val taxonFilterByAnyTaxonomy = Taxon.Filter()
+            .byTaxonomy(Taxonomy(""))
+            .build()
 
-        assertEquals("", taxonFilterByAnyTaxonomy.first)
+        assertEquals(
+            "",
+            taxonFilterByAnyTaxonomy.first
+        )
         assertTrue(taxonFilterByAnyTaxonomy.second.isEmpty())
     }
 }

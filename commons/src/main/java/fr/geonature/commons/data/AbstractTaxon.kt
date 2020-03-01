@@ -167,7 +167,7 @@ abstract class AbstractTaxon : Parcelable {
          *
          * @return this
          */
-        fun byName(queryString: String?): Filter {
+        fun byNameOrDescription(queryString: String?): Filter {
             if (queryString.isNullOrBlank()) {
                 return this
             }
@@ -175,9 +175,16 @@ abstract class AbstractTaxon : Parcelable {
             this.wheres.add(
                 Pair(
                     "(${getColumnAlias(
-                        COLUMN_NAME, tableAlias
+                        COLUMN_NAME,
+                        tableAlias
+                    )} LIKE ? OR ${getColumnAlias(
+                        COLUMN_DESCRIPTION,
+                        tableAlias
                     )} LIKE ?)",
-                    arrayOf("%$queryString%")
+                    arrayOf(
+                        "%$queryString%",
+                        "%$queryString%"
+                    )
                 )
             )
 
@@ -196,7 +203,10 @@ abstract class AbstractTaxon : Parcelable {
                 pair.first
             }
 
-            return Pair(whereClauses, bindArgs.toTypedArray())
+            return Pair(
+                whereClauses,
+                bindArgs.toTypedArray()
+            )
         }
     }
 }

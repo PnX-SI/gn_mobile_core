@@ -17,6 +17,9 @@ data class Taxref(
     @SerializedName("lb_nom")
     val name: String,
 
+    @SerializedName("search_name")
+    val description: String,
+
     @SerializedName("regne")
     val kingdom: String,
 

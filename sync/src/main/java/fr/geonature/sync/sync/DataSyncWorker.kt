@@ -273,7 +273,7 @@ class DataSyncWorker(
                         it.kingdom,
                         it.group
                     ),
-                    null
+                    it.description
                 )
             }
                 .toTypedArray()
