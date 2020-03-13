@@ -21,9 +21,9 @@ class OnAppSettingsJsonReaderListenerImpl :
         appSettings: AppSettings
     ) {
         when (keyName) {
-            "application_id" -> appSettings.applicationId = reader.nextInt()
-            "users_menu_id" -> appSettings.usersMenuId = reader.nextInt()
-            "taxref_list_id" -> appSettings.taxrefListId = reader.nextInt()
+            "uh_application_id" -> appSettings.applicationId = reader.nextInt()
+            "observers_list_id" -> appSettings.usersListId = reader.nextInt()
+            "taxa_list_id" -> appSettings.taxrefListId = reader.nextInt()
         }
     }
 }

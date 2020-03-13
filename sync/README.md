@@ -5,7 +5,7 @@
 
 Synchronize local database through GeoNature API:
 
-- Users (e.g. Observers)
+- Users (i.e. Observers)
 - Taxa (with "color" by areas and taxonomy)
 - Dataset
 - Nomenclature
@@ -18,9 +18,9 @@ Example:
 
 ```json
 {
-  "application_id": 3,
-  "users_menu_id": 1,
-  "taxref_list_id": 100
+  "uh_application_id": 3,
+  "observers_list_id": 1,
+  "taxa_list_id": 100
 }
 ```
 
@@ -28,9 +28,9 @@ Example:
 
 | Parameter        | UI      | Description                      |
 | ---------------- | ------- | -------------------------------- |
-| `application_id` | &#9744; | GeoNature application ID         |
-| `users_menu_id`  | &#9744; | GeoNature selected users menu ID |
-| `taxref_list_id` | &#9744; | GeoNature selected taxa list ID  |
+| `uh_application_id` | &#9744; | GeoNature application ID         |
+| `observers_list_id`  | &#9744; | GeoNature selected users menu ID |
+| `taxa_list_id` | &#9744; | GeoNature selected taxa list ID  |
 
 ## Content Provider
 

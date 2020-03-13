@@ -11,7 +11,7 @@ import fr.geonature.commons.settings.IAppSettings
  */
 data class AppSettings(
     var applicationId: Int = 0,
-    var usersMenuId: Int = 0,
+    var usersListId: Int = 0,
     var taxrefListId: Int = 0
 ) : IAppSettings {
 
@@ -27,7 +27,7 @@ data class AppSettings(
     ) {
         dest?.also {
             it.writeInt(applicationId)
-            it.writeInt(usersMenuId)
+            it.writeInt(usersListId)
             it.writeInt(taxrefListId)
         }
     }
