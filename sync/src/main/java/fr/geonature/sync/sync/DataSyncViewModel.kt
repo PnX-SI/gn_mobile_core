@@ -55,7 +55,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             OneTimeWorkRequest.Builder(DataSyncWorker::class.java).addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG).setInputData(
                 Data.Builder().putInt(
                     DataSyncWorker.INPUT_USERS_MENU_ID,
-                    appSettings.usersMenuId
+                    appSettings.usersListId
                 ).putInt(
                     DataSyncWorker.INPUT_TAXREF_LIST_ID,
                     appSettings.taxrefListId

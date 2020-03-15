@@ -16,6 +16,6 @@ data class PackageInfo(
     val icon: Drawable,
     val launchIntent: Intent?
 ) {
-    val inputs: MutableList<SyncInput> = mutableListOf()
+    var inputs: Int = 0
     var state: WorkInfo.State = WorkInfo.State.ENQUEUED
 }

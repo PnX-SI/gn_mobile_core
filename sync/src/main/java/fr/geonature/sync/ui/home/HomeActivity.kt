@@ -1,5 +1,6 @@
 package fr.geonature.sync.ui.home
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -123,6 +124,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(
             R.menu.settings,
@@ -160,10 +162,10 @@ class HomeActivity : AppCompatActivity() {
                     .observe(this,
                         Observer {
                             Toast.makeText(
-                                this,
-                                R.string.toast_logout_success,
-                                Toast.LENGTH_SHORT
-                            )
+                                    this,
+                                    R.string.toast_logout_success,
+                                    Toast.LENGTH_SHORT
+                                )
                                 .show()
                         })
                 true
@@ -220,10 +222,10 @@ class HomeActivity : AppCompatActivity() {
                                     packageInfoViewModel.cancelTasks()
 
                                     Toast.makeText(
-                                        this,
-                                        R.string.toast_not_connected,
-                                        Toast.LENGTH_SHORT
-                                    )
+                                            this,
+                                            R.string.toast_not_connected,
+                                            Toast.LENGTH_SHORT
+                                        )
                                         .show()
 
                                     if (appSettings != null) {
@@ -241,8 +243,8 @@ class HomeActivity : AppCompatActivity() {
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
         return ViewModelProvider(this,
             PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
-            PackageInfoViewModel::class.java
-        )
+                PackageInfoViewModel::class.java
+            )
             .also { vm ->
                 vm.packageInfos.observe(this@HomeActivity,
                     Observer {
@@ -264,13 +266,13 @@ class HomeActivity : AppCompatActivity() {
                     .observeOnce(this) {
                         if (it == null) {
                             Snackbar.make(
-                                homeContent,
-                                getString(
-                                    R.string.snackbar_settings_not_found,
-                                    vm.getAppSettingsFilename()
-                                ),
-                                Snackbar.LENGTH_LONG
-                            )
+                                    homeContent,
+                                    getString(
+                                        R.string.snackbar_settings_not_found,
+                                        vm.getAppSettingsFilename()
+                                    ),
+                                    Snackbar.LENGTH_LONG
+                                )
                                 .show()
                         } else {
                             appSettings = it

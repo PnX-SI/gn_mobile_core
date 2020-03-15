@@ -79,8 +79,8 @@ class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterList
             )
             text2.text = itemView.resources.getQuantityString(
                 R.plurals.home_app_inputs,
-                item.inputs.size,
-                item.inputs.size
+                item.inputs,
+                item.inputs
             )
             setState(item.state)
         }

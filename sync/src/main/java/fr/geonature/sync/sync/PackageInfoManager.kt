@@ -2,11 +2,11 @@ package fr.geonature.sync.sync
 
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.work.WorkInfo
+import fr.geonature.commons.util.getInputsFolder
+import fr.geonature.mountpoint.util.FileUtils
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 /**
  * [PackageInfo] manager.
@@ -26,8 +26,6 @@ class PackageInfoManager private constructor(private val applicationContext: Con
         .sharedUserId
 
     private val availablePackageInfos = mutableMapOf<String, PackageInfo>()
-    private val _packageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
-    val packageInfos: LiveData<List<PackageInfo>> = _packageInfos
 
     /**
      * Finds all compatible installed applications.
@@ -42,7 +40,8 @@ class PackageInfoManager private constructor(private val applicationContext: Con
             .map {
                 PackageInfo(
                     it.packageName,
-                    pm.getApplicationLabel(it).toString(),
+                    pm.getApplicationLabel(it)
+                        .toString(),
                     pm.getPackageInfo(
                         it.packageName,
                         PackageManager.GET_META_DATA
@@ -53,35 +52,41 @@ class PackageInfoManager private constructor(private val applicationContext: Con
             }
             .onEach { availablePackageInfos[it.packageName] = it }
             .toList()
-            .also {
-                _packageInfos.postValue(it)
-            }
     }
 
     /**
-     * Updates given [PackageInfo] status.
+     * Gets related info from package name.
      */
-    fun updatePackageInfo(
-        packageName: String,
-        state: WorkInfo.State,
-        syncInputs: List<SyncInput>
-    ): PackageInfo? {
-        val packageInfoToUpdate = availablePackageInfos[packageName]?.copy()?.apply {
-            syncInputs.let {
-                inputs.also {
-                    it.clear()
-                    it.addAll(syncInputs)
-                }
-            }
+    suspend fun getPackageInfo(packageName: String): PackageInfo? = withContext(IO) {
+        val packageInfo = availablePackageInfos[packageName]
 
-            this.state = state
-        } ?: return null
+        if (packageInfo == null) {
+            getInstalledApplications()
+        }
 
-        availablePackageInfos[packageName] = packageInfoToUpdate
-        _packageInfos.postValue(availablePackageInfos.values.toList())
-
-        return packageInfoToUpdate
+        availablePackageInfos[packageName]
     }
+
+    suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput> =
+        withContext(IO) {
+            FileUtils.getInputsFolder(
+                    applicationContext,
+                    packageInfo.packageName
+                )
+                .walkTopDown()
+                .filter { f -> f.isFile && f.extension == "json" && f.canRead() }
+                .map {
+                    val rawString = it.readText()
+                    val toJson = JSONObject(rawString)
+                    SyncInput(
+                        packageInfo,
+                        it.absolutePath,
+                        toJson.getString("module"),
+                        toJson
+                    )
+                }
+                .toList()
+        }
 
     companion object {
 

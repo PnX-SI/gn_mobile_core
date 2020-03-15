@@ -3,6 +3,9 @@ package fr.geonature.sync.sync
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations.map
+import androidx.lifecycle.Transformations.switchMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,6 +14,7 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import kotlinx.coroutines.launch
 
@@ -25,16 +29,45 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     private val packageInfoManager: PackageInfoManager =
         PackageInfoManager.getInstance(getApplication())
 
-    val packageInfos: LiveData<List<PackageInfo>> = packageInfoManager.packageInfos
+    private val availablePackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
+    val packageInfos: LiveData<List<PackageInfo>> =
+        switchMap(availablePackageInfos) { packageInfos ->
+            map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
+                packageInfos.asSequence()
+                    .map { packageInfo ->
+                        packageInfo.copy()
+                            .apply {
+                                val workInfo =
+                                    workInfos.firstOrNull { workInfo -> workInfo.progress.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
+                                        ?: workInfos.firstOrNull { workInfo -> workInfo.outputData.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
+
+                                if (workInfo != null) {
+                                    state = WorkInfo.State.values()[workInfo.progress.getInt(
+                                        InputsSyncWorker.KEY_PACKAGE_STATUS,
+                                        workInfo.outputData.getInt(
+                                            InputsSyncWorker.KEY_PACKAGE_STATUS,
+                                            WorkInfo.State.ENQUEUED.ordinal
+                                        )
+                                    )]
+                                    inputs = workInfo.progress.getInt(
+                                        InputsSyncWorker.KEY_PACKAGE_INPUTS,
+                                        0
+                                    )
+                                }
+                            }
+                    }
+                    .toList()
+            }
+        }
 
     /**
      * Gets all compatible installed applications.
      */
     fun getInstalledApplications() {
         viewModelScope.launch {
-            packageInfoManager.getInstalledApplications().asSequence().forEach {
-                startSyncInputs(it)
-            }
+            val packageInfos = packageInfoManager.getInstalledApplications()
+            availablePackageInfos.postValue(packageInfos)
+            packageInfos.forEach { startSyncInputs(it) }
         }
     }
 
@@ -43,18 +76,23 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
+        val inputsSyncWorkerRequest = OneTimeWorkRequest.Builder(InputsSyncWorker::class.java)
+            .addTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
+            .setConstraints(constraints)
+            .setInputData(
+                Data.Builder()
+                    .putString(
+                        InputsSyncWorker.KEY_PACKAGE_NAME,
+                        packageInfo.packageName
+                    )
+                    .build()
+            )
+            .build()
+
         val continuation = workManager.beginUniqueWork(
             InputsSyncWorker.workName(packageInfo.packageName),
             ExistingWorkPolicy.KEEP,
-            OneTimeWorkRequest.Builder(InputsSyncWorker::class.java)
-                .addTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
-                .setConstraints(constraints)
-                .setInputData(
-                    Data.Builder()
-                        .putString(InputsSyncWorker.KEY_PACKAGE_NAME, packageInfo.packageName)
-                        .build()
-                )
-                .build()
+            inputsSyncWorkerRequest
         )
 
         // start the work
