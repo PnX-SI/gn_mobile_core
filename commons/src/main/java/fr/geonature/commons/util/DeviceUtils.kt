@@ -15,4 +15,7 @@ object DeviceUtils {
 
     val isPostLollipop: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+
+    val isPostOreo: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 }
