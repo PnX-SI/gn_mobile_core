@@ -18,6 +18,8 @@ Example:
 
 ```json
 {
+  "geonature_url": "http://demo.geonature/geonature",
+  "taxhub_url": "http://demo.geonature/taxhub",
   "uh_application_id": 3,
   "observers_list_id": 1,
   "taxa_list_id": 100
@@ -26,11 +28,13 @@ Example:
 
 ### Parameters description
 
-| Parameter        | UI      | Description                      |
-| ---------------- | ------- | -------------------------------- |
+| Parameter           | UI      | Description                      |
+| ------------------- | ------- | -------------------------------- |
+| `geonature_url`     | &#9745; | GeoNature URL                    |
+| `taxhub_url`        | &#9745; | TaxHub URL                       |
 | `uh_application_id` | &#9744; | GeoNature application ID         |
-| `observers_list_id`  | &#9744; | GeoNature selected users menu ID |
-| `taxa_list_id` | &#9744; | GeoNature selected taxa list ID  |
+| `observers_list_id` | &#9744; | GeoNature selected users menu ID |
+| `taxa_list_id`      | &#9744; | GeoNature selected taxa list ID  |
 
 ## Content Provider
 

@@ -10,12 +10,20 @@ import fr.geonature.commons.settings.IAppSettings
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 data class AppSettings(
+    var geoNatureServerUrl: String? = null,
+    var taxHubServerUrl: String? = null,
     var applicationId: Int = 0,
     var usersListId: Int = 0,
     var taxrefListId: Int = 0
 ) : IAppSettings {
 
-    private constructor(source: Parcel) : this(source.readInt())
+    private constructor(source: Parcel) : this(
+        source.readString(),
+        source.readString(),
+        source.readInt(),
+        source.readInt(),
+        source.readInt()
+    )
 
     override fun describeContents(): Int {
         return 0
@@ -26,6 +34,8 @@ data class AppSettings(
         flags: Int
     ) {
         dest?.also {
+            it.writeString(geoNatureServerUrl)
+            it.writeString(taxHubServerUrl)
             it.writeInt(applicationId)
             it.writeInt(usersListId)
             it.writeInt(taxrefListId)

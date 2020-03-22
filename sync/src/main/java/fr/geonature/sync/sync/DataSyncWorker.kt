@@ -3,8 +3,10 @@ package fr.geonature.sync.sync
 import android.content.Context
 import android.text.TextUtils
 import android.util.Log
-import androidx.work.Worker
+import androidx.work.CoroutineWorker
+import androidx.work.Data
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import fr.geonature.commons.data.DefaultNomenclature
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Nomenclature
@@ -20,6 +22,8 @@ import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import org.json.JSONObject
 import retrofit2.Response
+import retrofit2.awaitResponse
+import java.io.BufferedReader
 import java.util.Date
 
 /**
@@ -28,31 +32,26 @@ import java.util.Date
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class DataSyncWorker(
-    appContext: Context,
-    workerParams: WorkerParameters
-) : Worker(
+    appContext: Context, workerParams: WorkerParameters
+) : CoroutineWorker(
     appContext,
     workerParams
 ) {
 
     private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result {
         val startTime = Date()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-
-        if (geoNatureAPIClient == null) {
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_url_configuration))
-            return Result.failure()
-        }
-
-        dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_start_synchronization))
+            ?: return Result.failure(workData(applicationContext.getString(R.string.sync_error_server_url_configuration)))
 
         Log.i(
             TAG,
             "starting local data synchronization from '${geoNatureAPIClient.geoNatureBaseUrl}'..."
         )
+
+        setProgress(workData(applicationContext.getString(R.string.sync_start_synchronization)))
 
         val syncDatasetResult = syncDataset(geoNatureAPIClient)
 
@@ -119,16 +118,16 @@ class DataSyncWorker(
 
         if (syncNomenclatureResult is Result.Success) {
             dataSyncManager.updateLastSynchronizedDate()
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_data_succeeded))
+            return Result.success(workData(applicationContext.getString(R.string.sync_data_succeeded)))
         }
 
         return syncInputObserversResult
     }
 
-    private fun syncDataset(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private suspend fun syncDataset(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val response = geoNatureServiceClient.getMetaDatasets()
-                .execute()
+                .awaitResponse()
 
             checkResponse(response).run {
                 if (this is Result.Failure) {
@@ -136,19 +135,25 @@ class DataSyncWorker(
                 }
             }
 
-            val jsonString = response.body()?.string() ?: return Result.failure()
-            val dataset = DatasetJsonReader().read(jsonString)
-
-            dataSyncManager.syncMessage.postValue(
-                applicationContext.getString(
-                    R.string.sync_data_dataset,
-                    dataset.size
-                )
+            val inputStream = response.body()
+                ?.byteStream() ?: return Result.failure()
+            val dataset = DatasetJsonReader().read(
+                inputStream.bufferedReader()
+                    .use(BufferedReader::readText)
             )
 
             Log.i(
                 TAG,
                 "dataset to update: ${dataset.size}"
+            )
+
+            setProgress(
+                workData(
+                    applicationContext.getString(
+                        R.string.sync_data_dataset,
+                        dataset.size
+                    )
+                )
             )
 
             LocalDatabase.getInstance(applicationContext)
@@ -157,19 +162,20 @@ class DataSyncWorker(
 
             Result.success()
         } catch (e: Exception) {
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-            Result.failure()
+            Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_error)
+                )
+            )
         }
     }
 
-    private fun syncInputObservers(
-        geoNatureServiceClient: GeoNatureAPIClient,
-        menuId: Int
+    private suspend fun syncInputObservers(
+        geoNatureServiceClient: GeoNatureAPIClient, menuId: Int
     ): Result {
         return try {
             val response = geoNatureServiceClient.getUsers(menuId)
-                .execute()
+                .awaitResponse()
 
             checkResponse(response).run {
                 if (this is Result.Failure) {
@@ -179,24 +185,26 @@ class DataSyncWorker(
 
             val users = response.body() ?: return Result.failure()
             val inputObservers = users.map {
-                InputObserver(
-                    it.id,
-                    it.lastname,
-                    it.firstname
-                )
-            }
+                    InputObserver(
+                        it.id,
+                        it.lastname,
+                        it.firstname
+                    )
+                }
                 .toTypedArray()
-
-            dataSyncManager.syncMessage.postValue(
-                applicationContext.getString(
-                    R.string.sync_data_observers,
-                    users.size
-                )
-            )
 
             Log.i(
                 TAG,
                 "users to update: ${users.size}"
+            )
+
+            setProgress(
+                workData(
+                    applicationContext.getString(
+                        R.string.sync_data_observers,
+                        users.size
+                    )
+                )
             )
 
             LocalDatabase.getInstance(applicationContext)
@@ -205,16 +213,18 @@ class DataSyncWorker(
 
             Result.success()
         } catch (e: Exception) {
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-            Result.failure()
+            Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_error)
+                )
+            )
         }
     }
 
-    private fun syncTaxonomyRanks(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private suspend fun syncTaxonomyRanks(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val taxonomyRanksResponse = geoNatureServiceClient.getTaxonomyRanks()
-                .execute()
+                .awaitResponse()
 
             checkResponse(taxonomyRanksResponse).run {
                 if (this is Result.Failure) {
@@ -222,8 +232,12 @@ class DataSyncWorker(
                 }
             }
 
-            val jsonString = taxonomyRanksResponse.body()?.string() ?: return Result.failure()
-            val taxonomy = TaxonomyJsonReader().read(jsonString)
+            val inputStream = taxonomyRanksResponse.body()
+                ?.byteStream() ?: return Result.failure()
+            val taxonomy = TaxonomyJsonReader().read(
+                inputStream.bufferedReader()
+                    .use(BufferedReader::readText)
+            )
 
             Log.i(
                 TAG,
@@ -236,16 +250,18 @@ class DataSyncWorker(
 
             Result.success()
         } catch (e: Exception) {
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-            Result.failure()
+            Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_error)
+                )
+            )
         }
     }
 
-    private fun syncTaxa(geoNatureServiceClient: GeoNatureAPIClient, listId: Int): Result {
+    private suspend fun syncTaxa(geoNatureServiceClient: GeoNatureAPIClient, listId: Int): Result {
         return try {
             val taxrefResponse = geoNatureServiceClient.getTaxref(listId)
-                .execute()
+                .awaitResponse()
 
             checkResponse(taxrefResponse).run {
                 if (this is Result.Failure) {
@@ -254,7 +270,7 @@ class DataSyncWorker(
             }
 
             val taxrefAreasResponse = geoNatureServiceClient.getTaxrefAreas()
-                .execute()
+                .awaitResponse()
 
             checkResponse(taxrefAreasResponse).run {
                 if (this is Result.Failure) {
@@ -266,28 +282,30 @@ class DataSyncWorker(
             val taxrefAreas = taxrefAreasResponse.body() ?: return Result.failure()
 
             val taxa = taxref.map {
-                Taxon(
-                    it.id,
-                    it.name,
-                    Taxonomy(
-                        it.kingdom,
-                        it.group
-                    ),
-                    it.description
-                )
-            }
+                    Taxon(
+                        it.id,
+                        it.name,
+                        Taxonomy(
+                            it.kingdom,
+                            it.group
+                        ),
+                        it.description
+                    )
+                }
                 .toTypedArray()
-
-            dataSyncManager.syncMessage.postValue(
-                applicationContext.getString(
-                    R.string.sync_data_taxa,
-                    taxa.size
-                )
-            )
 
             Log.i(
                 TAG,
                 "taxa to update: ${taxa.size}"
+            )
+
+            setProgress(
+                workData(
+                    applicationContext.getString(
+                        R.string.sync_data_taxa,
+                        taxa.size
+                    )
+                )
             )
 
             LocalDatabase.getInstance(applicationContext)
@@ -319,16 +337,18 @@ class DataSyncWorker(
 
             Result.success()
         } catch (e: Exception) {
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-            Result.failure()
+            Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_error)
+                )
+            )
         }
     }
 
-    private fun syncNomenclature(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private suspend fun syncNomenclature(geoNatureServiceClient: GeoNatureAPIClient): Result {
         return try {
             val nomenclatureResponse = geoNatureServiceClient.getNomenclatures()
-                .execute()
+                .awaitResponse()
 
             checkResponse(nomenclatureResponse).run {
                 if (this is Result.Failure) {
@@ -342,12 +362,12 @@ class DataSyncWorker(
                 .filter { it.nomenclatures.isNotEmpty() }
 
             val nomenclatureTypesToUpdate = validNomenclatureTypesToUpdate.map {
-                NomenclatureType(
-                    it.id,
-                    it.mnemonic,
-                    it.defaultLabel
-                )
-            }
+                    NomenclatureType(
+                        it.id,
+                        it.mnemonic,
+                        it.defaultLabel
+                    )
+                }
                 .toList()
                 .toTypedArray()
 
@@ -355,26 +375,29 @@ class DataSyncWorker(
                 TAG,
                 "nomenclature types to update: ${nomenclatureTypesToUpdate.size}"
             )
-            dataSyncManager.syncMessage.postValue(
-                applicationContext.getString(
-                    R.string.sync_data_nomenclature_type,
-                    nomenclatureTypesToUpdate.size
+
+            setProgress(
+                workData(
+                    applicationContext.getString(
+                        R.string.sync_data_nomenclature_type,
+                        nomenclatureTypesToUpdate.size
+                    )
                 )
             )
 
             val nomenclaturesToUpdate = validNomenclatureTypesToUpdate.map { nomenclatureType ->
-                nomenclatureType.nomenclatures.asSequence()
-                    .filter { it.id > 0 }
-                    .map {
-                        Nomenclature(
-                            it.id,
-                            it.code,
-                            if (TextUtils.isEmpty(it.hierarchy)) nomenclatureType.id.toString() else it.hierarchy!!,
-                            it.defaultLabel,
-                            nomenclatureType.id
-                        )
-                    }
-            }
+                    nomenclatureType.nomenclatures.asSequence()
+                        .filter { it.id > 0 }
+                        .map {
+                            Nomenclature(
+                                it.id,
+                                it.code,
+                                if (TextUtils.isEmpty(it.hierarchy)) nomenclatureType.id.toString() else it.hierarchy!!,
+                                it.defaultLabel,
+                                nomenclatureType.id
+                            )
+                        }
+                }
                 .flatMap { it.asSequence() }
                 .toList()
                 .toTypedArray()
@@ -413,17 +436,20 @@ class DataSyncWorker(
                 TAG,
                 "nomenclature to update: ${nomenclaturesToUpdate.size}"
             )
-            dataSyncManager.syncMessage.postValue(
-                applicationContext.getString(
-                    R.string.sync_data_nomenclature,
-                    nomenclaturesToUpdate.size
+
+            setProgress(
+                workData(
+                    applicationContext.getString(
+                        R.string.sync_data_nomenclature,
+                        nomenclaturesToUpdate.size
+                    )
                 )
             )
 
             // TODO: fetch available GeoNature modules
             val defaultNomenclatureResponse =
                 geoNatureServiceClient.getDefaultNomenclaturesValues("occtax")
-                    .execute()
+                    .awaitResponse()
 
             checkResponse(defaultNomenclatureResponse).run {
                 if (this is Result.Failure) {
@@ -431,8 +457,12 @@ class DataSyncWorker(
                 }
             }
 
-            val jsonString = defaultNomenclatureResponse.body()?.string() ?: return Result.failure()
-            val defaultNomenclatureAsJson = JSONObject(jsonString)
+            val inputStream = defaultNomenclatureResponse.body()
+                ?.byteStream() ?: return Result.failure()
+            val defaultNomenclatureAsJson = JSONObject(
+                inputStream.bufferedReader()
+                    .use(BufferedReader::readText)
+            )
             val defaultNomenclaturesToUpdate = defaultNomenclatureAsJson.keys()
                 .asSequence()
                 .filter { mnemonic ->
@@ -451,10 +481,13 @@ class DataSyncWorker(
                 TAG,
                 "nomenclature default values to update: ${defaultNomenclaturesToUpdate.size}"
             )
-            dataSyncManager.syncMessage.postValue(
-                applicationContext.getString(
-                    R.string.sync_data_nomenclature_default,
-                    defaultNomenclaturesToUpdate.size
+
+            setProgress(
+                workData(
+                    applicationContext.getString(
+                        R.string.sync_data_nomenclature_default,
+                        defaultNomenclaturesToUpdate.size
+                    )
                 )
             )
 
@@ -472,33 +505,49 @@ class DataSyncWorker(
 
             Result.success()
         } catch (e: Exception) {
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-            Result.failure()
+            Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_error)
+                )
+            )
         }
     }
 
     private fun checkResponse(response: Response<*>): Result {
         // not connected
         if (response.code() == 403) {
-            dataSyncManager.serverStatus.postValue(ServerStatus.FORBIDDEN)
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_not_connected))
-
-            return Result.failure()
+            return Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_not_connected),
+                    ServerStatus.FORBIDDEN
+                )
+            )
         }
 
         if (!response.isSuccessful) {
-            dataSyncManager.serverStatus.postValue(ServerStatus.INTERNAL_SERVER_ERROR)
-            dataSyncManager.syncMessage.postValue(applicationContext.getString(R.string.sync_error_server_error))
-
-            return Result.failure()
+            return Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_error),
+                    ServerStatus.INTERNAL_SERVER_ERROR
+                )
+            )
         }
 
         return Result.success()
     }
 
+    private fun workData(syncMessage: String, serverStatus: ServerStatus = ServerStatus.OK): Data {
+        return workDataOf(
+            KEY_SYNC_MESSAGE to syncMessage,
+            KEY_SERVER_STATUS to serverStatus.ordinal
+        )
+    }
+
     companion object {
         private val TAG = DataSyncWorker::class.java.name
+
+        const val KEY_SYNC_MESSAGE = "KEY_SYNC_MESSAGE"
+        const val KEY_SERVER_STATUS = "KEY_SERVER_STATUS"
 
         // The name of the synchronisation work
         const val DATA_SYNC_WORKER = "data_sync_worker"

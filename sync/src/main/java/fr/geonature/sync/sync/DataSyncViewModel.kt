@@ -3,7 +3,7 @@ package fr.geonature.sync.sync
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.work.Constraints
@@ -11,7 +11,6 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import fr.geonature.sync.settings.AppSettings
 import java.util.Date
@@ -29,40 +28,63 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             it.getLastSynchronizedDate()
         }
 
-    val syncOutputStatus: LiveData<List<WorkInfo>> =
-        workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)
-    val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
-    val syncMessage: LiveData<String> = dataSyncManager.syncMessage
-    val serverStatus: LiveData<ServerStatus> =
-        Transformations.map(dataSyncManager.serverStatus) { serverStatus ->
-            if (serverStatus == null) return@map serverStatus
+    val dataSyncStatus: LiveData<DataSyncStatus?> =
+        map(workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)) { workInfos ->
+            val workInfo = workInfos.firstOrNull() ?: return@map null
 
-            when (serverStatus) {
-                ServerStatus.FORBIDDEN, ServerStatus.INTERNAL_SERVER_ERROR -> cancelTasks()
+            val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
+                DataSyncWorker.KEY_SERVER_STATUS,
+                workInfo.outputData.getInt(
+                    DataSyncWorker.KEY_SERVER_STATUS,
+                    ServerStatus.OK.ordinal
+                )
+            )]
+
+            if (arrayOf(
+                    ServerStatus.FORBIDDEN,
+                    ServerStatus.INTERNAL_SERVER_ERROR
+                ).contains(serverStatus)
+            ) {
+                cancelTasks()
             }
 
-            serverStatus
+            DataSyncStatus(
+                workInfo.state,
+                workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
+                    ?: workInfo.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
+                serverStatus
+            )
         }
+    val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
 
     fun startSync(appSettings: AppSettings) {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
+        val dataSyncWorkRequest = OneTimeWorkRequest.Builder(DataSyncWorker::class.java)
+            .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+            .setInputData(
+                Data.Builder()
+                    .putInt(
+                        DataSyncWorker.INPUT_USERS_MENU_ID,
+                        appSettings.usersListId
+                    )
+                    .putInt(
+                        DataSyncWorker.INPUT_TAXREF_LIST_ID,
+                        appSettings.taxrefListId
+                    )
+                    .build()
+            )
+            .setConstraints(
+                constraints
+            )
+            .build()
+
         val continuation = workManager.beginUniqueWork(
             DataSyncWorker.DATA_SYNC_WORKER,
             ExistingWorkPolicy.KEEP,
-            OneTimeWorkRequest.Builder(DataSyncWorker::class.java).addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG).setInputData(
-                Data.Builder().putInt(
-                    DataSyncWorker.INPUT_USERS_MENU_ID,
-                    appSettings.usersListId
-                ).putInt(
-                    DataSyncWorker.INPUT_TAXREF_LIST_ID,
-                    appSettings.taxrefListId
-                ).build()
-            ).setConstraints(
-                constraints
-            ).build()
+            dataSyncWorkRequest
         )
 
         // start the work

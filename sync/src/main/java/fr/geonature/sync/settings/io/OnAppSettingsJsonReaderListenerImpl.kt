@@ -21,9 +21,12 @@ class OnAppSettingsJsonReaderListenerImpl :
         appSettings: AppSettings
     ) {
         when (keyName) {
+            "geonature_url" -> appSettings.geoNatureServerUrl = reader.nextString()
+            "taxhub_url" -> appSettings.taxHubServerUrl = reader.nextString()
             "uh_application_id" -> appSettings.applicationId = reader.nextInt()
             "observers_list_id" -> appSettings.usersListId = reader.nextInt()
             "taxa_list_id" -> appSettings.taxrefListId = reader.nextInt()
+            else -> reader.skipValue()
         }
     }
 }

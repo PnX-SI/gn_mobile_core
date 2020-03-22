@@ -17,8 +17,6 @@ class DataSyncManager private constructor(applicationContext: Context) {
 
     private val _lastSynchronizedDate: MutableLiveData<Date?> = MutableLiveData()
     val lastSynchronizedDate: LiveData<Date?> = _lastSynchronizedDate
-    val syncMessage: MutableLiveData<String> = MutableLiveData()
-    val serverStatus: MutableLiveData<ServerStatus> = MutableLiveData()
 
     fun updateLastSynchronizedDate() {
         _lastSynchronizedDate.postValue(appSyncDao.updateLastSynchronizedDate())
