@@ -1,5 +1,6 @@
 package fr.geonature.sync.settings.io
 
+import android.app.Application
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import fr.geonature.sync.FixtureHelper.getFixture
 import fr.geonature.sync.settings.AppSettings
@@ -10,6 +11,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Unit tests about [AppSettingsJsonReader].
@@ -17,6 +19,7 @@ import org.robolectric.RobolectricTestRunner
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class OnAppSettingsJsonReaderListenerImplTest {
 
     lateinit var appSettingsJsonReader: AppSettingsJsonReader<AppSettings>
@@ -38,9 +41,13 @@ class OnAppSettingsJsonReaderListenerImplTest {
         assertNotNull(appSettings)
         assertEquals(
             AppSettings(
+                "http://demo.geonature/geonature",
+                "http://demo.geonature/taxhub",
                 3,
                 1,
-                100
+                100,
+                100,
+                5
             ),
             appSettings
         )
@@ -63,11 +70,7 @@ class OnAppSettingsJsonReaderListenerImplTest {
         // then
         assertNotNull(appSettings)
         assertEquals(
-            AppSettings(
-                0,
-                0,
-                0
-            ),
+            AppSettings(),
             appSettings
         )
     }

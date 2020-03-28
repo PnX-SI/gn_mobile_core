@@ -5,7 +5,7 @@
 
 Synchronize local database through GeoNature API:
 
-- Users (e.g. Observers)
+- Users (i.e. Observers)
 - Taxa (with "color" by areas and taxonomy)
 - Dataset
 - Nomenclature
@@ -18,19 +18,25 @@ Example:
 
 ```json
 {
-  "application_id": 3,
-  "users_menu_id": 1,
-  "taxref_list_id": 100
+  "geonature_url": "http://demo.geonature/geonature",
+  "taxhub_url": "http://demo.geonature/taxhub",
+  "uh_application_id": 3,
+  "observers_list_id": 1,
+  "taxa_list_id": 100
 }
 ```
 
 ### Parameters description
 
-| Parameter        | UI      | Description                      |
-| ---------------- | ------- | -------------------------------- |
-| `application_id` | &#9744; | GeoNature application ID         |
-| `users_menu_id`  | &#9744; | GeoNature selected users menu ID |
-| `taxref_list_id` | &#9744; | GeoNature selected taxa list ID  |
+| Parameter           | UI      | Description                                            | Default value |
+| ------------------- | ------- | ------------------------------------------------------ | ------------- |
+| `geonature_url`     | &#9745; | GeoNature URL                                          |               |
+| `taxhub_url`        | &#9745; | TaxHub URL                                             |               |
+| `uh_application_id` | &#9744; | GeoNature application ID                               |               |
+| `observers_list_id` | &#9744; | GeoNature selected users menu ID                       |               |
+| `taxa_list_id`      | &#9744; | GeoNature selected taxa list ID                        |               |
+| `page_size`         | &#9744; | Default page size while fetching paginated values      | 1000          |
+| `page_max_retry`    | &#9744; | Max attempt to fetch data according to given page size | 20            |
 
 ## Content Provider
 

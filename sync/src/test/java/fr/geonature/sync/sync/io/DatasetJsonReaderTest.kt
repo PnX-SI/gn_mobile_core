@@ -1,5 +1,6 @@
 package fr.geonature.sync.sync.io
 
+import android.app.Application
 import fr.geonature.commons.data.Dataset
 import fr.geonature.sync.FixtureHelper.getFixture
 import org.junit.Assert.assertArrayEquals
@@ -9,6 +10,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Unit tests about [DatasetJsonReader].
@@ -16,6 +18,7 @@ import org.robolectric.RobolectricTestRunner
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class DatasetJsonReaderTest {
 
     private lateinit var datasetJsonReader: DatasetJsonReader

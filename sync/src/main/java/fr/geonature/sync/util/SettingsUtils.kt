@@ -35,6 +35,16 @@ object SettingsUtils {
             )
     }
 
+    fun setGeoNatureServerUrl(context: Context, geoNatureServerUrl: String) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putString(
+                context.getString(R.string.preference_category_server_geonature_url_key),
+                geoNatureServerUrl
+            )
+            .apply()
+    }
+
     /**
      * Gets the current TaxHub server url to use.
      *
@@ -50,6 +60,16 @@ object SettingsUtils {
             )
     }
 
+    fun setTaxHubServerUrl(context: Context, taxHubServerUrl: String) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putString(
+                context.getString(R.string.preference_category_server_taxhub_url_key),
+                taxHubServerUrl
+            )
+            .apply()
+    }
+    
     fun updatePreferences(preferenceScreen: PreferenceScreen) {
         val context = preferenceScreen.context
         val onPreferenceChangeListener =
@@ -88,7 +108,8 @@ object SettingsUtils {
             R.string.app_version,
             BuildConfig.VERSION_NAME,
             BuildConfig.VERSION_CODE,
-            DateFormat.getDateTimeInstance().format(Date(BuildConfig.BUILD_DATE.toLong()))
+            DateFormat.getDateTimeInstance()
+                .format(Date(BuildConfig.BUILD_DATE.toLong()))
         )
     }
 }

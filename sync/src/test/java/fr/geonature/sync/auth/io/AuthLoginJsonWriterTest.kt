@@ -1,5 +1,6 @@
 package fr.geonature.sync.auth.io
 
+import android.app.Application
 import fr.geonature.commons.util.IsoDateUtils.toDate
 import fr.geonature.sync.FixtureHelper.getFixture
 import fr.geonature.sync.api.model.AuthLogin
@@ -9,6 +10,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Unit tests about [AuthLoginJsonWriter].
@@ -16,6 +18,7 @@ import org.robolectric.RobolectricTestRunner
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class AuthLoginJsonWriterTest {
 
     private val authLoginJsonWriter = AuthLoginJsonWriter()
