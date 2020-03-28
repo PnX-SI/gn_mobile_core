@@ -26,6 +26,8 @@ class OnAppSettingsJsonReaderListenerImpl :
             "uh_application_id" -> appSettings.applicationId = reader.nextInt()
             "observers_list_id" -> appSettings.usersListId = reader.nextInt()
             "taxa_list_id" -> appSettings.taxrefListId = reader.nextInt()
+            "page_size" -> appSettings.pageSize = reader.nextInt()
+            "page_max_retry" -> appSettings.pageMaxRetry = reader.nextInt()
             else -> reader.skipValue()
         }
     }

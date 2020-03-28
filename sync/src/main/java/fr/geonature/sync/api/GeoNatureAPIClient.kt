@@ -87,14 +87,24 @@ class GeoNatureAPIClient private constructor(
         geoNatureService = Retrofit.Builder()
             .baseUrl("$geoNatureBaseUrl/")
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()))
+            .addConverterFactory(
+                GsonConverterFactory.create(
+                    GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss")
+                        .create()
+                )
+            )
             .build()
             .create(GeoNatureService::class.java)
 
         taxHubService = Retrofit.Builder()
             .baseUrl("$taxHubBaseUrl/")
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()))
+            .addConverterFactory(
+                GsonConverterFactory.create(
+                    GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss")
+                        .create()
+                )
+            )
             .build()
             .create(TaxHubService::class.java)
     }
@@ -128,12 +138,19 @@ class GeoNatureAPIClient private constructor(
         return taxHubService.getTaxonomyRanks()
     }
 
-    fun getTaxref(listId: Int): Call<List<Taxref>> {
-        return taxHubService.getTaxref(listId)
+    fun getTaxref(listId: Int, limit: Int? = null, offset: Int? = null): Call<List<Taxref>> {
+        return taxHubService.getTaxref(
+            listId,
+            limit,
+            offset
+        )
     }
 
-    fun getTaxrefAreas(): Call<List<TaxrefArea>> {
-        return geoNatureService.getTaxrefAreas()
+    fun getTaxrefAreas(limit: Int? = null, offset: Int? = null): Call<List<TaxrefArea>> {
+        return geoNatureService.getTaxrefAreas(
+            limit,
+            offset
+        )
     }
 
     fun getNomenclatures(): Call<List<NomenclatureType>> {

@@ -45,7 +45,9 @@ class OnAppSettingsJsonReaderListenerImplTest {
                 "http://demo.geonature/taxhub",
                 3,
                 1,
-                100
+                100,
+                100,
+                5
             ),
             appSettings
         )

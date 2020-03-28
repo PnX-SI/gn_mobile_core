@@ -40,7 +40,7 @@ class AppSettingsTest {
         // then
         assertEquals(
             appSettings,
-            AppSettings.createFromParcel(parcel)
+            AppSettings.CREATOR.createFromParcel(parcel)
         )
     }
 }

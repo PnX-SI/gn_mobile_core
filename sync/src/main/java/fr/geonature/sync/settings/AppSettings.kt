@@ -14,12 +14,16 @@ data class AppSettings(
     var taxHubServerUrl: String? = null,
     var applicationId: Int = 0,
     var usersListId: Int = 0,
-    var taxrefListId: Int = 0
+    var taxrefListId: Int = 0,
+    var pageSize: Int = DEFAULT_PAGE_SIZE,
+    var pageMaxRetry: Int = DEFAULT_PAGE_MAX_RETRY
 ) : IAppSettings {
 
     private constructor(source: Parcel) : this(
         source.readString(),
         source.readString(),
+        source.readInt(),
+        source.readInt(),
         source.readInt(),
         source.readInt(),
         source.readInt()
@@ -39,16 +43,24 @@ data class AppSettings(
             it.writeInt(applicationId)
             it.writeInt(usersListId)
             it.writeInt(taxrefListId)
+            it.writeInt(pageSize)
+            it.writeInt(pageMaxRetry)
         }
     }
 
-    companion object CREATOR : Parcelable.Creator<AppSettings> {
-        override fun createFromParcel(parcel: Parcel): AppSettings {
-            return AppSettings(parcel)
-        }
+    companion object {
+        const val DEFAULT_PAGE_SIZE = 1000
+        const val DEFAULT_PAGE_MAX_RETRY = 20
 
-        override fun newArray(size: Int): Array<AppSettings?> {
-            return arrayOfNulls(size)
+        @JvmField
+        val CREATOR: Parcelable.Creator<AppSettings> = object : Parcelable.Creator<AppSettings> {
+            override fun createFromParcel(parcel: Parcel): AppSettings {
+                return AppSettings(parcel)
+            }
+
+            override fun newArray(size: Int): Array<AppSettings?> {
+                return arrayOfNulls(size)
+            }
         }
     }
 }

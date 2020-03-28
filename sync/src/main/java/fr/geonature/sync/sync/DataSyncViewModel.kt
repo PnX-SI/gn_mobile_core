@@ -74,6 +74,14 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                         DataSyncWorker.INPUT_TAXREF_LIST_ID,
                         appSettings.taxrefListId
                     )
+                    .putInt(
+                        DataSyncWorker.INPUT_PAGE_SIZE,
+                        appSettings.pageSize
+                    )
+                    .putInt(
+                        DataSyncWorker.INPUT_PAGE_MAX_RETRY,
+                        appSettings.pageMaxRetry
+                    )
                     .build()
             )
             .setConstraints(

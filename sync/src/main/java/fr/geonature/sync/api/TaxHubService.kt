@@ -5,6 +5,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * TaxHub API interface definition.
@@ -16,10 +17,10 @@ interface TaxHubService {
     @GET("api/taxref/regnewithgroupe2")
     fun getTaxonomyRanks(): Call<ResponseBody>
 
-    // TODO: fetch all taxa
-    @GET("api/taxref/allnamebylist/{id}?limit=10000")
+    @GET("api/taxref/allnamebylist/{id}")
     fun getTaxref(
-        @Path("id")
-        listId: Int
+        @Path("id") listId: Int,
+        @Query("limit") limit: Int? = null,
+        @Query("offset") offset: Int? = null
     ): Call<List<Taxref>>
 }

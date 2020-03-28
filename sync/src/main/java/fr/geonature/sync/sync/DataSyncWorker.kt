@@ -18,6 +18,7 @@ import fr.geonature.commons.data.Taxonomy
 import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.data.LocalDatabase
+import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import org.json.JSONObject
@@ -37,7 +38,6 @@ class DataSyncWorker(
     appContext,
     workerParams
 ) {
-
     private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
@@ -97,6 +97,14 @@ class DataSyncWorker(
             inputData.getInt(
                 INPUT_TAXREF_LIST_ID,
                 0
+            ),
+            inputData.getInt(
+                INPUT_PAGE_SIZE,
+                AppSettings.DEFAULT_PAGE_SIZE
+            ),
+            inputData.getInt(
+                INPUT_PAGE_MAX_RETRY,
+                AppSettings.DEFAULT_PAGE_MAX_RETRY
             )
         )
 
@@ -258,85 +266,139 @@ class DataSyncWorker(
         }
     }
 
-    private suspend fun syncTaxa(geoNatureServiceClient: GeoNatureAPIClient, listId: Int): Result {
+    private suspend fun syncTaxa(
+        geoNatureServiceClient: GeoNatureAPIClient,
+        listId: Int,
+        pageSize: Int,
+        pageMaxRetry: Int
+    ): Result {
         return try {
-            val taxrefResponse = geoNatureServiceClient.getTaxref(listId)
-                .awaitResponse()
+            var hasNext: Boolean
+            var offset = 0
 
-            checkResponse(taxrefResponse).run {
-                if (this is Result.Failure) {
-                    return this
-                }
-            }
+            val validTaxaIds = mutableSetOf<Long>()
 
-            val taxrefAreasResponse = geoNatureServiceClient.getTaxrefAreas()
-                .awaitResponse()
-
-            checkResponse(taxrefAreasResponse).run {
-                if (this is Result.Failure) {
-                    return this
-                }
-            }
-
-            val taxref = taxrefResponse.body() ?: return Result.failure()
-            val taxrefAreas = taxrefAreasResponse.body() ?: return Result.failure()
-
-            val taxa = taxref.map {
-                    Taxon(
-                        it.id,
-                        it.name,
-                        Taxonomy(
-                            it.kingdom,
-                            it.group
-                        ),
-                        it.description
+            // fetch all taxa from paginated list
+            do {
+                val taxrefResponse = geoNatureServiceClient.getTaxref(
+                        listId,
+                        pageSize,
+                        offset
                     )
+                    .awaitResponse()
+
+                if (checkResponse(taxrefResponse) is Result.Failure) {
+                    hasNext = false
+                    continue
                 }
-                .toTypedArray()
 
-            Log.i(
-                TAG,
-                "taxa to update: ${taxa.size}"
-            )
+                val taxref = taxrefResponse.body()
 
-            setProgress(
-                workData(
-                    applicationContext.getString(
-                        R.string.sync_data_taxa,
-                        taxa.size
+                if (taxref == null || taxref.isEmpty()) {
+                    hasNext = false
+                    continue
+                }
+
+                val taxa = taxref.asSequence()
+                    .map {
+                        Taxon(
+                            it.id,
+                            it.name,
+                            Taxonomy(
+                                it.kingdom,
+                                it.group
+                            ),
+                            it.description
+                        )
+                    }
+                    .onEach {
+                        validTaxaIds.add(it.id)
+                    }
+                    .toList()
+                    .toTypedArray()
+
+                LocalDatabase.getInstance(applicationContext)
+                    .taxonDao()
+                    .insert(*taxa)
+
+                Log.i(
+                    TAG,
+                    "taxa to update: ${offset + taxa.size}"
+                )
+
+                setProgress(
+                    workData(
+                        applicationContext.getString(
+                            R.string.sync_data_taxa,
+                            (offset + taxa.size)
+                        )
                     )
                 )
-            )
 
-            LocalDatabase.getInstance(applicationContext)
-                .taxonDao()
-                .insert(*taxa)
-
-            val taxonAreas = taxrefAreas.asSequence()
-                .filter { taxrefArea -> taxa.any { it.id == taxrefArea.taxrefId } }
-                .map {
-                    TaxonArea(
-                        it.taxrefId,
-                        it.areaId,
-                        it.color,
-                        it.numberOfObservers,
-                        it.lastUpdatedAt
-                    )
+                if (taxa.size == pageSize) {
+                    offset += pageSize
+                    hasNext = offset / pageSize < pageMaxRetry
+                } else {
+                    hasNext = false
                 }
-                .toList()
-                .toTypedArray()
+            } while (hasNext)
 
-            Log.i(
-                TAG,
-                "taxa with areas to update: ${taxonAreas.size}"
-            )
+            offset = 0
 
-            LocalDatabase.getInstance(applicationContext)
-                .taxonAreaDao()
-                .insert(*taxonAreas)
+            // fetch all taxa metadata from paginated list
+            do {
+                val taxrefAreasResponse = geoNatureServiceClient.getTaxrefAreas(
+                        pageSize,
+                        offset
+                    )
+                    .awaitResponse()
+
+                if (checkResponse(taxrefAreasResponse) is Result.Failure) {
+                    hasNext = false
+                    continue
+                }
+
+                val taxrefAreas = taxrefAreasResponse.body()
+
+                if (taxrefAreas == null || taxrefAreas.isEmpty()) {
+                    hasNext = false
+                    continue
+                }
+
+                val taxonAreas = taxrefAreas.asSequence()
+                    .filter { taxrefArea -> validTaxaIds.any { it == taxrefArea.taxrefId } }
+                    .map {
+                        TaxonArea(
+                            it.taxrefId,
+                            it.areaId,
+                            it.color,
+                            it.numberOfObservers,
+                            it.lastUpdatedAt
+                        )
+                    }
+                    .toList()
+                    .toTypedArray()
+
+                LocalDatabase.getInstance(applicationContext)
+                    .taxonAreaDao()
+                    .insert(*taxonAreas)
+
+                Log.i(
+                    TAG,
+                    "taxa with areas to update: ${offset + taxonAreas.size}"
+                )
+
+                offset += pageSize
+                hasNext = offset / pageSize < pageMaxRetry
+            } while (hasNext)
 
             Result.success()
         } catch (e: Exception) {
+            Log.w(
+                TAG,
+                e
+            )
+
             Result.failure(
                 workData(
                     applicationContext.getString(R.string.sync_error_server_error)
@@ -549,11 +611,13 @@ class DataSyncWorker(
         const val KEY_SYNC_MESSAGE = "KEY_SYNC_MESSAGE"
         const val KEY_SERVER_STATUS = "KEY_SERVER_STATUS"
 
-        // The name of the synchronisation work
+        // The name of the synchronization work
         const val DATA_SYNC_WORKER = "data_sync_worker"
         const val DATA_SYNC_WORKER_TAG = "data_sync_worker_tag"
 
         const val INPUT_USERS_MENU_ID = "usersMenuId"
         const val INPUT_TAXREF_LIST_ID = "taxrefListId"
+        const val INPUT_PAGE_SIZE = "pageSize"
+        const val INPUT_PAGE_MAX_RETRY = "pageMaxRetry"
     }
 }

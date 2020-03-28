@@ -13,6 +13,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * GeoNature API interface definition.
@@ -45,7 +46,10 @@ interface GeoNatureService {
     ): Call<List<User>>
 
     @GET("api/synthese/color_taxon")
-    fun getTaxrefAreas(): Call<List<TaxrefArea>>
+    fun getTaxrefAreas(
+        @Query("limit") limit: Int? = null,
+        @Query("offset") offset: Int? = null
+    ): Call<List<TaxrefArea>>
 
     @GET("api/nomenclatures/nomenclatures/taxonomy")
     fun getNomenclatures(): Call<List<NomenclatureType>>
