@@ -1,6 +1,5 @@
 package fr.geonature.viewpager.pager.io
 
-import android.text.TextUtils.isEmpty
 import android.util.JsonReader
 import android.util.JsonToken
 import android.util.Log
@@ -26,7 +25,7 @@ class PagerJsonReader {
      * @return a [Pager] instance from the `JSON` string or `null` if something goes wrong
      */
     fun read(json: String?): Pager? {
-        if (isEmpty(json)) {
+        if (json.isNullOrBlank()) {
             return null
         }
 
@@ -35,7 +34,7 @@ class PagerJsonReader {
         } catch (ioe: IOException) {
             Log.w(
                 TAG,
-                ioe.message
+                ioe
             )
         }
 

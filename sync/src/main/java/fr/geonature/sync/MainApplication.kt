@@ -26,7 +26,7 @@ class MainApplication : Application() {
 
         Log.i(
             TAG,
-            "internal storage: " + getInternalStorage()
+            "internal storage: " + getInternalStorage(this)
         )
         Log.i(
             TAG,

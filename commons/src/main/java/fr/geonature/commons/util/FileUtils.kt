@@ -28,7 +28,7 @@ fun FileUtils.getInputsFolder(
 ): File {
 
     return getFile(
-        getInternalStorage().mountPath,
+        getInternalStorage(context).mountPath,
         getRelativeSharedPath(if (packageId.isNullOrBlank()) context.packageName else packageId),
         "inputs"
     )

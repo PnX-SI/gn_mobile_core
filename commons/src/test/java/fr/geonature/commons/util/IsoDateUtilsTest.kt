@@ -29,7 +29,7 @@ class IsoDateUtilsTest {
         sdfDateTime.timeZone = TimeZone.getTimeZone("UTC")
         assertEquals(
             "2016-10-28T08:15:00",
-            sdfDateTime.format(isoDateTime)
+            sdfDateTime.format(isoDateTime!!)
         )
 
         val isoDate = toDate("2016-10-28")
@@ -39,7 +39,7 @@ class IsoDateUtilsTest {
         sdfDate.timeZone = TimeZone.getTimeZone("UTC")
         assertEquals(
             "2016-10-28",
-            sdfDate.format(isoDate)
+            sdfDate.format(isoDate!!)
         )
     }
 

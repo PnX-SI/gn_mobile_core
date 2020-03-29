@@ -80,10 +80,10 @@ object FileUtils {
         if (externalMountPoint == null) {
             Log.w(
                 TAG,
-                "getExternalStorageDirectory: external mount point is not available. Use default: " + getInternalStorage()
+                "getExternalStorageDirectory: external mount point is not available. Use default: " + getInternalStorage(context)
             )
 
-            return getInternalStorage().mountPath
+            return getInternalStorage(context).mountPath
         }
 
         return externalMountPoint.mountPath
@@ -104,7 +104,7 @@ object FileUtils {
 
         return getFile(
             if (storageType === MountPoint.StorageType.EXTERNAL) getExternalStorageDirectory(context)
-            else getInternalStorage().mountPath,
+            else getInternalStorage(context).mountPath,
             getRelativeSharedPath(context.packageName)
         )
     }

@@ -3,7 +3,6 @@ package fr.geonature.viewpager.pager
 import android.os.Parcel
 import android.os.Parcelable
 import java.util.ArrayDeque
-import java.util.ArrayList
 import java.util.Deque
 
 /**
@@ -31,13 +30,9 @@ class Pager : Parcelable {
         size = source.readInt()
         position = source.readInt()
 
-        val navigationHistoryList = ArrayList<Int>()
-        source.readList(
-            navigationHistoryList,
-            Long::class.java.classLoader
-        )
-
-        history.addAll(navigationHistoryList)
+        val navigationHistoryList = IntArray(source.readInt())
+        source.readIntArray(navigationHistoryList)
+        history.addAll(navigationHistoryList.asList())
     }
 
     override fun describeContents(): Int {
@@ -48,15 +43,14 @@ class Pager : Parcelable {
         dest: Parcel,
         flags: Int
     ) {
-
         dest.writeLong(id)
         dest.writeInt(size)
         dest.writeInt(position)
-        dest.writeList(ArrayList(history))
+        dest.writeInt(history.size)
+        dest.writeIntArray(history.toIntArray())
     }
 
     override fun equals(other: Any?): Boolean {
-
         if (this === other) {
             return true
         }
@@ -81,7 +75,8 @@ class Pager : Parcelable {
 
         return if (position != pager.position) {
             false
-        } else history.toTypedArray().contentEquals(pager.history.toTypedArray())
+        } else history.toTypedArray()
+            .contentEquals(pager.history.toTypedArray())
     }
 
     override fun hashCode(): Int {
