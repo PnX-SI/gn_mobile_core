@@ -3,7 +3,7 @@ package fr.geonature.commons.input
 import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.commons.data.InputObserver
-import fr.geonature.commons.util.IsoDateUtils.toDate
+import fr.geonature.commons.util.toDate
 import java.util.ArrayList
 import java.util.Calendar
 import java.util.Date
@@ -96,8 +96,7 @@ abstract class AbstractInput(
     }
 
     fun setDate(isoDate: String?) {
-        val date = toDate(isoDate)
-        this.date = date ?: Date()
+        this.date = toDate(isoDate) ?: Date()
     }
 
     /**

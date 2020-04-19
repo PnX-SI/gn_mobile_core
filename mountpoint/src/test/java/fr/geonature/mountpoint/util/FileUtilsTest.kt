@@ -48,5 +48,12 @@ class FileUtilsTest {
                 INTERNAL
             ).absolutePath.contains("/Android/data/fr.geonature.mountpoint.test")
         )
+        assertTrue(
+            getRootFolder(
+                application,
+                INTERNAL,
+                "fr.geonature.sync"
+            ).absolutePath.contains("/Android/data/fr.geonature.sync")
+        )
     }
 }

@@ -36,7 +36,7 @@ class DatasetJsonReader {
         } catch (ioe: IOException) {
             Log.w(
                 TAG,
-                ioe.message
+                ioe
             )
         }
 

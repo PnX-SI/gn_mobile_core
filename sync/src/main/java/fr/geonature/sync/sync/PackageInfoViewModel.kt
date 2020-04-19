@@ -16,6 +16,10 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import fr.geonature.sync.api.model.AppPackage
+import fr.geonature.sync.sync.worker.CheckAppPackagesWorker
+import fr.geonature.sync.sync.worker.DownloadPackageWorker
+import fr.geonature.sync.sync.worker.InputsSyncWorker
 import kotlinx.coroutines.launch
 
 /**
@@ -29,9 +33,9 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     private val packageInfoManager: PackageInfoManager =
         PackageInfoManager.getInstance(getApplication())
 
-    private val availablePackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
+    private val _packageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
     val packageInfos: LiveData<List<PackageInfo>> =
-        switchMap(availablePackageInfos) { packageInfos ->
+        switchMap(_packageInfos) { packageInfos ->
             map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
                 packageInfos.asSequence()
                     .map { packageInfo ->
@@ -59,16 +63,98 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                     .toList()
             }
         }
+    val updateAvailable: LiveData<AppPackage?> =
+        map(packageInfoManager.appPackagesToUpdate) { appPackagesToUpdate -> appPackagesToUpdate.find { it.packageName == packageInfoManager.packageName } }
+
+    val appPackageDownloadStatus: LiveData<AppPackageDownloadStatus?> =
+        map(workManager.getWorkInfosByTagLiveData(DownloadPackageWorker.DOWNLOAD_PACKAGE_WORKER_TAG)) { workInfos ->
+            val workInfo = workInfos.firstOrNull() ?: return@map null
+
+            val packageName = workInfo.progress.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
+                ?: workInfo.outputData.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
+                ?: return@map null
+
+            AppPackageDownloadStatus(
+                workInfo.state,
+                packageName,
+                workInfo.outputData.getInt(
+                    DownloadPackageWorker.KEY_PROGRESS,
+                    -1
+                )
+                    .takeIf { it > 0 }
+                    ?: workInfo.progress.getInt(
+                        DownloadPackageWorker.KEY_PROGRESS,
+                        -1
+                    ),
+                workInfo.outputData.getString(DownloadPackageWorker.KEY_APK_FILE_PATH)
+            )
+        }
+
+    /**
+     * Checks if we can perform an update of existing apps.
+     */
+    fun checkAppPackages() {
+        val dataSyncWorkRequest = OneTimeWorkRequest.Builder(CheckAppPackagesWorker::class.java)
+            .addTag(CheckAppPackagesWorker.CHECK_APP_PACKAGES_WORKER_TAG)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+
+        val continuation = workManager.beginUniqueWork(
+            CheckAppPackagesWorker.CHECK_APP_PACKAGES_WORKER,
+            ExistingWorkPolicy.KEEP,
+            dataSyncWorkRequest
+        )
+
+        // start the work
+        continuation.enqueue()
+    }
 
     /**
      * Gets all compatible installed applications.
      */
-    fun getInstalledApplications() {
+    fun getInstalledApplicationsToSynchronize() {
         viewModelScope.launch {
             val packageInfos = packageInfoManager.getInstalledApplications()
-            availablePackageInfos.postValue(packageInfos)
+                .filter { it.packageName != packageInfoManager.packageName }
+            _packageInfos.postValue(packageInfos)
             packageInfos.forEach { startSyncInputs(it) }
         }
+    }
+
+    fun downloadAppPackage(appPackage: AppPackage) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val inputsSyncWorkerRequest = OneTimeWorkRequest.Builder(DownloadPackageWorker::class.java)
+            .addTag(DownloadPackageWorker.DOWNLOAD_PACKAGE_WORKER_TAG)
+            .setConstraints(constraints)
+            .setInputData(
+                Data.Builder()
+                    .putString(
+                        DownloadPackageWorker.KEY_PACKAGE_NAME,
+                        appPackage.packageName
+                    )
+                    .build()
+            )
+            .build()
+
+        val continuation = workManager.beginUniqueWork(
+            DownloadPackageWorker.workName(appPackage.packageName),
+            ExistingWorkPolicy.KEEP,
+            inputsSyncWorkerRequest
+        )
+
+        // start the work
+        continuation.enqueue()
+    }
+
+    fun cancelTasks() {
+        workManager.cancelAllWorkByTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
     }
 
     private fun startSyncInputs(packageInfo: PackageInfo) {
@@ -97,10 +183,6 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
 
         // start the work
         continuation.enqueue()
-    }
-
-    fun cancelTasks() {
-        workManager.cancelAllWorkByTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
     }
 
     /**

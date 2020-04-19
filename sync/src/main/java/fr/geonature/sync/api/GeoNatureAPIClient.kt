@@ -3,6 +3,7 @@ package fr.geonature.sync.api
 import android.content.Context
 import android.util.Log
 import com.google.gson.GsonBuilder
+import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.api.model.AuthCredentials
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.NomenclatureType
@@ -161,8 +162,15 @@ class GeoNatureAPIClient private constructor(
         return geoNatureService.getDefaultNomenclaturesValues(module)
     }
 
-    companion object {
+    fun getApplications(): Call<List<AppPackage>> {
+        return geoNatureService.getApplications()
+    }
 
+    fun downloadPackage(url: String): Call<ResponseBody> {
+        return geoNatureService.downloadPackage(url)
+    }
+
+    companion object {
         private val TAG = GeoNatureAPIClient::class.java.name
 
         private val baseUrl: (String?) -> String? = { url ->

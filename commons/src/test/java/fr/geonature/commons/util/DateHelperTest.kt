@@ -1,20 +1,21 @@
 package fr.geonature.commons.util
 
-import fr.geonature.commons.util.IsoDateUtils.toDate
-import fr.geonature.commons.util.IsoDateUtils.toIsoDateString
-import java.text.SimpleDateFormat
-import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
 
 /**
- * Unit test for [IsoDateUtils].
+ * Unit test for `DateHelper`.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class IsoDateUtilsTest {
+class DateHelperTest {
 
     @Test
     fun testToDate() {
@@ -45,10 +46,25 @@ class IsoDateUtilsTest {
 
     @Test
     fun testToIsoDateString() {
-        assertNull(toIsoDateString(null))
         assertEquals(
             "2016-10-28T08:15:00Z",
-            toIsoDateString(toDate("2016-10-28T08:15:00Z"))
+            toDate("2016-10-28T08:15:00Z")?.toIsoDateString()
+        )
+    }
+
+    @Test
+    fun testAddCalendarField() {
+        assertEquals(
+            "2016-10-28T09:10:00Z",
+            toDate("2016-10-28T08:15:00Z")?.add(
+                Calendar.HOUR,
+                1
+            )
+                ?.add(
+                    Calendar.MINUTE,
+                    -5
+                )
+                ?.toIsoDateString()
         )
     }
 }

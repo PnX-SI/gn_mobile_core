@@ -43,6 +43,11 @@
         <item quantity="other">Inputs to synchronize: %d</item>
     </plurals>
 
+    <string name="alert_new_app_version_available_title">New version available</string>
+    <string name="alert_new_app_version_available_description">A new version of this app is available.\nWould you like to upgrade now ?</string>
+    <string name="alert_new_app_version_action_ok">Yes</string>
+    <string name="alert_new_app_version_action_later">Later</string>
+
     <string name="login_login_hint">Login</string>
     <string name="login_password_hint">Password</string>
     <string name="login_action_sign_in">Sign in</string>

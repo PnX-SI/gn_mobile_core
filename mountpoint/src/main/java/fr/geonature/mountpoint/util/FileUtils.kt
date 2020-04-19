@@ -90,22 +90,25 @@ object FileUtils {
     }
 
     /**
-     * Gets the root folder as `File` used by this context.
+     * Gets the root folder as `File` from given package ID.
+     * If package ID is `null` use given context.
      *
      * @param context the current `Context`
      * @param storageType the [MountPoint.StorageType] to use
+     * @param packageId the package ID (may be `null`)
      *
      * @return the root folder as `File`
      */
     fun getRootFolder(
         context: Context,
-        storageType: MountPoint.StorageType
+        storageType: MountPoint.StorageType,
+        packageId: String? = null
     ): File {
 
         return getFile(
             if (storageType === MountPoint.StorageType.EXTERNAL) getExternalStorageDirectory(context)
             else getInternalStorage(context).mountPath,
-            getRelativeSharedPath(context.packageName)
+            getRelativeSharedPath(if (packageId.isNullOrBlank()) context.packageName else packageId)
         )
     }
 }

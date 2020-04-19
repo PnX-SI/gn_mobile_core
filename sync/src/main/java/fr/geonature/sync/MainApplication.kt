@@ -11,7 +11,7 @@ import androidx.work.WorkManager
 import fr.geonature.commons.util.DeviceUtils
 import fr.geonature.mountpoint.util.MountPointUtils.getExternalStorage
 import fr.geonature.mountpoint.util.MountPointUtils.getInternalStorage
-import fr.geonature.sync.sync.CheckInputsToSynchronizeWorker
+import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
 import java.util.concurrent.TimeUnit
 
 /**

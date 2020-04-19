@@ -34,7 +34,7 @@ class TaxonomyJsonReader {
         } catch (ioe: IOException) {
             Log.w(
                 TAG,
-                ioe.message
+                ioe
             )
         }
 

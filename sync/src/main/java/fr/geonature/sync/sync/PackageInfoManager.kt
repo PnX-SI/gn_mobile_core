@@ -2,8 +2,12 @@ package fr.geonature.sync.sync
 
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import fr.geonature.commons.util.DeviceUtils.isPostPie
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
+import fr.geonature.sync.api.model.AppPackage
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -27,6 +31,15 @@ class PackageInfoManager private constructor(private val applicationContext: Con
 
     private val availablePackageInfos = mutableMapOf<String, PackageInfo>()
 
+    private val _appPackagesToUpdate: MutableLiveData<List<AppPackage>> =
+        MutableLiveData(emptyList())
+    val appPackagesToUpdate: LiveData<List<AppPackage>> = _appPackagesToUpdate
+
+    /**
+     * Returns the name of this application's package.
+     */
+    val packageName: String = applicationContext.packageName
+
     /**
      * Finds all compatible installed applications.
      */
@@ -36,16 +49,19 @@ class PackageInfoManager private constructor(private val applicationContext: Con
         pm.getInstalledApplications(PackageManager.GET_META_DATA)
             .asSequence()
             .filter { it.packageName.startsWith(sharedUserId) }
-            .filter { it.packageName != applicationContext.packageName }
             .map {
+                val packageInfoFromPackageManager = pm.getPackageInfo(
+                    it.packageName,
+                    PackageManager.GET_META_DATA
+                )
+
+                @Suppress("DEPRECATION")
                 PackageInfo(
                     it.packageName,
                     pm.getApplicationLabel(it)
                         .toString(),
-                    pm.getPackageInfo(
-                        it.packageName,
-                        PackageManager.GET_META_DATA
-                    ).versionName,
+                    if (isPostPie) packageInfoFromPackageManager.longVersionCode else packageInfoFromPackageManager.versionCode.toLong(),
+                    packageInfoFromPackageManager.versionName,
                     pm.getApplicationIcon(it.packageName),
                     pm.getLaunchIntentForPackage(it.packageName)
                 )
@@ -70,9 +86,9 @@ class PackageInfoManager private constructor(private val applicationContext: Con
     suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput> =
         withContext(IO) {
             FileUtils.getInputsFolder(
-                    applicationContext,
-                    packageInfo.packageName
-                )
+                applicationContext,
+                packageInfo.packageName
+            )
                 .walkTopDown()
                 .filter { f -> f.isFile && f.extension == "json" && f.canRead() }
                 .map {
@@ -87,6 +103,14 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                 }
                 .toList()
         }
+
+    fun setAppPackagesToUpdate(appPackages: List<AppPackage>) {
+        _appPackagesToUpdate.postValue(appPackages)
+    }
+
+    fun getAppPackageToUpdate(packageName: String): AppPackage? {
+        return _appPackagesToUpdate.value?.find { it.packageName == packageName }
+    }
 
     companion object {
 

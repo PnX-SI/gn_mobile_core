@@ -12,6 +12,7 @@ import androidx.work.WorkInfo
 data class PackageInfo(
     val packageName: String,
     val label: String,
+    val versionCode: Long,
     val versionName: String,
     val icon: Drawable,
     val launchIntent: Intent?

@@ -4,7 +4,7 @@ import android.os.Parcel
 import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.Taxonomy
-import fr.geonature.commons.util.IsoDateUtils.toDate
+import fr.geonature.commons.util.toDate
 import java.util.Calendar
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals

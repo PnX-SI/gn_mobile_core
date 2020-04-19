@@ -73,10 +73,8 @@ class LoginActivity : AppCompatActivity() {
                         }
 
                         showToast(R.string.login_success)
-                        setResult(Activity.RESULT_OK)
 
                         // Complete and destroy login activity once successful
-                        setResult(Activity.RESULT_OK)
                         finish()
                     })
             }

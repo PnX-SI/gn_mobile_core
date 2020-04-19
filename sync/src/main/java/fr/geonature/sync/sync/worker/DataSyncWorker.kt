@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.sync.sync.worker
 
 import android.content.Context
 import android.text.TextUtils
@@ -19,6 +19,8 @@ import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.settings.AppSettings
+import fr.geonature.sync.sync.DataSyncManager
+import fr.geonature.sync.sync.ServerStatus
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import org.json.JSONObject
@@ -38,7 +40,8 @@ class DataSyncWorker(
     appContext,
     workerParams
 ) {
-    private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
+    private val dataSyncManager =
+        DataSyncManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
         val startTime = Date()

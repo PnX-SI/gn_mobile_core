@@ -40,6 +40,11 @@
         <item quantity="other">Relevés à synchronizer : %d</item>
     </plurals>
 
+    <string name="alert_new_app_version_available_title">Nouvelle version disponible</string>
+    <string name="alert_new_app_version_available_description">Une nouvelle version est disponible.\nVoulez vous la mettre à jour maintenant ?</string>
+    <string name="alert_new_app_version_action_ok">Mettre à jour</string>
+    <string name="alert_new_app_version_action_later">Plus tard</string>
+
     <string name="login_login_hint">Identifiant</string>
     <string name="login_password_hint">Mot de passe</string>
     <string name="login_action_sign_in">Se connecter</string>

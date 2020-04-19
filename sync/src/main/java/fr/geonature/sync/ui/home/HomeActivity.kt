@@ -1,7 +1,7 @@
 package fr.geonature.sync.ui.home
 
 import android.annotation.SuppressLint
-import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -11,9 +11,11 @@ import android.view.animation.AnimationUtils.loadAnimation
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -22,7 +24,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.ui.adapter.AbstractListItemRecyclerViewAdapter
+import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
+import fr.geonature.sync.api.GeoNatureAPIClient
+import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
@@ -38,10 +43,12 @@ import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
 import fr.geonature.sync.util.SettingsUtils.setGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.setTaxHubServerUrl
 import fr.geonature.sync.util.observeOnce
+import fr.geonature.sync.util.observeUntil
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * Home screen Activity.
@@ -50,6 +57,7 @@ import kotlinx.coroutines.launch
  */
 class HomeActivity : AppCompatActivity() {
 
+    private lateinit var appSettingsViewModel: AppSettingsViewModel
     private lateinit var authLoginViewModel: AuthLoginViewModel
     private lateinit var dataSyncViewModel: DataSyncViewModel
     private lateinit var packageInfoViewModel: PackageInfoViewModel
@@ -60,6 +68,9 @@ class HomeActivity : AppCompatActivity() {
     private var recyclerView: RecyclerView? = null
     private var progressBar: ProgressBar? = null
     private var dataSyncView: DataSyncView? = null
+
+    @Suppress("DEPRECATION")
+    private var progressDialog: ProgressDialog? = null
 
     private var appSettings: AppSettings? = null
     private var isLoggedIn: Boolean = false
@@ -75,6 +86,7 @@ class HomeActivity : AppCompatActivity() {
         progressBar = findViewById(android.R.id.progress)
         dataSyncView = findViewById(R.id.dataSyncView)
 
+        appSettingsViewModel = configureAppSettingsViewModel()
         authLoginViewModel = configureAuthLoginViewModel()
         dataSyncViewModel = configureDataSyncViewModel()
         packageInfoViewModel = configurePackageInfoViewModel()
@@ -129,20 +141,12 @@ class HomeActivity : AppCompatActivity() {
             )
             addItemDecoration(dividerItemDecoration)
         }
-
-        loadAppSettings()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(
-            requestCode,
-            resultCode,
-            data
-        )
+    override fun onResume() {
+        super.onResume()
 
-        if (resultCode == Activity.RESULT_OK) {
-            startSync()
-        }
+        loadAppSettings()
     }
 
     @SuppressLint("RestrictedApi")
@@ -161,7 +165,6 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.run {
-            findItem(R.id.menu_settings)?.isEnabled = appSettings != null
             findItem(R.id.menu_login)?.also {
                 it.isEnabled = appSettings != null
                 it.isVisible = !isLoggedIn
@@ -175,8 +178,8 @@ class HomeActivity : AppCompatActivity() {
         return super.onPrepareOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
             R.id.menu_settings -> {
                 startActivity(PreferencesActivity.newIntent(this))
                 true
@@ -190,16 +193,23 @@ class HomeActivity : AppCompatActivity() {
                     .observe(this,
                         Observer {
                             Toast.makeText(
-                                    this,
-                                    R.string.toast_logout_success,
-                                    Toast.LENGTH_SHORT
-                                )
+                                this,
+                                R.string.toast_logout_success,
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
                         })
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun configureAppSettingsViewModel(): AppSettingsViewModel {
+        return ViewModelProvider(this,
+            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
+                AppSettingsViewModel(application)
+            }).get(AppSettingsViewModel::class.java)
     }
 
     private fun configureAuthLoginViewModel(): AuthLoginViewModel {
@@ -210,7 +220,6 @@ class HomeActivity : AppCompatActivity() {
                     Observer {
                         this@HomeActivity.isLoggedIn = it
                         invalidateOptionsMenu()
-
                     })
             }
     }
@@ -223,13 +232,36 @@ class HomeActivity : AppCompatActivity() {
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
         return ViewModelProvider(this,
             PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
-                PackageInfoViewModel::class.java
-            )
+            PackageInfoViewModel::class.java
+        )
             .also { vm ->
+                vm.updateAvailable.observeUntil(
+                    this@HomeActivity,
+                    { appPackage -> appPackage != null }) { appPackage ->
+                    appPackage?.run { confirmBeforeUpgrade(this) }
+                }
+
                 vm.packageInfos.observe(this@HomeActivity,
                     Observer {
                         progressBar?.visibility = View.GONE
                         adapter.setItems(it)
+                    })
+
+                vm.appPackageDownloadStatus.observe(
+                    this@HomeActivity,
+                    Observer {
+                        it?.run {
+                            when (state) {
+                                WorkInfo.State.FAILED -> progressDialog?.dismiss()
+                                WorkInfo.State.SUCCEEDED -> {
+                                    progressDialog?.dismiss()
+                                    apkFilePath?.run {
+                                        installApk(this)
+                                    }
+                                }
+                                else -> showProgressDialog(progress)
+                            }
+                        }
                     })
             }
     }
@@ -255,17 +287,14 @@ class HomeActivity : AppCompatActivity() {
                             packageInfoViewModel.cancelTasks()
 
                             Toast.makeText(
-                                    this,
-                                    R.string.toast_not_connected,
-                                    Toast.LENGTH_SHORT
-                                )
+                                this,
+                                R.string.toast_not_connected,
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
 
                             if (appSettings != null) {
-                                startActivityForResult(
-                                    LoginActivity.newIntent(this),
-                                    0
-                                )
+                                startActivity(LoginActivity.newIntent(this))
                             }
                         }
                     }
@@ -279,47 +308,53 @@ class HomeActivity : AppCompatActivity() {
 
     private fun loadAppSettings() {
         progressBar?.visibility = View.VISIBLE
+        appSettingsViewModel.getAppSettings<AppSettings>()
+            .observeOnce(this) {
+                if (it == null) {
+                    makeSnackbar(
+                        getString(
+                            R.string.snackbar_settings_not_found,
+                            appSettingsViewModel.getAppSettingsFilename()
+                        )
+                    )?.show()
 
-        ViewModelProvider(this,
-            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
-                AppSettingsViewModel(
-                    application
-                )
-            }).get(AppSettingsViewModel::class.java)
-            .also { vm ->
-                vm.getAppSettings<AppSettings>()
-                    .observeOnce(this) {
-                        if (it == null) {
-                            makeSnackbar(
-                                getString(
-                                    R.string.snackbar_settings_not_found,
-                                    vm.getAppSettingsFilename()
-                                )
-                            )?.show()
+                    progressBar?.visibility = View.GONE
+                    adapter.clear()
 
-                            progressBar?.visibility = View.GONE
-                            adapter.clear()
-                        } else {
-                            appSettings = it
-                            mergeAppSettingsWithSharedPreferences(it)
-                            invalidateOptionsMenu()
-
-                            startSync()
-                        }
+                    if (!checkGeoNatureSettings()) {
+                        startActivity(PreferencesActivity.newIntent(this))
+                        return@observeOnce
                     }
+
+                    packageInfoViewModel.checkAppPackages()
+                } else {
+                    appSettings = it
+                    mergeAppSettingsWithSharedPreferences(it)
+                    invalidateOptionsMenu()
+
+                    if (!checkGeoNatureSettings()) {
+                        startActivity(PreferencesActivity.newIntent(this))
+                        return@observeOnce
+                    }
+
+                    packageInfoViewModel.checkAppPackages()
+                    startSync(it)
+                }
             }
     }
 
-    private fun startSync() {
-        val appSettings = appSettings ?: return
+    private fun checkGeoNatureSettings(): Boolean {
+        return GeoNatureAPIClient.instance(this) != null
+    }
 
+    private fun startSync(appSettings: AppSettings) {
         GlobalScope.launch(Main) {
             delay(250)
             observeDataSyncStatus(dataSyncViewModel)
             dataSyncViewModel.startSync(appSettings)
 
             delay(500)
-            packageInfoViewModel.getInstalledApplications()
+            packageInfoViewModel.getInstalledApplicationsToSynchronize()
         }
     }
 
@@ -351,5 +386,57 @@ class HomeActivity : AppCompatActivity() {
                 taxHubServerUrl
             )
         }
+    }
+
+    private fun confirmBeforeUpgrade(appPackage: AppPackage) {
+        AlertDialog.Builder(this)
+            .setIcon(R.drawable.ic_upgrade)
+            .setTitle(R.string.alert_new_app_version_available_title)
+            .setMessage(R.string.alert_new_app_version_available_description)
+            .setPositiveButton(
+                R.string.alert_new_app_version_action_ok
+            ) { dialog, _ ->
+                dataSyncViewModel.cancelTasks()
+                packageInfoViewModel.cancelTasks()
+                packageInfoViewModel.downloadAppPackage(appPackage)
+                dialog.dismiss()
+            }
+            .setNegativeButton(
+                R.string.alert_new_app_version_action_later
+            ) { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun showProgressDialog(progress: Int) {
+        if (progressDialog == null) {
+            progressDialog = ProgressDialog(this).apply {
+                setCancelable(false)
+                setIcon(R.drawable.ic_upgrade)
+                setTitle(R.string.alert_new_app_version_available_title)
+                setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+                setProgressNumberFormat(null)
+            }
+            progressDialog?.show()
+        }
+
+        progressDialog?.progress = progress
+    }
+
+    private fun installApk(apkFilePath: String) {
+        val contentUri = FileProvider.getUriForFile(
+            this,
+            "${BuildConfig.APPLICATION_ID}.file.provider",
+            File(apkFilePath)
+        )
+        val install = Intent(Intent.ACTION_VIEW)
+        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        install.putExtra(
+            Intent.EXTRA_NOT_UNKNOWN_SOURCE,
+            true
+        )
+        install.data = contentUri
+        startActivity(install)
     }
 }
