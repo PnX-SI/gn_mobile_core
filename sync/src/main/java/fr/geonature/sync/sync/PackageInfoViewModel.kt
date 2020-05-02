@@ -1,8 +1,10 @@
 package fr.geonature.sync.sync
 
+import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.Transformations.switchMap
@@ -17,7 +19,7 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import fr.geonature.sync.api.model.AppPackage
-import fr.geonature.sync.sync.worker.CheckAppPackagesWorker
+import fr.geonature.sync.sync.worker.CheckAppPackagesToUpdateWorker
 import fr.geonature.sync.sync.worker.DownloadPackageWorker
 import fr.geonature.sync.sync.worker.InputsSyncWorker
 import kotlinx.coroutines.launch
@@ -33,7 +35,67 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     private val packageInfoManager: PackageInfoManager =
         PackageInfoManager.getInstance(getApplication())
 
-    private val _packageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
+    private val installedPackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
+
+    @SuppressLint("DefaultLocale")
+    private val _packageInfos: LiveData<List<PackageInfo>> =
+        MediatorLiveData<List<PackageInfo>>().apply {
+            addSource(installedPackageInfos) { packageInfos ->
+                val newPackageInfos = packageInfos.map { packageInfo ->
+                    packageInfo.copy()
+                        .apply {
+                            val newerPackageInfo =
+                                value?.find { it.packageName == packageInfo.packageName && it.versionCode > packageInfo.versionCode }
+
+                            if (newerPackageInfo != null) {
+                                apk = newerPackageInfo.apk
+                                settings = newerPackageInfo.settings
+                            }
+                        }
+                }
+
+                value = sortedSetOf<PackageInfo>().also {
+                    it.addAll(newPackageInfos)
+                    it.addAll(value?.filter { packageInfo -> !packageInfo.apk.isNullOrEmpty() }
+                        ?: emptyList())
+                }
+                    .toList()
+            }
+            addSource(packageInfoManager.appPackagesToUpdate) { appPackages ->
+                val newPackageInfos = appPackages.asSequence()
+                    .filter { appPackage -> appPackage.packageName != packageInfoManager.packageName }
+                    .map { appPackage ->
+                        PackageInfo(
+                            appPackage.packageName,
+                            appPackage.code.toLowerCase()
+                                .capitalize(),
+                            appPackage.versionCode.toLong()
+                        ).apply {
+                            apk = appPackage.apk
+                            settings = appPackage.settings
+                        }
+                    }
+                    .map { packageInfo ->
+                        val existingPackageInfo =
+                            value?.find { it.packageName == packageInfo.packageName && it.versionCode < packageInfo.versionCode }
+
+                        existingPackageInfo?.copy()
+                            ?.apply {
+                                apk = packageInfo.apk
+                                settings = packageInfo.settings
+                            }
+                            ?: packageInfo
+                    }
+                    .toList()
+
+                value = sortedSetOf<PackageInfo>().also {
+                    it.addAll(newPackageInfos)
+                    it.addAll(value ?: emptyList())
+                }
+                    .toList()
+            }
+        }
+
     val packageInfos: LiveData<List<PackageInfo>> =
         switchMap(_packageInfos) { packageInfos ->
             map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
@@ -41,6 +103,8 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                     .map { packageInfo ->
                         packageInfo.copy()
                             .apply {
+                                apk = packageInfo.apk
+                                settings = packageInfo.settings
                                 val workInfo =
                                     workInfos.firstOrNull { workInfo -> workInfo.progress.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
                                         ?: workInfos.firstOrNull { workInfo -> workInfo.outputData.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
@@ -63,48 +127,29 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                     .toList()
             }
         }
-    val updateAvailable: LiveData<AppPackage?> =
-        map(packageInfoManager.appPackagesToUpdate) { appPackagesToUpdate -> appPackagesToUpdate.find { it.packageName == packageInfoManager.packageName } }
 
-    val appPackageDownloadStatus: LiveData<AppPackageDownloadStatus?> =
-        map(workManager.getWorkInfosByTagLiveData(DownloadPackageWorker.DOWNLOAD_PACKAGE_WORKER_TAG)) { workInfos ->
-            val workInfo = workInfos.firstOrNull() ?: return@map null
-
-            val packageName = workInfo.progress.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
-                ?: workInfo.outputData.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
-                ?: return@map null
-
-            AppPackageDownloadStatus(
-                workInfo.state,
-                packageName,
-                workInfo.outputData.getInt(
-                    DownloadPackageWorker.KEY_PROGRESS,
-                    -1
-                )
-                    .takeIf { it > 0 }
-                    ?: workInfo.progress.getInt(
-                        DownloadPackageWorker.KEY_PROGRESS,
-                        -1
-                    ),
-                workInfo.outputData.getString(DownloadPackageWorker.KEY_APK_FILE_PATH)
-            )
+    val updateAvailable: LiveData<AppPackage?> = MediatorLiveData<AppPackage>().apply {
+        addSource(packageInfoManager.appPackagesToUpdate) { appPackagesToUpdate: List<AppPackage>? ->
+            value = appPackagesToUpdate?.find { it.packageName == packageInfoManager.packageName }
         }
+    }
 
     /**
      * Checks if we can perform an update of existing apps.
      */
     fun checkAppPackages() {
-        val dataSyncWorkRequest = OneTimeWorkRequest.Builder(CheckAppPackagesWorker::class.java)
-            .addTag(CheckAppPackagesWorker.CHECK_APP_PACKAGES_WORKER_TAG)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .build()
+        val dataSyncWorkRequest =
+            OneTimeWorkRequest.Builder(CheckAppPackagesToUpdateWorker::class.java)
+                .addTag(CheckAppPackagesToUpdateWorker.CHECK_APP_PACKAGES_WORKER_TAG)
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .build()
 
         val continuation = workManager.beginUniqueWork(
-            CheckAppPackagesWorker.CHECK_APP_PACKAGES_WORKER,
+            CheckAppPackagesToUpdateWorker.CHECK_APP_PACKAGES_WORKER,
             ExistingWorkPolicy.KEEP,
             dataSyncWorkRequest
         )
@@ -120,12 +165,12 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             val packageInfos = packageInfoManager.getInstalledApplications()
                 .filter { it.packageName != packageInfoManager.packageName }
-            _packageInfos.postValue(packageInfos)
+            installedPackageInfos.postValue(packageInfos)
             packageInfos.forEach { startSyncInputs(it) }
         }
     }
 
-    fun downloadAppPackage(appPackage: AppPackage) {
+    fun downloadAppPackage(packageName: String): LiveData<AppPackageDownloadStatus?> {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -137,20 +182,45 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                 Data.Builder()
                     .putString(
                         DownloadPackageWorker.KEY_PACKAGE_NAME,
-                        appPackage.packageName
+                        packageName
                     )
                     .build()
             )
             .build()
 
         val continuation = workManager.beginUniqueWork(
-            DownloadPackageWorker.workName(appPackage.packageName),
-            ExistingWorkPolicy.KEEP,
+            DownloadPackageWorker.workName(packageName),
+            ExistingWorkPolicy.REPLACE,
             inputsSyncWorkerRequest
         )
 
-        // start the work
-        continuation.enqueue()
+        return map(workManager.getWorkInfoByIdLiveData(inputsSyncWorkerRequest.id)) {
+            if (it == null) {
+                return@map null
+            }
+
+            val packageNameToUpgrade = it.progress.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
+                ?: it.outputData.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
+                ?: return@map null
+
+            AppPackageDownloadStatus(
+                it.state,
+                packageNameToUpgrade,
+                it.outputData.getInt(
+                    DownloadPackageWorker.KEY_PROGRESS,
+                    -1
+                )
+                    .takeIf { it > 0 }
+                    ?: it.progress.getInt(
+                        DownloadPackageWorker.KEY_PROGRESS,
+                        -1
+                    ),
+                it.outputData.getString(DownloadPackageWorker.KEY_APK_FILE_PATH)
+            )
+        }.also {
+            // start the work
+            continuation.enqueue()
+        }
     }
 
     fun cancelTasks() {

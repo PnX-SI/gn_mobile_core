@@ -11,7 +11,6 @@ import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.PackageInfoManager
 import fr.geonature.sync.sync.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import okhttp3.internal.Util

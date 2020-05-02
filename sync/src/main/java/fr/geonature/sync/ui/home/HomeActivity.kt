@@ -1,5 +1,6 @@
 package fr.geonature.sync.ui.home
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent
@@ -23,7 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.Snackbar
-import fr.geonature.commons.ui.adapter.AbstractListItemRecyclerViewAdapter
+import fr.geonature.commons.util.PermissionUtils
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
@@ -92,7 +93,7 @@ class HomeActivity : AppCompatActivity() {
         packageInfoViewModel = configurePackageInfoViewModel()
 
         adapter = PackageInfoRecyclerViewAdapter(object :
-            AbstractListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<PackageInfo> {
+            PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
             override fun onClick(item: PackageInfo) {
                 item.launchIntent?.run {
                     startActivity(this)
@@ -129,6 +130,11 @@ class HomeActivity : AppCompatActivity() {
                     emptyTextView?.visibility = View.GONE
                 }
             }
+
+            override fun onUpgrade(item: PackageInfo) {
+                packageInfoViewModel.cancelTasks()
+                downloadApk(item.packageName)
+            }
         })
 
         with(recyclerView as RecyclerView) {
@@ -141,6 +147,8 @@ class HomeActivity : AppCompatActivity() {
             )
             addItemDecoration(dividerItemDecoration)
         }
+
+        checkSelfPermissions()
     }
 
     override fun onResume() {
@@ -205,6 +213,30 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            REQUEST_STORAGE_PERMISSIONS -> {
+                val requestPermissionsResult = PermissionUtils.checkPermissions(grantResults)
+
+                if (requestPermissionsResult) {
+                    makeSnackbar(getString(R.string.snackbar_permission_external_storage_available))?.show()
+                    loadAppSettings()
+                } else {
+                    makeSnackbar(getString(R.string.snackbar_permissions_not_granted))?.show()
+                }
+            }
+            else -> super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+            )
+        }
+    }
+
     private fun configureAppSettingsViewModel(): AppSettingsViewModel {
         return ViewModelProvider(this,
             fr.geonature.commons.settings.AppSettingsViewModel.Factory {
@@ -246,29 +278,12 @@ class HomeActivity : AppCompatActivity() {
                         progressBar?.visibility = View.GONE
                         adapter.setItems(it)
                     })
-
-                vm.appPackageDownloadStatus.observe(
-                    this@HomeActivity,
-                    Observer {
-                        it?.run {
-                            when (state) {
-                                WorkInfo.State.FAILED -> progressDialog?.dismiss()
-                                WorkInfo.State.SUCCEEDED -> {
-                                    progressDialog?.dismiss()
-                                    apkFilePath?.run {
-                                        installApk(this)
-                                    }
-                                }
-                                else -> showProgressDialog(progress)
-                            }
-                        }
-                    })
             }
     }
 
     private fun observeDataSyncStatus(dataSyncViewModel: DataSyncViewModel) {
         dataSyncViewModel.dataSyncStatus.takeUnless { it.hasActiveObservers() }
-            ?.observe(this,
+            ?.observe(this@HomeActivity,
                 Observer {
                     if (it == null) {
                         return@Observer
@@ -300,16 +315,42 @@ class HomeActivity : AppCompatActivity() {
                     }
                 })
         dataSyncViewModel.lastSynchronizedDate.takeUnless { it.hasActiveObservers() }
-            ?.observe(this,
+            ?.observe(this@HomeActivity,
                 Observer {
                     dataSyncView?.setLastSynchronizedDate(it)
                 })
     }
 
+    private fun checkSelfPermissions() {
+        PermissionUtils.checkSelfPermissions(
+            this@HomeActivity,
+            object : PermissionUtils.OnCheckSelfPermissionListener {
+                override fun onPermissionsGranted() {
+                    loadAppSettings()
+                }
+
+                override fun onRequestPermissions(vararg permissions: String) {
+                    homeContent?.also {
+                        PermissionUtils.requestPermissions(
+                            this@HomeActivity,
+                            it,
+                            R.string.snackbar_permission_external_storage_rationale,
+                            REQUEST_STORAGE_PERMISSIONS,
+                            *permissions
+                        )
+                    }
+                }
+            },
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+    }
+
     private fun loadAppSettings() {
         progressBar?.visibility = View.VISIBLE
         appSettingsViewModel.getAppSettings<AppSettings>()
-            .observeOnce(this) {
+            .observeOnce(this@HomeActivity) {
+                packageInfoViewModel.checkAppPackages()
+
                 if (it == null) {
                     makeSnackbar(
                         getString(
@@ -325,8 +366,6 @@ class HomeActivity : AppCompatActivity() {
                         startActivity(PreferencesActivity.newIntent(this))
                         return@observeOnce
                     }
-
-                    packageInfoViewModel.checkAppPackages()
                 } else {
                     appSettings = it
                     mergeAppSettingsWithSharedPreferences(it)
@@ -337,7 +376,6 @@ class HomeActivity : AppCompatActivity() {
                         return@observeOnce
                     }
 
-                    packageInfoViewModel.checkAppPackages()
                     startSync(it)
                 }
             }
@@ -398,7 +436,7 @@ class HomeActivity : AppCompatActivity() {
             ) { dialog, _ ->
                 dataSyncViewModel.cancelTasks()
                 packageInfoViewModel.cancelTasks()
-                packageInfoViewModel.downloadAppPackage(appPackage)
+                downloadApk(appPackage.packageName)
                 dialog.dismiss()
             }
             .setNegativeButton(
@@ -423,6 +461,32 @@ class HomeActivity : AppCompatActivity() {
         progressDialog?.progress = progress
     }
 
+    private fun downloadApk(packageName: String) {
+        packageInfoViewModel.downloadAppPackage(packageName)
+            .observeUntil(
+                this@HomeActivity,
+                { appPackageDownloadStatus ->
+                    appPackageDownloadStatus?.state in arrayListOf(
+                        WorkInfo.State.SUCCEEDED,
+                        WorkInfo.State.FAILED,
+                        WorkInfo.State.CANCELLED
+                    )
+                }) {
+                it?.run {
+                    when (state) {
+                        WorkInfo.State.FAILED -> progressDialog?.dismiss()
+                        WorkInfo.State.SUCCEEDED -> {
+                            progressDialog?.dismiss()
+                            apkFilePath?.run {
+                                installApk(this)
+                            }
+                        }
+                        else -> showProgressDialog(progress)
+                    }
+                }
+            }
+    }
+
     private fun installApk(apkFilePath: String) {
         val contentUri = FileProvider.getUriForFile(
             this,
@@ -438,5 +502,9 @@ class HomeActivity : AppCompatActivity() {
         )
         install.data = contentUri
         startActivity(install)
+    }
+
+    companion object {
+        private const val REQUEST_STORAGE_PERMISSIONS = 0
     }
 }

@@ -14,7 +14,7 @@ import retrofit2.awaitResponse
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class CheckAppPackagesWorker(
+class CheckAppPackagesToUpdateWorker(
     appContext: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(
@@ -75,7 +75,7 @@ class CheckAppPackagesWorker(
     }
 
     companion object {
-        private val TAG = CheckAppPackagesWorker::class.java.name
+        private val TAG = CheckAppPackagesToUpdateWorker::class.java.name
 
         // The name of the synchronization work
         const val CHECK_APP_PACKAGES_WORKER = "check_app_packages_worker"

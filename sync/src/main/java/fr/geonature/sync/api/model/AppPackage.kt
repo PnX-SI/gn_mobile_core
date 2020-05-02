@@ -10,9 +10,15 @@ import com.google.gson.annotations.SerializedName
 data class AppPackage(
     @SerializedName("url_apk")
     val apk: String,
+
     @SerializedName("package")
     val packageName: String,
+
+    @SerializedName("app_code")
+    val code: String,
+
     @SerializedName("version_code")
     val versionCode: Int,
+
     val settings: Any
 )

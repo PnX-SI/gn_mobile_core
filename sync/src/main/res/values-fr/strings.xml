@@ -34,11 +34,15 @@
 
     <string name="home_installed_apps">Applications</string>
     <string name="home_no_available_app">Aucune application compatible trouvée</string>
-    <string name="home_app_version">%1$s (%2$s)</string>
+    <string name="home_app_version_full">%1$s (%2$s)</string>
     <plurals name="home_app_inputs">
         <item quantity="one">Relevé à synchronizer : %d</item>
         <item quantity="other">Relevés à synchronizer : %d</item>
     </plurals>
+    <string name="home_app_install">Installer</string>
+    <string name="home_app_upgrade">Mettre à jour</string>
+    <string name="home_app_install_desc">Installer l\'application %1$s</string>
+    <string name="home_app_upgrade_desc">Mettre à jour l\'application %1$s</string>
 
     <string name="alert_new_app_version_available_title">Nouvelle version disponible</string>
     <string name="alert_new_app_version_available_description">Une nouvelle version est disponible.\nVoulez vous la mettre à jour maintenant ?</string>
@@ -60,5 +64,9 @@
     <string name="toast_logout_success">Déconnexion réussie</string>
 
     <string name="snackbar_settings_not_found">Erreur lors du chargement des paramètres \'%1$s\'</string>
+    <string name="snackbar_permissions_not_granted">Les permissions n\'ont pas été accordées</string>
+    <string name="snackbar_permissions_granted">Les permissions ont été accordées</string>
+    <string name="snackbar_permission_external_storage_rationale">L\'application requiert la permission d\'accéder au contenu de la mémoire de stockage</string>
+    <string name="snackbar_permission_external_storage_available">L\'accès à la mémoire de stockage a été accordée</string>
 
 </resources>

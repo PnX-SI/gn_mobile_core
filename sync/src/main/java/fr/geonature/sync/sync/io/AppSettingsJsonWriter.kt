@@ -7,7 +7,6 @@ import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.mountpoint.util.FileUtils.getRootFolder
 import fr.geonature.sync.api.model.AppPackage
-import java.io.FileOutputStream
 import java.io.FileWriter
 
 /**
@@ -18,12 +17,14 @@ import java.io.FileWriter
 class AppSettingsJsonWriter(private val context: Context) {
 
     fun write(appPackage: AppPackage) {
+        val appRootFolder = getRootFolder(
+            context,
+            MountPoint.StorageType.INTERNAL,
+            appPackage.packageName
+        ).also { it.mkdirs() }
+
         val appSettingsFile = getFile(
-            getRootFolder(
-                context,
-                MountPoint.StorageType.INTERNAL,
-                appPackage.packageName
-            ),
+            appRootFolder,
             "settings_${appPackage.packageName.substring(appPackage.packageName.lastIndexOf('.') + 1)}.json"
         )
         val writer = FileWriter(appSettingsFile)
