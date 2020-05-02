@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.sync.sync.worker
 
 import android.app.PendingIntent
 import android.content.Context
@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
+import fr.geonature.sync.sync.PackageInfoManager
 import fr.geonature.sync.ui.home.HomeActivity
 
 /**
@@ -24,7 +25,8 @@ class CheckInputsToSynchronizeWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager = PackageInfoManager.getInstance(applicationContext)
+    private val packageInfoManager =
+        PackageInfoManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
         val availablePackageInfos = packageInfoManager.getInstalledApplications()

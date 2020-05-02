@@ -229,7 +229,7 @@ open class Nomenclature : Parcelable {
             } catch (e: Exception) {
                 Log.w(
                     TAG,
-                    e.message
+                    e
                 )
 
                 null

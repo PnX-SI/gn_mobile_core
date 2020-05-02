@@ -126,7 +126,7 @@ data class AppSync(
             } catch (e: Exception) {
                 Log.w(
                     TAG,
-                    e.message
+                    e
                 )
 
                 null

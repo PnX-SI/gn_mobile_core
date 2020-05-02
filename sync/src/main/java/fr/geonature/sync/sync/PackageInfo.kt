@@ -12,10 +12,17 @@ import androidx.work.WorkInfo
 data class PackageInfo(
     val packageName: String,
     val label: String,
-    val versionName: String,
-    val icon: Drawable,
-    val launchIntent: Intent?
-) {
+    val versionCode: Long,
+    val versionName: String? = null,
+    val icon: Drawable? = null,
+    val launchIntent: Intent? = null
+): Comparable<PackageInfo> {
     var inputs: Int = 0
     var state: WorkInfo.State = WorkInfo.State.ENQUEUED
+    var apk: String? = null
+    var settings: Any? = null
+
+    override fun compareTo(other: PackageInfo): Int {
+        return packageName.compareTo(other.packageName)
+    }
 }

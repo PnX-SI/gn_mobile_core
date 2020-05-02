@@ -31,9 +31,15 @@ class PagerJsonWriter {
         val writer = StringWriter()
 
         try {
-            write(writer, pager)
+            write(
+                writer,
+                pager
+            )
         } catch (ioe: IOException) {
-            Log.w(TAG, ioe.message)
+            Log.w(
+                TAG,
+                ioe
+            )
 
             return null
         }
@@ -55,7 +61,10 @@ class PagerJsonWriter {
         pager: Pager
     ) {
         val writer = JsonWriter(out)
-        write(writer, pager)
+        write(
+            writer,
+            pager
+        )
         writer.flush()
         writer.close()
     }

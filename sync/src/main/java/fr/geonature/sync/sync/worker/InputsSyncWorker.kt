@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.sync.sync.worker
 
 import android.content.Context
 import android.util.Log
@@ -9,6 +9,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import fr.geonature.sync.api.GeoNatureAPIClient
+import fr.geonature.sync.sync.PackageInfoManager
+import fr.geonature.sync.sync.SyncInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -26,7 +28,8 @@ class InputsSyncWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager = PackageInfoManager.getInstance(applicationContext)
+    private val packageInfoManager =
+        PackageInfoManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
@@ -47,7 +50,7 @@ class InputsSyncWorker(
         )
 
         NotificationManagerCompat.from(applicationContext)
-            .cancelAll()
+            .cancel(CheckInputsToSynchronizeWorker.SYNC_NOTIFICATION_ID)
 
         setProgress(
             workData(
@@ -86,9 +89,9 @@ class InputsSyncWorker(
         inputsToSynchronize.forEach { syncInput ->
             try {
                 val response = geoNatureAPIClient.sendInput(
-                        syncInput.module,
-                        syncInput.payload
-                    )
+                    syncInput.module,
+                    syncInput.payload
+                )
                     .execute()
 
                 if (!response.isSuccessful) {
@@ -120,6 +123,11 @@ class InputsSyncWorker(
                         )
                     }
             } catch (e: Exception) {
+                Log.w(
+                    TAG,
+                    e
+                )
+
                 setProgress(
                     workData(
                         packageInfo.packageName,
@@ -157,7 +165,7 @@ class InputsSyncWorker(
 
     private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean =
         withContext(Dispatchers.IO) {
-            File(syncInput.filePath).takeIf { it.exists() && it.isFile && it.parentFile.canWrite() }
+            File(syncInput.filePath).takeIf { it.exists() && it.isFile && it.parentFile?.canWrite() ?: false }
                 ?.delete()
                 ?.also {
                     packageInfoManager.getInputsToSynchronize(syncInput.packageInfo)

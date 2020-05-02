@@ -54,7 +54,7 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
         } catch (ioe: IOException) {
             Log.w(
                 TAG,
-                ioe.message
+                ioe
             )
 
             return null

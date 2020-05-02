@@ -27,12 +27,14 @@ object MountPointUtils {
      *
      * @return the primary external storage
      */
-    fun getInternalStorage(): MountPoint {
+    fun getInternalStorage(context: Context): MountPoint {
         val externalStorage = System.getenv("EXTERNAL_STORAGE")
 
         if (externalStorage.isNullOrBlank()) {
-            val mountPoint = MountPoint(
-                Environment.getExternalStorageDirectory().absolutePath,
+            @Suppress("DEPRECATION") val mountPoint = MountPoint(
+                context.getExternalFilesDir(null)?.absolutePath?.split("/Android/data")
+                    ?.firstOrNull()
+                    ?: Environment.getExternalStorageDirectory().absolutePath,
                 MountPoint.StorageType.INTERNAL
             )
 
@@ -122,7 +124,7 @@ object MountPointUtils {
         val mountPoints = HashSet<MountPoint>()
 
         // first: add the primary external storage
-        mountPoints.add(getInternalStorage())
+        mountPoints.add(getInternalStorage(context))
 
         // then: add all externals storage found only from Android APIs if Android version >= 21
         if (DeviceUtils.isPostLollipop) {
@@ -271,7 +273,8 @@ object MountPointUtils {
                 val mountPoint = buildMountPoint(
                     path.substring(
                         0,
-                        path.indexOf("/Android").coerceAtLeast(0)
+                        path.indexOf("/Android")
+                            .coerceAtLeast(0)
                     ),
                     if (firstPrimaryStorage) MountPoint.StorageType.INTERNAL else MountPoint.StorageType.EXTERNAL
                 )
@@ -414,7 +417,7 @@ object MountPointUtils {
             } catch (fnfe: FileNotFoundException) {
                 Log.w(
                     TAG,
-                    fnfe.message
+                    fnfe.message ?: "'vold.fstab' not found"
                 )
             }
 
@@ -467,7 +470,7 @@ object MountPointUtils {
             } catch (fnfe: FileNotFoundException) {
                 Log.w(
                     TAG,
-                    fnfe.message
+                    fnfe.message ?: "'/proc/mounts' not found"
                 )
             }
 

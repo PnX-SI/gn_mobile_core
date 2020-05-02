@@ -190,7 +190,7 @@ data class TaxonArea(
             } catch (e: Exception) {
                 Log.w(
                     TAG,
-                    e.message
+                    e
                 )
 
                 null

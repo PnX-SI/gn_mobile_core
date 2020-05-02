@@ -18,4 +18,7 @@ object DeviceUtils {
 
     val isPostOreo: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
+    val isPostPie: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 }

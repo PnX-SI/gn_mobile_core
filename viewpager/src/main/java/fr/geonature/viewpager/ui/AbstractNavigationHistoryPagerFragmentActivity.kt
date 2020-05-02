@@ -36,10 +36,10 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
     }
 
     override fun onSaveInstanceState(
-        outState: Bundle?,
-        outPersistentState: PersistableBundle?
+        outState: Bundle,
+        outPersistentState: PersistableBundle
     ) {
-        outState?.putBoolean(
+        outState.putBoolean(
             KEY_HISTORY_PREVIOUS,
             historyPrevious
         )

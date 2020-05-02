@@ -33,7 +33,7 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
         } catch (ioe: IOException) {
             Log.w(
                 TAG,
-                ioe.message
+                ioe
             )
         }
 

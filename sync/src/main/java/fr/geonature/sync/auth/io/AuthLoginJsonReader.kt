@@ -2,7 +2,7 @@ package fr.geonature.sync.auth.io
 
 import android.util.JsonReader
 import android.util.Log
-import fr.geonature.commons.util.IsoDateUtils.toDate
+import fr.geonature.commons.util.toDate
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthUser
 import java.io.IOException
@@ -36,7 +36,7 @@ class AuthLoginJsonReader {
         } catch (ioe: IOException) {
             Log.w(
                 TAG,
-                ioe.message
+                ioe
             )
         }
 

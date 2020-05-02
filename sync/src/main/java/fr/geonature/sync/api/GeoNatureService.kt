@@ -1,5 +1,6 @@
 package fr.geonature.sync.api
 
+import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.api.model.AuthCredentials
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.NomenclatureType
@@ -14,6 +15,8 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
+import retrofit2.http.Url
 
 /**
  * GeoNature API interface definition.
@@ -59,4 +62,11 @@ interface GeoNatureService {
         @Path("module")
         module: String
     ): Call<ResponseBody>
+
+    @GET("api/gn_commons/t_mobile_apps")
+    fun getApplications(): Call<List<AppPackage>>
+
+    @Streaming
+    @GET
+    fun downloadPackage(@Url url: String): Call<ResponseBody>
 }

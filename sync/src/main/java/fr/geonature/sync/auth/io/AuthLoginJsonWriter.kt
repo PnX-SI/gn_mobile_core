@@ -2,7 +2,7 @@ package fr.geonature.sync.auth.io
 
 import android.util.JsonWriter
 import android.util.Log
-import fr.geonature.commons.util.IsoDateUtils.toIsoDateString
+import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthUser
 import java.io.IOException
@@ -57,7 +57,7 @@ class AuthLoginJsonWriter {
         } catch (ioe: IOException) {
             Log.w(
                 TAG,
-                ioe.message
+                ioe
             )
 
             return null
@@ -100,7 +100,7 @@ class AuthLoginJsonWriter {
             authLogin.user
         )
         writer.name("expires")
-            .value(toIsoDateString(authLogin.expires))
+            .value(authLogin.expires.toIsoDateString())
 
         writer.endObject()
     }

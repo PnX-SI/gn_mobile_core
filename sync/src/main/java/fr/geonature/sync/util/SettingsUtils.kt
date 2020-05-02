@@ -69,7 +69,7 @@ object SettingsUtils {
             )
             .apply()
     }
-    
+
     fun updatePreferences(preferenceScreen: PreferenceScreen) {
         val context = preferenceScreen.context
         val onPreferenceChangeListener =
@@ -90,7 +90,7 @@ object SettingsUtils {
             }
 
         preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_storage_internal_key))
-            ?.summary = getInternalStorage().mountPath.absolutePath
+            ?.summary = getInternalStorage(preferenceScreen.context).mountPath.absolutePath
         getExternalStorage(
             preferenceScreen.context,
             Environment.MEDIA_MOUNTED,

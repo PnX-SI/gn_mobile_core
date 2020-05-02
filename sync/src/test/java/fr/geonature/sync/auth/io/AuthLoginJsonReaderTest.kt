@@ -1,7 +1,7 @@
 package fr.geonature.sync.auth.io
 
 import android.app.Application
-import fr.geonature.commons.util.IsoDateUtils.toDate
+import fr.geonature.commons.util.toDate
 import fr.geonature.sync.FixtureHelper.getFixture
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthUser

@@ -12,7 +12,10 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import fr.geonature.commons.util.add
 import fr.geonature.sync.settings.AppSettings
+import fr.geonature.sync.sync.worker.DataSyncWorker
+import java.util.Calendar
 import java.util.Date
 
 /**
@@ -58,6 +61,15 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
     val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
 
     fun startSync(appSettings: AppSettings) {
+        if (dataSyncManager.lastSynchronizedDate.value?.add(
+                Calendar.HOUR,
+                1
+            )
+                ?.after(Date()) == true
+        ) {
+            return
+        }
+
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -99,7 +111,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         continuation.enqueue()
     }
 
-    private fun cancelTasks() {
+    fun cancelTasks() {
         workManager.cancelAllWorkByTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
     }
 

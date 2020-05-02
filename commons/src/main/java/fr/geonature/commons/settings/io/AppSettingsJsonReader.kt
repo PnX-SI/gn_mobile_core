@@ -32,7 +32,7 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
         } catch (e: Exception) {
             Log.w(
                 TAG,
-                e.message
+                e
             )
         }
 

@@ -3,11 +3,14 @@ package fr.geonature.sync.ui.home
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.work.WorkInfo
 import fr.geonature.commons.ui.adapter.AbstractListItemRecyclerViewAdapter
+import fr.geonature.commons.util.ThemeUtils
 import fr.geonature.sync.R
 import fr.geonature.sync.sync.PackageInfo
 
@@ -18,7 +21,7 @@ import fr.geonature.sync.sync.PackageInfo
  *
  * @see HomeActivity
  */
-class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterListener<PackageInfo>) :
+class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecyclerViewAdapterListener) :
     AbstractListItemRecyclerViewAdapter<PackageInfo>(listener) {
     override fun getViewHolder(
         view: View,
@@ -56,6 +59,7 @@ class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterList
         AbstractListItemRecyclerViewAdapter<PackageInfo>.AbstractViewHolder(itemView) {
 
         private val icon: ImageView = itemView.findViewById(android.R.id.icon1)
+        private val button: Button = itemView.findViewById(android.R.id.button1)
         private val iconStatus: TextView = itemView.findViewById(android.R.id.icon2)
         private val text1: TextView = itemView.findViewById(android.R.id.text1)
         private val text2: TextView = itemView.findViewById(android.R.id.text2)
@@ -71,12 +75,41 @@ class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterList
         }
 
         override fun onBind(item: PackageInfo) {
-            icon.setImageDrawable(item.icon)
-            text1.text = itemView.context.getString(
-                R.string.home_app_version,
-                item.label,
-                item.versionName
-            )
+            with(button) {
+                visibility =
+                    if (item.apk.isNullOrEmpty()) View.GONE
+                    else View.VISIBLE
+                text =
+                    if (item.versionName.isNullOrEmpty()) itemView.context.getString(R.string.home_app_install)
+                    else itemView.context.getString(R.string.home_app_upgrade)
+                contentDescription =
+                    if (item.versionName.isNullOrEmpty()) itemView.context.getString(R.string.home_app_install_desc, item.label)
+                    else itemView.context.getString(R.string.home_app_upgrade_desc, item.label)
+                setOnClickListener {
+                    listener.onUpgrade(item)
+                }
+            }
+
+            iconStatus.visibility = if (item.apk.isNullOrEmpty()) View.VISIBLE else View.GONE
+
+            with(icon) {
+                setImageDrawable(item.icon ?: itemView.context.getDrawable(R.drawable.ic_upgrade))
+
+                if (item.icon == null) {
+                    DrawableCompat.setTint(
+                        DrawableCompat.wrap(icon.drawable),
+                        ThemeUtils.getPrimaryColor(context)
+                    )
+                }
+            }
+
+            text1.text =
+                if (item.versionName.isNullOrEmpty()) item.label
+                else itemView.context.getString(
+                    R.string.home_app_version_full,
+                    item.label,
+                    item.versionName
+                )
             text2.text = itemView.resources.getQuantityString(
                 R.plurals.home_app_inputs,
                 item.inputs,
@@ -129,5 +162,17 @@ class PackageInfoRecyclerViewAdapter(listener: OnListItemRecyclerViewAdapterList
                 }
             }
         }
+    }
+
+    /**
+     * Callback used by [PackageInfoRecyclerViewAdapter].
+     */
+    interface OnPackageInfoRecyclerViewAdapterListener :
+        OnListItemRecyclerViewAdapterListener<PackageInfo> {
+
+        /**
+         * Called when a [PackageInfo] should be upgraded.
+         */
+        fun onUpgrade(item: PackageInfo)
     }
 }
