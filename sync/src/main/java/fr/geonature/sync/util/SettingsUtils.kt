@@ -80,11 +80,13 @@ object SettingsUtils {
 
         preferenceScreen.findPreference<EditTextPreference?>(context.getString(R.string.preference_category_server_geonature_url_key))
             ?.apply {
+                setOnBindEditTextListener { it.setSingleLine() }
                 summary = getGeoNatureServerUrl(preferenceScreen.context)
                 setOnPreferenceChangeListener(onPreferenceChangeListener)
             }
         preferenceScreen.findPreference<EditTextPreference?>(context.getString(R.string.preference_category_server_taxhub_url_key))
             ?.apply {
+                setOnBindEditTextListener { it.setSingleLine() }
                 summary = getTaxHubServerUrl(preferenceScreen.context)
                 setOnPreferenceChangeListener(onPreferenceChangeListener)
             }
