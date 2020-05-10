@@ -110,11 +110,18 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
                     item.label,
                     item.versionName
                 )
-            text2.text = itemView.resources.getQuantityString(
-                R.plurals.home_app_inputs,
-                item.inputs,
-                item.inputs
-            )
+
+            with (text2) {
+                visibility =
+                    if (item.apk.isNullOrEmpty()) View.VISIBLE
+                    else View.GONE
+                text = itemView.resources.getQuantityString(
+                    R.plurals.home_app_inputs,
+                    item.inputs,
+                    item.inputs
+                )
+            }
+
             setState(item.state)
         }
 
