@@ -8,6 +8,8 @@ import fr.geonature.commons.util.DeviceUtils.isPostPie
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.api.model.AppPackage
+import fr.geonature.sync.sync.io.AppSettingsJsonWriter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -103,6 +105,10 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                 }
                 .toList()
         }
+
+    suspend fun updateAppSettings(appPackage: AppPackage) = withContext(IO) {
+        AppSettingsJsonWriter(applicationContext).write(appPackage)
+    }
 
     fun setAppPackagesToUpdate(appPackages: List<AppPackage>) {
         _appPackagesToUpdate.postValue(appPackages)

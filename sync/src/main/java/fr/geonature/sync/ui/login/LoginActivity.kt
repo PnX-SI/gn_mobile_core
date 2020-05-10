@@ -19,11 +19,11 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.util.KeyboardUtils.hideSoftKeyboard
 import fr.geonature.commons.util.afterTextChanged
+import fr.geonature.commons.util.observeOnce
 import fr.geonature.sync.R
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
-import fr.geonature.sync.util.observeOnce
 
 class LoginActivity : AppCompatActivity() {
 
@@ -147,34 +147,34 @@ class LoginActivity : AppCompatActivity() {
                 )
             }).get(AppSettingsViewModel::class.java)
             .also { vm ->
-                vm.getAppSettings<AppSettings>()
-                    .observeOnce(this) {
-                        if (it == null) {
-                            makeSnackbar(
-                                getString(
-                                    R.string.snackbar_settings_not_found,
-                                    vm.getAppSettingsFilename()
+                vm.loadAppSettings<AppSettings>()
+                vm.appSettings.observeOnce(this) {
+                    if (it == null) {
+                        makeSnackbar(
+                            getString(
+                                R.string.snackbar_settings_not_found,
+                                vm.getAppSettingsFilename()
+                            )
+                        )?.addCallback(object :
+                            BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                            override fun onDismissed(
+                                transientBottomBar: Snackbar?,
+                                event: Int
+                            ) {
+                                super.onDismissed(
+                                    transientBottomBar,
+                                    event
                                 )
-                            )?.addCallback(object :
-                                BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                                override fun onDismissed(
-                                    transientBottomBar: Snackbar?,
-                                    event: Int
-                                ) {
-                                    super.onDismissed(
-                                        transientBottomBar,
-                                        event
-                                    )
 
-                                    setResult(Activity.RESULT_CANCELED)
-                                    finish()
-                                }
-                            })
-                                ?.show()
-                        } else {
-                            appSettings = it
-                        }
+                                setResult(Activity.RESULT_CANCELED)
+                                finish()
+                            }
+                        })
+                            ?.show()
+                    } else {
+                        appSettings = it
                     }
+                }
             }
     }
 

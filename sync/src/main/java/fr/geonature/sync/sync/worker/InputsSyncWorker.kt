@@ -14,6 +14,7 @@ import fr.geonature.sync.sync.SyncInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import retrofit2.awaitResponse
 import java.io.File
 
 /**
@@ -92,14 +93,14 @@ class InputsSyncWorker(
                     syncInput.module,
                     syncInput.payload
                 )
-                    .execute()
+                    .awaitResponse()
 
                 if (!response.isSuccessful) {
                     setProgress(
                         workData(
                             packageInfo.packageName,
                             WorkInfo.State.FAILED,
-                            inputsToSynchronize.size
+                            inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
                         )
                     )
                     delay(1000)
@@ -114,11 +115,7 @@ class InputsSyncWorker(
                             workData(
                                 packageInfo.packageName,
                                 WorkInfo.State.RUNNING,
-                                inputsToSynchronize.filter { filtered ->
-                                    !inputsSynchronized.contains(
-                                        filtered
-                                    )
-                                }.size
+                                inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
                             )
                         )
                     }
@@ -132,7 +129,7 @@ class InputsSyncWorker(
                     workData(
                         packageInfo.packageName,
                         WorkInfo.State.FAILED,
-                        inputsToSynchronize.size
+                        inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
                     )
                 )
                 delay(1000)

@@ -22,6 +22,7 @@ import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.worker.CheckAppPackagesToUpdateWorker
 import fr.geonature.sync.sync.worker.DownloadPackageWorker
 import fr.geonature.sync.sync.worker.InputsSyncWorker
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -96,6 +97,8 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
 
+    private val _appSettingsUpdated: MutableLiveData<Boolean?> = MutableLiveData()
+
     val packageInfos: LiveData<List<PackageInfo>> =
         switchMap(_packageInfos) { packageInfos ->
             map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
@@ -130,9 +133,22 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
 
     val updateAvailable: LiveData<AppPackage?> = MediatorLiveData<AppPackage>().apply {
         addSource(packageInfoManager.appPackagesToUpdate) { appPackagesToUpdate: List<AppPackage>? ->
-            value = appPackagesToUpdate?.find { it.packageName == packageInfoManager.packageName }
+            viewModelScope.launch {
+                appPackagesToUpdate?.find { it.packageName == packageInfoManager.packageName }
+                    ?.also {
+                        packageInfoManager.updateAppSettings(it)
+                        delay(1000)
+                        _appSettingsUpdated.postValue(true)
+
+                        if (it.versionCode > packageInfoManager.getPackageInfo(packageInfoManager.packageName)?.versionCode ?: 0) {
+                            value = it
+                        }
+                    }
+            }
         }
     }
+
+    val appSettingsUpdated: LiveData<Boolean?> = _appSettingsUpdated
 
     /**
      * Checks if we can perform an update of existing apps.

@@ -9,9 +9,6 @@ import androidx.work.workDataOf
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.PackageInfoManager
-import fr.geonature.sync.sync.io.AppSettingsJsonWriter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import okhttp3.internal.Util
 import okio.Buffer
@@ -31,6 +28,9 @@ class DownloadPackageWorker(
     appContext,
     workerParams
 ) {
+    private val packageInfoManager =
+        PackageInfoManager.getInstance(applicationContext)
+
     override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
 
@@ -38,8 +38,8 @@ class DownloadPackageWorker(
             return Result.failure()
         }
 
-        val appPackageToUpdate = PackageInfoManager.getInstance(applicationContext)
-            .getAppPackageToUpdate(packageName) ?: return Result.failure()
+        val appPackageToUpdate =
+            packageInfoManager.getAppPackageToUpdate(packageName) ?: return Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
             ?: return Result.failure()
@@ -53,7 +53,7 @@ class DownloadPackageWorker(
 
         return try {
             // update app settings as JSON file
-            updateAppSettings(appPackageToUpdate)
+            packageInfoManager.updateAppSettings(appPackageToUpdate)
 
             val response = geoNatureAPIClient.downloadPackage(appPackageToUpdate.apk)
                 .awaitResponse()
@@ -148,10 +148,6 @@ class DownloadPackageWorker(
                 apkFilePath
             )
         )
-    }
-
-    private suspend fun updateAppSettings(appPackage: AppPackage) = withContext(Dispatchers.IO) {
-        AppSettingsJsonWriter(applicationContext).write(appPackage)
     }
 
     private fun workData(

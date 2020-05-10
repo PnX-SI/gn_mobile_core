@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,6 +26,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.util.PermissionUtils
+import fr.geonature.commons.util.observeOnce
+import fr.geonature.commons.util.observeUntil
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
@@ -43,8 +46,6 @@ import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
 import fr.geonature.sync.util.SettingsUtils.setGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.setTaxHubServerUrl
-import fr.geonature.sync.util.observeOnce
-import fr.geonature.sync.util.observeUntil
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -89,8 +90,8 @@ class HomeActivity : AppCompatActivity() {
 
         appSettingsViewModel = configureAppSettingsViewModel()
         authLoginViewModel = configureAuthLoginViewModel()
-        dataSyncViewModel = configureDataSyncViewModel()
         packageInfoViewModel = configurePackageInfoViewModel()
+        dataSyncViewModel = configureDataSyncViewModel()
 
         adapter = PackageInfoRecyclerViewAdapter(object :
             PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
@@ -147,14 +148,12 @@ class HomeActivity : AppCompatActivity() {
             )
             addItemDecoration(dividerItemDecoration)
         }
-
-        checkSelfPermissions()
     }
 
     override fun onResume() {
         super.onResume()
 
-        loadAppSettings()
+        checkSelfPermissions()
     }
 
     @SuppressLint("RestrictedApi")
@@ -224,6 +223,7 @@ class HomeActivity : AppCompatActivity() {
 
                 if (requestPermissionsResult) {
                     makeSnackbar(getString(R.string.snackbar_permission_external_storage_available))?.show()
+                    packageInfoViewModel.checkAppPackages()
                     loadAppSettings()
                 } else {
                     makeSnackbar(getString(R.string.snackbar_permissions_not_granted))?.show()
@@ -256,11 +256,6 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    private fun configureDataSyncViewModel(): DataSyncViewModel {
-        return ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
-    }
-
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
         return ViewModelProvider(this,
             PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
@@ -273,6 +268,19 @@ class HomeActivity : AppCompatActivity() {
                     appPackage?.run { confirmBeforeUpgrade(this) }
                 }
 
+                vm.appSettingsUpdated.observeUntil(
+                    this@HomeActivity,
+                    { updated -> updated ?: false }) {
+                    if (it == true) {
+                        Log.d(
+                            TAG,
+                            "reloading settings after update..."
+                        )
+
+                        loadAppSettings()
+                    }
+                }
+
                 vm.packageInfos.observe(this@HomeActivity,
                     Observer {
                         progressBar?.visibility = View.GONE
@@ -281,44 +289,47 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    private fun observeDataSyncStatus(dataSyncViewModel: DataSyncViewModel) {
-        dataSyncViewModel.dataSyncStatus.takeUnless { it.hasActiveObservers() }
-            ?.observe(this@HomeActivity,
-                Observer {
-                    if (it == null) {
-                        return@Observer
-                    }
+    private fun configureDataSyncViewModel(): DataSyncViewModel {
+        return ViewModelProvider(this,
+            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
+            .also { vm ->
+                vm.dataSyncStatus.observe(this@HomeActivity,
+                    Observer {
+                        if (it == null) {
+                            return@Observer
+                        }
 
-                    dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
+                        dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
 
-                    if (!it.syncMessage.isNullOrBlank()) {
-                        dataSyncView?.setMessage(it.syncMessage)
-                    }
+                        if (!it.syncMessage.isNullOrBlank()) {
+                            dataSyncView?.setMessage(it.syncMessage)
+                        }
 
-                    @Suppress("NON_EXHAUSTIVE_WHEN")
-                    when (it.serverStatus) {
-                        INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
-                        FORBIDDEN -> {
-                            packageInfoViewModel.cancelTasks()
+                        @Suppress("NON_EXHAUSTIVE_WHEN")
+                        when (it.serverStatus) {
+                            INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
+                            FORBIDDEN -> {
+                                packageInfoViewModel.cancelTasks()
 
-                            Toast.makeText(
-                                this,
-                                R.string.toast_not_connected,
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
+                                Toast.makeText(
+                                    this,
+                                    R.string.toast_not_connected,
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
 
-                            if (appSettings != null) {
-                                startActivity(LoginActivity.newIntent(this))
+                                if (appSettings != null) {
+                                    startActivity(LoginActivity.newIntent(this))
+                                }
                             }
                         }
-                    }
-                })
-        dataSyncViewModel.lastSynchronizedDate.takeUnless { it.hasActiveObservers() }
-            ?.observe(this@HomeActivity,
-                Observer {
-                    dataSyncView?.setLastSynchronizedDate(it)
-                })
+                    })
+
+                vm.lastSynchronizedDate.observe(this@HomeActivity,
+                    Observer {
+                        dataSyncView?.setLastSynchronizedDate(it)
+                    })
+            }
     }
 
     private fun checkSelfPermissions() {
@@ -326,6 +337,7 @@ class HomeActivity : AppCompatActivity() {
             this@HomeActivity,
             object : PermissionUtils.OnCheckSelfPermissionListener {
                 override fun onPermissionsGranted() {
+                    packageInfoViewModel.checkAppPackages()
                     loadAppSettings()
                 }
 
@@ -347,38 +359,36 @@ class HomeActivity : AppCompatActivity() {
 
     private fun loadAppSettings() {
         progressBar?.visibility = View.VISIBLE
-        appSettingsViewModel.getAppSettings<AppSettings>()
-            .observeOnce(this@HomeActivity) {
-                packageInfoViewModel.checkAppPackages()
+        appSettingsViewModel.loadAppSettings<AppSettings>()
+        appSettingsViewModel.appSettings.observeOnce(this@HomeActivity) {
+            if (it == null) {
+                makeSnackbar(
+                    getString(
+                        R.string.snackbar_settings_not_found,
+                        appSettingsViewModel.getAppSettingsFilename()
+                    )
+                )?.show()
 
-                if (it == null) {
-                    makeSnackbar(
-                        getString(
-                            R.string.snackbar_settings_not_found,
-                            appSettingsViewModel.getAppSettingsFilename()
-                        )
-                    )?.show()
+                progressBar?.visibility = View.GONE
+                adapter.clear()
 
-                    progressBar?.visibility = View.GONE
-                    adapter.clear()
-
-                    if (!checkGeoNatureSettings()) {
-                        startActivity(PreferencesActivity.newIntent(this))
-                        return@observeOnce
-                    }
-                } else {
-                    appSettings = it
-                    mergeAppSettingsWithSharedPreferences(it)
-                    invalidateOptionsMenu()
-
-                    if (!checkGeoNatureSettings()) {
-                        startActivity(PreferencesActivity.newIntent(this))
-                        return@observeOnce
-                    }
-
-                    startSync(it)
+                if (!checkGeoNatureSettings()) {
+                    startActivity(PreferencesActivity.newIntent(this))
+                    return@observeOnce
                 }
+            } else {
+                appSettings = it
+                mergeAppSettingsWithSharedPreferences(it)
+                invalidateOptionsMenu()
+
+                if (!checkGeoNatureSettings()) {
+                    startActivity(PreferencesActivity.newIntent(this))
+                    return@observeOnce
+                }
+
+                startSync(it)
             }
+        }
     }
 
     private fun checkGeoNatureSettings(): Boolean {
@@ -388,7 +398,6 @@ class HomeActivity : AppCompatActivity() {
     private fun startSync(appSettings: AppSettings) {
         GlobalScope.launch(Main) {
             delay(250)
-            observeDataSyncStatus(dataSyncViewModel)
             dataSyncViewModel.startSync(appSettings)
 
             delay(500)
@@ -505,6 +514,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     companion object {
+        private val TAG = HomeActivity::class.java.name
+
         private const val REQUEST_STORAGE_PERMISSIONS = 0
     }
 }

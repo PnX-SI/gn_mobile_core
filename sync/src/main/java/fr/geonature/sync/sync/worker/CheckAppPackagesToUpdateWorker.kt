@@ -10,7 +10,7 @@ import retrofit2.Response
 import retrofit2.awaitResponse
 
 /**
- * Checks application packages to update.
+ * Checks all application packages to update.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
@@ -25,8 +25,6 @@ class CheckAppPackagesToUpdateWorker(
         PackageInfoManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
-        val availablePackageInfos = packageInfoManager.getInstalledApplications()
-
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
             ?: return Result.failure()
 
@@ -46,13 +44,12 @@ class CheckAppPackagesToUpdateWorker(
             }
 
             val appPackages = response.body() ?: return Result.failure()
-            val appPackagesToUpdate =
-                appPackages.filter { it.versionCode > availablePackageInfos.firstOrNull { availablePackageInfo -> availablePackageInfo.packageName == it.packageName }?.versionCode ?: 0 }
-            packageInfoManager.setAppPackagesToUpdate(appPackagesToUpdate)
+
+            packageInfoManager.setAppPackagesToUpdate(appPackages)
 
             Log.i(
                 TAG,
-                "available applications to update: ${appPackagesToUpdate.size}"
+                "available applications to update: ${appPackages.size}"
             )
 
             Result.success()

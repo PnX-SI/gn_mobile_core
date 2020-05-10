@@ -1,6 +1,7 @@
 package fr.geonature.sync.sync
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations.map
@@ -13,13 +14,14 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import fr.geonature.commons.util.add
+import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.worker.DataSyncWorker
 import java.util.Calendar
 import java.util.Date
 
 /**
- * Keeps track of sync operations.
+ * Keeps track of data sync operations from GeoNature.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
@@ -61,12 +63,19 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
     val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
 
     fun startSync(appSettings: AppSettings) {
-        if (dataSyncManager.lastSynchronizedDate.value?.add(
+        val lastSynchronizedDate = dataSyncManager.lastSynchronizedDate.value
+
+        if (lastSynchronizedDate?.add(
                 Calendar.HOUR,
                 1
             )
                 ?.after(Date()) == true
         ) {
+            Log.d(
+                TAG,
+                "data already synchronized at ${lastSynchronizedDate.toIsoDateString()}"
+            )
+
             return
         }
 
@@ -124,5 +133,9 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST") return creator() as T
         }
+    }
+
+    companion object {
+        private val TAG = DataSyncViewModel::class.java.name
     }
 }

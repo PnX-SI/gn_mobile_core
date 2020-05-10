@@ -3,6 +3,7 @@ package fr.geonature.commons.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -24,16 +25,19 @@ open class AppSettingsViewModel<AS : IAppSettings>(
         onAppSettingsJsonReaderListener
     )
 
+    private val _appSettings: MutableLiveData<AS> = MutableLiveData()
+    val appSettings: LiveData<AS> = _appSettings
+
     fun getAppSettingsFilename(): String {
         return appSettingsManager.getAppSettingsFilename()
     }
 
-    fun <T> getAppSettings(): LiveData<AS> {
+    fun <T> loadAppSettings() {
         viewModelScope.launch {
-            appSettingsManager.loadAppSettings()
+            appSettingsManager.loadAppSettings()?.also {
+                _appSettings.postValue(it)
+            }
         }
-
-        return appSettingsManager.appSettings
     }
 
     /**
