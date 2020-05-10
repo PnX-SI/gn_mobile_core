@@ -9,6 +9,8 @@ import androidx.work.workDataOf
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.PackageInfoManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import okhttp3.internal.Util
 import okio.Buffer
@@ -31,18 +33,19 @@ class DownloadPackageWorker(
     private val packageInfoManager =
         PackageInfoManager.getInstance(applicationContext)
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
 
         if (packageName.isNullOrBlank()) {
-            return Result.failure()
+            return@withContext Result.failure()
         }
 
         val appPackageToUpdate =
-            packageInfoManager.getAppPackageToUpdate(packageName) ?: return Result.failure()
+            packageInfoManager.getAppPackageToUpdate(packageName)
+                ?: return@withContext Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            ?: return Result.failure()
+            ?: return@withContext Result.failure()
 
         Log.i(
             TAG,
@@ -51,7 +54,7 @@ class DownloadPackageWorker(
 
         setProgress(workData(appPackageToUpdate.packageName))
 
-        return try {
+        try {
             // update app settings as JSON file
             packageInfoManager.updateAppSettings(appPackageToUpdate)
 
@@ -59,7 +62,7 @@ class DownloadPackageWorker(
                 .awaitResponse()
 
             if (!response.isSuccessful) {
-                return Result.failure(
+                return@withContext Result.failure(
                     workData(
                         appPackageToUpdate.packageName,
                         100
@@ -67,14 +70,14 @@ class DownloadPackageWorker(
                 )
             }
 
-            val responseBody = response.body() ?: return Result.failure(
+            val responseBody = response.body() ?: return@withContext Result.failure(
                 workData(
                     appPackageToUpdate.packageName,
                     100
                 )
             )
 
-            return downloadAsFile(
+            downloadAsFile(
                 responseBody,
                 appPackageToUpdate
             )
