@@ -147,34 +147,34 @@ class LoginActivity : AppCompatActivity() {
                 )
             }).get(AppSettingsViewModel::class.java)
             .also { vm ->
-                vm.loadAppSettings<AppSettings>()
-                vm.appSettings.observeOnce(this) {
-                    if (it == null) {
-                        makeSnackbar(
-                            getString(
-                                R.string.snackbar_settings_not_found,
-                                vm.getAppSettingsFilename()
-                            )
-                        )?.addCallback(object :
-                            BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                            override fun onDismissed(
-                                transientBottomBar: Snackbar?,
-                                event: Int
-                            ) {
-                                super.onDismissed(
-                                    transientBottomBar,
-                                    event
+                vm.loadAppSettings()
+                    .observeOnce(this) {
+                        if (it == null) {
+                            makeSnackbar(
+                                getString(
+                                    R.string.snackbar_settings_not_found,
+                                    vm.getAppSettingsFilename()
                                 )
+                            )?.addCallback(object :
+                                BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                                override fun onDismissed(
+                                    transientBottomBar: Snackbar?,
+                                    event: Int
+                                ) {
+                                    super.onDismissed(
+                                        transientBottomBar,
+                                        event
+                                    )
 
-                                setResult(Activity.RESULT_CANCELED)
-                                finish()
-                            }
-                        })
-                            ?.show()
-                    } else {
-                        appSettings = it
+                                    setResult(Activity.RESULT_CANCELED)
+                                    finish()
+                                }
+                            })
+                                ?.show()
+                        } else {
+                            appSettings = it
+                        }
                     }
-                }
             }
     }
 

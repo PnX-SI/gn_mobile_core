@@ -31,7 +31,6 @@ import fr.geonature.commons.util.observeUntil
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
-import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
@@ -223,7 +222,6 @@ class HomeActivity : AppCompatActivity() {
 
                 if (requestPermissionsResult) {
                     makeSnackbar(getString(R.string.snackbar_permission_external_storage_available))?.show()
-                    packageInfoViewModel.checkAppPackages()
                     loadAppSettings()
                 } else {
                     makeSnackbar(getString(R.string.snackbar_permissions_not_granted))?.show()
@@ -262,23 +260,17 @@ class HomeActivity : AppCompatActivity() {
             PackageInfoViewModel::class.java
         )
             .also { vm ->
-                vm.updateAvailable.observeUntil(
-                    this@HomeActivity,
-                    { appPackage -> appPackage != null }) { appPackage ->
-                    appPackage?.run { confirmBeforeUpgrade(this) }
+                vm.updateAvailable.observeOnce(this@HomeActivity) { appPackage ->
+                    appPackage?.run { confirmBeforeUpgrade(this.packageName) }
                 }
 
-                vm.appSettingsUpdated.observeUntil(
-                    this@HomeActivity,
-                    { updated -> updated ?: false }) {
-                    if (it == true) {
-                        Log.d(
-                            TAG,
-                            "reloading settings after update..."
-                        )
+                vm.appSettingsUpdated.observeOnce(this@HomeActivity) {
+                    Log.d(
+                        TAG,
+                        "reloading settings after update..."
+                    )
 
-                        loadAppSettings()
-                    }
+                    loadAppSettings(true)
                 }
 
                 vm.packageInfos.observe(this@HomeActivity,
@@ -337,7 +329,6 @@ class HomeActivity : AppCompatActivity() {
             this@HomeActivity,
             object : PermissionUtils.OnCheckSelfPermissionListener {
                 override fun onPermissionsGranted() {
-                    packageInfoViewModel.checkAppPackages()
                     loadAppSettings()
                 }
 
@@ -357,38 +348,48 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
-    private fun loadAppSettings() {
-        progressBar?.visibility = View.VISIBLE
-        appSettingsViewModel.loadAppSettings<AppSettings>()
-        appSettingsViewModel.appSettings.observeOnce(this@HomeActivity) {
-            if (it == null) {
-                makeSnackbar(
-                    getString(
-                        R.string.snackbar_settings_not_found,
-                        appSettingsViewModel.getAppSettingsFilename()
-                    )
-                )?.show()
+    private fun loadAppSettings(updated: Boolean = false) {
+        appSettingsViewModel.loadAppSettings()
+            .observeOnce(this@HomeActivity) {
+                if (it == null) {
+                    makeSnackbar(
+                        getString(
+                            R.string.snackbar_settings_not_found,
+                            appSettingsViewModel.getAppSettingsFilename()
+                        )
+                    )?.show()
 
-                progressBar?.visibility = View.GONE
-                adapter.clear()
+                    progressBar?.visibility = View.GONE
+                    adapter.clear()
 
-                if (!checkGeoNatureSettings()) {
-                    startActivity(PreferencesActivity.newIntent(this))
-                    return@observeOnce
+                    if (!checkGeoNatureSettings()) {
+                        startActivity(PreferencesActivity.newIntent(this))
+                        return@observeOnce
+                    }
+
+                    packageInfoViewModel.checkAppPackages()
+                } else {
+                    if (updated) {
+                        makeSnackbar(
+                            getString(
+                                R.string.snackbar_settings_updated,
+                                appSettingsViewModel.getAppSettingsFilename()
+                            )
+                        )?.show()
+                    }
+
+                    appSettings = it
+                    mergeAppSettingsWithSharedPreferences(it)
+                    invalidateOptionsMenu()
+
+                    if (!checkGeoNatureSettings()) {
+                        startActivity(PreferencesActivity.newIntent(this))
+                        return@observeOnce
+                    }
+
+                    startSync(it)
                 }
-            } else {
-                appSettings = it
-                mergeAppSettingsWithSharedPreferences(it)
-                invalidateOptionsMenu()
-
-                if (!checkGeoNatureSettings()) {
-                    startActivity(PreferencesActivity.newIntent(this))
-                    return@observeOnce
-                }
-
-                startSync(it)
             }
-        }
     }
 
     private fun checkGeoNatureSettings(): Boolean {
@@ -397,11 +398,17 @@ class HomeActivity : AppCompatActivity() {
 
     private fun startSync(appSettings: AppSettings) {
         GlobalScope.launch(Main) {
+            adapter.clear(false)
+            progressBar?.visibility = View.VISIBLE
+
             delay(250)
+
             dataSyncViewModel.startSync(appSettings)
 
             delay(500)
+
             packageInfoViewModel.getInstalledApplicationsToSynchronize()
+            packageInfoViewModel.checkAppPackages()
         }
     }
 
@@ -435,7 +442,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun confirmBeforeUpgrade(appPackage: AppPackage) {
+    private fun confirmBeforeUpgrade(packageName: String) {
         AlertDialog.Builder(this)
             .setIcon(R.drawable.ic_upgrade)
             .setTitle(R.string.alert_new_app_version_available_title)
@@ -445,7 +452,7 @@ class HomeActivity : AppCompatActivity() {
             ) { dialog, _ ->
                 dataSyncViewModel.cancelTasks()
                 packageInfoViewModel.cancelTasks()
-                downloadApk(appPackage.packageName)
+                downloadApk(packageName)
                 dialog.dismiss()
             }
             .setNegativeButton(
@@ -502,14 +509,16 @@ class HomeActivity : AppCompatActivity() {
             "${BuildConfig.APPLICATION_ID}.file.provider",
             File(apkFilePath)
         )
-        val install = Intent(Intent.ACTION_VIEW)
-        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        install.putExtra(
-            Intent.EXTRA_NOT_UNKNOWN_SOURCE,
-            true
-        )
-        install.data = contentUri
+        val install = Intent(Intent.ACTION_VIEW).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            putExtra(
+                Intent.EXTRA_NOT_UNKNOWN_SOURCE,
+                true
+            )
+            data = contentUri
+        }
+
         startActivity(install)
     }
 
