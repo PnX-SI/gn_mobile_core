@@ -1,6 +1,5 @@
 package fr.geonature.sync.sync
 
-import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -18,10 +17,10 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import fr.geonature.sync.api.model.AppPackage
-import fr.geonature.sync.sync.worker.CheckAppPackagesToUpdateWorker
+import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.sync.worker.DownloadPackageWorker
 import fr.geonature.sync.sync.worker.InputsSyncWorker
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -35,75 +34,25 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     private val packageInfoManager: PackageInfoManager =
         PackageInfoManager.getInstance(getApplication())
 
-    private val installedPackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
-
-    @SuppressLint("DefaultLocale")
-    private val _packageInfos: LiveData<List<PackageInfo>> =
-        MediatorLiveData<List<PackageInfo>>().apply {
-            addSource(installedPackageInfos) { packageInfos ->
-                val newPackageInfos = packageInfos.map { packageInfo ->
-                    packageInfo.copy()
-                        .apply {
-                            val newerPackageInfo =
-                                value?.find { it.packageName == packageInfo.packageName && it.versionCode > packageInfo.versionCode }
-
-                            if (newerPackageInfo != null) {
-                                apk = newerPackageInfo.apk
-                                settings = newerPackageInfo.settings
-                            }
-                        }
-                }
-
-                value = sortedSetOf<PackageInfo>().also {
-                    it.addAll(newPackageInfos)
-                    it.addAll(value?.filter { packageInfo -> !packageInfo.apk.isNullOrEmpty() }
-                        ?: emptyList())
-                }
-                    .toList()
-            }
-            addSource(packageInfoManager.appPackagesToUpdate) { appPackages ->
-                val newPackageInfos = appPackages.asSequence()
-                    .filter { appPackage -> appPackage.packageName != packageInfoManager.packageName }
-                    .map { appPackage ->
-                        PackageInfo(
-                            appPackage.packageName,
-                            appPackage.code.toLowerCase()
-                                .capitalize(),
-                            appPackage.versionCode.toLong()
-                        ).apply {
-                            apk = appPackage.apk
-                            settings = appPackage.settings
-                        }
-                    }
-                    .map { packageInfo ->
-                        val existingPackageInfo =
-                            value?.find { it.packageName == packageInfo.packageName && it.versionCode < packageInfo.versionCode }
-
-                        existingPackageInfo?.copy()
-                            ?.apply {
-                                apk = packageInfo.apk
-                                settings = packageInfo.settings
-                            }
-                            ?: packageInfo
-                    }
-                    .toList()
-
-                value = sortedSetOf<PackageInfo>().also {
-                    it.addAll(newPackageInfos)
-                    it.addAll(value ?: emptyList())
-                }
-                    .toList()
-            }
-        }
+    private val _appSettingsUpdated: MutableLiveData<Boolean> = MutableLiveData()
 
     val packageInfos: LiveData<List<PackageInfo>> =
-        switchMap(_packageInfos) { packageInfos ->
+        switchMap(packageInfoManager.observePackageInfos) { packageInfos ->
+            viewModelScope.launch {
+                packageInfos.asSequence()
+                    .filter { it.launchIntent != null && it.packageName != BuildConfig.APPLICATION_ID }
+                    .forEach {
+                        packageInfoManager.updateAppSettings(it)
+                    }
+            }
+
             map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
                 packageInfos.asSequence()
+                    .filter { it.packageName != BuildConfig.APPLICATION_ID }
                     .map { packageInfo ->
                         packageInfo.copy()
                             .apply {
-                                apk = packageInfo.apk
+                                apkUrl = packageInfo.apkUrl
                                 settings = packageInfo.settings
                                 val workInfo =
                                     workInfos.firstOrNull { workInfo -> workInfo.progress.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
@@ -128,34 +77,37 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
 
-    val updateAvailable: LiveData<AppPackage?> = MediatorLiveData<AppPackage>().apply {
-        addSource(packageInfoManager.appPackagesToUpdate) { appPackagesToUpdate: List<AppPackage>? ->
-            value = appPackagesToUpdate?.find { it.packageName == packageInfoManager.packageName }
+    /**
+     * Checks if the current app can be updated or not.
+     */
+    val updateAvailable: LiveData<PackageInfo> = MediatorLiveData<PackageInfo>().apply {
+        addSource(packageInfoManager.observePackageInfos) { availablePackageInfos: List<PackageInfo> ->
+            viewModelScope.launch {
+                availablePackageInfos.find { it.packageName == BuildConfig.APPLICATION_ID }
+                    ?.also {
+                        if (it.settings != null) {
+                            packageInfoManager.updateAppSettings(it)
+                            delay(250)
+                            _appSettingsUpdated.postValue(true)
+                        }
+
+                        if (it.versionCode > BuildConfig.VERSION_CODE) {
+                            value = it
+                        }
+                    }
+            }
         }
     }
+
+    val appSettingsUpdated: LiveData<Boolean> = _appSettingsUpdated
 
     /**
      * Checks if we can perform an update of existing apps.
      */
     fun checkAppPackages() {
-        val dataSyncWorkRequest =
-            OneTimeWorkRequest.Builder(CheckAppPackagesToUpdateWorker::class.java)
-                .addTag(CheckAppPackagesToUpdateWorker.CHECK_APP_PACKAGES_WORKER_TAG)
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build()
-                )
-                .build()
-
-        val continuation = workManager.beginUniqueWork(
-            CheckAppPackagesToUpdateWorker.CHECK_APP_PACKAGES_WORKER,
-            ExistingWorkPolicy.KEEP,
-            dataSyncWorkRequest
-        )
-
-        // start the work
-        continuation.enqueue()
+        viewModelScope.launch {
+            packageInfoManager.getAvailableApplications()
+        }
     }
 
     /**
@@ -163,10 +115,10 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
      */
     fun getInstalledApplicationsToSynchronize() {
         viewModelScope.launch {
-            val packageInfos = packageInfoManager.getInstalledApplications()
-                .filter { it.packageName != packageInfoManager.packageName }
-            installedPackageInfos.postValue(packageInfos)
-            packageInfos.forEach { startSyncInputs(it) }
+            packageInfoManager.getInstalledApplications()
+                .asSequence()
+                .filter { it.packageName != BuildConfig.APPLICATION_ID }
+                .forEach { startSyncInputs(it) }
         }
     }
 

@@ -1,4 +1,4 @@
-package fr.geonature.sync.util
+package fr.geonature.commons.util
 
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData

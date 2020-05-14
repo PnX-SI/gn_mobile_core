@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.MatrixCursor
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.helper.Converters.dateToTimestamp
 import fr.geonature.commons.data.helper.Converters.fromTimestamp

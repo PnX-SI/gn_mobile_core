@@ -9,7 +9,7 @@ import com.google.gson.annotations.SerializedName
  */
 data class AppPackage(
     @SerializedName("url_apk")
-    val apk: String,
+    val apkUrl: String,
 
     @SerializedName("package")
     val packageName: String,

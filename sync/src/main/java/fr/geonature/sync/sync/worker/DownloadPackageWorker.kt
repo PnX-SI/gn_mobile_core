@@ -7,9 +7,8 @@ import androidx.work.Data
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import fr.geonature.sync.api.GeoNatureAPIClient
-import fr.geonature.sync.api.model.AppPackage
+import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.PackageInfoManager
-import fr.geonature.sync.sync.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -31,52 +30,57 @@ class DownloadPackageWorker(
     appContext,
     workerParams
 ) {
-    override suspend fun doWork(): Result {
+    private val packageInfoManager =
+        PackageInfoManager.getInstance(applicationContext)
+
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
 
         if (packageName.isNullOrBlank()) {
-            return Result.failure()
+            return@withContext Result.failure()
         }
 
-        val appPackageToUpdate = PackageInfoManager.getInstance(applicationContext)
-            .getAppPackageToUpdate(packageName) ?: return Result.failure()
+        val packageInfoToUpdate =
+            packageInfoManager.getPackageInfo(packageName)
+                ?: return@withContext Result.failure()
+        val apkUrl = packageInfoToUpdate.apkUrl ?: return@withContext Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            ?: return Result.failure()
+            ?: return@withContext Result.failure()
 
         Log.i(
             TAG,
             "updating '$packageName'..."
         )
 
-        setProgress(workData(appPackageToUpdate.packageName))
+        setProgress(workData(packageInfoToUpdate.packageName))
 
-        return try {
+        try {
             // update app settings as JSON file
-            updateAppSettings(appPackageToUpdate)
+            packageInfoManager.updateAppSettings(packageInfoToUpdate)
 
-            val response = geoNatureAPIClient.downloadPackage(appPackageToUpdate.apk)
+            val response = geoNatureAPIClient.downloadPackage(apkUrl)
                 .awaitResponse()
 
             if (!response.isSuccessful) {
-                return Result.failure(
+                return@withContext Result.failure(
                     workData(
-                        appPackageToUpdate.packageName,
+                        packageInfoToUpdate.packageName,
                         100
                     )
                 )
             }
 
-            val responseBody = response.body() ?: return Result.failure(
+            val responseBody = response.body() ?: return@withContext Result.failure(
                 workData(
-                    appPackageToUpdate.packageName,
+                    packageInfoToUpdate.packageName,
                     100
                 )
             )
 
-            return downloadAsFile(
+            downloadAsFile(
                 responseBody,
-                appPackageToUpdate
+                packageInfoToUpdate
             )
         } catch (e: Exception) {
             Log.w(
@@ -86,7 +90,7 @@ class DownloadPackageWorker(
 
             Result.failure(
                 workData(
-                    appPackageToUpdate.packageName,
+                    packageInfoToUpdate.packageName,
                     100
                 )
             )
@@ -95,13 +99,13 @@ class DownloadPackageWorker(
 
     private fun downloadAsFile(
         responseBody: ResponseBody,
-        appPackage: AppPackage
+        packageInfo: PackageInfo
     ): Result {
         val source = responseBody.source()
         val contentLength = responseBody.contentLength()
 
         val apkFilePath =
-            "${applicationContext.getExternalFilesDir(null)?.absolutePath}/${appPackage.packageName}_${appPackage.versionCode}.apk"
+            "${applicationContext.getExternalFilesDir(null)?.absolutePath}/${packageInfo.packageName}_${packageInfo.versionCode}.apk"
 
         val buffer = Buffer()
         val bufferedSink = Okio.buffer(Okio.sink(File(apkFilePath)))
@@ -123,14 +127,9 @@ class DownloadPackageWorker(
             val currentProgress = (100 * total / contentLength.toFloat()).toInt()
 
             if (currentProgress > 0 && currentProgress > previousProgress) {
-                Log.d(
-                    TAG,
-                    "downloading '${appPackage.packageName}': $currentProgress"
-                )
-
                 setProgressAsync(
                     workData(
-                        appPackage.packageName,
+                        packageInfo.packageName,
                         currentProgress
                     )
                 )
@@ -143,15 +142,11 @@ class DownloadPackageWorker(
 
         return Result.success(
             workData(
-                appPackage.packageName,
+                packageInfo.packageName,
                 100,
                 apkFilePath
             )
         )
-    }
-
-    private suspend fun updateAppSettings(appPackage: AppPackage) = withContext(Dispatchers.IO) {
-        AppSettingsJsonWriter(applicationContext).write(appPackage)
     }
 
     private fun workData(

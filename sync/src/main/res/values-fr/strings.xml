@@ -64,6 +64,7 @@
     <string name="toast_logout_success">Déconnexion réussie</string>
 
     <string name="snackbar_settings_not_found">Erreur lors du chargement des paramètres \'%1$s\'</string>
+    <string name="snackbar_settings_updated">Paramètres \'%1$s\' à jour</string>
     <string name="snackbar_permissions_not_granted">Les permissions n\'ont pas été accordées</string>
     <string name="snackbar_permissions_granted">Les permissions ont été accordées</string>
     <string name="snackbar_permission_external_storage_rationale">L\'application requiert la permission d\'accéder au contenu de la mémoire de stockage</string>

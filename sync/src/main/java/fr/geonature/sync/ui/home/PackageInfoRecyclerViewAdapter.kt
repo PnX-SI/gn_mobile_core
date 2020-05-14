@@ -52,7 +52,10 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
         oldItemPosition: Int,
         newItemPosition: Int
     ): Boolean {
-        return oldItems[oldItemPosition] == newItems[newItemPosition] && oldItems[oldItemPosition].state == newItems[newItemPosition].state && oldItems[oldItemPosition].inputs == newItems[newItemPosition].inputs
+        return oldItems[oldItemPosition] == newItems[newItemPosition]
+            && oldItems[oldItemPosition].apkUrl == newItems[newItemPosition].apkUrl
+            && oldItems[oldItemPosition].state == newItems[newItemPosition].state
+            && oldItems[oldItemPosition].inputs == newItems[newItemPosition].inputs
     }
 
     inner class ViewHolder(itemView: View) :
@@ -77,20 +80,26 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
         override fun onBind(item: PackageInfo) {
             with(button) {
                 visibility =
-                    if (item.apk.isNullOrEmpty()) View.GONE
+                    if (item.apkUrl.isNullOrEmpty()) View.GONE
                     else View.VISIBLE
                 text =
                     if (item.versionName.isNullOrEmpty()) itemView.context.getString(R.string.home_app_install)
                     else itemView.context.getString(R.string.home_app_upgrade)
                 contentDescription =
-                    if (item.versionName.isNullOrEmpty()) itemView.context.getString(R.string.home_app_install_desc, item.label)
-                    else itemView.context.getString(R.string.home_app_upgrade_desc, item.label)
+                    if (item.versionName.isNullOrEmpty()) itemView.context.getString(
+                        R.string.home_app_install_desc,
+                        item.label
+                    )
+                    else itemView.context.getString(
+                        R.string.home_app_upgrade_desc,
+                        item.label
+                    )
                 setOnClickListener {
                     listener.onUpgrade(item)
                 }
             }
 
-            iconStatus.visibility = if (item.apk.isNullOrEmpty()) View.VISIBLE else View.GONE
+            iconStatus.visibility = if (item.apkUrl.isNullOrEmpty()) View.VISIBLE else View.GONE
 
             with(icon) {
                 setImageDrawable(item.icon ?: itemView.context.getDrawable(R.drawable.ic_upgrade))
@@ -110,11 +119,18 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
                     item.label,
                     item.versionName
                 )
-            text2.text = itemView.resources.getQuantityString(
-                R.plurals.home_app_inputs,
-                item.inputs,
-                item.inputs
-            )
+
+            with(text2) {
+                visibility =
+                    if (item.apkUrl.isNullOrEmpty()) View.VISIBLE
+                    else View.GONE
+                text = itemView.resources.getQuantityString(
+                    R.plurals.home_app_inputs,
+                    item.inputs,
+                    item.inputs
+                )
+            }
+
             setState(item.state)
         }
 

@@ -204,9 +204,12 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
     /**
      * Clear the list.
      */
-    fun clear() {
+    fun clear(notify: Boolean = true) {
         this.items.clear()
-        notifyDataSetChanged()
+
+        if (notify) {
+            notifyDataSetChanged()
+        }
     }
 
     /**

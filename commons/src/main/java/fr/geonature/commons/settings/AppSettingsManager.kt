@@ -2,8 +2,6 @@ package fr.geonature.commons.settings
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import fr.geonature.mountpoint.model.MountPoint.StorageType.INTERNAL
 import fr.geonature.mountpoint.util.FileUtils.getFile
@@ -27,12 +25,8 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
     internal val application: Application,
     onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>
 ) {
-
     private val appSettingsJsonReader: AppSettingsJsonReader<AS> =
         AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
-
-    private val _appSettings: MutableLiveData<AS> = MutableLiveData()
-    val appSettings: LiveData<AS> = _appSettings
 
     init {
         GlobalScope.launch(Main) {
@@ -58,44 +52,39 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
      * @return [IAppSettings] or `null` if not found
      */
     suspend fun loadAppSettings(): AS? = withContext(IO) {
-        val currentLoadedAppSettings = _appSettings.value
+        val settingsJsonFile = getAppSettingsAsFile()
 
-        if (currentLoadedAppSettings == null) {
-            val settingsJsonFile = getAppSettingsAsFile()
+        Log.i(
+            TAG,
+            "Loading settings from '${settingsJsonFile.absolutePath}'..."
+        )
+
+        if (!settingsJsonFile.exists()) {
+            Log.w(
+                TAG,
+                "'${settingsJsonFile.absolutePath}' not found"
+            )
+
+            return@withContext null
+        }
+
+        return@withContext try {
+            val appSettings = appSettingsJsonReader.read(FileReader(settingsJsonFile))
 
             Log.i(
                 TAG,
-                "Loading settings from '${settingsJsonFile.absolutePath}'..."
+                "Settings loaded"
             )
 
-            if (!settingsJsonFile.exists()) {
-                Log.w(
-                    TAG,
-                    "'${settingsJsonFile.absolutePath}' not found"
-                )
-                null
-            } else {
-                try {
-                    val appSettings = appSettingsJsonReader.read(FileReader(settingsJsonFile))
+            appSettings
+        } catch (e: IOException) {
+            Log.w(
+                TAG,
+                "Failed to load '${settingsJsonFile.name}'"
+            )
 
-                    Log.i(
-                        TAG,
-                        "Settings loaded"
-                    )
-
-                    appSettings
-                } catch (e: IOException) {
-                    Log.w(
-                        TAG,
-                        "Failed to load '${settingsJsonFile.name}'"
-                    )
-
-                    null
-                }
-            }
-        } else {
-            currentLoadedAppSettings
-        }.also { _appSettings.postValue(it) }
+            null
+        }
     }
 
     internal fun getAppSettingsAsFile(): File {

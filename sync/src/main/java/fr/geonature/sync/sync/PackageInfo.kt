@@ -19,7 +19,7 @@ data class PackageInfo(
 ): Comparable<PackageInfo> {
     var inputs: Int = 0
     var state: WorkInfo.State = WorkInfo.State.ENQUEUED
-    var apk: String? = null
+    var apkUrl: String? = null
     var settings: Any? = null
 
     override fun compareTo(other: PackageInfo): Int {

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,10 +26,11 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.util.PermissionUtils
+import fr.geonature.commons.util.observeOnce
+import fr.geonature.commons.util.observeUntil
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
-import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
@@ -43,8 +45,6 @@ import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
 import fr.geonature.sync.util.SettingsUtils.setGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.setTaxHubServerUrl
-import fr.geonature.sync.util.observeOnce
-import fr.geonature.sync.util.observeUntil
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -89,8 +89,8 @@ class HomeActivity : AppCompatActivity() {
 
         appSettingsViewModel = configureAppSettingsViewModel()
         authLoginViewModel = configureAuthLoginViewModel()
-        dataSyncViewModel = configureDataSyncViewModel()
         packageInfoViewModel = configurePackageInfoViewModel()
+        dataSyncViewModel = configureDataSyncViewModel()
 
         adapter = PackageInfoRecyclerViewAdapter(object :
             PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
@@ -147,14 +147,12 @@ class HomeActivity : AppCompatActivity() {
             )
             addItemDecoration(dividerItemDecoration)
         }
-
-        checkSelfPermissions()
     }
 
     override fun onResume() {
         super.onResume()
 
-        loadAppSettings()
+        checkSelfPermissions()
     }
 
     @SuppressLint("RestrictedApi")
@@ -256,21 +254,23 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    private fun configureDataSyncViewModel(): DataSyncViewModel {
-        return ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
-    }
-
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
         return ViewModelProvider(this,
             PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
             PackageInfoViewModel::class.java
         )
             .also { vm ->
-                vm.updateAvailable.observeUntil(
-                    this@HomeActivity,
-                    { appPackage -> appPackage != null }) { appPackage ->
-                    appPackage?.run { confirmBeforeUpgrade(this) }
+                vm.updateAvailable.observeOnce(this@HomeActivity) { appPackage ->
+                    appPackage?.run { confirmBeforeUpgrade(this.packageName) }
+                }
+
+                vm.appSettingsUpdated.observeOnce(this@HomeActivity) {
+                    Log.d(
+                        TAG,
+                        "reloading settings after update..."
+                    )
+
+                    loadAppSettings(true)
                 }
 
                 vm.packageInfos.observe(this@HomeActivity,
@@ -281,44 +281,47 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    private fun observeDataSyncStatus(dataSyncViewModel: DataSyncViewModel) {
-        dataSyncViewModel.dataSyncStatus.takeUnless { it.hasActiveObservers() }
-            ?.observe(this@HomeActivity,
-                Observer {
-                    if (it == null) {
-                        return@Observer
-                    }
+    private fun configureDataSyncViewModel(): DataSyncViewModel {
+        return ViewModelProvider(this,
+            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
+            .also { vm ->
+                vm.dataSyncStatus.observe(this@HomeActivity,
+                    Observer {
+                        if (it == null) {
+                            return@Observer
+                        }
 
-                    dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
+                        dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
 
-                    if (!it.syncMessage.isNullOrBlank()) {
-                        dataSyncView?.setMessage(it.syncMessage)
-                    }
+                        if (!it.syncMessage.isNullOrBlank()) {
+                            dataSyncView?.setMessage(it.syncMessage)
+                        }
 
-                    @Suppress("NON_EXHAUSTIVE_WHEN")
-                    when (it.serverStatus) {
-                        INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
-                        FORBIDDEN -> {
-                            packageInfoViewModel.cancelTasks()
+                        @Suppress("NON_EXHAUSTIVE_WHEN")
+                        when (it.serverStatus) {
+                            INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
+                            FORBIDDEN -> {
+                                packageInfoViewModel.cancelTasks()
 
-                            Toast.makeText(
-                                this,
-                                R.string.toast_not_connected,
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
+                                Toast.makeText(
+                                    this,
+                                    R.string.toast_not_connected,
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
 
-                            if (appSettings != null) {
-                                startActivity(LoginActivity.newIntent(this))
+                                if (appSettings != null) {
+                                    startActivity(LoginActivity.newIntent(this))
+                                }
                             }
                         }
-                    }
-                })
-        dataSyncViewModel.lastSynchronizedDate.takeUnless { it.hasActiveObservers() }
-            ?.observe(this@HomeActivity,
-                Observer {
-                    dataSyncView?.setLastSynchronizedDate(it)
-                })
+                    })
+
+                vm.lastSynchronizedDate.observe(this@HomeActivity,
+                    Observer {
+                        dataSyncView?.setLastSynchronizedDate(it)
+                    })
+            }
     }
 
     private fun checkSelfPermissions() {
@@ -345,12 +348,9 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
-    private fun loadAppSettings() {
-        progressBar?.visibility = View.VISIBLE
-        appSettingsViewModel.getAppSettings<AppSettings>()
+    private fun loadAppSettings(updated: Boolean = false) {
+        appSettingsViewModel.loadAppSettings()
             .observeOnce(this@HomeActivity) {
-                packageInfoViewModel.checkAppPackages()
-
                 if (it == null) {
                     makeSnackbar(
                         getString(
@@ -366,7 +366,18 @@ class HomeActivity : AppCompatActivity() {
                         startActivity(PreferencesActivity.newIntent(this))
                         return@observeOnce
                     }
+
+                    packageInfoViewModel.checkAppPackages()
                 } else {
+                    if (updated) {
+                        makeSnackbar(
+                            getString(
+                                R.string.snackbar_settings_updated,
+                                appSettingsViewModel.getAppSettingsFilename()
+                            )
+                        )?.show()
+                    }
+
                     appSettings = it
                     mergeAppSettingsWithSharedPreferences(it)
                     invalidateOptionsMenu()
@@ -387,12 +398,17 @@ class HomeActivity : AppCompatActivity() {
 
     private fun startSync(appSettings: AppSettings) {
         GlobalScope.launch(Main) {
+            adapter.clear(false)
+            progressBar?.visibility = View.VISIBLE
+
             delay(250)
-            observeDataSyncStatus(dataSyncViewModel)
+
             dataSyncViewModel.startSync(appSettings)
 
             delay(500)
+
             packageInfoViewModel.getInstalledApplicationsToSynchronize()
+            packageInfoViewModel.checkAppPackages()
         }
     }
 
@@ -426,7 +442,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun confirmBeforeUpgrade(appPackage: AppPackage) {
+    private fun confirmBeforeUpgrade(packageName: String) {
         AlertDialog.Builder(this)
             .setIcon(R.drawable.ic_upgrade)
             .setTitle(R.string.alert_new_app_version_available_title)
@@ -436,7 +452,7 @@ class HomeActivity : AppCompatActivity() {
             ) { dialog, _ ->
                 dataSyncViewModel.cancelTasks()
                 packageInfoViewModel.cancelTasks()
-                downloadApk(appPackage.packageName)
+                downloadApk(packageName)
                 dialog.dismiss()
             }
             .setNegativeButton(
@@ -493,18 +509,22 @@ class HomeActivity : AppCompatActivity() {
             "${BuildConfig.APPLICATION_ID}.file.provider",
             File(apkFilePath)
         )
-        val install = Intent(Intent.ACTION_VIEW)
-        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        install.putExtra(
-            Intent.EXTRA_NOT_UNKNOWN_SOURCE,
-            true
-        )
-        install.data = contentUri
+        val install = Intent(Intent.ACTION_VIEW).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            putExtra(
+                Intent.EXTRA_NOT_UNKNOWN_SOURCE,
+                true
+            )
+            data = contentUri
+        }
+
         startActivity(install)
     }
 
     companion object {
+        private val TAG = HomeActivity::class.java.name
+
         private const val REQUEST_STORAGE_PERMISSIONS = 0
     }
 }

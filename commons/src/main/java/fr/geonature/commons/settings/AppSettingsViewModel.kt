@@ -5,9 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.liveData
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
-import kotlinx.coroutines.launch
 
 /**
  * [IAppSettings] view model.
@@ -28,12 +27,9 @@ open class AppSettingsViewModel<AS : IAppSettings>(
         return appSettingsManager.getAppSettingsFilename()
     }
 
-    fun <T> getAppSettings(): LiveData<AS> {
-        viewModelScope.launch {
-            appSettingsManager.loadAppSettings()
-        }
-
-        return appSettingsManager.appSettings
+    fun loadAppSettings(): LiveData<AS?> = liveData {
+        val appSettings = appSettingsManager.loadAppSettings()
+        emit(appSettings)
     }
 
     /**
