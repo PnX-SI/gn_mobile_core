@@ -1,0 +1,77 @@
+= Styles and Themes
+
+Styles and themes on Android allow you to separate the details of your app design from the UI
+structure and behavior, similar to stylesheets in web design.
+
+A style is a collection of attributes that specify the appearance for a single View.
+A style can specify attributes such as font color, font size, background color, and much more.
+
+A theme is a type of style that's applied to an entire app, activity, or view hierarchy—not just an
+individual view. When you apply your style as a theme, every view in the app or activity applies
+each style attribute that it supports. Themes can also apply styles to non-view elements, such as
+the status bar and window background.
+
+Styles and themes are declared in a style resource file in `res/values/`, usually named `styles.xml`.
+
+== Build variants
+
+Each applications use the https://developer.android.com/studio/build/build-variants[_flavor_]
+concept at the build gradle level which allows to easily create variants of these applications.
+Currently, the default variant is `pnx` which allows you to apply, among other things, the basic
+colors of the theme and the icons of the mobile applications following the main colors of the French
+National Park. When building applications, it is therefore necessary to specify the variant to be
+used by gradle:
+
+In `debug` mode:
+
+[source,bash]
+----
+./gradlew clean assemblePnxDebug
+----
+
+== How to register a new build variant
+
+You have to modify each `build.gradle` file located in each application directory and add a new
+variant to `productFlavors`. For example, if you want to create the named `pnm` we'll get:
+
+[source,gradle]
+----
+android {
+    ...
+    productFlavors {
+        pnx {
+        }
+        pne {
+        }
+        pnv {
+        }
+        pnm {
+        }
+    }
+    ...
+}
+----
+
+When building applications, it will be necessary to specify the variant to be used by gradle.
+
+In `debug` mode:
+
+[source,bash]
+----
+./gradlew clean assemblePnmDebug
+----
+
+== Adding a color theme
+
+Once the buildvariant has been created, you now need to add a new directory with the same name as
+this variant in the `src/` directory of each application:
+
+* `main`: the directory of resources and sources for each application
+* `pnm`: The directory for the `pnm` variant.
+
+Copy the `res/values/colors.xml` from an existing variant (e.g. `pne`) to the directory of the new
+variant:
+
+* `primary`: the primary color of the theme
+* `primary_dark`: the dark variant of the theme's main color
+* `accent`: accent color
