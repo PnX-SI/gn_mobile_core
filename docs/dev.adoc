@@ -1,0 +1,15 @@
+= Developer guide
+
+== Prerequisites
+
+* http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html[JDK 8] or https://openjdk.java.net/install[OpenJDK 8]
+* https://developer.android.com/studio#command-tools[Android SDK] or https://developer.android.com/studio#downloads[Android Studio]
+
+== Full Build
+
+A full build can be executed with the following command from project root dir:
+
+[source,bash]
+----
+./gradlew clean assembleDebug
+----
