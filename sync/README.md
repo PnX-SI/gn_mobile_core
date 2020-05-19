@@ -32,15 +32,15 @@ Example:
 | ------------------- | ------- | ------------------------------------------------------ | ------------- |
 | `geonature_url`     | &#9745; | GeoNature URL                                          |               |
 | `taxhub_url`        | &#9745; | TaxHub URL                                             |               |
-| `uh_application_id` | &#9744; | GeoNature application ID                               |               |
-| `observers_list_id` | &#9744; | GeoNature selected users menu ID                       |               |
+| `uh_application_id` | &#9744; | GeoNature application ID in UsersHub                   |               |
+| `observers_list_id` | &#9744; | GeoNature selected observer list ID in UsersHub        |               |
 | `taxa_list_id`      | &#9744; | GeoNature selected taxa list ID                        |               |
 | `page_size`         | &#9744; | Default page size while fetching paginated values      | 1000          |
 | `page_max_retry`    | &#9744; | Max attempt to fetch data according to given page size | 20            |
 
 ## Content Provider
 
-This app expose synchronized data from a GeoNature instance through a content provider.
+This app exposes synchronized data from a GeoNature instance through a content provider.
 The authority of this content provider is `fr.geonature.sync.provider`.
 
 ### Exposed content URIs
