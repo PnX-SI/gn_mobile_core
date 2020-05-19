@@ -63,7 +63,7 @@ In `debug` mode:
 
 == Adding a color theme
 
-Once the buildvariant has been created, you now need to add a new directory with the same name as
+Once the build variant has been created, you now need to add a new directory with the same name as
 this variant in the `src/` directory of each application:
 
 * `main`: the directory of resources and sources for each application
@@ -75,3 +75,40 @@ variant:
 * `primary`: the primary color of the theme
 * `primary_dark`: the dark variant of the theme's main color
 * `accent`: accent color
+
+== Application icon
+
+The `artwork/` directory contains the icons in SVG format (including `*_launcher.svg`).
+You can use this to create a new icon that will be used as the launcher of each application.
+Ideally, you should stick to the following principles:
+
+* SVG format
+* No margin
+* Icon in black only with no background (transparent)
+
+Then use Asset Studio (from Android Studio) to generate a new set of icons.
+
+image::images/asset_studio.png[Asset Studio,width=50%,pdfwidth=50%,scaledwidth=50%]
+
+== Application name
+
+To change the name of the application, copy the files `res/values/strings.xml` and
+`res/values-fr/strings.xml` from the `src/main` directory to the directory of the new
+variant, respecting the tree structure.
+
+Then, we can edit each `strings.xml` file and keep only the node containing the key
+`app_name`:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">My application</string>
+
+</resources>
+----
+
+Gradle will simply merge the default resources (`src/main/res`) with the resources of the variant
+selected during the build. So you don't need to keep everything copied to the variant but just take
+the resources we want to replace.
