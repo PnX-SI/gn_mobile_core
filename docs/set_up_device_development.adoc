@@ -5,7 +5,7 @@ Before you can start debugging on your device, there are a few things you must d
 . On the device, open the *Settings* app, select *Developer options*, and then enable
 *USB debugging*.
 +
-*Note:* If you do not see *Developer options*, follow the instructions to <<_enable_developer_options,enable developer options>>.
+*Note:* If you do not see *Developer options*, follow the instructions to <<enable_developer_options,enable developer options>>.
 
 . Set up your system to detect your device.
 *Windows*::
@@ -23,6 +23,7 @@ find you in the `plugdev` group:
 Use `id` to see what groups you are in. Use `sudo usermod -aG plugdev $LOGNAME` to add yourself to
 the `plugdev` group.
 
+[[enable_developer_options]]
 == Enable developer options
 
 On Android 4.1 and lower, the *Developer options* screen is available by default.
@@ -42,7 +43,7 @@ Next, you should scroll down a little and enable *USB debugging*. This allows An
 other SDK tools to recognize your device when connected via USB, so you can use the debugger and
 other tools.
 
-== How to fix "insufficient permissions for device: verify udev rules."
+== How to fix "insufficient permissions for device: verify udev rules."
 
 Check if you are in `plugdev` group and if not, use `sudo usermod -aG plugdev $LOGNAME` to add
 yourself to the `plugdev` group.
