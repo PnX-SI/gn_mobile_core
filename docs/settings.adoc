@@ -34,12 +34,12 @@
 
 | `observers_list_id`
 | &#9744;
-| GeoNature selected users menu ID
+| GeoNature selected users menu ID in UsersHub
 |
 
 | `taxa_list_id`
 | &#9744;
-| GeoNature selected taxa list ID
+| GeoNature selected taxa list ID in UsersHub
 |
 
 | `page_size`
