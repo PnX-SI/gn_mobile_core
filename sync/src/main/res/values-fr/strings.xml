@@ -36,8 +36,8 @@
     <string name="home_no_available_app">Aucune application compatible trouvée</string>
     <string name="home_app_version_full">%1$s (%2$s)</string>
     <plurals name="home_app_inputs">
-        <item quantity="one">Relevé à synchronizer : %d</item>
-        <item quantity="other">Relevés à synchronizer : %d</item>
+        <item quantity="one">Relevé à synchroniser : %d</item>
+        <item quantity="other">Relevés à synchroniser : %d</item>
     </plurals>
     <string name="home_app_install">Installer</string>
     <string name="home_app_upgrade">Mettre à jour</string>
