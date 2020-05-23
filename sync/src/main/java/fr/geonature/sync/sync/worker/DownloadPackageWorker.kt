@@ -56,9 +56,6 @@ class DownloadPackageWorker(
         setProgress(workData(packageInfoToUpdate.packageName))
 
         try {
-            // update app settings as JSON file
-            packageInfoManager.updateAppSettings(packageInfoToUpdate)
-
             val response = geoNatureAPIClient.downloadPackage(apkUrl)
                 .awaitResponse()
 
