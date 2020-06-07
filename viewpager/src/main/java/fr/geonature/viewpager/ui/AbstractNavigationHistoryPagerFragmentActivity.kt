@@ -240,7 +240,7 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
      *
      * @return the number of pages in history for a given page key
      *
-     * @see IValidateFragment.resourceTitle
+     * @see IValidateFragment.getResourceTitle
      */
     fun countPagesInHistory(key: Int): Int {
         var count = 0

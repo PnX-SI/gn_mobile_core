@@ -1,5 +1,29 @@
 = Synchronization workflow
 
+== Check for update
+
+[plantuml, images/sync_update, svg]
+....
+participant "mobile/sync" as sync << mobile >>
+participant "GeoNature" as gn
+
+activate sync
+
+group Fetch common configuration data
+  sync -> gn ++ : **GET** : ""/api/gn_commons/t_mobile_apps""
+  gn -> sync -- : **200** : ""array""
+end
+
+group Check for update
+  sync -> sync : update //settings_sync.json//
+
+  alt A new version is available
+    sync -> sync : notify if we want to upgrade
+  end
+end
+
+....
+
 == Update local database from GeoNature
 
 [plantuml, images/sync_data, svg]
@@ -10,44 +34,51 @@ participant "GeoNature" as gn
 activate sync
 
 group Fetch common configuration data
-  sync -> gn ++ : **GET** : ""/sync""
-  gn -> sync -- : **200** : ""settings""
-  sync -> sync : update //settings.json//
+  sync -> gn ++ : **GET** : ""/api/gn_commons/t_mobile_apps""
+  gn -> sync -- : **200** : ""array""
+  sync -> sync : update //settings_sync.json//
 end
 
-group Fetch common data
-  sync -> gn ++ : **GET** : ""/observers""
-  gn -> sync -- : **200** : ""[observer]""
-  sync -> sync : update //observer// table
-  sync -> gn ++ : **GET** : ""/taxa""
+alt Check for login
+  sync -> sync : Set login and password
+  sync -> gn ++ : **POST** : ""/api/auth/login""
+  gn -> sync -- : **200** : ""Cookie""
+end
+
+group Fetch GeoNature data
+  sync -> gn ++ : **GET** : ""/api/meta/datasets""
+  gn -> sync -- : **200** : ""[dataset]""
+  sync -> sync : update //dataset// table
+  sync -> gn ++ : **GET** : ""/api/users/menu/:observers_list_id""
+  gn -> sync -- : **200** : ""[user]""
+  sync -> sync : update //observers// table
+  sync -> gn ++ : **GET** : ""/api/taxref/regnewithgroupe2""
+  gn -> sync -- : **200** : ""[taxonomy]""
+  sync -> sync : update //taxonomy// table
+  sync -> gn ++ : **GET** : ""/api/taxref/allnamebylist/:taxa_list_id""
   gn -> sync -- : **200** : ""[taxon]""
-  sync -> sync : update //taxon// table
-end
+  sync -> sync : update //taxa// table
+  sync -> gn ++ : **GET** : ""/api/synthese/color_taxon""
+  gn -> sync -- : **200** : ""[taxrefArea]""
+  sync -> sync : update //taxa_area// table
+  sync -> gn ++ : **GET** : ""/api/nomenclatures/nomenclatures/taxonomy""
+  gn -> sync -- : **200** : ""[nomenclatureType]""
+  sync -> sync : update //nomenclature_types//  table
+  sync -> sync : update //nomenclatures// table
+  sync -> sync : update //nomenclatures_taxonomy//  table
 
-...
-
-group Fetch data for each module
-
-  sync -> sync: fetch registered modules
-  note left : read from\n""settings.json""
+  note over sync : **TODO:**\nfetch registered modules from GeoNature
 
   loop for each registered module
-    sync -> gn ++ : **GET** : ""/module/sync""
-    gn -> sync -- : **200** : ""settings""
-    sync -> sync : update //module/settings.json//
-    sync -> sync : read registered endpoints
-
-    loop for each registered endpoint
-      sync -> gn ++ : **GET** : ""/module/xxx""
-      gn -> sync -- : **200** : ""[xxx]""
-      sync -> sync : update //xxx// table
-    end
-
+    sync -> gn ++ : **GET** : ""/api/:module/defaultNomenclatures""
+    gn -> sync -- : **200** : ""[DefaultNomenclature]""
+    sync -> sync : update //default_nomenclatures//  table
   end
 
 end
 
 deactivate sync
+
 ....
 
 == Synchronize local inputs
@@ -59,16 +90,17 @@ participant "GeoNature" as gn
 
 activate sync
 
-group Fetch exported inputs for each module
+group Fetch exported inputs from installed app
 
-  sync -> sync: fetch registered modules
-  note left : read from\n""settings.json""
+  sync -> sync: fetch installed apps
+  note left : from Android  ""PackageManager""
 
-  loop for each registered module
-    sync -> sync : read exported inputs matching module
+  loop for each app
+    sync -> sync : read exported inputs
 
     loop for each input
-      sync -> gn ++ : **POST** : ""/module/releve""
+      sync -> sync : get module name from input
+      sync -> gn ++ : **POST** : ""api/:module/releve""
       note left
         **input:**
         {
@@ -77,7 +109,7 @@ group Fetch exported inputs for each module
           ...
         }
       end note
-      gn -> sync -- : **201**
+      gn -> sync -- : **200**
       sync -> sync : delete input
     end
 

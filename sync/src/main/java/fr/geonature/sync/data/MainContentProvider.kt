@@ -36,7 +36,7 @@ class MainContentProvider : ContentProvider() {
             DATASET_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Dataset.TABLE_NAME}"
             INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
             INPUT_OBSERVER_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
-            TAXA -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
+            TAXA, TAXA_AREA -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
             TAXON_ID, TAXON_AREA_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
             TAXONOMY, TAXONOMY_KINGDOM -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
             TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
@@ -224,7 +224,10 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val selectedObserverIds =
-            uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()?.toLongArray()
+            uri.lastPathSegment?.split(",")
+                ?.mapNotNull { it.toLongOrNull() }
+                ?.distinct()
+                ?.toLongArray()
                 ?: longArrayOf()
 
         if (selectedObserverIds.size == 1) {

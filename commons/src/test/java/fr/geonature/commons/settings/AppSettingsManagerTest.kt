@@ -6,9 +6,7 @@ import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import fr.geonature.commons.FixtureHelper.getFixtureAsFile
 import fr.geonature.commons.MockitoKotlinHelper.any
 import fr.geonature.commons.MockitoKotlinHelper.eq
-import fr.geonature.commons.observeOnce
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
-import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -22,6 +20,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
+import java.io.File
 
 /**
  * Unit tests about [AppSettingsManager].
@@ -126,12 +125,5 @@ class AppSettingsManagerTest {
             DummyAppSettings("value"),
             appSettings
         )
-        appSettingsManager.appSettings.observeOnce {
-            assertNotNull(it)
-            assertEquals(
-                appSettings,
-                it
-            )
-        }
     }
 }

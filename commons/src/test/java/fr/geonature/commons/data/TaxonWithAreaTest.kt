@@ -4,17 +4,18 @@ import android.database.Cursor
 import android.os.Parcel
 import fr.geonature.commons.data.TaxonWithArea.Companion.defaultProjection
 import fr.geonature.commons.data.TaxonWithArea.Companion.fromCursor
-import java.time.Instant
-import java.util.Date
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
+import java.time.Instant
+import java.util.Date
 
 /**
  * Unit tests about [TaxonWithArea].
@@ -379,6 +380,44 @@ class TaxonWithAreaTest {
                 )
             ),
             defaultProjection()
+        )
+    }
+
+    @Test
+    fun testFilter() {
+        val taxonFilterByAreaColors =
+            TaxonWithArea.Filter()
+                .byAreaColors(
+                    "red",
+                    "grey"
+                )
+                .build()
+
+        assertEquals(
+            "(${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
+            taxonFilterByAreaColors.first
+        )
+        assertTrue(taxonFilterByAreaColors.second.isEmpty())
+
+        val taxonFilterByNameAndAreaColors =
+            (TaxonWithArea.Filter()
+                .byNameOrDescription("as") as TaxonWithArea.Filter)
+                .byAreaColors(
+                    "red",
+                    "grey"
+                )
+                .build()
+
+        assertEquals(
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
+            taxonFilterByNameAndAreaColors.first
+        )
+        assertArrayEquals(
+            arrayOf(
+                "%as%",
+                "%as%"
+            ),
+            taxonFilterByNameAndAreaColors.second
         )
     }
 }

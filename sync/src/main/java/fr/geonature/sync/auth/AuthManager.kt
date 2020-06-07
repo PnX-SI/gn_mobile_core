@@ -10,12 +10,12 @@ import androidx.preference.PreferenceManager
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.auth.io.AuthLoginJsonReader
 import fr.geonature.sync.auth.io.AuthLoginJsonWriter
-import java.util.Calendar
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 /**
  * [AuthLogin] manager.

@@ -1,0 +1,436 @@
+{
+	"info": {
+		"_postman_id": "e359d92f-c48a-4f00-a218-8863a7830fd7",
+		"name": "gn_mobile_core",
+		"description": "Data synchronization endpoints from GeoNature.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/api/auth/login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "64406aee-d4be-4aea-ae28-e4b9ca272b10",
+						"exec": [
+							"var cookie = postman.getResponseHeader(\"Set-Cookie\")",
+							"pm.globals.set(\"cookie\", cookie.split(\";\")[0]);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"login\": \"{{login}}\",\n    \"password\": \"{{password}}\",\n    \"id_application\": {{application_id}}\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/auth/login",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/occtax/releve",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Cookie",
+						"value": "{{cookie}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 137190440,\n    \"module\": \"occtax\",\n    \"geometry\": {\n        \"type\": \"Point\",\n        \"coordinates\": [\n            -1.5386237274626353,\n            47.222886771502594\n        ]\n    },\n    \"properties\": {\n        \"meta_device_entry\": \"mobile\",\n        \"date_min\": \"2020-05-06T19:27:20Z\",\n        \"date_max\": \"2020-05-06T19:27:20Z\",\n        \"id_dataset\": 2,\n        \"id_digitiser\": 4,\n        \"observers\": [\n            4\n        ],\n        \"comment\": null,\n        \"default\": {\n            \"technique_obs\": {\n                \"label\": \"Non renseigné\",\n                \"value\": 316\n            },\n            \"typ_grp\": {\n                \"label\": \"NSP\",\n                \"value\": 132\n            }\n        },\n        \"id_nomenclature_obs_technique\": 316,\n        \"id_nomenclature_grp_typ\": 132,\n        \"t_occurrences_occtax\": [\n            {\n                \"cd_nom\": 531330,\n                \"nom_cite\": \"Abarenicola claparedi\",\n                \"regne\": \"Animalia\",\n                \"group2_inpn\": \"Annélides\",\n                \"properties\": {\n                    \"meth_obs\": {\n                        \"label\": \"Vu\",\n                        \"value\": 41\n                    },\n                    \"eta_bio\": {\n                        \"label\": \"Observé vivant\",\n                        \"value\": 157\n                    },\n                    \"meth_determin\": {\n                        \"label\": \"Non renseigné\",\n                        \"value\": 445\n                    },\n                    \"statut_bio\": {\n                        \"label\": \"Non renseigné\",\n                        \"value\": 29\n                    },\n                    \"naturalite\": {\n                        \"label\": \"Sauvage\",\n                        \"value\": 160\n                    },\n                    \"preuve_exist\": {\n                        \"label\": \"Inconnu\",\n                        \"value\": 81\n                    },\n                    \"counting\": [\n                        {\n                            \"index\": 1,\n                            \"stade_vie\": {\n                                \"label\": \"Indéterminé\",\n                                \"value\": 2\n                            },\n                            \"sexe\": {\n                                \"label\": \"Non renseigné\",\n                                \"value\": 171\n                            },\n                            \"obj_denbr\": {\n                                \"label\": \"Individu\",\n                                \"value\": 146\n                            },\n                            \"typ_denbr\": {\n                                \"label\": \"Ne sait pas\",\n                                \"value\": 94\n                            },\n                            \"min\": 1,\n                            \"max\": 1\n                        }\n                    ]\n                },\n                \"id_nomenclature_obs_meth\": 41,\n                \"id_nomenclature_bio_condition\": 157,\n                \"id_nomenclature_determination_method\": 445,\n                \"id_nomenclature_bio_status\": 29,\n                \"id_nomenclature_naturalness\": 160,\n                \"id_nomenclature_exist_proof\": 81,\n                \"cor_counting_occtax\": [\n                    {\n                        \"id_nomenclature_life_stage\": 2,\n                        \"id_nomenclature_sex\": 171,\n                        \"id_nomenclature_obj_count\": 146,\n                        \"id_nomenclature_type_count\": 94,\n                        \"count_min\": 1,\n                        \"count_max\": 1\n                    }\n                ]\n            }\n        ]\n    }\n}"
+				},
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/occtax/releve",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"occtax",
+						"releve"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/gn_commons/t_mobile_apps",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/gn_commons/t_mobile_apps",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"gn_commons",
+						"t_mobile_apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/meta/datasets",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Cookie",
+						"value": "{{cookie}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/meta/datasets",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"meta",
+						"datasets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/nomenclatures/nomenclatures/taxonomy",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/nomenclatures/nomenclatures/taxonomy",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"nomenclatures",
+						"nomenclatures",
+						"taxonomy"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/{{module}}/defaultNomenclatures",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/{{module}}/defaultNomenclatures",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"{{module}}",
+						"defaultNomenclatures"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/users/menu/{{users_menu_id}}",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json;charset=UTF-8"
+					},
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/users/menu/{{users_menu_id}}",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"menu",
+						"{{users_menu_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/taxref/allnamebylist/{{taxref_list_id}}",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json;charset=UTF-8"
+					},
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{taxHubServerUrl}}/api/taxref/allnamebylist/{{taxref_list_id}}?limit=1000&offset=0",
+					"host": [
+						"{{taxHubServerUrl}}"
+					],
+					"path": [
+						"api",
+						"taxref",
+						"allnamebylist",
+						"{{taxref_list_id}}"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "1000"
+						},
+						{
+							"key": "offset",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/synthese/color_taxon",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{geoNatureServerUrl}}/api/synthese/color_taxon?limit=1000&offset=0",
+					"host": [
+						"{{geoNatureServerUrl}}"
+					],
+					"path": [
+						"api",
+						"synthese",
+						"color_taxon"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "1000"
+						},
+						{
+							"key": "offset",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/api/taxref/regnewithgroupe2",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{taxHubServerUrl}}/api/taxref/regnewithgroupe2",
+					"host": [
+						"{{taxHubServerUrl}}"
+					],
+					"path": [
+						"api",
+						"taxref",
+						"regnewithgroupe2"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "9e07829e-3973-4d78-8842-728046ed7d9b",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "2cd8b10d-2165-4124-8128-2e061c816fea",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "f6cd18af-0dc0-4727-9cd2-70ec6e929203",
+			"key": "geoNatureServerUrl",
+			"value": "http://demo.geonature.fr/geonature",
+			"type": "string"
+		},
+		{
+			"id": "cb293c28-d001-4495-8fc6-91db8501fe0b",
+			"key": "taxHubServerUrl",
+			"value": "http://demo.geonature.fr/taxhub",
+			"type": "string"
+		},
+		{
+			"id": "d4a1b7a1-f8ed-454f-8dce-523d0945ffa7",
+			"key": "module",
+			"value": "occtax",
+			"type": "string"
+		},
+		{
+			"id": "f0a02508-c55f-4c31-9935-ccc32dcf00cb",
+			"key": "login",
+			"value": "admin",
+			"type": "string"
+		},
+		{
+			"id": "2ac4db67-1cef-406f-a4c6-b3e384213129",
+			"key": "password",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "2728c59e-b46e-40e1-bc20-24022eee8119",
+			"key": "application_id",
+			"value": "3",
+			"type": "string"
+		},
+		{
+			"id": "30e1467f-3cdd-4e24-bcbd-2b7f38b85ba4",
+			"key": "users_menu_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"id": "49418d17-f5ed-41f5-8048-da8f8b632167",
+			"key": "taxref_list_id",
+			"value": "100",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -291,12 +291,14 @@ class TaxonTest {
     @Test
     fun testFilter() {
         val taxonFilterByNameAndTaxonomy =
-            (Taxon.Filter().byNameOrDescription("as") as Taxon.Filter).byTaxonomy(
-                Taxonomy(
-                    "Animalia",
-                    "Ascidies"
+            Taxon.Filter()
+                .byNameOrDescription("as")
+                .byTaxonomy(
+                    Taxonomy(
+                        "Animalia",
+                        "Ascidies"
+                    )
                 )
-            )
                 .build()
 
         assertEquals(
@@ -314,11 +316,13 @@ class TaxonTest {
         )
 
         val taxonFilterByNameAndKingdom =
-            (Taxon.Filter().byNameOrDescription("as") as Taxon.Filter).byTaxonomy(
-                Taxonomy(
-                    "Animalia"
+            Taxon.Filter()
+                .byNameOrDescription("as")
+                .byTaxonomy(
+                    Taxonomy(
+                        "Animalia"
+                    )
                 )
-            )
                 .build()
 
         assertEquals(
