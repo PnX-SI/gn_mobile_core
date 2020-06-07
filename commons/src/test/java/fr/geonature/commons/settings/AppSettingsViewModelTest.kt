@@ -31,7 +31,7 @@ class AppSettingsViewModelTest {
     private lateinit var onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
 
     @Mock
-    private lateinit var observer: Observer<DummyAppSettings>
+    private lateinit var observer: Observer<DummyAppSettings?>
 
     private lateinit var application: Application
     private lateinit var appSettingsViewModel: DummyAppSettingsViewModel
@@ -52,7 +52,7 @@ class AppSettingsViewModelTest {
             )
         )
         appSettingsManager = spy(appSettingsViewModel.appSettingsManager)
-        appSettingsManager.appSettings.observeForever(observer)
+        appSettingsViewModel.loadAppSettings().observeForever(observer)
     }
 
     @Test
