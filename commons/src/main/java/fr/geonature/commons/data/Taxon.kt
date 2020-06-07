@@ -120,10 +120,12 @@ class Taxon : AbstractTaxon {
                     )
                 )
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                e.message?.run {
+                    Log.w(
+                        TAG,
+                        this
+                    )
+                }
 
                 null
             }
@@ -145,53 +147,5 @@ class Taxon : AbstractTaxon {
     /**
      * Filter query builder.
      */
-    class Filter : AbstractTaxon.Filter(TABLE_NAME) {
-
-        /**
-         * Filter by taxonomy.
-         *
-         * @return this
-         */
-        fun byTaxonomy(taxonomy: Taxonomy): Filter {
-            if (taxonomy.isAny()) {
-                return this
-            }
-
-            if (taxonomy.group == Taxonomy.ANY) {
-                return byKingdom(taxonomy.kingdom)
-            }
-
-            this.wheres.add(
-                Pair(
-                    "((${Taxonomy.getColumnAlias(
-                        Taxonomy.COLUMN_KINGDOM, tableAlias
-                    )} = ?) AND (${Taxonomy.getColumnAlias(
-                        Taxonomy.COLUMN_GROUP,
-                        tableAlias
-                    )} = ?))",
-                    arrayOf(taxonomy.kingdom, taxonomy.group)
-                )
-            )
-
-            return this
-        }
-
-        /**
-         * Filter by taxonomy kingdom.
-         *
-         * @return this
-         */
-        fun byKingdom(kingdom: String): Filter {
-            this.wheres.add(
-                Pair(
-                    "(${Taxonomy.getColumnAlias(
-                        Taxonomy.COLUMN_KINGDOM, tableAlias
-                    )} = ?)",
-                    arrayOf(kingdom)
-                )
-            )
-
-            return this
-        }
-    }
+    class Filter : AbstractTaxon.Filter(TABLE_NAME)
 }

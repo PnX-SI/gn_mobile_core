@@ -116,4 +116,40 @@ class TaxonWithArea : AbstractTaxon {
                 }
             }
     }
+
+    /**
+     * Filter query builder.
+     */
+    class Filter : AbstractTaxon.Filter(Taxon.TABLE_NAME) {
+
+        /**
+         * Filter by area 'colors'.
+         *
+         * @return this
+         */
+        fun byAreaColors(vararg color: String): AbstractTaxon.Filter {
+            if (color.isEmpty()) {
+                return this
+            }
+
+            this.wheres.add(
+                Pair(
+                    "(${getColumnAlias(
+                        TaxonArea.COLUMN_COLOR,
+                        TaxonArea.TABLE_NAME
+                    )} IN (${color.filter { it != "none" }
+                        .joinToString(", ") { "'${it}'" }})${color.find { it == "none" }
+                        ?.let {
+                            " OR (${getColumnAlias(
+                                TaxonArea.COLUMN_COLOR,
+                                TaxonArea.TABLE_NAME
+                            )} IS NULL)"
+                        } ?: ""})",
+                    null
+                )
+            )
+
+            return this
+        }
+    }
 }
