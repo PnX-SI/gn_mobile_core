@@ -12,17 +12,18 @@ import androidx.recyclerview.widget.RecyclerView
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnListItemRecyclerViewAdapterListener<T>) :
+abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnListItemRecyclerViewAdapterListener<T>? = null) :
     RecyclerView.Adapter<AbstractListItemRecyclerViewAdapter<T>.AbstractViewHolder>() {
 
-    internal val items = mutableListOf<T>()
+    private val _items = mutableListOf<T>()
+    val items: List<T> = _items
 
     init {
         this.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 super.onChanged()
 
-                listener.showEmptyTextView(itemCount == 0)
+                listener?.showEmptyTextView(itemCount == 0)
             }
 
             override fun onItemRangeChanged(
@@ -34,7 +35,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                     itemCount
                 )
 
-                listener.showEmptyTextView(itemCount == 0)
+                listener?.showEmptyTextView(itemCount == 0)
             }
 
             override fun onItemRangeInserted(
@@ -46,7 +47,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                     itemCount
                 )
 
-                listener.showEmptyTextView(false)
+                listener?.showEmptyTextView(false)
             }
 
             override fun onItemRangeRemoved(
@@ -58,7 +59,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                     itemCount
                 )
 
-                listener.showEmptyTextView(itemCount == 0)
+                listener?.showEmptyTextView(itemCount == 0)
             }
         })
     }
@@ -79,23 +80,20 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
     }
 
     override fun getItemCount(): Int {
-        return items.size
+        return _items.size
     }
 
     override fun onBindViewHolder(
         holder: AbstractViewHolder,
         position: Int
     ) {
-        holder.bind(
-            position,
-            items[position]
-        )
+        holder.bind(_items[position])
     }
 
     override fun getItemViewType(position: Int): Int {
         return getLayoutResourceId(
             position,
-            items[position]
+            _items[position]
         )
     }
 
@@ -103,13 +101,13 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
      * Sets new items.
      */
     fun setItems(newItems: List<T>) {
-        if (this.items.isEmpty()) {
-            this.items.addAll(newItems)
+        if (this._items.isEmpty()) {
+            this._items.addAll(newItems)
 
-            if (this.items.isNotEmpty()) {
+            if (this._items.isNotEmpty()) {
                 notifyItemRangeInserted(
                     0,
-                    this.items.size
+                    this._items.size
                 )
             } else {
                 notifyDataSetChanged()
@@ -119,7 +117,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
         }
 
         if (newItems.isEmpty()) {
-            this.items.clear()
+            this._items.clear()
             notifyDataSetChanged()
 
             return
@@ -127,7 +125,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
 
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize(): Int {
-                return this@AbstractListItemRecyclerViewAdapter.items.size
+                return this@AbstractListItemRecyclerViewAdapter._items.size
             }
 
             override fun getNewListSize(): Int {
@@ -139,7 +137,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                 newItemPosition: Int
             ): Boolean {
                 return this@AbstractListItemRecyclerViewAdapter.areItemsTheSame(
-                    this@AbstractListItemRecyclerViewAdapter.items,
+                    this@AbstractListItemRecyclerViewAdapter._items,
                     newItems,
                     oldItemPosition,
                     newItemPosition
@@ -151,7 +149,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
                 newItemPosition: Int
             ): Boolean {
                 return this@AbstractListItemRecyclerViewAdapter.areContentsTheSame(
-                    this@AbstractListItemRecyclerViewAdapter.items,
+                    this@AbstractListItemRecyclerViewAdapter._items,
                     newItems,
                     oldItemPosition,
                     newItemPosition
@@ -159,8 +157,8 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
             }
         })
 
-        this.items.clear()
-        this.items.addAll(newItems)
+        this._items.clear()
+        this._items.addAll(newItems)
 
         diffResult.dispatchUpdatesTo(this)
     }
@@ -172,8 +170,8 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
         item: T,
         index: Int = -1
     ) {
-        val position = if (index < 0 || index > this.items.size) this.items.size else index
-        this.items.add(
+        val position = if (index < 0 || index > this._items.size) this._items.size else index
+        this._items.add(
             position,
             item
         )
@@ -187,13 +185,13 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
      * @return item position if successfully removed, -1 otherwise
      */
     fun remove(item: T): Int {
-        val itemPosition = this.items.indexOf(item)
-        val removed = this.items.remove(item)
+        val itemPosition = this._items.indexOf(item)
+        val removed = this._items.remove(item)
 
         if (removed) {
             notifyItemRemoved(itemPosition)
 
-            if (this.items.isEmpty()) {
+            if (this._items.isEmpty()) {
                 notifyDataSetChanged()
             }
         }
@@ -205,7 +203,7 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
      * Clear the list.
      */
     fun clear(notify: Boolean = true) {
-        this.items.clear()
+        this._items.clear()
 
         if (notify) {
             notifyDataSetChanged()
@@ -250,22 +248,21 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
     ): Boolean
 
     abstract inner class AbstractViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(
-            position: Int,
-            item: T
-        ) {
+        open fun bind(item: T) {
             onBind(item)
 
-            with(itemView) {
-                setOnClickListener {
-                    listener.onClick(item)
-                }
-                setOnLongClickListener {
-                    listener.onLongClicked(
-                        position,
-                        item
-                    )
-                    true
+            listener?.also { l ->
+                with(itemView) {
+                    setOnClickListener {
+                        l.onClick(item)
+                    }
+                    setOnLongClickListener {
+                        l.onLongClicked(
+                            adapterPosition,
+                            item
+                        )
+                        true
+                    }
                 }
             }
         }
