@@ -15,6 +15,7 @@ data class AppSettings(
     var applicationId: Int = 0,
     var usersListId: Int = 0,
     var taxrefListId: Int = 0,
+    var codeAreaType: String? = null,
     var pageSize: Int = DEFAULT_PAGE_SIZE,
     var pageMaxRetry: Int = DEFAULT_PAGE_MAX_RETRY
 ) : IAppSettings {
@@ -25,6 +26,7 @@ data class AppSettings(
         source.readInt(),
         source.readInt(),
         source.readInt(),
+        source.readString(),
         source.readInt(),
         source.readInt()
     )
@@ -43,6 +45,7 @@ data class AppSettings(
             it.writeInt(applicationId)
             it.writeInt(usersListId)
             it.writeInt(taxrefListId)
+            it.writeString(codeAreaType)
             it.writeInt(pageSize)
             it.writeInt(pageMaxRetry)
         }

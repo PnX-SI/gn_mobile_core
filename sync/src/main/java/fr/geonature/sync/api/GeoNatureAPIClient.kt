@@ -39,7 +39,7 @@ class GeoNatureAPIClient private constructor(
     private val taxHubService: TaxHubService
 
     init {
-        val authManager = AuthManager(context)
+        val authManager = AuthManager.getInstance(context)
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
             redactHeader("Authorization")
@@ -147,8 +147,13 @@ class GeoNatureAPIClient private constructor(
         )
     }
 
-    fun getTaxrefAreas(limit: Int? = null, offset: Int? = null): Call<List<TaxrefArea>> {
+    fun getTaxrefAreas(
+        codeAreaType: String? = null,
+        limit: Int? = null,
+        offset: Int? = null
+    ): Call<List<TaxrefArea>> {
         return geoNatureService.getTaxrefAreas(
+            codeAreaType,
             limit,
             offset
         )
