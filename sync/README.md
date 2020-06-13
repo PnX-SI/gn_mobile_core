@@ -1,7 +1,9 @@
 # Sync
 
-![PNV](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xxxhdpi/ic_launcher.png)
+![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xxxhdpi/ic_launcher.png)
 ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xxxhdpi/ic_launcher.png)
+![PNM](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xxxhdpi/ic_launcher.png)
+![PNV](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xxxhdpi/ic_launcher.png)
 
 Synchronize local database through GeoNature API:
 
