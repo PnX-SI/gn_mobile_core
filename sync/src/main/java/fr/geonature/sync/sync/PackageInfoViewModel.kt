@@ -91,7 +91,7 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                             _appSettingsUpdated.postValue(true)
                         }
 
-                        if (it.versionCode > BuildConfig.VERSION_CODE) {
+                        if (!it.apkUrl.isNullOrEmpty()) {
                             value = it
                         }
                     }
