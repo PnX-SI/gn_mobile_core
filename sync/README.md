@@ -1,7 +1,9 @@
 # Sync
 
-![PNV](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xxxhdpi/ic_launcher.png)
+![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xxxhdpi/ic_launcher.png)
 ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xxxhdpi/ic_launcher.png)
+![PNM](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xxxhdpi/ic_launcher.png)
+![PNV](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xxxhdpi/ic_launcher.png)
 
 Synchronize local database through GeoNature API:
 
@@ -35,6 +37,7 @@ Example:
 | `uh_application_id` | &#9744; | GeoNature application ID in UsersHub                   |               |
 | `observers_list_id` | &#9744; | GeoNature selected observer list ID in UsersHub        |               |
 | `taxa_list_id`      | &#9744; | GeoNature selected taxa list ID                        |               |
+| `code_area_type`    | &#9744; | GeoNature selected area type                           |               |
 | `page_size`         | &#9744; | Default page size while fetching paginated values      | 1000          |
 | `page_max_retry`    | &#9744; | Max attempt to fetch data according to given page size | 20            |
 

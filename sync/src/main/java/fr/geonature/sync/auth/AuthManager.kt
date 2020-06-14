@@ -1,6 +1,5 @@
 package fr.geonature.sync.auth
 
-import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
@@ -22,10 +21,10 @@ import java.util.Calendar
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AuthManager(context: Context) {
+class AuthManager private constructor(applicationContext: Context) {
 
     internal val preferenceManager: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(context)
+        PreferenceManager.getDefaultSharedPreferences(applicationContext)
     private val authLoginJsonReader = AuthLoginJsonReader()
     private val authLoginJsonWriter = AuthLoginJsonWriter()
 
@@ -120,13 +119,13 @@ class AuthManager(context: Context) {
 
         /** Gets the singleton instance of [AuthManager].
          *
-         * @param application The main context context.
+         * @param applicationContext The main application context.
          *
          * @return The singleton instance of [AuthManager].
          */
         @Suppress("UNCHECKED_CAST")
-        fun getInstance(application: Application): AuthManager = INSTANCE ?: synchronized(this) {
-            INSTANCE ?: AuthManager(application).also { INSTANCE = it }
+        fun getInstance(applicationContext: Context): AuthManager = INSTANCE ?: synchronized(this) {
+            INSTANCE ?: AuthManager(applicationContext).also { INSTANCE = it }
         }
     }
 }

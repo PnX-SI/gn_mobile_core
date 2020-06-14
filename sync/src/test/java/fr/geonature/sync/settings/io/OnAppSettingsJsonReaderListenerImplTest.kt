@@ -46,6 +46,7 @@ class OnAppSettingsJsonReaderListenerImplTest {
                 3,
                 1,
                 100,
+                "M1",
                 100,
                 5
             ),

@@ -101,6 +101,7 @@ class DataSyncWorker(
                 INPUT_TAXREF_LIST_ID,
                 0
             ),
+            inputData.getString(INPUT_CODE_AREA_TYPE),
             inputData.getInt(
                 INPUT_PAGE_SIZE,
                 AppSettings.DEFAULT_PAGE_SIZE
@@ -196,12 +197,12 @@ class DataSyncWorker(
 
             val users = response.body() ?: return Result.failure()
             val inputObservers = users.map {
-                    InputObserver(
-                        it.id,
-                        it.lastname,
-                        it.firstname
-                    )
-                }
+                InputObserver(
+                    it.id,
+                    it.lastname,
+                    it.firstname
+                )
+            }
                 .toTypedArray()
 
             Log.i(
@@ -272,6 +273,7 @@ class DataSyncWorker(
     private suspend fun syncTaxa(
         geoNatureServiceClient: GeoNatureAPIClient,
         listId: Int,
+        codeAreaType: String?,
         pageSize: Int,
         pageMaxRetry: Int
     ): Result {
@@ -284,10 +286,10 @@ class DataSyncWorker(
             // fetch all taxa from paginated list
             do {
                 val taxrefResponse = geoNatureServiceClient.getTaxref(
-                        listId,
-                        pageSize,
-                        offset
-                    )
+                    listId,
+                    pageSize,
+                    offset
+                )
                     .awaitResponse()
 
                 if (checkResponse(taxrefResponse) is Result.Failure) {
@@ -351,9 +353,10 @@ class DataSyncWorker(
             // fetch all taxa metadata from paginated list
             do {
                 val taxrefAreasResponse = geoNatureServiceClient.getTaxrefAreas(
-                        pageSize,
-                        offset
-                    )
+                    codeAreaType,
+                    pageSize,
+                    offset
+                )
                     .awaitResponse()
 
                 if (checkResponse(taxrefAreasResponse) is Result.Failure) {
@@ -367,6 +370,11 @@ class DataSyncWorker(
                     hasNext = false
                     continue
                 }
+
+                Log.i(
+                    TAG,
+                    "found ${taxrefAreas.size} taxa with areas from offset $offset"
+                )
 
                 val taxonAreas = taxrefAreas.asSequence()
                     .filter { taxrefArea -> validTaxaIds.any { it == taxrefArea.taxrefId } }
@@ -388,7 +396,7 @@ class DataSyncWorker(
 
                 Log.i(
                     TAG,
-                    "taxa with areas to update: ${offset + taxonAreas.size}"
+                    "updating ${taxonAreas.size} taxa with areas from offset $offset"
                 )
 
                 offset += pageSize
@@ -427,12 +435,12 @@ class DataSyncWorker(
                 .filter { it.nomenclatures.isNotEmpty() }
 
             val nomenclatureTypesToUpdate = validNomenclatureTypesToUpdate.map {
-                    NomenclatureType(
-                        it.id,
-                        it.mnemonic,
-                        it.defaultLabel
-                    )
-                }
+                NomenclatureType(
+                    it.id,
+                    it.mnemonic,
+                    it.defaultLabel
+                )
+            }
                 .toList()
                 .toTypedArray()
 
@@ -451,18 +459,18 @@ class DataSyncWorker(
             )
 
             val nomenclaturesToUpdate = validNomenclatureTypesToUpdate.map { nomenclatureType ->
-                    nomenclatureType.nomenclatures.asSequence()
-                        .filter { it.id > 0 }
-                        .map {
-                            Nomenclature(
-                                it.id,
-                                it.code,
-                                if (TextUtils.isEmpty(it.hierarchy)) nomenclatureType.id.toString() else it.hierarchy!!,
-                                it.defaultLabel,
-                                nomenclatureType.id
-                            )
-                        }
-                }
+                nomenclatureType.nomenclatures.asSequence()
+                    .filter { it.id > 0 }
+                    .map {
+                        Nomenclature(
+                            it.id,
+                            it.code,
+                            if (TextUtils.isEmpty(it.hierarchy)) nomenclatureType.id.toString() else it.hierarchy!!,
+                            it.defaultLabel,
+                            nomenclatureType.id
+                        )
+                    }
+            }
                 .flatMap { it.asSequence() }
                 .toList()
                 .toTypedArray()
@@ -620,6 +628,7 @@ class DataSyncWorker(
 
         const val INPUT_USERS_MENU_ID = "usersMenuId"
         const val INPUT_TAXREF_LIST_ID = "taxrefListId"
+        const val INPUT_CODE_AREA_TYPE = "codeAreaType"
         const val INPUT_PAGE_SIZE = "pageSize"
         const val INPUT_PAGE_MAX_RETRY = "pageMaxRetry"
     }

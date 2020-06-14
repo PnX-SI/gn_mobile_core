@@ -50,6 +50,7 @@ interface GeoNatureService {
 
     @GET("api/synthese/color_taxon")
     fun getTaxrefAreas(
+        @Query("code_area_type") codeAreaType: String? = null,
         @Query("limit") limit: Int? = null,
         @Query("offset") offset: Int? = null
     ): Call<List<TaxrefArea>>

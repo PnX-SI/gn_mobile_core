@@ -401,7 +401,7 @@ class HomeActivity : AppCompatActivity() {
             adapter.clear(false)
             progressBar?.visibility = View.VISIBLE
 
-            delay(250)
+            delay(500)
 
             dataSyncViewModel.startSync(appSettings)
 

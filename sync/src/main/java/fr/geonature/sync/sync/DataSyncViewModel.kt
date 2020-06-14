@@ -95,6 +95,10 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                         DataSyncWorker.INPUT_TAXREF_LIST_ID,
                         appSettings.taxrefListId
                     )
+                    .putString(
+                        DataSyncWorker.INPUT_CODE_AREA_TYPE,
+                        appSettings.codeAreaType
+                    )
                     .putInt(
                         DataSyncWorker.INPUT_PAGE_SIZE,
                         appSettings.pageSize
@@ -112,7 +116,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
         val continuation = workManager.beginUniqueWork(
             DataSyncWorker.DATA_SYNC_WORKER,
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             dataSyncWorkRequest
         )
 
