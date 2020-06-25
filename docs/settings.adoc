@@ -9,7 +9,10 @@
   "taxhub_url": "http://demo.geonature/taxhub",
   "uh_application_id": 3,
   "observers_list_id": 1,
-  "taxa_list_id": 100
+  "taxa_list_id": 100,
+  "code_area_type": "M1",
+  "page_size": 1000,
+  "page_max_retry": 100
 }
 ----
 
@@ -40,6 +43,11 @@
 | `taxa_list_id`
 | &#9744;
 | GeoNature selected taxa list ID in UsersHub
+|
+
+| `code_area_type`
+| &#9744;
+| GeoNature selected area type
 |
 
 | `page_size`
