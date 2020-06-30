@@ -510,6 +510,11 @@ class DataSyncWorker(
                 "nomenclature to update: ${nomenclaturesToUpdate.size}"
             )
 
+            val taxonomyToUpdate = nomenclaturesTaxonomyToUpdate.asSequence()
+                .map { it.taxonomy }
+                .toList()
+                .toTypedArray()
+
             setProgress(
                 workData(
                     applicationContext.getString(
@@ -570,6 +575,8 @@ class DataSyncWorker(
                         .insert(*nomenclatureTypesToUpdate)
                     this.nomenclatureDao()
                         .insert(*nomenclaturesToUpdate)
+                    this.taxonomyDao()
+                        .insertOrIgnore(*taxonomyToUpdate)
                     this.nomenclatureTaxonomyDao()
                         .insert(*nomenclaturesTaxonomyToUpdate)
                     this.defaultNomenclatureDao()

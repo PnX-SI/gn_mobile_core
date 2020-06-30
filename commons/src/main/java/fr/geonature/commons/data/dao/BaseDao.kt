@@ -39,12 +39,20 @@ abstract class BaseDao<T> {
     }
 
     /**
-     * Insert an array of objects in database.
+     * Insert an array of objects in database (Replace strategy on conflict).
      *
      * @param entity the objects to be inserted.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insert(vararg entity: T)
+
+    /**
+     * Insert an array of objects in database (Ignore strategy on conflict).
+     *
+     * @param entity the objects to be inserted.
+     */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract fun insertOrIgnore(vararg entity: T)
 
     /**
      * Select entities from given raw query.
