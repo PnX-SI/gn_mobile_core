@@ -34,8 +34,8 @@ class TaxonTest {
                     "Animalia",
                     "Ascidies"
                 ),
-                "desc",
-                true
+                null,
+                "desc"
             ),
             Taxon(
                 1234,
@@ -44,8 +44,8 @@ class TaxonTest {
                     "Animalia",
                     "Ascidies"
                 ),
-                "desc",
-                true
+                null,
+                "desc"
             )
         )
 
@@ -57,7 +57,9 @@ class TaxonTest {
                     "Animalia",
                     "Ascidies"
                 ),
-                "desc"
+                "taxon_01_common",
+                "desc",
+                "ES - 1234"
             ),
             Taxon(
                 1234,
@@ -66,7 +68,9 @@ class TaxonTest {
                     "Animalia",
                     "Ascidies"
                 ),
-                "desc"
+                "taxon_01_common",
+                "desc",
+                "ES - 1234"
             )
         )
 
@@ -104,8 +108,9 @@ class TaxonTest {
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
-        `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getInt(5)).thenReturn(1)
+        `when`(cursor.getString(4)).thenReturn("taxon_01_common")
+        `when`(cursor.getString(5)).thenReturn("desc")
+        `when`(cursor.getString(6)).thenReturn("ES - 1234")
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -120,8 +125,9 @@ class TaxonTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                "taxon_01_common",
                 "desc",
-                true
+                "ES - 1234"
             ),
             taxon
         )
@@ -136,11 +142,11 @@ class TaxonTest {
             when (c) {
                 in arrayOf(
                     column(
-                        AbstractTaxon.COLUMN_DESCRIPTION,
+                        AbstractTaxon.COLUMN_NAME_COMMON,
                         Taxon.TABLE_NAME
                     ),
                     column(
-                        AbstractTaxon.COLUMN_HERITAGE,
+                        AbstractTaxon.COLUMN_DESCRIPTION,
                         Taxon.TABLE_NAME
                     )
                 ) -> {
@@ -198,11 +204,11 @@ class TaxonTest {
             when (c) {
                 in arrayOf(
                     column(
-                        AbstractTaxon.COLUMN_DESCRIPTION,
+                        AbstractTaxon.COLUMN_NAME_COMMON,
                         Taxon.TABLE_NAME
                     ),
                     column(
-                        AbstractTaxon.COLUMN_HERITAGE,
+                        AbstractTaxon.COLUMN_DESCRIPTION,
                         Taxon.TABLE_NAME
                     )
                 ) -> {
@@ -234,8 +240,9 @@ class TaxonTest {
                 "Animalia",
                 "Ascidies"
             ),
+            "taxon_01_common",
             "desc",
-            true
+            "ES - 1234"
         )
 
         // when we obtain a Parcel object to write the Taxon instance to it
@@ -276,12 +283,16 @@ class TaxonTest {
                     "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"
                 ),
                 Pair(
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_NAME_COMMON}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON}"
+                ),
+                Pair(
                     "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_DESCRIPTION}\"",
                     "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"
                 ),
                 Pair(
-                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_HERITAGE}\"",
-                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}"
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_RANK}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK}"
                 )
             ),
             defaultProjection()
@@ -292,7 +303,7 @@ class TaxonTest {
     fun testFilter() {
         val taxonFilterByNameAndTaxonomy =
             Taxon.Filter()
-                .byNameOrDescription("as")
+                .byNameOrDescriptionOrRank("as")
                 .byTaxonomy(
                     Taxonomy(
                         "Animalia",
@@ -302,11 +313,13 @@ class TaxonTest {
                 .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
             taxonFilterByNameAndTaxonomy.first
         )
         assertArrayEquals(
             arrayOf(
+                "%as%",
+                "%as%",
                 "%as%",
                 "%as%",
                 "Animalia",
@@ -317,7 +330,7 @@ class TaxonTest {
 
         val taxonFilterByNameAndKingdom =
             Taxon.Filter()
-                .byNameOrDescription("as")
+                .byNameOrDescriptionOrRank("as")
                 .byTaxonomy(
                     Taxonomy(
                         "Animalia"
@@ -326,11 +339,13 @@ class TaxonTest {
                 .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
             taxonFilterByNameAndKingdom.first
         )
         assertArrayEquals(
             arrayOf(
+                "%as%",
+                "%as%",
                 "%as%",
                 "%as%",
                 "Animalia"

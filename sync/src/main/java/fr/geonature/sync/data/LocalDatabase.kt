@@ -46,7 +46,7 @@ import fr.geonature.sync.data.dao.TaxonomyDao
         NomenclatureTaxonomy::class,
         DefaultNomenclature::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = false
 )
 abstract class LocalDatabase : RoomDatabase() {

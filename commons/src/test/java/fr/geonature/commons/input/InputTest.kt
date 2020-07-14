@@ -5,7 +5,6 @@ import fr.geonature.commons.data.InputObserver
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.Taxonomy
 import fr.geonature.commons.util.toDate
-import java.util.Calendar
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -13,6 +12,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.util.Calendar
 
 /**
  * Unit tests about [AbstractInput].
@@ -89,8 +89,14 @@ class InputTest {
 
         // then
         assertNull(input.getPrimaryObserverId())
-        assertTrue(input.getAllInputObserverIds().isEmpty())
-        assertTrue(input.getInputObserverIds().isEmpty())
+        assertTrue(
+            input.getAllInputObserverIds()
+                .isEmpty()
+        )
+        assertTrue(
+            input.getInputObserverIds()
+                .isEmpty()
+        )
 
         // when setting the primary input observer
         input.setPrimaryInputObserver(
@@ -108,9 +114,13 @@ class InputTest {
         )
         assertArrayEquals(
             longArrayOf(6),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
-        assertTrue(input.getInputObserverIds().isEmpty())
+        assertTrue(
+            input.getInputObserverIds()
+                .isEmpty()
+        )
 
         // when adding some input observers
         input.also {
@@ -129,14 +139,16 @@ class InputTest {
                 3,
                 4
             ),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
         assertArrayEquals(
             longArrayOf(
                 3,
                 4
             ),
-            input.getInputObserverIds().toLongArray()
+            input.getInputObserverIds()
+                .toLongArray()
         )
     }
 
@@ -157,7 +169,8 @@ class InputTest {
         // then
         assertArrayEquals(
             longArrayOf(1),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
 
         // when adding additional input observers
@@ -177,7 +190,8 @@ class InputTest {
                 1,
                 2
             ),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
 
         // when adding additional input observers first and then setting the primary input observer
@@ -199,7 +213,8 @@ class InputTest {
                 5,
                 6
             ),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
     }
 
@@ -244,7 +259,8 @@ class InputTest {
                 3,
                 5
             ),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
 
         // when adding additional input observers with one duplicate
@@ -275,7 +291,8 @@ class InputTest {
                 8,
                 6
             ),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
     }
 
@@ -313,7 +330,8 @@ class InputTest {
                 3,
                 5
             ),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
 
         // when adding new input observer
@@ -327,7 +345,8 @@ class InputTest {
                 5,
                 7
             ),
-            input.getAllInputObserverIds().toLongArray()
+            input.getAllInputObserverIds()
+                .toLongArray()
         )
     }
 
@@ -345,8 +364,7 @@ class InputTest {
                     Taxonomy(
                         "Animalia",
                         "Ascidies"
-                    ),
-                    null
+                    )
                 )
             )
         )
@@ -361,12 +379,12 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             ),
-            input.getInputTaxa().toTypedArray()
+            input.getInputTaxa()
+                .toTypedArray()
         )
 
         // when adding existing input taxon
@@ -378,8 +396,7 @@ class InputTest {
                     Taxonomy(
                         "Animalia",
                         "Ascidies"
-                    ),
-                    null
+                    )
                 )
             )
         )
@@ -394,12 +411,12 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             ),
-            input.getInputTaxa().toTypedArray()
+            input.getInputTaxa()
+                .toTypedArray()
         )
     }
 
@@ -415,8 +432,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -428,8 +444,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -441,8 +456,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -459,8 +473,7 @@ class InputTest {
                 Taxonomy(
                     "Animalia",
                     "Ascidies"
-                ),
-                null
+                )
             ),
             input.getCurrentSelectedInputTaxon()?.taxon
         )
@@ -473,8 +486,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 ),
                 DummyInputTaxon(
@@ -484,12 +496,12 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             ),
-            input.getInputTaxa().toTypedArray()
+            input.getInputTaxa()
+                .toTypedArray()
         )
 
         // when remove the current selected input taxon
@@ -506,12 +518,12 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             ),
-            input.getInputTaxa().toTypedArray()
+            input.getInputTaxa()
+                .toTypedArray()
         )
     }
 
@@ -540,8 +552,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -553,8 +564,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -566,8 +576,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -581,8 +590,7 @@ class InputTest {
                 Taxonomy(
                     "Animalia",
                     "Ascidies"
-                ),
-                null
+                )
             ),
             input.getCurrentSelectedInputTaxon()?.taxon
         )
@@ -598,8 +606,7 @@ class InputTest {
                 Taxonomy(
                     "Animalia",
                     "Ascidies"
-                ),
-                null
+                )
             ),
             input.getCurrentSelectedInputTaxon()?.taxon
         )
@@ -624,8 +631,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -637,8 +643,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -650,8 +655,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -665,8 +669,7 @@ class InputTest {
                 Taxonomy(
                     "Animalia",
                     "Ascidies"
-                ),
-                null
+                )
             ),
             input.getLastAddedInputTaxon()?.taxon
         )
@@ -687,8 +690,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -700,8 +702,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -713,8 +714,7 @@ class InputTest {
                         Taxonomy(
                             "Animalia",
                             "Ascidies"
-                        ),
-                        null
+                        )
                     )
                 )
             )
@@ -728,8 +728,7 @@ class InputTest {
                 Taxonomy(
                     "Animalia",
                     "Ascidies"
-                ),
-                null
+                )
             ),
             input.getCurrentSelectedInputTaxon()?.taxon
         )
@@ -772,8 +771,7 @@ class InputTest {
                             Taxonomy(
                                 "Animalia",
                                 "Ascidies"
-                            ),
-                            null
+                            )
                         )
                     )
                 )

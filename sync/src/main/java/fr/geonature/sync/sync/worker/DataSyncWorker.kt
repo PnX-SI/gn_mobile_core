@@ -28,6 +28,7 @@ import retrofit2.Response
 import retrofit2.awaitResponse
 import java.io.BufferedReader
 import java.util.Date
+import java.util.Locale
 
 /**
  * Local data synchronization worker.
@@ -305,15 +306,21 @@ class DataSyncWorker(
                 }
 
                 val taxa = taxref.asSequence()
-                    .map {
+                    .map { taxRef ->
                         Taxon(
-                            it.id,
-                            it.name,
+                            taxRef.id,
+                            taxRef.name,
                             Taxonomy(
-                                it.kingdom,
-                                it.group
+                                taxRef.kingdom,
+                                taxRef.group
                             ),
-                            it.description
+                            taxRef.commonName,
+                            taxRef.fullName,
+                            ".+\\[(\\w+) - \\d+]".toRegex()
+                                .find(taxRef.description)
+                                ?.groupValues
+                                ?.elementAtOrNull(1)
+                                ?.let { "${it.toUpperCase(Locale.ROOT)} - ${taxRef.id}" }
                         )
                     }
                     .onEach {
