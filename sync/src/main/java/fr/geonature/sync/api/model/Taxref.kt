@@ -21,7 +21,7 @@ data class Taxref(
     val fullName: String,
 
     @SerializedName("nom_vern")
-    val commonName: String,
+    val commonName: String?,
 
     @SerializedName("search_name")
     val description: String,
