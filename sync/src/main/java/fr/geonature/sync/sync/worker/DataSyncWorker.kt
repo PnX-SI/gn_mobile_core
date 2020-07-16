@@ -309,13 +309,13 @@ class DataSyncWorker(
                     .map { taxRef ->
                         Taxon(
                             taxRef.id,
-                            taxRef.name,
+                            taxRef.name.trim(),
                             Taxonomy(
                                 taxRef.kingdom,
                                 taxRef.group
                             ),
-                            taxRef.commonName,
-                            taxRef.fullName,
+                            taxRef.commonName?.trim(),
+                            taxRef.fullName.trim(),
                             ".+\\[(\\w+) - \\d+]".toRegex()
                                 .find(taxRef.description)
                                 ?.groupValues
