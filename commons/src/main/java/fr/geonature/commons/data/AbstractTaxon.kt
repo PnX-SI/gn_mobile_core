@@ -320,6 +320,30 @@ abstract class AbstractTaxon : Parcelable {
         }
 
         /**
+         * Adds an ORDER BY statement on 'name_common' column and on 'name' column as default if 'name_common' column is null.
+         *
+         * @param orderingTerm The ordering sort order (default: `ASC`).
+         *
+         * @return this
+         */
+        fun byCommonName(orderingTerm: SQLiteSelectQueryBuilder.OrderingTerm = SQLiteSelectQueryBuilder.OrderingTerm.ASC): OrderBy {
+            this.orderBy.add(
+                Pair(
+                    "COALESCE(${getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )}, ${getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )})",
+                    orderingTerm
+                )
+            )
+
+            return this
+        }
+
+        /**
          * Builds the ORDER BY clause.
          */
         fun build(): String? {
@@ -328,7 +352,6 @@ abstract class AbstractTaxon : Parcelable {
             }
 
             return this.orderBy.joinToString(", ") { pair -> "${pair.first} ${pair.second.name}" }
-                .let { if (it.isEmpty()) it else "ORDER BY $it" }
         }
     }
 }
