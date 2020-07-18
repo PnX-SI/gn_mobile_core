@@ -3,7 +3,6 @@ package fr.geonature.commons.data.helper
 import android.util.Log
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
-import java.util.Locale
 
 /**
  * Simple query builder to create SQL SELECT queries.
@@ -18,7 +17,7 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     private val wheres = mutableListOf<Pair<String, Array<Any?>?>>()
     private val groupBy = mutableSetOf<String>()
     private var having: String? = null
-    private val orderBy = mutableSetOf<Triple<String, Boolean, OrderingTerm>>()
+    private val orderBy = mutableSetOf<String>()
     private var limit: String = ""
 
     /**
@@ -263,13 +262,7 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         orderingTerm: OrderingTerm = OrderingTerm.ASC,
         caseSensitive: Boolean = true
     ): SQLiteSelectQueryBuilder {
-        this.orderBy.add(
-            Triple(
-                expression,
-                caseSensitive,
-                orderingTerm
-            )
-        )
+        this.orderBy.add("${expression}${if (caseSensitive) " " else " COLLATE NOCASE "}${orderingTerm.name}")
 
         return this
     }
@@ -277,41 +270,12 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     /**
      * Adds an ORDER BY statement.
      *
-     * @param orderByClause The order by clause to parse.
+     * @param expression Expression on which to apply order clause.
      *
      * @return this
      */
-    fun orderBy(orderByClause: String): SQLiteSelectQueryBuilder {
-        orderByClause.split(",")
-            .forEach {
-                val orderByTerm = it.split("\\s+".toRegex())
-                    .filter { token -> !token.isBlank() }
-
-                if (orderByTerm.isNotEmpty()) {
-                    val orderingTerm = orderByTerm.firstOrNull { token ->
-                        OrderingTerm.values()
-                            .map { orderingTerm -> orderingTerm.name }
-                            .contains(token.toUpperCase(Locale.ROOT))
-                    }
-                        ?.let { token ->
-                            OrderingTerm.valueOf(token.toUpperCase(Locale.ROOT))
-                        } ?: OrderingTerm.ASC
-
-                    val collate = orderByTerm.indexOfFirst { token ->
-                        token.toUpperCase(Locale.ROOT) == "COLLATE"
-                    }
-                        .takeIf { i: Int -> i >= 0 && orderByTerm.size >= (i + 2) }
-                        ?.let { i: Int ->
-                            "COLLATE ${orderByTerm[i + 1].toUpperCase(Locale.ROOT)}"
-                        }
-
-                    this.orderBy(
-                        orderByTerm.first(),
-                        orderingTerm,
-                        collate != "COLLATE NOCASE"
-                    )
-                }
-            }
+    fun orderBy(expression: String): SQLiteSelectQueryBuilder {
+        this.orderBy.add(expression)
 
         return this
     }
@@ -365,7 +329,7 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
             .let { if (it.isEmpty()) it else "GROUP BY $it" }
         val havingClause = if (this.having.isNullOrBlank()) "" else "HAVING ${this.having}"
         val orderByClauses =
-            this.orderBy.joinToString(", ") { pair -> "${pair.first}${if (pair.second) " " else " COLLATE NOCASE "}${pair.third.name}" }
+            this.orderBy.joinToString(", ")
                 .let { if (it.isEmpty()) it else "ORDER BY $it" }
 
         val sql = """

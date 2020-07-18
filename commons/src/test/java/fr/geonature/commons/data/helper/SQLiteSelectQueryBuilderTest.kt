@@ -626,7 +626,10 @@ class SQLiteSelectQueryBuilderTest {
                 "SUM(i.id)",
                 "count"
             )
-            .orderBy("count")
+            .orderBy(
+                "count",
+                SQLiteSelectQueryBuilder.OrderingTerm.ASC
+            )
             .build()
 
         // then
@@ -736,7 +739,7 @@ class SQLiteSelectQueryBuilderTest {
     }
 
     @Test
-    fun testOrderByFromOrderByClause() {
+    fun testOrderByFromExpression() {
         // given a simple query builder with order by clause
         val sqLiteQuery = SQLiteSelectQueryBuilder.from(
             "user",
@@ -745,7 +748,7 @@ class SQLiteSelectQueryBuilderTest {
             .column("u.email")
             .column("u.login")
             .orderBy(
-                "u.login  asc"
+                "u.login asc"
             )
             .build()
 
@@ -755,14 +758,14 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT u.email, u.login
             FROM user u
-            ORDER BY u.login ASC
+            ORDER BY u.login asc
         """.trimIndent(),
             sqLiteQuery.sql
         )
     }
 
     @Test
-    fun testOrderByFromOrderByClauseNonSensitive() {
+    fun testOrderByFromComplexExpression() {
         // given a simple query builder with order by clause
         val sqLiteQuery = SQLiteSelectQueryBuilder.from(
             "user",
@@ -770,8 +773,9 @@ class SQLiteSelectQueryBuilderTest {
         )
             .column("u.email")
             .column("u.login")
+            .column("u.username")
             .orderBy(
-                "u.email, u.login collate  nocase   desc"
+                "u.email, COALESCE(u.login, u.username) desc"
             )
             .build()
 
@@ -779,9 +783,9 @@ class SQLiteSelectQueryBuilderTest {
         assertNotNull(sqLiteQuery)
         assertEquals(
             """
-            SELECT u.email, u.login
+            SELECT u.email, u.login, u.username
             FROM user u
-            ORDER BY u.email ASC, u.login COLLATE NOCASE DESC
+            ORDER BY u.email, COALESCE(u.login, u.username) desc
         """.trimIndent(),
             sqLiteQuery.sql
         )
