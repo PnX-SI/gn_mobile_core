@@ -252,24 +252,20 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     /**
      * Adds an ORDER BY statement.
      *
-     * @param columnName The selected column name or alias on which to apply order clause.
+     * @param expression The selected column name or alias or expression on which to apply order clause.
      * @param orderingTerm The ordering sort order (default: `ASC`).
      * @param caseSensitive whether the sorting is case sensitive or not (default: `true`)
      *
      * @return this
      */
     fun orderBy(
-        columnName: String,
+        expression: String,
         orderingTerm: OrderingTerm = OrderingTerm.ASC,
         caseSensitive: Boolean = true
     ): SQLiteSelectQueryBuilder {
-        if (this.columns.none { pair -> pair.first == columnName || pair.second == columnName }) {
-            throw IllegalArgumentException("No selected column found with name or alias '$columnName' on which to apply ORDER BY")
-        }
-
         this.orderBy.add(
             Triple(
-                columnName,
+                expression,
                 caseSensitive,
                 orderingTerm
             )

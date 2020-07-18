@@ -608,41 +608,6 @@ class SQLiteSelectQueryBuilderTest {
         )
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun testOrderByFromNonExistingColumnName() {
-        // given a simple query builder with order by clause from non existing column
-        SQLiteSelectQueryBuilder.from(
-            "user",
-            "u"
-        )
-            .leftJoin(
-                "input",
-                "i.user_id = p.id",
-                "i"
-            )
-            .column("u.login")
-            .orderBy("u.email")
-            .build()
-    }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun testOrderByFromNonExistingColumnAlias() {
-        // given a simple query builder with order by clause from non existing column
-        SQLiteSelectQueryBuilder.from(
-            "user",
-            "u"
-        )
-            .leftJoin(
-                "input",
-                "i.user_id = p.id",
-                "i"
-            )
-            .column("u.email")
-            .column("u.login")
-            .orderBy("count")
-            .build()
-    }
-
     @Test
     fun testOrderByAsc() {
         // given a simple query builder with order by clause
