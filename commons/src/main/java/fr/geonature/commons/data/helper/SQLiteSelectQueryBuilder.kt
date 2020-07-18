@@ -259,23 +259,14 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
      */
     fun orderBy(
         expression: String,
-        orderingTerm: OrderingTerm = OrderingTerm.ASC,
-        caseSensitive: Boolean = true
+        orderingTerm: OrderingTerm? = null,
+        caseSensitive: Boolean? = null
     ): SQLiteSelectQueryBuilder {
-        this.orderBy.add("${expression}${if (caseSensitive) " " else " COLLATE NOCASE "}${orderingTerm.name}")
+        if (orderingTerm == null && caseSensitive == null) {
+            this.orderBy.add(expression)
+        }
 
-        return this
-    }
-
-    /**
-     * Adds an ORDER BY statement.
-     *
-     * @param expression Expression on which to apply order clause.
-     *
-     * @return this
-     */
-    fun orderBy(expression: String): SQLiteSelectQueryBuilder {
-        this.orderBy.add(expression)
+        this.orderBy.add("${expression}${if (caseSensitive != false) "" else " COLLATE NOCASE"}${if (orderingTerm == null) "" else " ${orderingTerm.name}"}")
 
         return this
     }

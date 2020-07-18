@@ -626,10 +626,7 @@ class SQLiteSelectQueryBuilderTest {
                 "SUM(i.id)",
                 "count"
             )
-            .orderBy(
-                "count",
-                SQLiteSelectQueryBuilder.OrderingTerm.ASC
-            )
+            .orderBy("count")
             .build()
 
         // then
@@ -639,7 +636,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login, SUM(i.id) AS count
             FROM user u
             INNER JOIN input AS i ON i.user_id = p.id
-            ORDER BY count ASC
+            ORDER BY count
         """.trimIndent(),
             sqLiteQuery.sql
         )
