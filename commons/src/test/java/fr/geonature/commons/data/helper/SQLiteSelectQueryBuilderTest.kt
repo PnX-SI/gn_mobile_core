@@ -771,6 +771,58 @@ class SQLiteSelectQueryBuilderTest {
     }
 
     @Test
+    fun testOrderByFromOrderByClause() {
+        // given a simple query builder with order by clause
+        val sqLiteQuery = SQLiteSelectQueryBuilder.from(
+            "user",
+            "u"
+        )
+            .column("u.email")
+            .column("u.login")
+            .orderBy(
+                "u.login  asc"
+            )
+            .build()
+
+        // then
+        assertNotNull(sqLiteQuery)
+        assertEquals(
+            """
+            SELECT u.email, u.login
+            FROM user u
+            ORDER BY u.login ASC
+        """.trimIndent(),
+            sqLiteQuery.sql
+        )
+    }
+
+    @Test
+    fun testOrderByFromOrderByClauseNonSensitive() {
+        // given a simple query builder with order by clause
+        val sqLiteQuery = SQLiteSelectQueryBuilder.from(
+            "user",
+            "u"
+        )
+            .column("u.email")
+            .column("u.login")
+            .orderBy(
+                "u.email, u.login collate  nocase   desc"
+            )
+            .build()
+
+        // then
+        assertNotNull(sqLiteQuery)
+        assertEquals(
+            """
+            SELECT u.email, u.login
+            FROM user u
+            ORDER BY u.email ASC, u.login COLLATE NOCASE DESC
+        """.trimIndent(),
+            sqLiteQuery.sql
+        )
+    }
+
+    @Test
     fun testLimit() {
         // given a simple query builder with limit clause
         var sqLiteQuery = SQLiteSelectQueryBuilder.from(

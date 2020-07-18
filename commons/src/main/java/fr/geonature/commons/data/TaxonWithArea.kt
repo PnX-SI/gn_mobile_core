@@ -155,4 +155,9 @@ class TaxonWithArea : AbstractTaxon {
             return this
         }
     }
+
+    /**
+     * Order by query builder.
+     */
+    class OrderBy: AbstractTaxon.OrderBy(Taxon.TABLE_NAME)
 }

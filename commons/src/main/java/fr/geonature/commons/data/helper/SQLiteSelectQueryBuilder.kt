@@ -3,6 +3,7 @@ package fr.geonature.commons.data.helper
 import android.util.Log
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
+import java.util.Locale
 
 /**
  * Simple query builder to create SQL SELECT queries.
@@ -103,7 +104,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.joinClauses.add(
             Pair(
                 "${joinOperator.operator.let { if (it.isBlank()) "" else "$it " }}JOIN $tableName${if (alias.isNullOrBlank()) "" else " AS $alias"} ON $joinConstraint",
-                bindArgs.toList().toTypedArray()
+                bindArgs.toList()
+                    .toTypedArray()
             )
         )
 
@@ -164,7 +166,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
             add(
                 Pair(
                     whereClause,
-                    bindArgs.asList().toTypedArray()
+                    bindArgs.asList()
+                        .toTypedArray()
                 )
             )
         }
@@ -184,7 +187,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.wheres.add(
             Pair(
                 "${if (this.wheres.isEmpty()) "" else " AND "}($whereClause)",
-                bindArgs.toList().toTypedArray()
+                bindArgs.toList()
+                    .toTypedArray()
             )
         )
 
@@ -203,7 +207,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.wheres.add(
             Pair(
                 "${if (this.wheres.isEmpty()) "" else " OR "}($whereClause)",
-                bindArgs.toList().toTypedArray()
+                bindArgs.toList()
+                    .toTypedArray()
             )
         )
 
@@ -269,6 +274,48 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 orderingTerm
             )
         )
+
+        return this
+    }
+
+    /**
+     * Adds an ORDER BY statement.
+     *
+     * @param orderByClause The order by clause to parse.
+     *
+     * @return this
+     */
+    fun orderBy(orderByClause: String): SQLiteSelectQueryBuilder {
+        orderByClause.split(",")
+            .forEach {
+                val orderByTerm = it.split("\\s+".toRegex())
+                    .filter { token -> !token.isBlank() }
+
+                if (orderByTerm.isNotEmpty()) {
+                    val orderingTerm = orderByTerm.firstOrNull { token ->
+                        OrderingTerm.values()
+                            .map { orderingTerm -> orderingTerm.name }
+                            .contains(token.toUpperCase(Locale.ROOT))
+                    }
+                        ?.let { token ->
+                            OrderingTerm.valueOf(token.toUpperCase(Locale.ROOT))
+                        } ?: OrderingTerm.ASC
+
+                    val collate = orderByTerm.indexOfFirst { token ->
+                        token.toUpperCase(Locale.ROOT) == "COLLATE"
+                    }
+                        .takeIf { i: Int -> i >= 0 && orderByTerm.size >= (i + 2) }
+                        ?.let { i: Int ->
+                            "COLLATE ${orderByTerm[i + 1].toUpperCase(Locale.ROOT)}"
+                        }
+
+                    this.orderBy(
+                        orderByTerm.first(),
+                        orderingTerm,
+                        collate != "COLLATE NOCASE"
+                    )
+                }
+            }
 
         return this
     }
@@ -341,7 +388,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 "\n"
             )
 
-        Log.d(TAG,
+        Log.d(
+            TAG,
             "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}"
         )
 
@@ -352,11 +400,15 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     }
 
     enum class JoinOperator(val operator: String) {
-        DEFAULT(""), INNER("INNER"), LEFT("LEFT"), LEFT_OUTER("LEFT OUTER");
+        DEFAULT(""),
+        INNER("INNER"),
+        LEFT("LEFT"),
+        LEFT_OUTER("LEFT OUTER");
     }
 
     enum class OrderingTerm {
-        ASC, DESC
+        ASC,
+        DESC
     }
 
     companion object {

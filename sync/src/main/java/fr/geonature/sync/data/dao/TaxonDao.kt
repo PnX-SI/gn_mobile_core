@@ -6,7 +6,6 @@ import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.data.dao.BaseDao
 import fr.geonature.commons.data.helper.EntityHelper.column
-import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.ASC
 
 /**
  * Data access object for [Taxon].
@@ -23,13 +22,6 @@ abstract class TaxonDao : BaseDao<Taxon>() {
 
         init {
             selectQueryBuilder.columns(*Taxon.defaultProjection())
-                .orderBy(
-                    column(
-                        AbstractTaxon.COLUMN_NAME,
-                        entityTableName
-                    ).second,
-                    ASC
-                )
         }
 
         fun withArea(id: Long?): QB {
@@ -63,6 +55,12 @@ abstract class TaxonDao : BaseDao<Taxon>() {
                 ).second} = ?",
                 id
             )
+
+            return this
+        }
+
+        fun orderBy(orderByClause: String): QB {
+            selectQueryBuilder.orderBy(orderByClause)
 
             return this
         }

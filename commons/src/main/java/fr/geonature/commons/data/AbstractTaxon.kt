@@ -6,6 +6,7 @@ import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 
 /**
  * Base taxon.
@@ -284,6 +285,50 @@ abstract class AbstractTaxon : Parcelable {
                 whereClauses,
                 bindArgs.toTypedArray()
             )
+        }
+    }
+
+    /**
+     * Order by query builder.
+     */
+    open class OrderBy(internal val tableAlias: String) {
+        private val orderBy = mutableSetOf<Pair<String, SQLiteSelectQueryBuilder.OrderingTerm>>()
+
+        /**
+         * Adds an ORDER BY statement.
+         *
+         * @param columnName The selected column name on which to apply order clause.
+         * @param orderingTerm The ordering sort order (default: `ASC`).
+         *
+         * @return this
+         */
+        fun by(
+            columnName: String,
+            orderingTerm: SQLiteSelectQueryBuilder.OrderingTerm = SQLiteSelectQueryBuilder.OrderingTerm.ASC
+        ): OrderBy {
+            this.orderBy.add(
+                Pair(
+                    getColumnAlias(
+                        columnName,
+                        tableAlias
+                    ),
+                    orderingTerm
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Builds the ORDER BY clause.
+         */
+        fun build(): String? {
+            if (this.orderBy.isEmpty()) {
+                return null
+            }
+
+            return this.orderBy.joinToString(", ") { pair -> "${pair.first} ${pair.second.name}" }
+                .let { if (it.isEmpty()) it else "ORDER BY $it" }
         }
     }
 }

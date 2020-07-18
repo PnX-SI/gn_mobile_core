@@ -153,4 +153,9 @@ class Taxon : AbstractTaxon {
      * Filter query builder.
      */
     class Filter : AbstractTaxon.Filter(TABLE_NAME)
+
+    /**
+     * Order by query builder.
+     */
+    class OrderBy: AbstractTaxon.OrderBy(TABLE_NAME)
 }
