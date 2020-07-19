@@ -37,8 +37,9 @@ class TaxonWithAreaTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                null,
                 "desc",
-                true,
+                null,
                 null
             ),
             TaxonWithArea(
@@ -48,8 +49,9 @@ class TaxonWithAreaTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                null,
                 "desc",
-                true,
+                null,
                 null
             )
         )
@@ -62,8 +64,9 @@ class TaxonWithAreaTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                "taxon_01_common",
                 "desc",
-                true,
+                "ES - 1234",
                 TaxonArea(
                     1234,
                     10,
@@ -79,8 +82,9 @@ class TaxonWithAreaTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                "taxon_01_common",
                 "desc",
-                true,
+                "ES - 1234",
                 TaxonArea(
                     1234,
                     10,
@@ -100,6 +104,7 @@ class TaxonWithAreaTest {
                         "Animalia",
                         "Ascidies"
                     ),
+                    null,
                     "desc"
                 )
             ),
@@ -111,6 +116,7 @@ class TaxonWithAreaTest {
                         "Animalia",
                         "Ascidies"
                     ),
+                    null,
                     "desc"
                 )
             )
@@ -131,13 +137,14 @@ class TaxonWithAreaTest {
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
-        `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getInt(5)).thenReturn(1)
-        `when`(cursor.getLong(6)).thenReturn(1234)
-        `when`(cursor.getLong(7)).thenReturn(10)
-        `when`(cursor.getString(8)).thenReturn("red")
-        `when`(cursor.getInt(9)).thenReturn(3)
-        `when`(cursor.getLong(10)).thenReturn(1477642500000)
+        `when`(cursor.getString(4)).thenReturn("taxon_01_common")
+        `when`(cursor.getString(5)).thenReturn("desc")
+        `when`(cursor.getString(6)).thenReturn("ES - 1234")
+        `when`(cursor.getLong(7)).thenReturn(1234)
+        `when`(cursor.getLong(8)).thenReturn(10)
+        `when`(cursor.getString(9)).thenReturn("red")
+        `when`(cursor.getInt(10)).thenReturn(3)
+        `when`(cursor.getLong(11)).thenReturn(1477642500000)
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -152,8 +159,9 @@ class TaxonWithAreaTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                "taxon_01_common",
                 "desc",
-                true,
+                "ES - 1234",
                 TaxonArea(
                     1234,
                     10,
@@ -190,8 +198,9 @@ class TaxonWithAreaTest {
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
-        `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getInt(5)).thenReturn(1)
+        `when`(cursor.getString(4)).thenReturn(null)
+        `when`(cursor.getString(5)).thenReturn("desc")
+        `when`(cursor.getString(6)).thenReturn(null)
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -206,8 +215,9 @@ class TaxonWithAreaTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                null,
                 "desc",
-                true,
+                null,
                 null
             ),
             taxonWithArea
@@ -236,10 +246,11 @@ class TaxonWithAreaTest {
         `when`(cursor.getString(1)).thenReturn("taxon_01")
         `when`(cursor.getString(2)).thenReturn("Animalia")
         `when`(cursor.getString(3)).thenReturn("Ascidies")
-        `when`(cursor.getString(4)).thenReturn("desc")
-        `when`(cursor.getInt(5)).thenReturn(1)
-        `when`(cursor.getLong(6)).thenReturn(0)
+        `when`(cursor.getString(4)).thenReturn(null)
+        `when`(cursor.getString(5)).thenReturn("desc")
+        `when`(cursor.getString(6)).thenReturn(null)
         `when`(cursor.getLong(7)).thenReturn(0)
+        `when`(cursor.getLong(8)).thenReturn(0)
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -254,8 +265,9 @@ class TaxonWithAreaTest {
                     "Animalia",
                     "Ascidies"
                 ),
+                null,
                 "desc",
-                true,
+                null,
                 null
             ),
             taxonWithArea
@@ -302,8 +314,9 @@ class TaxonWithAreaTest {
                 "Animalia",
                 "Ascidies"
             ),
+            "taxon_01_common",
             "desc",
-            true,
+            "ES - 1234",
             TaxonArea(
                 1234,
                 10,
@@ -351,12 +364,16 @@ class TaxonWithAreaTest {
                     "${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP}"
                 ),
                 Pair(
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_NAME_COMMON}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON}"
+                ),
+                Pair(
                     "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_DESCRIPTION}\"",
                     "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"
                 ),
                 Pair(
-                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_HERITAGE}\"",
-                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_HERITAGE}"
+                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_RANK}\"",
+                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK}"
                 ),
                 Pair(
                     "${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_TAXON_ID}\"",
@@ -401,7 +418,7 @@ class TaxonWithAreaTest {
 
         val taxonFilterByNameAndAreaColors =
             (TaxonWithArea.Filter()
-                .byNameOrDescription("as") as TaxonWithArea.Filter)
+                .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter)
                 .byAreaColors(
                     "red",
                     "grey"
@@ -409,11 +426,13 @@ class TaxonWithAreaTest {
                 .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
             taxonFilterByNameAndAreaColors.first
         )
         assertArrayEquals(
             arrayOf(
+                "%as%",
+                "%as%",
                 "%as%",
                 "%as%"
             ),

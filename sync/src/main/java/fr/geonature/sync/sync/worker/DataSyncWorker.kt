@@ -28,6 +28,7 @@ import retrofit2.Response
 import retrofit2.awaitResponse
 import java.io.BufferedReader
 import java.util.Date
+import java.util.Locale
 
 /**
  * Local data synchronization worker.
@@ -305,15 +306,21 @@ class DataSyncWorker(
                 }
 
                 val taxa = taxref.asSequence()
-                    .map {
+                    .map { taxRef ->
                         Taxon(
-                            it.id,
-                            it.name,
+                            taxRef.id,
+                            taxRef.name.trim(),
                             Taxonomy(
-                                it.kingdom,
-                                it.group
+                                taxRef.kingdom,
+                                taxRef.group
                             ),
-                            it.description
+                            taxRef.commonName?.trim(),
+                            taxRef.fullName.trim(),
+                            ".+\\[(\\w+) - \\d+]".toRegex()
+                                .find(taxRef.description)
+                                ?.groupValues
+                                ?.elementAtOrNull(1)
+                                ?.let { "${it.toUpperCase(Locale.ROOT)} - ${taxRef.id}" }
                         )
                     }
                     .onEach {
@@ -510,6 +517,11 @@ class DataSyncWorker(
                 "nomenclature to update: ${nomenclaturesToUpdate.size}"
             )
 
+            val taxonomyToUpdate = nomenclaturesTaxonomyToUpdate.asSequence()
+                .map { it.taxonomy }
+                .toList()
+                .toTypedArray()
+
             setProgress(
                 workData(
                     applicationContext.getString(
@@ -570,6 +582,8 @@ class DataSyncWorker(
                         .insert(*nomenclatureTypesToUpdate)
                     this.nomenclatureDao()
                         .insert(*nomenclaturesToUpdate)
+                    this.taxonomyDao()
+                        .insertOrIgnore(*taxonomyToUpdate)
                     this.nomenclatureTaxonomyDao()
                         .insert(*nomenclaturesTaxonomyToUpdate)
                     this.defaultNomenclatureDao()

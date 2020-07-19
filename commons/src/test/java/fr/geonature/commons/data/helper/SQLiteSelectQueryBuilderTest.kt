@@ -608,41 +608,6 @@ class SQLiteSelectQueryBuilderTest {
         )
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun testOrderByFromNonExistingColumnName() {
-        // given a simple query builder with order by clause from non existing column
-        SQLiteSelectQueryBuilder.from(
-            "user",
-            "u"
-        )
-            .leftJoin(
-                "input",
-                "i.user_id = p.id",
-                "i"
-            )
-            .column("u.login")
-            .orderBy("u.email")
-            .build()
-    }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun testOrderByFromNonExistingColumnAlias() {
-        // given a simple query builder with order by clause from non existing column
-        SQLiteSelectQueryBuilder.from(
-            "user",
-            "u"
-        )
-            .leftJoin(
-                "input",
-                "i.user_id = p.id",
-                "i"
-            )
-            .column("u.email")
-            .column("u.login")
-            .orderBy("count")
-            .build()
-    }
-
     @Test
     fun testOrderByAsc() {
         // given a simple query builder with order by clause
@@ -671,7 +636,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login, SUM(i.id) AS count
             FROM user u
             INNER JOIN input AS i ON i.user_id = p.id
-            ORDER BY count ASC
+            ORDER BY count
         """.trimIndent(),
             sqLiteQuery.sql
         )
@@ -765,6 +730,59 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             ORDER BY u.login COLLATE NOCASE DESC
+        """.trimIndent(),
+            sqLiteQuery.sql
+        )
+    }
+
+    @Test
+    fun testOrderByFromExpression() {
+        // given a simple query builder with order by clause
+        val sqLiteQuery = SQLiteSelectQueryBuilder.from(
+            "user",
+            "u"
+        )
+            .column("u.email")
+            .column("u.login")
+            .orderBy(
+                "u.login asc"
+            )
+            .build()
+
+        // then
+        assertNotNull(sqLiteQuery)
+        assertEquals(
+            """
+            SELECT u.email, u.login
+            FROM user u
+            ORDER BY u.login asc
+        """.trimIndent(),
+            sqLiteQuery.sql
+        )
+    }
+
+    @Test
+    fun testOrderByFromComplexExpression() {
+        // given a simple query builder with order by clause
+        val sqLiteQuery = SQLiteSelectQueryBuilder.from(
+            "user",
+            "u"
+        )
+            .column("u.email")
+            .column("u.login")
+            .column("u.username")
+            .orderBy(
+                "u.email, COALESCE(u.login, u.username) desc"
+            )
+            .build()
+
+        // then
+        assertNotNull(sqLiteQuery)
+        assertEquals(
+            """
+            SELECT u.email, u.login, u.username
+            FROM user u
+            ORDER BY u.email, COALESCE(u.login, u.username) desc
         """.trimIndent(),
             sqLiteQuery.sql
         )

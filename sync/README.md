@@ -24,7 +24,10 @@ Example:
   "taxhub_url": "http://demo.geonature/taxhub",
   "uh_application_id": 3,
   "observers_list_id": 1,
-  "taxa_list_id": 100
+  "taxa_list_id": 100,
+  "code_area_type": "M1",
+  "page_size": 1000,
+  "page_max_retry": 100
 }
 ```
 

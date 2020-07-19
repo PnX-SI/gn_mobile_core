@@ -17,6 +17,7 @@ import fr.geonature.commons.data.Taxonomy
 import fr.geonature.commons.data.helper.Provider.AUTHORITY
 import fr.geonature.commons.data.helper.Provider.checkReadPermission
 import fr.geonature.sync.data.dao.AppSyncDao
+import fr.geonature.sync.data.dao.TaxonDao
 
 /**
  * Default ContentProvider implementation.
@@ -97,7 +98,8 @@ class MainContentProvider : ContentProvider() {
             TAXA -> taxaQuery(
                 context,
                 selection,
-                selectionArgs
+                selectionArgs,
+                sortOrder
             )
             TAXON_ID -> taxonByIdQuery(
                 context,
@@ -107,7 +109,8 @@ class MainContentProvider : ContentProvider() {
                 context,
                 uri,
                 selection,
-                selectionArgs
+                selectionArgs,
+                sortOrder
             )
             TAXON_AREA_ID -> taxonWithAreaByIdQuery(
                 context,
@@ -283,7 +286,8 @@ class MainContentProvider : ContentProvider() {
     private fun taxaQuery(
         context: Context,
         selection: String?,
-        selectionArgs: Array<String>?
+        selectionArgs: Array<String>?,
+        sortOrder: String?
     ): Cursor {
         return LocalDatabase.getInstance(context)
             .taxonDao()
@@ -292,6 +296,13 @@ class MainContentProvider : ContentProvider() {
                 selection,
                 arrayOf(*selectionArgs ?: emptyArray())
             )
+            .also {
+                if (sortOrder.isNullOrEmpty()) {
+                    return@also
+                }
+
+                (it as TaxonDao.QB).orderBy(sortOrder)
+            }
             .cursor()
     }
 
@@ -310,7 +321,8 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri,
         selection: String?,
-        selectionArgs: Array<String>?
+        selectionArgs: Array<String>?,
+        sortOrder: String?
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
 
@@ -322,6 +334,13 @@ class MainContentProvider : ContentProvider() {
                 selection,
                 arrayOf(*selectionArgs ?: emptyArray())
             )
+            .also {
+                if (sortOrder.isNullOrEmpty()) {
+                    return@also
+                }
+
+                (it as TaxonDao.QB).orderBy(sortOrder)
+            }
             .cursor()
     }
 

@@ -71,7 +71,8 @@ class BaseDaoTest {
     fun getQueryBuilderWithSelectionWithNoArgs() {
         // given a simple query builder from DAO
         val sqLiteQuery =
-            (SimpleEntityDao().QB().whereSelection("col = 1") as SimpleEntityDao.QB).getQueryBuilder()
+            (SimpleEntityDao().QB()
+                .whereSelection("col = 1") as SimpleEntityDao.QB).getQueryBuilder()
                 .build()
 
         // then
@@ -93,13 +94,14 @@ class BaseDaoTest {
     @Test
     fun getQueryBuilderWithSelectionWithArgs() {
         // given a simple query builder from DAO
-        val sqLiteQuery = (SimpleEntityDao().QB().whereSelection(
-            "col = ? OR col = ?",
-            arrayOf(
-                12,
-                "some_args"
-            )
-        ) as SimpleEntityDao.QB).getQueryBuilder()
+        val sqLiteQuery = (SimpleEntityDao().QB()
+            .whereSelection(
+                "col = ? OR col = ?",
+                arrayOf(
+                    12,
+                    "some_args"
+                )
+            ) as SimpleEntityDao.QB).getQueryBuilder()
             .build()
 
         // then
@@ -132,6 +134,9 @@ class BaseDaoTest {
         override fun insert(vararg entity: InvalidEntity) {
         }
 
+        override fun insertOrIgnore(vararg entity: InvalidEntity) {
+        }
+
         override fun select(query: SupportSQLiteQuery): Cursor {
             return MatrixCursor(emptyArray())
         }
@@ -139,6 +144,9 @@ class BaseDaoTest {
 
     class SimpleEntityDao : BaseDao<SimpleEntity>() {
         override fun insert(vararg entity: SimpleEntity) {
+        }
+
+        override fun insertOrIgnore(vararg entity: SimpleEntity) {
         }
 
         override fun select(query: SupportSQLiteQuery): Cursor {

@@ -23,14 +23,16 @@ class Taxon : AbstractTaxon {
         id: Long,
         name: String,
         taxonomy: Taxonomy,
+        commonName: String? = null,
         description: String? = null,
-        heritage: Boolean = false
+        rank: String? = null
     ) : super(
         id,
         name,
         taxonomy,
+        commonName,
         description,
-        heritage
+        rank
     )
 
     private constructor(source: Parcel) : super(source)
@@ -105,17 +107,20 @@ class Taxon : AbstractTaxon {
                     taxonomy,
                     cursor.get(
                         getColumnAlias(
+                            COLUMN_NAME_COMMON,
+                            tableAlias
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
                             COLUMN_DESCRIPTION,
                             tableAlias
                         )
                     ),
-                    requireNotNull(
-                        cursor.get(
-                            getColumnAlias(
-                                COLUMN_HERITAGE,
-                                tableAlias
-                            ),
-                            false
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_RANK,
+                            tableAlias
                         )
                     )
                 )
@@ -148,4 +153,9 @@ class Taxon : AbstractTaxon {
      * Filter query builder.
      */
     class Filter : AbstractTaxon.Filter(TABLE_NAME)
+
+    /**
+     * Order by query builder.
+     */
+    class OrderBy: AbstractTaxon.OrderBy(TABLE_NAME)
 }

@@ -9,6 +9,7 @@ import fr.geonature.commons.util.DeviceUtils.isPostPie
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.api.GeoNatureAPIClient
+import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -42,38 +43,45 @@ class PackageInfoManager private constructor(private val applicationContext: Con
      */
     @SuppressLint("DefaultLocale")
     suspend fun getAvailableApplications(): List<PackageInfo> = withContext(IO) {
-        val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-        val response = geoNatureAPIClient?.getApplications()
-            ?.awaitResponse()
+        val availableAppPackages = try {
+            val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
+            val response = geoNatureAPIClient?.getApplications()
+                ?.awaitResponse()
 
-        if (response?.isSuccessful == true) {
-            (response.body() ?: emptyList()).asSequence()
-                .map {
-                    availablePackageInfos[it.packageName]?.copy()
-                        ?.apply {
-                            apkUrl =
-                                if (launchIntent == null || (versionCode < it.versionCode)) it.apkUrl else null
-                            settings = it.settings
-                        }
-                        ?: PackageInfo(
-                            it.packageName,
-                            it.code.toLowerCase()
-                                .capitalize(),
-                            it.versionCode.toLong()
-                        ).apply {
-                            apkUrl = it.apkUrl
-                            settings = it.settings
-                        }
-                }
-                .onEach {
-                    availablePackageInfos[it.packageName] = it
-                }
-                .toList()
-        } else {
-            emptyList()
-        }.also {
-            packageInfos.postValue(availablePackageInfos.values.toList())
+            if (response?.isSuccessful == true) {
+                response.body() ?: emptyList()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            emptyList<AppPackage>()
         }
+
+        availableAppPackages.asSequence()
+            .map {
+                availablePackageInfos[it.packageName]?.copy()
+                    ?.apply {
+                        apkUrl =
+                            if (launchIntent == null || (versionCode < it.versionCode)) it.apkUrl else null
+                        settings = it.settings
+                    }
+                    ?: PackageInfo(
+                        it.packageName,
+                        it.code.toLowerCase()
+                            .capitalize(),
+                        it.versionCode.toLong()
+                    ).apply {
+                        apkUrl = it.apkUrl
+                        settings = it.settings
+                    }
+            }
+            .onEach {
+                availablePackageInfos[it.packageName] = it
+            }
+            .toList()
+            .also {
+                packageInfos.postValue(availablePackageInfos.values.toList())
+            }
     }
 
     /**

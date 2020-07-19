@@ -17,7 +17,7 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     private val wheres = mutableListOf<Pair<String, Array<Any?>?>>()
     private val groupBy = mutableSetOf<String>()
     private var having: String? = null
-    private val orderBy = mutableSetOf<Triple<String, Boolean, OrderingTerm>>()
+    private val orderBy = mutableSetOf<String>()
     private var limit: String = ""
 
     /**
@@ -103,7 +103,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.joinClauses.add(
             Pair(
                 "${joinOperator.operator.let { if (it.isBlank()) "" else "$it " }}JOIN $tableName${if (alias.isNullOrBlank()) "" else " AS $alias"} ON $joinConstraint",
-                bindArgs.toList().toTypedArray()
+                bindArgs.toList()
+                    .toTypedArray()
             )
         )
 
@@ -164,7 +165,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
             add(
                 Pair(
                     whereClause,
-                    bindArgs.asList().toTypedArray()
+                    bindArgs.asList()
+                        .toTypedArray()
                 )
             )
         }
@@ -184,7 +186,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.wheres.add(
             Pair(
                 "${if (this.wheres.isEmpty()) "" else " AND "}($whereClause)",
-                bindArgs.toList().toTypedArray()
+                bindArgs.toList()
+                    .toTypedArray()
             )
         )
 
@@ -203,7 +206,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.wheres.add(
             Pair(
                 "${if (this.wheres.isEmpty()) "" else " OR "}($whereClause)",
-                bindArgs.toList().toTypedArray()
+                bindArgs.toList()
+                    .toTypedArray()
             )
         )
 
@@ -247,28 +251,22 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     /**
      * Adds an ORDER BY statement.
      *
-     * @param columnName The selected column name or alias on which to apply order clause.
+     * @param expression The selected column name or alias or expression on which to apply order clause.
      * @param orderingTerm The ordering sort order (default: `ASC`).
      * @param caseSensitive whether the sorting is case sensitive or not (default: `true`)
      *
      * @return this
      */
     fun orderBy(
-        columnName: String,
-        orderingTerm: OrderingTerm = OrderingTerm.ASC,
-        caseSensitive: Boolean = true
+        expression: String,
+        orderingTerm: OrderingTerm? = null,
+        caseSensitive: Boolean? = null
     ): SQLiteSelectQueryBuilder {
-        if (this.columns.none { pair -> pair.first == columnName || pair.second == columnName }) {
-            throw IllegalArgumentException("No selected column found with name or alias '$columnName' on which to apply ORDER BY")
+        if (orderingTerm == null && caseSensitive == null) {
+            this.orderBy.add(expression)
         }
 
-        this.orderBy.add(
-            Triple(
-                columnName,
-                caseSensitive,
-                orderingTerm
-            )
-        )
+        this.orderBy.add("${expression}${if (caseSensitive != false) "" else " COLLATE NOCASE"}${if (orderingTerm == null) "" else " ${orderingTerm.name}"}")
 
         return this
     }
@@ -322,7 +320,7 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
             .let { if (it.isEmpty()) it else "GROUP BY $it" }
         val havingClause = if (this.having.isNullOrBlank()) "" else "HAVING ${this.having}"
         val orderByClauses =
-            this.orderBy.joinToString(", ") { pair -> "${pair.first}${if (pair.second) " " else " COLLATE NOCASE "}${pair.third.name}" }
+            this.orderBy.joinToString(", ")
                 .let { if (it.isEmpty()) it else "ORDER BY $it" }
 
         val sql = """
@@ -341,7 +339,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 "\n"
             )
 
-        Log.d(TAG,
+        Log.d(
+            TAG,
             "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}"
         )
 
@@ -352,11 +351,15 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     }
 
     enum class JoinOperator(val operator: String) {
-        DEFAULT(""), INNER("INNER"), LEFT("LEFT"), LEFT_OUTER("LEFT OUTER");
+        DEFAULT(""),
+        INNER("INNER"),
+        LEFT("LEFT"),
+        LEFT_OUTER("LEFT OUTER");
     }
 
     enum class OrderingTerm {
-        ASC, DESC
+        ASC,
+        DESC
     }
 
     companion object {

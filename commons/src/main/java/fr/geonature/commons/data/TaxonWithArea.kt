@@ -17,15 +17,17 @@ class TaxonWithArea : AbstractTaxon {
         id: Long,
         name: String,
         taxonomy: Taxonomy,
+        commonName: String? = null,
         description: String? = null,
-        heritage: Boolean = false,
+        rank: String? = null,
         taxonArea: TaxonArea?
     ) : super(
         id,
         name,
         taxonomy,
+        commonName,
         description,
-        heritage
+        rank
     ) {
         this.taxonArea = taxonArea
     }
@@ -34,8 +36,9 @@ class TaxonWithArea : AbstractTaxon {
         taxon.id,
         taxon.name,
         taxon.taxonomy,
+        taxon.commonName,
         taxon.description,
-        taxon.heritage
+        taxon.rank
     )
 
     private constructor(source: Parcel) : super(source) {
@@ -152,4 +155,9 @@ class TaxonWithArea : AbstractTaxon {
             return this
         }
     }
+
+    /**
+     * Order by query builder.
+     */
+    class OrderBy: AbstractTaxon.OrderBy(Taxon.TABLE_NAME)
 }
