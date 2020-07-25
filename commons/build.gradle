@@ -22,10 +22,10 @@ android {
 
     buildTypes {
         debug {
-            versionNameSuffix "." + getVersionCode(module.name) + "-DEV"
+            versionNameSuffix ".${defaultConfig.versionCode}-DEV"
         }
         release {
-            versionNameSuffix "." + getVersionCode(module.name)
+            versionNameSuffix ".${defaultConfig.versionCode}"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
