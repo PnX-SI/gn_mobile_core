@@ -1,10 +1,5 @@
 # Sync
 
-![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xxxhdpi/ic_launcher.png)
-![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xxxhdpi/ic_launcher.png)
-![PNM](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xxxhdpi/ic_launcher.png)
-![PNV](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xxxhdpi/ic_launcher.png)
-
 Synchronize local database through GeoNature API:
 
 - Users (i.e. Observers)
@@ -13,6 +8,16 @@ Synchronize local database through GeoNature API:
 - Nomenclature
 
 Synchronize observers inputs from synchronized apps (e.g. "Occtax").
+
+## Launcher icons
+
+| Name                                                                 | Flavor    | Launcher icon                                                                                                          |
+| -------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Default                                                              | _generic_ | ![PNX](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/main/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc National des Cévennes](http://www.cevennes-parcnational.fr)    | _pnc_     | ![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xhdpi/ic_launcher.png)  |
+| [Parc National des Écrins](http://www.ecrins-parcnational.fr)        | _pne_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xhdpi/ic_launcher.png)  |
+| [Parc National du Mercantour](http://www.mercantour-parcnational.fr) | _pnm_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xhdpi/ic_launcher.png)  |
+| [Parc National de la Vanoise](http://www.vanoise-parcnational.fr)    | _pnv_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xhdpi/ic_launcher.png)  |
 
 ## Settings
 

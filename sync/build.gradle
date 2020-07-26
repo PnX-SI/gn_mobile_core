@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: "kotlin-kapt"
 
-version = "0.3.1"
+version = "1.0.0"
 
 android {
     compileSdkVersion 29
@@ -28,13 +28,20 @@ android {
         archivesBaseName = module.name + "-" + versionName
     }
 
+    signingConfigs {
+        release {
+            readKeystoreProperties(module.name)
+        }
+    }
+
     buildTypes {
         debug {
-            versionNameSuffix "." + getVersionCode(module.name) + "-DEV"
+            versionNameSuffix ".${defaultConfig.versionCode}-DEV"
         }
 
         release {
-            versionNameSuffix "." + getVersionCode(module.name)
+            signingConfig signingConfigs.release
+            versionNameSuffix ".${defaultConfig.versionCode}"
             debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
