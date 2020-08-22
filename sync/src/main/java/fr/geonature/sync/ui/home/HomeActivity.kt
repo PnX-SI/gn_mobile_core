@@ -4,7 +4,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkRequest
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -14,6 +18,7 @@ import android.view.animation.AnimationUtils.loadAnimation
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
@@ -148,6 +153,7 @@ class HomeActivity : AppCompatActivity() {
             addItemDecoration(dividerItemDecoration)
         }
 
+        checkNetwork()
         checkSelfPermissions()
     }
 
@@ -337,6 +343,32 @@ class HomeActivity : AppCompatActivity() {
                 }
             },
             Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+    }
+
+    @RequiresPermission(Manifest.permission.CHANGE_NETWORK_STATE)
+    private fun checkNetwork() {
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (connectivityManager.allNetworks.isEmpty()) {
+            makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+            return
+        }
+
+        connectivityManager.requestNetwork(NetworkRequest.Builder()
+            .build(),
+            object :
+                ConnectivityManager.NetworkCallback() {
+
+                override fun onLost(network: Network) {
+                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                }
+
+                override fun onUnavailable() {
+                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                }
+            }
         )
     }
 
