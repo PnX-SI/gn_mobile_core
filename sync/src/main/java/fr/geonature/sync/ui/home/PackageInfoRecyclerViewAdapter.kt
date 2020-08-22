@@ -1,10 +1,9 @@
 package fr.geonature.sync.ui.home
 
 import android.view.View
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
@@ -62,31 +61,22 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
         AbstractListItemRecyclerViewAdapter<PackageInfo>.AbstractViewHolder(itemView) {
 
         private val icon: ImageView = itemView.findViewById(android.R.id.icon1)
-        private val button: Button = itemView.findViewById(android.R.id.button1)
         private val iconStatus: TextView = itemView.findViewById(android.R.id.icon2)
+        private val button: Button = itemView.findViewById(android.R.id.button1)
+        private val progressBar: ProgressBar = itemView.findViewById(R.id.progressBar)
         private val text1: TextView = itemView.findViewById(android.R.id.text1)
         private val text2: TextView = itemView.findViewById(android.R.id.text2)
-
-        private val stateAnimation = AlphaAnimation(
-            0.0f,
-            1.0f
-        ).apply {
-            duration = 250
-            startOffset = 10
-            repeatMode = Animation.REVERSE
-            repeatCount = Animation.INFINITE
-        }
 
         override fun onBind(item: PackageInfo) {
             with(button) {
                 visibility =
-                    if (item.apkUrl.isNullOrEmpty()) View.GONE
-                    else View.VISIBLE
+                    if (item.hasNewVersionAvailable()) View.VISIBLE
+                    else View.GONE
                 text =
-                    if (item.versionName.isNullOrEmpty()) itemView.context.getString(R.string.home_app_install)
+                    if (item.isAvailableForInstall()) itemView.context.getString(R.string.home_app_install)
                     else itemView.context.getString(R.string.home_app_upgrade)
                 contentDescription =
-                    if (item.versionName.isNullOrEmpty()) itemView.context.getString(
+                    if (item.isAvailableForInstall()) itemView.context.getString(
                         R.string.home_app_install_desc,
                         item.label
                     )
@@ -98,8 +88,6 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
                     listener.onUpgrade(item)
                 }
             }
-
-            iconStatus.visibility = if (item.apkUrl.isNullOrEmpty()) View.VISIBLE else View.GONE
 
             with(icon) {
                 setImageDrawable(item.icon ?: itemView.context.getDrawable(R.drawable.ic_upgrade))
@@ -122,8 +110,8 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
 
             with(text2) {
                 visibility =
-                    if (item.apkUrl.isNullOrEmpty()) View.VISIBLE
-                    else View.GONE
+                    if (item.isAvailableForInstall()) View.GONE
+                    else View.VISIBLE
                 text = itemView.resources.getQuantityString(
                     R.plurals.home_app_inputs,
                     item.inputs,
@@ -137,16 +125,10 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
         private fun setState(state: WorkInfo.State) {
             when (state) {
                 WorkInfo.State.RUNNING -> {
-                    iconStatus.setTextColor(
-                        ResourcesCompat.getColor(
-                            itemView.resources,
-                            R.color.status_pending,
-                            itemView.context?.theme
-                        )
-                    )
-                    iconStatus.startAnimation(stateAnimation)
+                    progressBar.visibility = View.VISIBLE
                 }
                 WorkInfo.State.FAILED -> {
+                    iconStatus.visibility = View.VISIBLE
                     iconStatus.setTextColor(
                         ResourcesCompat.getColor(
                             itemView.resources,
@@ -154,9 +136,10 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
                             itemView.context?.theme
                         )
                     )
-                    iconStatus.clearAnimation()
+                    progressBar.visibility = View.GONE
                 }
                 WorkInfo.State.SUCCEEDED -> {
+                    iconStatus.visibility = View.VISIBLE
                     iconStatus.setTextColor(
                         ResourcesCompat.getColor(
                             itemView.resources,
@@ -164,17 +147,11 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
                             itemView.context?.theme
                         )
                     )
-                    iconStatus.clearAnimation()
+                    progressBar.visibility = View.GONE
                 }
                 else -> {
-                    iconStatus.setTextColor(
-                        ResourcesCompat.getColor(
-                            itemView.resources,
-                            R.color.status_unknown,
-                            itemView.context?.theme
-                        )
-                    )
-                    iconStatus.clearAnimation()
+                    iconStatus.visibility = View.GONE
+                    progressBar.visibility = View.GONE
                 }
             }
         }

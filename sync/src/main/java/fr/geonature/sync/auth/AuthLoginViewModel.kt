@@ -91,8 +91,9 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
                     return@launch
                 }
 
-                authManager.setAuthLogin(authLogin)
-                _loginResult.value = LoginResult(success = authLogin)
+                authManager.setAuthLogin(authLogin).also {
+                    _loginResult.value = LoginResult(success = authLogin)
+                }
             } catch (e: Exception) {
                 _loginResult.value = LoginResult(error = R.string.login_failed)
             }

@@ -85,8 +85,6 @@ class AuthManager private constructor(applicationContext: Context) {
             return@withContext false
         }
 
-        _authLogin.postValue(authLogin)
-
         preferenceManager.edit()
             .putString(
                 KEY_PREFERENCE_AUTH_LOGIN,
