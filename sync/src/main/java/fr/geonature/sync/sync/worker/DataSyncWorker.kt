@@ -171,7 +171,10 @@ class DataSyncWorker(
 
             LocalDatabase.getInstance(applicationContext)
                 .datasetDao()
-                .insert(*dataset.toTypedArray())
+                .run {
+                    deleteAll()
+                    insert(*dataset.toTypedArray())
+                }
 
             Result.success()
         } catch (e: Exception) {
@@ -222,7 +225,10 @@ class DataSyncWorker(
 
             LocalDatabase.getInstance(applicationContext)
                 .inputObserverDao()
-                .insert(*inputObservers)
+                .run {
+                    deleteAll()
+                    insert(*inputObservers)
+                }
 
             Result.success()
         } catch (e: Exception) {
@@ -259,7 +265,10 @@ class DataSyncWorker(
 
             LocalDatabase.getInstance(applicationContext)
                 .taxonomyDao()
-                .insert(*taxonomy.toTypedArray())
+                .run {
+                    deleteAll()
+                    insert(*taxonomy.toTypedArray())
+                }
 
             Result.success()
         } catch (e: Exception) {
@@ -280,6 +289,7 @@ class DataSyncWorker(
     ): Result {
         return try {
             var hasNext: Boolean
+            var cleanup = false
             var offset = 0
 
             val validTaxaIds = mutableSetOf<Long>()
@@ -331,7 +341,14 @@ class DataSyncWorker(
 
                 LocalDatabase.getInstance(applicationContext)
                     .taxonDao()
-                    .insert(*taxa)
+                    .run {
+                        if (!cleanup) {
+                            deleteAll()
+                            cleanup = true
+                        }
+
+                        insert(*taxa)
+                    }
 
                 Log.i(
                     TAG,
@@ -578,15 +595,19 @@ class DataSyncWorker(
 
             LocalDatabase.getInstance(applicationContext)
                 .run {
-                    this.nomenclatureTypeDao()
-                        .insert(*nomenclatureTypesToUpdate)
-                    this.nomenclatureDao()
-                        .insert(*nomenclaturesToUpdate)
-                    this.taxonomyDao()
+                    nomenclatureTypeDao().run {
+                        deleteAll()
+                        insert(*nomenclatureTypesToUpdate)
+                    }
+                    nomenclatureDao().run {
+                        deleteAll()
+                        insert(*nomenclaturesToUpdate)
+                    }
+                    taxonomyDao()
                         .insertOrIgnore(*taxonomyToUpdate)
-                    this.nomenclatureTaxonomyDao()
+                    nomenclatureTaxonomyDao()
                         .insert(*nomenclaturesTaxonomyToUpdate)
-                    this.defaultNomenclatureDao()
+                    defaultNomenclatureDao()
                         .insert(*defaultNomenclaturesToUpdate)
                 }
 
