@@ -137,7 +137,7 @@ class BaseDaoTest {
         override fun insertOrIgnore(vararg entity: InvalidEntity) {
         }
 
-        override fun select(query: SupportSQLiteQuery): Cursor {
+        override fun query(query: SupportSQLiteQuery): Cursor {
             return MatrixCursor(emptyArray())
         }
     }
@@ -149,7 +149,7 @@ class BaseDaoTest {
         override fun insertOrIgnore(vararg entity: SimpleEntity) {
         }
 
-        override fun select(query: SupportSQLiteQuery): Cursor {
+        override fun query(query: SupportSQLiteQuery): Cursor {
             return MatrixCursor(emptyArray())
         }
 

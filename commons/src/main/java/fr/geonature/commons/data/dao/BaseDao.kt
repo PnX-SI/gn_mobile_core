@@ -4,6 +4,7 @@ import android.database.Cursor
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.RawQuery
+import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 import java.lang.reflect.ParameterizedType
@@ -55,14 +56,21 @@ abstract class BaseDao<T> {
     abstract fun insertOrIgnore(vararg entity: T)
 
     /**
-     * Select entities from given raw query.
+     * Execute the given raw query.
      *
      * @param query the query
      *
-     * @return A [Cursor] of entities
+     * @return A [Cursor] of results
      */
     @RawQuery
-    abstract fun select(query: SupportSQLiteQuery): Cursor
+    abstract fun query(query: SupportSQLiteQuery): Cursor
+
+    /**
+     * Delete all items from the given entity table.
+     */
+    fun deleteAll() {
+        query(SimpleSQLiteQuery("DELETE FROM $entityTableName"))
+    }
 
     /**
      * Gets the default query builder for this DAO.
@@ -98,7 +106,7 @@ abstract class BaseDao<T> {
         }
 
         fun cursor(): Cursor {
-            return select(selectQueryBuilder.build())
+            return query(selectQueryBuilder.build())
         }
     }
 }
