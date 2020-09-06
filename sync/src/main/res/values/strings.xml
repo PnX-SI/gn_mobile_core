@@ -48,7 +48,7 @@
     <string name="home_app_upgrade_desc">Upgrade %1$s app</string>
 
     <string name="alert_new_app_version_available_title">New version available</string>
-    <string name="alert_new_app_version_available_description">A new version of this app is available.\nWould you like to upgrade now ?</string>
+    <string name="alert_new_app_version_available_description">A new version of this app is available.\nWould you like to upgrade now?</string>
     <string name="alert_new_app_version_action_ok">Yes</string>
     <string name="alert_new_app_version_action_later">Later</string>
 
