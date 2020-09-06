@@ -52,8 +52,8 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                     .map { packageInfo ->
                         packageInfo.copy()
                             .apply {
-                                apkUrl = packageInfo.apkUrl
                                 settings = packageInfo.settings
+
                                 val workInfo =
                                     workInfos.firstOrNull { workInfo -> workInfo.progress.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
                                         ?: workInfos.firstOrNull { workInfo -> workInfo.outputData.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
@@ -91,7 +91,7 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                             _appSettingsUpdated.postValue(true)
                         }
 
-                        if (!it.apkUrl.isNullOrEmpty()) {
+                        if (it.hasNewVersionAvailable()) {
                             value = it
                         }
                     }
@@ -104,16 +104,16 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     /**
      * Checks if we can perform an update of existing apps.
      */
-    fun checkAppPackages() {
+    fun getAvailableApplications() {
         viewModelScope.launch {
             packageInfoManager.getAvailableApplications()
         }
     }
 
     /**
-     * Gets all compatible installed applications.
+     * Synchronize all compatible installed applications.
      */
-    fun getInstalledApplicationsToSynchronize() {
+    fun synchronizeInstalledApplications() {
         viewModelScope.launch {
             packageInfoManager.getInstalledApplications()
                 .asSequence()

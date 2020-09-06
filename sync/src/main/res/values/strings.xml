@@ -48,7 +48,7 @@
     <string name="home_app_upgrade_desc">Upgrade %1$s app</string>
 
     <string name="alert_new_app_version_available_title">New version available</string>
-    <string name="alert_new_app_version_available_description">A new version of this app is available.\nWould you like to upgrade now ?</string>
+    <string name="alert_new_app_version_available_description">A new version of this app is available.\nWould you like to upgrade now?</string>
     <string name="alert_new_app_version_action_ok">Yes</string>
     <string name="alert_new_app_version_action_later">Later</string>
 
@@ -66,6 +66,7 @@
     <string name="toast_not_connected">Not connected</string>
     <string name="toast_logout_success">Successfully disconnected</string>
 
+    <string name="snackbar_network_lost">You are not connected to the Internet.\nSynchronization will resume automatically.</string>
     <string name="snackbar_settings_not_found">Unable to load settings \'%1$s\'</string>
     <string name="snackbar_settings_updated">Settings \'%1$s\' updated</string>
     <string name="snackbar_permissions_not_granted">Permissions were not granted</string>

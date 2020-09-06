@@ -43,6 +43,8 @@ class PackageInfoManager private constructor(private val applicationContext: Con
      */
     @SuppressLint("DefaultLocale")
     suspend fun getAvailableApplications(): List<PackageInfo> = withContext(IO) {
+        availablePackageInfos.clear()
+
         val availableAppPackages = try {
             val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
             val response = geoNatureAPIClient?.getApplications()
@@ -59,28 +61,24 @@ class PackageInfoManager private constructor(private val applicationContext: Con
 
         availableAppPackages.asSequence()
             .map {
-                availablePackageInfos[it.packageName]?.copy()
-                    ?.apply {
-                        apkUrl =
-                            if (launchIntent == null || (versionCode < it.versionCode)) it.apkUrl else null
-                        settings = it.settings
-                    }
-                    ?: PackageInfo(
-                        it.packageName,
-                        it.code.toLowerCase()
-                            .capitalize(),
-                        it.versionCode.toLong()
-                    ).apply {
-                        apkUrl = it.apkUrl
-                        settings = it.settings
-                    }
+                PackageInfo(
+                    it.packageName,
+                    it.code.toLowerCase()
+                        .capitalize(),
+                    it.versionCode.toLong(),
+                    0,
+                    null,
+                    it.apkUrl
+                ).apply {
+                    settings = it.settings
+                }
             }
             .onEach {
                 availablePackageInfos[it.packageName] = it
             }
             .toList()
             .also {
-                packageInfos.postValue(availablePackageInfos.values.toList())
+                getInstalledApplications()
             }
     }
 
@@ -88,6 +86,9 @@ class PackageInfoManager private constructor(private val applicationContext: Con
      * Finds all compatible installed applications.
      */
     suspend fun getInstalledApplications(): List<PackageInfo> = withContext(IO) {
+        val allPackageInfos = mutableMapOf<String, PackageInfo>()
+        allPackageInfos.putAll(availablePackageInfos)
+
         pm.getInstalledApplications(PackageManager.GET_META_DATA)
             .asSequence()
             .filter { it.packageName.startsWith(sharedUserId) }
@@ -97,31 +98,29 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                     PackageManager.GET_META_DATA
                 )
 
+                val existingPackageInfo = availablePackageInfos[it.packageName]
+
                 @Suppress("DEPRECATION")
                 PackageInfo(
                     it.packageName,
                     pm.getApplicationLabel(it)
                         .toString(),
+                    existingPackageInfo?.versionCode ?: 0,
                     if (isPostPie) packageInfoFromPackageManager.longVersionCode else packageInfoFromPackageManager.versionCode.toLong(),
                     packageInfoFromPackageManager.versionName,
+                    existingPackageInfo?.apkUrl,
                     pm.getApplicationIcon(it.packageName),
                     pm.getLaunchIntentForPackage(it.packageName)
                 ).apply {
-                    val existingPackageInfo = availablePackageInfos[it.packageName]
-
-                    if (existingPackageInfo != null) {
-                        apkUrl =
-                            if (existingPackageInfo.versionCode > versionCode) existingPackageInfo.apkUrl else null
-                        settings = existingPackageInfo.settings
-                    }
+                    settings = existingPackageInfo?.settings
                 }
             }
             .onEach {
-                availablePackageInfos[it.packageName] = it
+                allPackageInfos[it.packageName] = it
             }
             .toList()
             .also {
-                packageInfos.postValue(availablePackageInfos.values.toList())
+                packageInfos.postValue(allPackageInfos.values.toList())
             }
     }
 

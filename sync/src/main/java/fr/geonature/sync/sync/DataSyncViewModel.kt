@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -33,36 +34,9 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             it.getLastSynchronizedDate()
         }
 
-    val dataSyncStatus: LiveData<DataSyncStatus?> =
-        map(workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)) { workInfos ->
-            val workInfo = workInfos.firstOrNull() ?: return@map null
-
-            val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
-                DataSyncWorker.KEY_SERVER_STATUS,
-                workInfo.outputData.getInt(
-                    DataSyncWorker.KEY_SERVER_STATUS,
-                    ServerStatus.OK.ordinal
-                )
-            )]
-
-            if (arrayOf(
-                    ServerStatus.FORBIDDEN,
-                    ServerStatus.INTERNAL_SERVER_ERROR
-                ).contains(serverStatus)
-            ) {
-                cancelTasks()
-            }
-
-            DataSyncStatus(
-                workInfo.state,
-                workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
-                    ?: workInfo.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
-                serverStatus
-            )
-        }
     val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
 
-    fun startSync(appSettings: AppSettings) {
+    fun startSync(appSettings: AppSettings): LiveData<DataSyncStatus?> {
         val lastSynchronizedDate = dataSyncManager.lastSynchronizedDate.value
 
         if (lastSynchronizedDate?.add(
@@ -76,7 +50,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 "data already synchronized at ${lastSynchronizedDate.toIsoDateString()}"
             )
 
-            return
+            return MutableLiveData(null)
         }
 
         val constraints = Constraints.Builder()
@@ -85,6 +59,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
         val dataSyncWorkRequest = OneTimeWorkRequest.Builder(DataSyncWorker::class.java)
             .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+            .setConstraints(constraints)
             .setInputData(
                 Data.Builder()
                     .putInt(
@@ -109,9 +84,6 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                     )
                     .build()
             )
-            .setConstraints(
-                constraints
-            )
             .build()
 
         val continuation = workManager.beginUniqueWork(
@@ -120,8 +92,29 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             dataSyncWorkRequest
         )
 
-        // start the work
-        continuation.enqueue()
+        return map(workManager.getWorkInfoByIdLiveData(dataSyncWorkRequest.id)) {
+            if (it == null) {
+                return@map null
+            }
+
+            val serverStatus = ServerStatus.values()[it.progress.getInt(
+                DataSyncWorker.KEY_SERVER_STATUS,
+                it.outputData.getInt(
+                    DataSyncWorker.KEY_SERVER_STATUS,
+                    ServerStatus.OK.ordinal
+                )
+            )]
+
+            DataSyncStatus(
+                it.state,
+                it.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
+                    ?: it.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
+                serverStatus
+            )
+        }.also {
+            // start the work
+            continuation.enqueue()
+        }
     }
 
     fun cancelTasks() {

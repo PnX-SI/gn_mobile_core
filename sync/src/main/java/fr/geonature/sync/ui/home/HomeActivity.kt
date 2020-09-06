@@ -2,8 +2,13 @@ package fr.geonature.sync.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkRequest
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -13,6 +18,7 @@ import android.view.animation.AnimationUtils.loadAnimation
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
@@ -38,7 +44,6 @@ import fr.geonature.sync.sync.DataSyncViewModel
 import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.PackageInfoViewModel
 import fr.geonature.sync.sync.ServerStatus.FORBIDDEN
-import fr.geonature.sync.sync.ServerStatus.INTERNAL_SERVER_ERROR
 import fr.geonature.sync.ui.login.LoginActivity
 import fr.geonature.sync.ui.settings.PreferencesActivity
 import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
@@ -147,12 +152,17 @@ class HomeActivity : AppCompatActivity() {
             )
             addItemDecoration(dividerItemDecoration)
         }
+
+        checkNetwork()
+        checkSelfPermissions()
     }
 
     override fun onResume() {
         super.onResume()
 
-        checkSelfPermissions()
+        if (appSettings != null) {
+            packageInfoViewModel.synchronizeInstalledApplications()
+        }
     }
 
     @SuppressLint("RestrictedApi")
@@ -222,7 +232,8 @@ class HomeActivity : AppCompatActivity() {
 
                 if (requestPermissionsResult) {
                     makeSnackbar(getString(R.string.snackbar_permission_external_storage_available))?.show()
-                    loadAppSettings()
+                    loadAppSettingsAndStartSync()
+                    packageInfoViewModel.getAvailableApplications()
                 } else {
                     makeSnackbar(getString(R.string.snackbar_permissions_not_granted))?.show()
                 }
@@ -232,6 +243,24 @@ class HomeActivity : AppCompatActivity() {
                 permissions,
                 grantResults
             )
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(
+            requestCode,
+            resultCode,
+            data
+        )
+
+        if ((resultCode != Activity.RESULT_OK)) {
+            return
+        }
+
+        if (requestCode == PERFORM_LOGIN) {
+            appSettings?.run {
+                startSync(this)
+            }
         }
     }
 
@@ -270,7 +299,7 @@ class HomeActivity : AppCompatActivity() {
                         "reloading settings after update..."
                     )
 
-                    loadAppSettings(true)
+                    loadAppSettingsAndStartSync(true)
                 }
 
                 vm.packageInfos.observe(this@HomeActivity,
@@ -285,38 +314,6 @@ class HomeActivity : AppCompatActivity() {
         return ViewModelProvider(this,
             DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
             .also { vm ->
-                vm.dataSyncStatus.observe(this@HomeActivity,
-                    Observer {
-                        if (it == null) {
-                            return@Observer
-                        }
-
-                        dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
-
-                        if (!it.syncMessage.isNullOrBlank()) {
-                            dataSyncView?.setMessage(it.syncMessage)
-                        }
-
-                        @Suppress("NON_EXHAUSTIVE_WHEN")
-                        when (it.serverStatus) {
-                            INTERNAL_SERVER_ERROR -> packageInfoViewModel.cancelTasks()
-                            FORBIDDEN -> {
-                                packageInfoViewModel.cancelTasks()
-
-                                Toast.makeText(
-                                    this,
-                                    R.string.toast_not_connected,
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
-
-                                if (appSettings != null) {
-                                    startActivity(LoginActivity.newIntent(this))
-                                }
-                            }
-                        }
-                    })
-
                 vm.lastSynchronizedDate.observe(this@HomeActivity,
                     Observer {
                         dataSyncView?.setLastSynchronizedDate(it)
@@ -329,7 +326,8 @@ class HomeActivity : AppCompatActivity() {
             this@HomeActivity,
             object : PermissionUtils.OnCheckSelfPermissionListener {
                 override fun onPermissionsGranted() {
-                    loadAppSettings()
+                    loadAppSettingsAndStartSync()
+                    packageInfoViewModel.getAvailableApplications()
                 }
 
                 override fun onRequestPermissions(vararg permissions: String) {
@@ -348,7 +346,33 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
-    private fun loadAppSettings(updated: Boolean = false) {
+    @RequiresPermission(Manifest.permission.CHANGE_NETWORK_STATE)
+    private fun checkNetwork() {
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (connectivityManager.allNetworks.isEmpty()) {
+            makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+            return
+        }
+
+        connectivityManager.requestNetwork(NetworkRequest.Builder()
+            .build(),
+            object :
+                ConnectivityManager.NetworkCallback() {
+
+                override fun onLost(network: Network) {
+                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                }
+
+                override fun onUnavailable() {
+                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                }
+            }
+        )
+    }
+
+    private fun loadAppSettingsAndStartSync(updated: Boolean = false) {
         appSettingsViewModel.loadAppSettings()
             .observeOnce(this@HomeActivity) {
                 if (it == null) {
@@ -360,14 +384,11 @@ class HomeActivity : AppCompatActivity() {
                     )?.show()
 
                     progressBar?.visibility = View.GONE
-                    adapter.clear()
 
                     if (!checkGeoNatureSettings()) {
                         startActivity(PreferencesActivity.newIntent(this))
                         return@observeOnce
                     }
-
-                    packageInfoViewModel.checkAppPackages()
                 } else {
                     if (updated) {
                         makeSnackbar(
@@ -398,17 +419,50 @@ class HomeActivity : AppCompatActivity() {
 
     private fun startSync(appSettings: AppSettings) {
         GlobalScope.launch(Main) {
-            adapter.clear(false)
             progressBar?.visibility = View.VISIBLE
 
             delay(500)
 
             dataSyncViewModel.startSync(appSettings)
+                .observeUntil(this@HomeActivity,
+                    {
+                        it?.state in arrayListOf(
+                            WorkInfo.State.SUCCEEDED,
+                            WorkInfo.State.FAILED,
+                            WorkInfo.State.CANCELLED
+                        )
+                    }) {
+                    it?.run {
+                        dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
+
+                        if (!it.syncMessage.isNullOrBlank()) {
+                            dataSyncView?.setMessage(it.syncMessage)
+                        }
+
+                        if (it.serverStatus == FORBIDDEN) {
+                            Log.d(
+                                TAG,
+                                "not connected, redirect to LoginActivity"
+                            )
+
+                            Toast.makeText(
+                                this@HomeActivity,
+                                R.string.toast_not_connected,
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+
+                            startActivityForResult(
+                                LoginActivity.newIntent(this@HomeActivity),
+                                PERFORM_LOGIN
+                            )
+                        }
+                    }
+                }
 
             delay(500)
 
-            packageInfoViewModel.getInstalledApplicationsToSynchronize()
-            packageInfoViewModel.checkAppPackages()
+            packageInfoViewModel.synchronizeInstalledApplications()
         }
     }
 
@@ -526,5 +580,6 @@ class HomeActivity : AppCompatActivity() {
         private val TAG = HomeActivity::class.java.name
 
         private const val REQUEST_STORAGE_PERMISSIONS = 0
+        private const val PERFORM_LOGIN = 0
     }
 }
