@@ -1,5 +1,6 @@
 package fr.geonature.sync.ui.settings
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -27,6 +28,11 @@ class PreferencesActivity : AppCompatActivity() {
                 PreferencesFragment.newInstance()
             )
             .commit()
+    }
+
+    override fun finish() {
+        setResult(Activity.RESULT_OK)
+        super.finish()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
