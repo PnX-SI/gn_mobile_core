@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import fr.geonature.commons.util.DeviceUtils.isPostPie
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.api.GeoNatureAPIClient
@@ -106,7 +105,8 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                     pm.getApplicationLabel(it)
                         .toString(),
                     existingPackageInfo?.versionCode ?: 0,
-                    if (isPostPie) packageInfoFromPackageManager.longVersionCode else packageInfoFromPackageManager.versionCode.toLong(),
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfoFromPackageManager.longVersionCode
+                    else packageInfoFromPackageManager.versionCode.toLong(),
                     packageInfoFromPackageManager.versionName,
                     existingPackageInfo?.apkUrl,
                     pm.getApplicationIcon(it.packageName),
