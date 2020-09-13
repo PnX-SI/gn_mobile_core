@@ -8,7 +8,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import fr.geonature.commons.util.DeviceUtils
 import fr.geonature.mountpoint.util.MountPointUtils.getExternalStorage
 import fr.geonature.mountpoint.util.MountPointUtils.getInternalStorage
 import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
@@ -55,7 +54,7 @@ class MainApplication : Application() {
     }
 
     private fun configureSyncChannel(notificationManager: NotificationManagerCompat): NotificationChannel? {
-        if (DeviceUtils.isPostOreo) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 SYNC_CHANNEL_ID,
                 getText(R.string.sync_channel_name),

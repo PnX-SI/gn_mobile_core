@@ -197,11 +197,17 @@ class HomeActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_settings -> {
-                startActivity(PreferencesActivity.newIntent(this))
+                startActivityForResult(
+                    PreferencesActivity.newIntent(this),
+                    REQUEST_CODE_SYNC
+                )
                 true
             }
             R.id.menu_login -> {
-                startActivity(LoginActivity.newIntent(this))
+                startActivityForResult(
+                    LoginActivity.newIntent(this),
+                    REQUEST_CODE_SYNC
+                )
                 true
             }
             R.id.menu_logout -> {
@@ -257,9 +263,13 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        if (requestCode == PERFORM_LOGIN) {
-            appSettings?.run {
-                startSync(this)
+        if (requestCode == REQUEST_CODE_SYNC) {
+            if (appSettings == null) {
+                packageInfoViewModel.getAvailableApplications()
+            } else {
+                appSettings?.run {
+                    startSync(this)
+                }
             }
         }
     }
@@ -386,7 +396,11 @@ class HomeActivity : AppCompatActivity() {
                     progressBar?.visibility = View.GONE
 
                     if (!checkGeoNatureSettings()) {
-                        startActivity(PreferencesActivity.newIntent(this))
+                        startActivityForResult(
+                            PreferencesActivity.newIntent(this),
+                            REQUEST_CODE_SYNC
+                        )
+
                         return@observeOnce
                     }
                 } else {
@@ -404,7 +418,11 @@ class HomeActivity : AppCompatActivity() {
                     invalidateOptionsMenu()
 
                     if (!checkGeoNatureSettings()) {
-                        startActivity(PreferencesActivity.newIntent(this))
+                        startActivityForResult(
+                            PreferencesActivity.newIntent(this),
+                            REQUEST_CODE_SYNC
+                        )
+
                         return@observeOnce
                     }
 
@@ -454,7 +472,7 @@ class HomeActivity : AppCompatActivity() {
 
                             startActivityForResult(
                                 LoginActivity.newIntent(this@HomeActivity),
-                                PERFORM_LOGIN
+                                REQUEST_CODE_SYNC
                             )
                         }
                     }
@@ -580,6 +598,6 @@ class HomeActivity : AppCompatActivity() {
         private val TAG = HomeActivity::class.java.name
 
         private const val REQUEST_STORAGE_PERMISSIONS = 0
-        private const val PERFORM_LOGIN = 0
+        private const val REQUEST_CODE_SYNC = 0
     }
 }
