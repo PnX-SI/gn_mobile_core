@@ -41,8 +41,8 @@ class OnAppSettingsJsonReaderListenerImplTest {
         assertNotNull(appSettings)
         assertEquals(
             AppSettings(
-                "http://demo.geonature/geonature",
-                "http://demo.geonature/taxhub",
+                "https://demo.geonature/geonature",
+                "https://demo.geonature/taxhub",
                 3,
                 1,
                 100,
