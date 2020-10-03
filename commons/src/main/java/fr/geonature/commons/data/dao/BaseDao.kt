@@ -36,7 +36,8 @@ abstract class BaseDao<T> {
 
         @Suppress("UNCHECKED_CAST")
         val clazz = parameterizedType(javaClass).actualTypeArguments[0] as Class<T>
-        entityTableName = clazz.getDeclaredField("TABLE_NAME").get(String::class) as String
+        entityTableName = clazz.getDeclaredField("TABLE_NAME")
+            .get(String::class) as String
     }
 
     /**
@@ -69,7 +70,7 @@ abstract class BaseDao<T> {
      * Delete all items from the given entity table.
      */
     fun deleteAll() {
-        query(SimpleSQLiteQuery("DELETE FROM $entityTableName"))
+        query(SimpleSQLiteQuery("DELETE FROM $entityTableName")).moveToFirst()
     }
 
     /**

@@ -496,6 +496,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun mergeAppSettingsWithSharedPreferences(appSettings: AppSettings) {
         val geoNatureServerUrl = appSettings.geoNatureServerUrl
+        val taxHubServerUrl = appSettings.taxHubServerUrl
 
         if (!geoNatureServerUrl.isNullOrBlank() && getGeoNatureServerUrl(this).isNullOrBlank()) {
             setGeoNatureServerUrl(
@@ -503,8 +504,6 @@ class HomeActivity : AppCompatActivity() {
                 geoNatureServerUrl
             )
         }
-
-        val taxHubServerUrl = appSettings.taxHubServerUrl
 
         if (!taxHubServerUrl.isNullOrBlank() && getTaxHubServerUrl(this).isNullOrBlank()) {
             setTaxHubServerUrl(
