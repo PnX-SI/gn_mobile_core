@@ -362,7 +362,7 @@ class HomeActivity : AppCompatActivity() {
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         if (connectivityManager.allNetworks.isEmpty()) {
-            makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+            makeSnackbar(getString(R.string.snackbar_network_lost_sync))?.show()
             return
         }
 
@@ -372,11 +372,11 @@ class HomeActivity : AppCompatActivity() {
                 ConnectivityManager.NetworkCallback() {
 
                 override fun onLost(network: Network) {
-                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                    makeSnackbar(getString(R.string.snackbar_network_lost_sync))?.show()
                 }
 
                 override fun onUnavailable() {
-                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                    makeSnackbar(getString(R.string.snackbar_network_lost_sync))?.show()
                 }
             }
         )
