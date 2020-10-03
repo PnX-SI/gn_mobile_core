@@ -153,17 +153,7 @@ class InputManager<I : AbstractInput> private constructor(
     suspend fun exportInput(id: Long): Boolean = withContext(IO) {
         val inputToExport = readInput(id) ?: return@withContext false
 
-        val inputExportFile = getInputExportFile(inputToExport)
-        inputJsonWriter.write(
-            FileWriter(inputExportFile),
-            inputToExport
-        )
-
-        return@withContext if (inputExportFile.exists() && inputExportFile.length() > 0) {
-            deleteInput(id)
-        } else {
-            false
-        }
+        return@withContext exportInput(inputToExport)
     }
 
     /**
@@ -180,7 +170,7 @@ class InputManager<I : AbstractInput> private constructor(
             input
         )
 
-        return@withContext if (inputExportFile.exists() && inputExportFile.length() > 0) {
+        return@withContext if (inputExportFile.exists()) {
             deleteInput(input.id)
         } else {
             false
