@@ -148,14 +148,6 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         nextButton.isEnabled = fragment == null || fragment.validate()
         nextButton.setText(if (viewPager.currentItem < adapter.count - 1) R.string.button_pager_next else R.string.button_pager_finish)
-
-        // refreshes the current view if needed
-        if (fragment != null) {
-            fragment.refreshView()
-
-            // disable or enable paging control for the current instance of IValidateFragment
-            viewPager.setPagingEnabled(fragment.pagingEnabled())
-        }
     }
 
     override fun onPause() {

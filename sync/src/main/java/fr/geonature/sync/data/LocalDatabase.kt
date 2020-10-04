@@ -28,6 +28,8 @@ import fr.geonature.sync.data.dao.NomenclatureTypeDao
 import fr.geonature.sync.data.dao.TaxonAreaDao
 import fr.geonature.sync.data.dao.TaxonDao
 import fr.geonature.sync.data.dao.TaxonomyDao
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
 
 /**
  * The Room database.
@@ -95,6 +97,21 @@ abstract class LocalDatabase : RoomDatabase() {
      * @return The DAO for the [DefaultNomenclature.TABLE_NAME] table.
      */
     abstract fun defaultNomenclatureDao(): DefaultNomenclatureDao
+
+    /**
+     * Deletes all rows from all the tables that are registered to this database.
+     */
+    suspend fun clearDatabase() = withContext(IO) {
+        defaultNomenclatureDao().deleteAll()
+        nomenclatureTaxonomyDao().deleteAll()
+        nomenclatureDao().deleteAll()
+        nomenclatureTypeDao().deleteAll()
+        taxonAreaDao().deleteAll()
+        taxonDao().deleteAll()
+        taxonomyDao().deleteAll()
+        inputObserverDao().deleteAll()
+        datasetDao().deleteAll()
+    }
 
     companion object {
 

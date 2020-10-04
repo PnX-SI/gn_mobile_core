@@ -362,7 +362,7 @@ class HomeActivity : AppCompatActivity() {
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         if (connectivityManager.allNetworks.isEmpty()) {
-            makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+            makeSnackbar(getString(R.string.snackbar_network_lost_sync))?.show()
             return
         }
 
@@ -372,11 +372,11 @@ class HomeActivity : AppCompatActivity() {
                 ConnectivityManager.NetworkCallback() {
 
                 override fun onLost(network: Network) {
-                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                    makeSnackbar(getString(R.string.snackbar_network_lost_sync))?.show()
                 }
 
                 override fun onUnavailable() {
-                    makeSnackbar(getString(R.string.snackbar_network_lost))?.show()
+                    makeSnackbar(getString(R.string.snackbar_network_lost_sync))?.show()
                 }
             }
         )
@@ -496,6 +496,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun mergeAppSettingsWithSharedPreferences(appSettings: AppSettings) {
         val geoNatureServerUrl = appSettings.geoNatureServerUrl
+        val taxHubServerUrl = appSettings.taxHubServerUrl
 
         if (!geoNatureServerUrl.isNullOrBlank() && getGeoNatureServerUrl(this).isNullOrBlank()) {
             setGeoNatureServerUrl(
@@ -503,8 +504,6 @@ class HomeActivity : AppCompatActivity() {
                 geoNatureServerUrl
             )
         }
-
-        val taxHubServerUrl = appSettings.taxHubServerUrl
 
         if (!taxHubServerUrl.isNullOrBlank() && getTaxHubServerUrl(this).isNullOrBlank()) {
             setTaxHubServerUrl(

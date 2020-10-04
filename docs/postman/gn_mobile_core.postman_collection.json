@@ -386,13 +386,13 @@
 		{
 			"id": "f6cd18af-0dc0-4727-9cd2-70ec6e929203",
 			"key": "geoNatureServerUrl",
-			"value": "http://demo.geonature.fr/geonature",
+			"value": "https://demo.geonature.fr/geonature",
 			"type": "string"
 		},
 		{
 			"id": "cb293c28-d001-4495-8fc6-91db8501fe0b",
 			"key": "taxHubServerUrl",
-			"value": "http://demo.geonature.fr/taxhub",
+			"value": "https://demo.geonature.fr/taxhub",
 			"type": "string"
 		},
 		{

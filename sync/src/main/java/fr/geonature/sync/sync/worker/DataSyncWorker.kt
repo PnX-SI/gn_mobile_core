@@ -288,8 +288,11 @@ class DataSyncWorker(
         pageMaxRetry: Int
     ): Result {
         return try {
+            LocalDatabase.getInstance(applicationContext)
+                .taxonDao()
+                .deleteAll()
+
             var hasNext: Boolean
-            var cleanup = false
             var offset = 0
 
             val validTaxaIds = mutableSetOf<Long>()
@@ -341,14 +344,7 @@ class DataSyncWorker(
 
                 LocalDatabase.getInstance(applicationContext)
                     .taxonDao()
-                    .run {
-                        if (!cleanup) {
-                            deleteAll()
-                            cleanup = true
-                        }
-
-                        insert(*taxa)
-                    }
+                    .insert(*taxa)
 
                 Log.i(
                     TAG,

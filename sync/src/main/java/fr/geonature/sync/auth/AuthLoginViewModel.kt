@@ -1,6 +1,8 @@
 package fr.geonature.sync.auth
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
 import android.text.TextUtils
 import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
@@ -28,6 +30,8 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val authManager: AuthManager = AuthManager.getInstance(application)
     private val geoNatureAPIClient: GeoNatureAPIClient? = GeoNatureAPIClient.instance(application)
+    private val connectivityManager =
+        application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val _loginFormState = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginFormState
@@ -91,11 +95,13 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
                     return@launch
                 }
 
-                authManager.setAuthLogin(authLogin).also {
-                    _loginResult.value = LoginResult(success = authLogin)
-                }
+                authManager.setAuthLogin(authLogin)
+                    .also {
+                        _loginResult.value = LoginResult(success = authLogin)
+                    }
             } catch (e: Exception) {
-                _loginResult.value = LoginResult(error = R.string.login_failed)
+                _loginResult.value =
+                    LoginResult(error = if (connectivityManager.allNetworks.isEmpty()) R.string.snackbar_network_lost else R.string.login_failed)
             }
         }
     }
@@ -147,7 +153,8 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         val type = object : TypeToken<AuthLoginError>() {}.type
 
         return Gson().fromJson(
-            response.errorBody()!!.charStream(),
+            response.errorBody()!!
+                .charStream(),
             type
         )
     }
@@ -166,7 +173,7 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
     )
 
     /**
-     * Authentication result: success (user details) or errorResourceId message.
+     * Authentication result: success (user details) or error message.
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
