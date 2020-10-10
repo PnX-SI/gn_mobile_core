@@ -3,6 +3,7 @@ package fr.geonature.commons.input
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import fr.geonature.commons.input.io.InputJsonReader
@@ -95,23 +96,24 @@ class InputManager<I : AbstractInput> private constructor(
      * @return `true` if the given [AbstractInput] has been successfully saved, `false` otherwise
      */
     @SuppressLint("ApplySharedPref")
-    suspend fun saveInput(input: I): Boolean = withContext(IO) {
-        val inputAsJson = inputJsonWriter.write(input)
+    suspend fun saveInput(input: I): Boolean {
+        val saved = withContext(IO) {
+            val inputAsJson = inputJsonWriter.write(input)
+            if (inputAsJson.isNullOrBlank()) return@withContext false
 
-        if (inputAsJson.isNullOrBlank()) return@withContext false
+            preferenceManager.edit()
+                .putString(
+                    buildInputPreferenceKey(input.id),
+                    inputAsJson
+                )
+                .putLong(
+                    KEY_PREFERENCE_CURRENT_INPUT,
+                    input.id
+                )
+                .commit()
+        }
 
-        preferenceManager.edit()
-            .putString(
-                buildInputPreferenceKey(input.id),
-                inputAsJson
-            )
-            .putLong(
-                KEY_PREFERENCE_CURRENT_INPUT,
-                input.id
-            )
-            .commit()
-
-        preferenceManager.contains(buildInputPreferenceKey(input.id))
+        return saved && preferenceManager.contains(buildInputPreferenceKey(input.id))
             .also { readInputs() }
     }
 
@@ -123,24 +125,32 @@ class InputManager<I : AbstractInput> private constructor(
      * @return `true` if the given [AbstractInput] has been successfully deleted, `false` otherwise
      */
     @SuppressLint("ApplySharedPref")
-    suspend fun deleteInput(id: Long): Boolean = withContext(IO) {
-        preferenceManager.edit()
-            .remove(buildInputPreferenceKey(id))
-            .also {
-                if (preferenceManager.getLong(
-                        KEY_PREFERENCE_CURRENT_INPUT,
-                        0
-                    ) == id
-                ) {
-                    it.remove(KEY_PREFERENCE_CURRENT_INPUT)
+    suspend fun deleteInput(id: Long): Boolean {
+        val deleted = withContext(IO) {
+            preferenceManager.edit()
+                .remove(buildInputPreferenceKey(id))
+                .also {
+                    if (preferenceManager.getLong(
+                            KEY_PREFERENCE_CURRENT_INPUT,
+                            0
+                        ) == id
+                    ) {
+                        it.remove(KEY_PREFERENCE_CURRENT_INPUT)
+                    }
                 }
-            }
-            .commit()
-
-        !preferenceManager.contains(buildInputPreferenceKey(id)).also {
-            readInputs()
-            input.postValue(null)
+                .commit()
         }
+
+        Log.i(
+            TAG,
+            "input '$id' deleted: $deleted"
+        )
+
+        return deleted && !preferenceManager.contains(buildInputPreferenceKey(id))
+            .also {
+                readInputs()
+                input.postValue(null)
+            }
     }
 
     /**
@@ -150,10 +160,10 @@ class InputManager<I : AbstractInput> private constructor(
      *
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
-    suspend fun exportInput(id: Long): Boolean = withContext(IO) {
-        val inputToExport = readInput(id) ?: return@withContext false
+    suspend fun exportInput(id: Long): Boolean {
+        val inputToExport = readInput(id) ?: return false
 
-        return@withContext exportInput(inputToExport)
+        return exportInput(inputToExport)
     }
 
     /**
@@ -163,14 +173,27 @@ class InputManager<I : AbstractInput> private constructor(
      *
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
-    suspend fun exportInput(input: I): Boolean = withContext(IO) {
-        val inputExportFile = getInputExportFile(input)
-        inputJsonWriter.write(
-            FileWriter(inputExportFile),
-            input
+    suspend fun exportInput(input: I): Boolean {
+        val inputExportFile = withContext(IO) {
+            val inputExportFile = getInputExportFile(input)
+            inputJsonWriter.write(
+                FileWriter(inputExportFile),
+                input
+            )
+
+            return@withContext inputExportFile
+        }
+
+        Log.i(
+            TAG,
+            "export input '${input.id}' to JSON file '${inputExportFile.absolutePath}'"
+        )
+        Log.d(
+            TAG,
+            "'${inputExportFile.absolutePath}' exists? ${inputExportFile.exists()}"
         )
 
-        return@withContext if (inputExportFile.exists()) {
+        return if (inputExportFile.exists()) {
             deleteInput(input.id)
         } else {
             false
@@ -193,6 +216,8 @@ class InputManager<I : AbstractInput> private constructor(
     }
 
     companion object {
+        private val TAG = InputManager::class.java.name
+
         private const val KEY_PREFERENCE_INPUT = "key_preference_input"
         private const val KEY_PREFERENCE_CURRENT_INPUT = "key_preference_current_input"
 
