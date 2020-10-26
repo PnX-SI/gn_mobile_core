@@ -32,18 +32,18 @@ class InputsSyncWorker(
     private val packageInfoManager =
         PackageInfoManager.getInstance(applicationContext)
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
 
         if (packageName.isNullOrBlank()) {
-            return@withContext Result.failure()
+            return Result.failure()
         }
 
         val packageInfo =
-            packageInfoManager.getPackageInfo(packageName) ?: return@withContext Result.failure()
+            packageInfoManager.getPackageInfo(packageName) ?: return Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            ?: return@withContext Result.failure()
+            ?: return Result.failure()
 
         Log.i(
             TAG,
@@ -76,7 +76,7 @@ class InputsSyncWorker(
                 "No inputs to synchronize for '$packageName'"
             )
 
-            return@withContext Result.success()
+            return Result.success()
         }
 
         setProgress(
@@ -141,7 +141,7 @@ class InputsSyncWorker(
             "inputs synchronization ${if (inputsSynchronized.size == inputsToSynchronize.size) "successfully finished" else "finished with errors"} for '$packageName'"
         )
 
-        if (inputsSynchronized.size == inputsToSynchronize.size) {
+        return if (inputsSynchronized.size == inputsToSynchronize.size) {
             Result.success(
                 workData(
                     packageInfo.packageName,
@@ -160,14 +160,18 @@ class InputsSyncWorker(
         }
     }
 
-    private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean =
-        withContext(Dispatchers.IO) {
+    private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean {
+        val deleted = withContext(Dispatchers.IO) {
             File(syncInput.filePath).takeIf { it.exists() && it.isFile && it.parentFile?.canWrite() ?: false }
-                ?.delete()
-                ?.also {
-                    packageInfoManager.getInputsToSynchronize(syncInput.packageInfo)
-                } ?: false
+                ?.delete() ?: false
         }
+
+        if (deleted) {
+            packageInfoManager.getInputsToSynchronize(syncInput.packageInfo)
+        }
+
+        return deleted
+    }
 
     private fun workData(packageName: String, state: WorkInfo.State, inputs: Int = 0): Data {
         return workDataOf(
