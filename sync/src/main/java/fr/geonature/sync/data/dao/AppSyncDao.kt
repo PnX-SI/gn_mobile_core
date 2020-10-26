@@ -66,7 +66,7 @@ class AppSyncDao(private val context: Context) {
             packageId
         )
             .walkTopDown()
-            .filter { it.extension == "json" }
+            .filter { it.isFile && it.extension == "json" && it.canRead() }
             .count()
     }
 }

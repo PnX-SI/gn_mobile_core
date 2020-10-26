@@ -9,8 +9,6 @@ import androidx.work.workDataOf
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.PackageInfoManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import okhttp3.internal.Util
 import okio.Buffer
@@ -33,20 +31,20 @@ class DownloadPackageWorker(
     private val packageInfoManager =
         PackageInfoManager.getInstance(applicationContext)
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
 
         if (packageName.isNullOrBlank()) {
-            return@withContext Result.failure()
+            return Result.failure()
         }
 
         val packageInfoToUpdate =
             packageInfoManager.getPackageInfo(packageName)
-                ?: return@withContext Result.failure()
-        val apkUrl = packageInfoToUpdate.apkUrl ?: return@withContext Result.failure()
+                ?: return Result.failure()
+        val apkUrl = packageInfoToUpdate.apkUrl ?: return Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            ?: return@withContext Result.failure()
+            ?: return Result.failure()
 
         Log.i(
             TAG,
@@ -55,12 +53,12 @@ class DownloadPackageWorker(
 
         setProgress(workData(packageInfoToUpdate.packageName))
 
-        try {
+        return try {
             val response = geoNatureAPIClient.downloadPackage(apkUrl)
                 .awaitResponse()
 
             if (!response.isSuccessful) {
-                return@withContext Result.failure(
+                return Result.failure(
                     workData(
                         packageInfoToUpdate.packageName,
                         100
@@ -68,7 +66,7 @@ class DownloadPackageWorker(
                 )
             }
 
-            val responseBody = response.body() ?: return@withContext Result.failure(
+            val responseBody = response.body() ?: return Result.failure(
                 workData(
                     packageInfoToUpdate.packageName,
                     100
