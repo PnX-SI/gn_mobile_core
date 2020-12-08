@@ -15,7 +15,8 @@ import java.io.IOException
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class MountPoint : Parcelable,
+class MountPoint :
+    Parcelable,
     Comparable<MountPoint> {
 
     val mountPath: File

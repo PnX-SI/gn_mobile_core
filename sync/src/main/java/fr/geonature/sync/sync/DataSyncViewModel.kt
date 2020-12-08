@@ -97,13 +97,15 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 return@map null
             }
 
-            val serverStatus = ServerStatus.values()[it.progress.getInt(
-                DataSyncWorker.KEY_SERVER_STATUS,
-                it.outputData.getInt(
+            val serverStatus = ServerStatus.values()[
+                it.progress.getInt(
                     DataSyncWorker.KEY_SERVER_STATUS,
-                    ServerStatus.OK.ordinal
+                    it.outputData.getInt(
+                        DataSyncWorker.KEY_SERVER_STATUS,
+                        ServerStatus.OK.ordinal
+                    )
                 )
-            )]
+            ]
 
             DataSyncStatus(
                 it.state,

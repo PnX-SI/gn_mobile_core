@@ -22,7 +22,7 @@ import org.robolectric.annotation.Config
 @Config(application = Application::class)
 class OnAppSettingsJsonReaderListenerImplTest {
 
-    lateinit var appSettingsJsonReader: AppSettingsJsonReader<AppSettings>
+    private lateinit var appSettingsJsonReader: AppSettingsJsonReader<AppSettings>
 
     @Before
     fun setUp() {

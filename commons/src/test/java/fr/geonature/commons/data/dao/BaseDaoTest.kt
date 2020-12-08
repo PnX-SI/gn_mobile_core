@@ -44,7 +44,7 @@ class BaseDaoTest {
             """
             SELECT *
             FROM entity_table entity_table
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -62,7 +62,7 @@ class BaseDaoTest {
             """
             SELECT *
             FROM entity_table entity_table
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -71,8 +71,10 @@ class BaseDaoTest {
     fun getQueryBuilderWithSelectionWithNoArgs() {
         // given a simple query builder from DAO
         val sqLiteQuery =
-            (SimpleEntityDao().QB()
-                .whereSelection("col = 1") as SimpleEntityDao.QB).getQueryBuilder()
+            (
+                SimpleEntityDao().QB()
+                    .whereSelection("col = 1") as SimpleEntityDao.QB
+                ).getQueryBuilder()
                 .build()
 
         // then
@@ -82,7 +84,7 @@ class BaseDaoTest {
             SELECT *
             FROM entity_table entity_table
             WHERE (col = 1)
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -94,14 +96,16 @@ class BaseDaoTest {
     @Test
     fun getQueryBuilderWithSelectionWithArgs() {
         // given a simple query builder from DAO
-        val sqLiteQuery = (SimpleEntityDao().QB()
-            .whereSelection(
-                "col = ? OR col = ?",
-                arrayOf(
-                    12,
-                    "some_args"
-                )
-            ) as SimpleEntityDao.QB).getQueryBuilder()
+        val sqLiteQuery = (
+            SimpleEntityDao().QB()
+                .whereSelection(
+                    "col = ? OR col = ?",
+                    arrayOf(
+                        12,
+                        "some_args"
+                    )
+                ) as SimpleEntityDao.QB
+            ).getQueryBuilder()
             .build()
 
         // then
@@ -111,7 +115,7 @@ class BaseDaoTest {
             SELECT *
             FROM entity_table entity_table
             WHERE (col = ? OR col = ?)
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(

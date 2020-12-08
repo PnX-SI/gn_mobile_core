@@ -48,9 +48,9 @@ class CheckInputsToSynchronizeWorker(
                 notify(
                     SYNC_NOTIFICATION_ID,
                     NotificationCompat.Builder(
-                            applicationContext,
-                            MainApplication.SYNC_CHANNEL_ID
-                        )
+                        applicationContext,
+                        MainApplication.SYNC_CHANNEL_ID
+                    )
                         .setContentTitle(applicationContext.getText(R.string.notification_inputs_to_synchronize_title))
                         .setContentText(
                             applicationContext.resources.getQuantityString(

@@ -116,8 +116,11 @@ class TaxonomyJsonReader {
                 } ?: emptyList()
             }
             .filter { it.isNotEmpty() }
-            .flatMap { it.asSequence().distinct() }
-            .sortedWith(Comparator { o1, o2 ->
+            .flatMap {
+                it.asSequence()
+                    .distinct()
+            }
+            .sortedWith { o1, o2 ->
                 val kingdomCompare = o1.kingdom.compareTo(o2.kingdom)
 
                 if (kingdomCompare != 0) {
@@ -139,7 +142,7 @@ class TaxonomyJsonReader {
                         groupCompare
                     }
                 }
-            })
+            }
             .toList()
     }
 

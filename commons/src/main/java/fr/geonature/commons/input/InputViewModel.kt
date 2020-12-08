@@ -23,9 +23,11 @@ open class InputViewModel<I : AbstractInput>(
     inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>
 ) : AndroidViewModel(application) {
 
-    private val inputManager = InputManager.getInstance(application,
-                                                        inputJsonReaderListener,
-                                                        inputJsonWriterListener)
+    private val inputManager = InputManager.getInstance(
+        application,
+        inputJsonReaderListener,
+        inputJsonWriterListener
+    )
 
     private var deletedInputToRestore: I? = null
 
@@ -123,7 +125,8 @@ open class InputViewModel<I : AbstractInput>(
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
-    class Factory<T : InputViewModel<I>, I : AbstractInput>(val creator: () -> T) : ViewModelProvider.Factory {
+    class Factory<T : InputViewModel<I>, I : AbstractInput>(val creator: () -> T) :
+        ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST") return creator() as T
         }

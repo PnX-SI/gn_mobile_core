@@ -22,11 +22,10 @@ abstract class AbstractNavigationHistoryPagerFragmentActivity : AbstractPagerFra
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
 
-        historyPrevious =
-            savedInstanceState != null && savedInstanceState.getBoolean(
-                KEY_HISTORY_PREVIOUS,
-                false
-            )
+        historyPrevious = savedInstanceState != null && savedInstanceState.getBoolean(
+            KEY_HISTORY_PREVIOUS,
+            false
+        )
 
         val pager = pager ?: return
 

@@ -38,22 +38,24 @@ class AppSettingsManagerTest {
         initMocks(this)
 
         onAppSettingsJsonJsonReaderListener =
-            spy(object : AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings> {
-                override fun createAppSettings(): DummyAppSettings {
-                    return DummyAppSettings()
-                }
+            spy(
+                object : AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings> {
+                    override fun createAppSettings(): DummyAppSettings {
+                        return DummyAppSettings()
+                    }
 
-                override fun readAdditionalAppSettingsData(
-                    reader: JsonReader,
-                    keyName: String,
-                    appSettings: DummyAppSettings
-                ) {
-                    when (keyName) {
-                        "attribute" -> appSettings.attribute = reader.nextString()
-                        else -> reader.skipValue()
+                    override fun readAdditionalAppSettingsData(
+                        reader: JsonReader,
+                        keyName: String,
+                        appSettings: DummyAppSettings
+                    ) {
+                        when (keyName) {
+                            "attribute" -> appSettings.attribute = reader.nextString()
+                            else -> reader.skipValue()
+                        }
                     }
                 }
-            })
+            )
 
         val application = getApplicationContext<Application>()
         appSettingsManager = spy(

@@ -36,7 +36,8 @@ import java.util.Locale
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class DataSyncWorker(
-    appContext: Context, workerParams: WorkerParameters
+    appContext: Context,
+    workerParams: WorkerParameters
 ) : CoroutineWorker(
     appContext,
     workerParams
@@ -187,7 +188,8 @@ class DataSyncWorker(
     }
 
     private suspend fun syncInputObservers(
-        geoNatureServiceClient: GeoNatureAPIClient, menuId: Int
+        geoNatureServiceClient: GeoNatureAPIClient,
+        menuId: Int
     ): Result {
         return try {
             val response = geoNatureServiceClient.getUsers(menuId)
@@ -500,13 +502,15 @@ class DataSyncWorker(
                     .flatMap { it.asSequence() }
                     .filter { it.id > 0 }
                     .map { nomenclature ->
-                        (if (nomenclature.taxref.isEmpty()) arrayOf(
-                            fr.geonature.sync.api.model.NomenclatureTaxonomy(
-                                Taxonomy.ANY,
-                                Taxonomy.ANY
+                        (
+                            if (nomenclature.taxref.isEmpty()) arrayOf(
+                                fr.geonature.sync.api.model.NomenclatureTaxonomy(
+                                    Taxonomy.ANY,
+                                    Taxonomy.ANY
+                                )
                             )
-                        )
-                        else nomenclature.taxref.toTypedArray()).asSequence()
+                            else nomenclature.taxref.toTypedArray()
+                            ).asSequence()
                             .map {
                                 Taxonomy(
                                     it.kingdom,

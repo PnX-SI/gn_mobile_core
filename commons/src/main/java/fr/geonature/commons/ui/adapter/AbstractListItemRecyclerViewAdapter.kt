@@ -19,49 +19,51 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
     val items: List<T> = _items
 
     init {
-        this.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-            override fun onChanged() {
-                super.onChanged()
+        this.registerAdapterDataObserver(
+            object : RecyclerView.AdapterDataObserver() {
+                override fun onChanged() {
+                    super.onChanged()
 
-                listener?.showEmptyTextView(itemCount == 0)
+                    listener?.showEmptyTextView(itemCount == 0)
+                }
+
+                override fun onItemRangeChanged(
+                    positionStart: Int,
+                    itemCount: Int
+                ) {
+                    super.onItemRangeChanged(
+                        positionStart,
+                        itemCount
+                    )
+
+                    listener?.showEmptyTextView(itemCount == 0)
+                }
+
+                override fun onItemRangeInserted(
+                    positionStart: Int,
+                    itemCount: Int
+                ) {
+                    super.onItemRangeInserted(
+                        positionStart,
+                        itemCount
+                    )
+
+                    listener?.showEmptyTextView(false)
+                }
+
+                override fun onItemRangeRemoved(
+                    positionStart: Int,
+                    itemCount: Int
+                ) {
+                    super.onItemRangeRemoved(
+                        positionStart,
+                        itemCount
+                    )
+
+                    listener?.showEmptyTextView(itemCount == 0)
+                }
             }
-
-            override fun onItemRangeChanged(
-                positionStart: Int,
-                itemCount: Int
-            ) {
-                super.onItemRangeChanged(
-                    positionStart,
-                    itemCount
-                )
-
-                listener?.showEmptyTextView(itemCount == 0)
-            }
-
-            override fun onItemRangeInserted(
-                positionStart: Int,
-                itemCount: Int
-            ) {
-                super.onItemRangeInserted(
-                    positionStart,
-                    itemCount
-                )
-
-                listener?.showEmptyTextView(false)
-            }
-
-            override fun onItemRangeRemoved(
-                positionStart: Int,
-                itemCount: Int
-            ) {
-                super.onItemRangeRemoved(
-                    positionStart,
-                    itemCount
-                )
-
-                listener?.showEmptyTextView(itemCount == 0)
-            }
-        })
+        )
     }
 
     override fun onCreateViewHolder(
@@ -123,39 +125,41 @@ abstract class AbstractListItemRecyclerViewAdapter<T>(private val listener: OnLi
             return
         }
 
-        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-            override fun getOldListSize(): Int {
-                return this@AbstractListItemRecyclerViewAdapter._items.size
-            }
+        val diffResult = DiffUtil.calculateDiff(
+            object : DiffUtil.Callback() {
+                override fun getOldListSize(): Int {
+                    return this@AbstractListItemRecyclerViewAdapter._items.size
+                }
 
-            override fun getNewListSize(): Int {
-                return newItems.size
-            }
+                override fun getNewListSize(): Int {
+                    return newItems.size
+                }
 
-            override fun areItemsTheSame(
-                oldItemPosition: Int,
-                newItemPosition: Int
-            ): Boolean {
-                return this@AbstractListItemRecyclerViewAdapter.areItemsTheSame(
-                    this@AbstractListItemRecyclerViewAdapter._items,
-                    newItems,
-                    oldItemPosition,
-                    newItemPosition
-                )
-            }
+                override fun areItemsTheSame(
+                    oldItemPosition: Int,
+                    newItemPosition: Int
+                ): Boolean {
+                    return this@AbstractListItemRecyclerViewAdapter.areItemsTheSame(
+                        this@AbstractListItemRecyclerViewAdapter._items,
+                        newItems,
+                        oldItemPosition,
+                        newItemPosition
+                    )
+                }
 
-            override fun areContentsTheSame(
-                oldItemPosition: Int,
-                newItemPosition: Int
-            ): Boolean {
-                return this@AbstractListItemRecyclerViewAdapter.areContentsTheSame(
-                    this@AbstractListItemRecyclerViewAdapter._items,
-                    newItems,
-                    oldItemPosition,
-                    newItemPosition
-                )
+                override fun areContentsTheSame(
+                    oldItemPosition: Int,
+                    newItemPosition: Int
+                ): Boolean {
+                    return this@AbstractListItemRecyclerViewAdapter.areContentsTheSame(
+                        this@AbstractListItemRecyclerViewAdapter._items,
+                        newItems,
+                        oldItemPosition,
+                        newItemPosition
+                    )
+                }
             }
-        })
+        )
 
         this._items.clear()
         this._items.addAll(newItems)

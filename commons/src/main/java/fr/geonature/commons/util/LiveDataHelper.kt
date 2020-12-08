@@ -22,7 +22,8 @@ fun <T> LiveData<T>.observeOnce(owner: LifecycleOwner, observer: (T?) -> Unit) {
                 removeObserver(this)
                 observer(value)
             }
-        })
+        }
+    )
 }
 
 /**
@@ -44,5 +45,6 @@ fun <T> LiveData<T>.observeUntil(
                     removeObserver(this)
                 }
             }
-        })
+        }
+    )
 }

@@ -23,6 +23,7 @@ class Taxonomy : Parcelable {
 
     @ColumnInfo(name = COLUMN_KINGDOM)
     var kingdom: String
+
     @ColumnInfo(name = COLUMN_GROUP)
     var group: String
 

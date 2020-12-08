@@ -24,7 +24,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -97,50 +96,52 @@ class HomeActivity : AppCompatActivity() {
         packageInfoViewModel = configurePackageInfoViewModel()
         dataSyncViewModel = configureDataSyncViewModel()
 
-        adapter = PackageInfoRecyclerViewAdapter(object :
-            PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
-            override fun onClick(item: PackageInfo) {
-                item.launchIntent?.run {
-                    startActivity(this)
-                }
-            }
-
-            override fun onLongClicked(
-                position: Int,
-                item: PackageInfo
-            ) {
-                // nothing to do...
-            }
-
-            override fun showEmptyTextView(show: Boolean) {
-                if (emptyTextView?.visibility == View.VISIBLE == show) {
-                    return
+        adapter = PackageInfoRecyclerViewAdapter(
+            object :
+                PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
+                override fun onClick(item: PackageInfo) {
+                    item.launchIntent?.run {
+                        startActivity(this)
+                    }
                 }
 
-                if (show) {
-                    emptyTextView?.startAnimation(
-                        loadAnimation(
-                            this@HomeActivity,
-                            android.R.anim.fade_in
+                override fun onLongClicked(
+                    position: Int,
+                    item: PackageInfo
+                ) {
+// nothing to do...
+                }
+
+                override fun showEmptyTextView(show: Boolean) {
+                    if (emptyTextView?.visibility == View.VISIBLE == show) {
+                        return
+                    }
+
+                    if (show) {
+                        emptyTextView?.startAnimation(
+                            loadAnimation(
+                                this@HomeActivity,
+                                android.R.anim.fade_in
+                            )
                         )
-                    )
-                    emptyTextView?.visibility = View.VISIBLE
-                } else {
-                    emptyTextView?.startAnimation(
-                        loadAnimation(
-                            this@HomeActivity,
-                            android.R.anim.fade_out
+                        emptyTextView?.visibility = View.VISIBLE
+                    } else {
+                        emptyTextView?.startAnimation(
+                            loadAnimation(
+                                this@HomeActivity,
+                                android.R.anim.fade_out
+                            )
                         )
-                    )
-                    emptyTextView?.visibility = View.GONE
+                        emptyTextView?.visibility = View.GONE
+                    }
+                }
+
+                override fun onUpgrade(item: PackageInfo) {
+                    packageInfoViewModel.cancelTasks()
+                    downloadApk(item.packageName)
                 }
             }
-
-            override fun onUpgrade(item: PackageInfo) {
-                packageInfoViewModel.cancelTasks()
-                downloadApk(item.packageName)
-            }
-        })
+        )
 
         with(recyclerView as RecyclerView) {
             layoutManager = LinearLayoutManager(context)
@@ -212,15 +213,17 @@ class HomeActivity : AppCompatActivity() {
             }
             R.id.menu_logout -> {
                 authLoginViewModel.logout()
-                    .observe(this,
-                        Observer {
+                    .observe(
+                        this,
+                        {
                             Toast.makeText(
                                 this,
                                 R.string.toast_logout_success,
                                 Toast.LENGTH_SHORT
                             )
                                 .show()
-                        })
+                        }
+                    )
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -275,27 +278,35 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun configureAppSettingsViewModel(): AppSettingsViewModel {
-        return ViewModelProvider(this,
+        return ViewModelProvider(
+            this,
             fr.geonature.commons.settings.AppSettingsViewModel.Factory {
                 AppSettingsViewModel(application)
-            }).get(AppSettingsViewModel::class.java)
+            }
+        ).get(AppSettingsViewModel::class.java)
     }
 
     private fun configureAuthLoginViewModel(): AuthLoginViewModel {
-        return ViewModelProvider(this,
-            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
+        return ViewModelProvider(
+            this,
+            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }
+        ).get(AuthLoginViewModel::class.java)
             .also { vm ->
-                vm.isLoggedIn.observe(this@HomeActivity,
-                    Observer {
+                vm.isLoggedIn.observe(
+                    this@HomeActivity,
+                    {
                         this@HomeActivity.isLoggedIn = it
                         invalidateOptionsMenu()
-                    })
+                    }
+                )
             }
     }
 
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
-        return ViewModelProvider(this,
-            PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
+        return ViewModelProvider(
+            this,
+            PackageInfoViewModel.Factory { PackageInfoViewModel(application) }
+        ).get(
             PackageInfoViewModel::class.java
         )
             .also { vm ->
@@ -312,22 +323,28 @@ class HomeActivity : AppCompatActivity() {
                     loadAppSettingsAndStartSync(true)
                 }
 
-                vm.packageInfos.observe(this@HomeActivity,
-                    Observer {
+                vm.packageInfos.observe(
+                    this@HomeActivity,
+                    {
                         progressBar?.visibility = View.GONE
                         adapter.setItems(it)
-                    })
+                    }
+                )
             }
     }
 
     private fun configureDataSyncViewModel(): DataSyncViewModel {
-        return ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
+        return ViewModelProvider(
+            this,
+            DataSyncViewModel.Factory { DataSyncViewModel(application) }
+        ).get(DataSyncViewModel::class.java)
             .also { vm ->
-                vm.lastSynchronizedDate.observe(this@HomeActivity,
-                    Observer {
+                vm.lastSynchronizedDate.observe(
+                    this@HomeActivity,
+                    {
                         dataSyncView?.setLastSynchronizedDate(it)
-                    })
+                    }
+                )
             }
     }
 
@@ -366,8 +383,9 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        connectivityManager.requestNetwork(NetworkRequest.Builder()
-            .build(),
+        connectivityManager.requestNetwork(
+            NetworkRequest.Builder()
+                .build(),
             object :
                 ConnectivityManager.NetworkCallback() {
 
@@ -442,14 +460,16 @@ class HomeActivity : AppCompatActivity() {
             delay(500)
 
             dataSyncViewModel.startSync(appSettings)
-                .observeUntil(this@HomeActivity,
+                .observeUntil(
+                    this@HomeActivity,
                     {
                         it?.state in arrayListOf(
                             WorkInfo.State.SUCCEEDED,
                             WorkInfo.State.FAILED,
                             WorkInfo.State.CANCELLED
                         )
-                    }) {
+                    }
+                ) {
                     it?.run {
                         dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
 
@@ -558,7 +578,8 @@ class HomeActivity : AppCompatActivity() {
                         WorkInfo.State.FAILED,
                         WorkInfo.State.CANCELLED
                     )
-                }) {
+                }
+            ) {
                 it?.run {
                     when (state) {
                         WorkInfo.State.FAILED -> progressDialog?.dismiss()

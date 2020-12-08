@@ -41,10 +41,13 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
 
-        authLoginViewModel = ViewModelProvider(this,
-            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
+        authLoginViewModel = ViewModelProvider(
+            this,
+            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }
+        ).get(AuthLoginViewModel::class.java)
             .apply {
-                loginFormState.observe(this@LoginActivity,
+                loginFormState.observe(
+                    this@LoginActivity,
                     Observer {
                         val loginState = it ?: return@Observer
 
@@ -55,9 +58,11 @@ class LoginActivity : AppCompatActivity() {
                             if (loginState.usernameError == null) null else getString(loginState.usernameError)
                         editTextPassword?.error =
                             if (loginState.passwordError == null) null else getString(loginState.passwordError)
-                    })
+                    }
+                )
 
-                loginResult.observe(this@LoginActivity,
+                loginResult.observe(
+                    this@LoginActivity,
                     Observer {
                         val loginResult = it ?: return@Observer
 
@@ -77,7 +82,8 @@ class LoginActivity : AppCompatActivity() {
                         // Complete and destroy login activity once successful
                         setResult(Activity.RESULT_OK)
                         finish()
-                    })
+                    }
+                )
             }
 
         content = findViewById(R.id.content)
@@ -141,12 +147,14 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loadAppSettings() {
-        ViewModelProvider(this,
+        ViewModelProvider(
+            this,
             fr.geonature.commons.settings.AppSettingsViewModel.Factory {
                 AppSettingsViewModel(
                     application
                 )
-            }).get(AppSettingsViewModel::class.java)
+            }
+        ).get(AppSettingsViewModel::class.java)
             .also { vm ->
                 vm.loadAppSettings()
                     .observeOnce(this) {
@@ -156,21 +164,23 @@ class LoginActivity : AppCompatActivity() {
                                     R.string.snackbar_settings_not_found,
                                     vm.getAppSettingsFilename()
                                 )
-                            )?.addCallback(object :
-                                BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                                override fun onDismissed(
-                                    transientBottomBar: Snackbar?,
-                                    event: Int
-                                ) {
-                                    super.onDismissed(
-                                        transientBottomBar,
-                                        event
-                                    )
+                            )?.addCallback(
+                                object :
+                                    BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                                    override fun onDismissed(
+                                        transientBottomBar: Snackbar?,
+                                        event: Int
+                                    ) {
+                                        super.onDismissed(
+                                            transientBottomBar,
+                                            event
+                                        )
 
-                                    setResult(Activity.RESULT_CANCELED)
-                                    finish()
+                                        setResult(Activity.RESULT_CANCELED)
+                                        finish()
+                                    }
                                 }
-                            })
+                            )
                                 ?.show()
                         } else {
                             appSettings = it

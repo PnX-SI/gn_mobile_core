@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.work.WorkInfo
@@ -51,10 +52,10 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
         oldItemPosition: Int,
         newItemPosition: Int
     ): Boolean {
-        return oldItems[oldItemPosition] == newItems[newItemPosition]
-            && oldItems[oldItemPosition].apkUrl == newItems[newItemPosition].apkUrl
-            && oldItems[oldItemPosition].state == newItems[newItemPosition].state
-            && oldItems[oldItemPosition].inputs == newItems[newItemPosition].inputs
+        return oldItems[oldItemPosition] == newItems[newItemPosition] &&
+            oldItems[oldItemPosition].apkUrl == newItems[newItemPosition].apkUrl &&
+            oldItems[oldItemPosition].state == newItems[newItemPosition].state &&
+            oldItems[oldItemPosition].inputs == newItems[newItemPosition].inputs
     }
 
     inner class ViewHolder(itemView: View) :
@@ -90,7 +91,12 @@ class PackageInfoRecyclerViewAdapter(private val listener: OnPackageInfoRecycler
             }
 
             with(icon) {
-                setImageDrawable(item.icon ?: itemView.context.getDrawable(R.drawable.ic_upgrade))
+                setImageDrawable(
+                    item.icon ?: ContextCompat.getDrawable(
+                        itemView.context,
+                        R.drawable.ic_upgrade
+                    )
+                )
 
                 if (item.icon == null) {
                     DrawableCompat.setTint(

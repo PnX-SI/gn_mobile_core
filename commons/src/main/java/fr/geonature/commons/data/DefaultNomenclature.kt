@@ -18,12 +18,14 @@ import fr.geonature.commons.data.helper.get
 @Entity(
     tableName = DefaultNomenclature.TABLE_NAME,
     primaryKeys = [DefaultNomenclature.COLUMN_MODULE, DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
-    foreignKeys = [ForeignKey(
-        entity = Nomenclature::class,
-        parentColumns = [Nomenclature.COLUMN_ID],
-        childColumns = [DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
-        onDelete = ForeignKey.CASCADE
-    )]
+    foreignKeys = [
+        ForeignKey(
+            entity = Nomenclature::class,
+            parentColumns = [Nomenclature.COLUMN_ID],
+            childColumns = [DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 open class DefaultNomenclature : Parcelable {
 

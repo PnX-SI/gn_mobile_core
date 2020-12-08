@@ -19,10 +19,12 @@ import fr.geonature.commons.data.helper.get
  */
 @Entity(
     tableName = NomenclatureType.TABLE_NAME,
-    indices = [Index(
-        value = [NomenclatureType.COLUMN_MNEMONIC],
-        unique = true
-    )]
+    indices = [
+        Index(
+            value = [NomenclatureType.COLUMN_MNEMONIC],
+            unique = true
+        )
+    ]
 )
 data class NomenclatureType(
 

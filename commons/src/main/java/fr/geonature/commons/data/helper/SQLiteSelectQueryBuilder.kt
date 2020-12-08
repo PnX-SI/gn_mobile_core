@@ -323,7 +323,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
             this.orderBy.joinToString(", ")
                 .let { if (it.isEmpty()) it else "ORDER BY $it" }
 
-        val sql = """
+        val sql =
+            """
                 |SELECT ${if (this.columns.isNotEmpty() && this.distinct) "DISTINCT " else ""}$selectedColumns
                 |FROM $tables
                 |$joinClauses
@@ -333,11 +334,11 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 |$orderByClauses
                 |${this.limit}
             """.trimMargin()
-            .trim()
-            .replace(
-                "\n{2,}".toRegex(RegexOption.MULTILINE),
-                "\n"
-            )
+                .trim()
+                .replace(
+                    "\n{2,}".toRegex(RegexOption.MULTILINE),
+                    "\n"
+                )
 
         Log.d(
             TAG,
