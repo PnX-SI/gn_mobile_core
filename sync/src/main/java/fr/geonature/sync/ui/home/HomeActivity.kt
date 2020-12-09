@@ -2,7 +2,6 @@ package fr.geonature.sync.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
@@ -18,6 +17,7 @@ import android.view.animation.AnimationUtils.loadAnimation
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
+import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.util.PermissionUtils
 import fr.geonature.commons.util.observeOnce
@@ -109,7 +110,7 @@ class HomeActivity : AppCompatActivity() {
                     position: Int,
                     item: PackageInfo
                 ) {
-// nothing to do...
+                    // nothing to do...
                 }
 
                 override fun showEmptyTextView(show: Boolean) {
@@ -155,7 +156,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         checkNetwork()
-        checkSelfPermissions()
+        checkPermissions()
     }
 
     override fun onResume() {
@@ -198,17 +199,11 @@ class HomeActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_settings -> {
-                startActivityForResult(
-                    PreferencesActivity.newIntent(this),
-                    REQUEST_CODE_SYNC
-                )
+                startActivityAndStartSync(PreferencesActivity.newIntent(this))
                 true
             }
             R.id.menu_login -> {
-                startActivityForResult(
-                    LoginActivity.newIntent(this),
-                    REQUEST_CODE_SYNC
-                )
+                startActivityAndStartSync(LoginActivity.newIntent(this))
                 true
             }
             R.id.menu_logout -> {
@@ -227,53 +222,6 @@ class HomeActivity : AppCompatActivity() {
                 true
             }
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            REQUEST_STORAGE_PERMISSIONS -> {
-                val requestPermissionsResult = PermissionUtils.checkPermissions(grantResults)
-
-                if (requestPermissionsResult) {
-                    makeSnackbar(getString(R.string.snackbar_permission_external_storage_available))?.show()
-                    loadAppSettingsAndStartSync()
-                    packageInfoViewModel.getAvailableApplications()
-                } else {
-                    makeSnackbar(getString(R.string.snackbar_permissions_not_granted))?.show()
-                }
-            }
-            else -> super.onRequestPermissionsResult(
-                requestCode,
-                permissions,
-                grantResults
-            )
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(
-            requestCode,
-            resultCode,
-            data
-        )
-
-        if ((resultCode != Activity.RESULT_OK)) {
-            return
-        }
-
-        if (requestCode == REQUEST_CODE_SYNC) {
-            if (appSettings == null) {
-                packageInfoViewModel.getAvailableApplications()
-            } else {
-                appSettings?.run {
-                    startSync(this)
-                }
-            }
         }
     }
 
@@ -348,29 +296,30 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    private fun checkSelfPermissions() {
-        PermissionUtils.checkSelfPermissions(
-            this@HomeActivity,
-            object : PermissionUtils.OnCheckSelfPermissionListener {
-                override fun onPermissionsGranted() {
+    private fun checkPermissions() {
+        PermissionUtils.requestPermissions(
+            this,
+            listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            { result ->
+                if (result.values.all { it }) {
                     loadAppSettingsAndStartSync()
                     packageInfoViewModel.getAvailableApplications()
-                }
-
-                override fun onRequestPermissions(vararg permissions: String) {
-                    homeContent?.also {
-                        PermissionUtils.requestPermissions(
-                            this@HomeActivity,
-                            it,
-                            R.string.snackbar_permission_external_storage_rationale,
-                            REQUEST_STORAGE_PERMISSIONS,
-                            *permissions
-                        )
-                    }
+                } else {
+                    Toast.makeText(
+                        this,
+                        R.string.snackbar_permissions_not_granted,
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
                 }
             },
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+            { callback ->
+                makeSnackbar(
+                    getString(R.string.snackbar_permission_external_storage_rationale),
+                    BaseTransientBottomBar.LENGTH_INDEFINITE
+                )?.setAction(android.R.string.ok) { callback() }
+                    ?.show()
+            })
     }
 
     @RequiresPermission(Manifest.permission.CHANGE_NETWORK_STATE)
@@ -414,10 +363,7 @@ class HomeActivity : AppCompatActivity() {
                     progressBar?.visibility = View.GONE
 
                     if (!checkGeoNatureSettings()) {
-                        startActivityForResult(
-                            PreferencesActivity.newIntent(this),
-                            REQUEST_CODE_SYNC
-                        )
+                        startActivityAndStartSync(PreferencesActivity.newIntent(this))
 
                         return@observeOnce
                     }
@@ -436,10 +382,7 @@ class HomeActivity : AppCompatActivity() {
                     invalidateOptionsMenu()
 
                     if (!checkGeoNatureSettings()) {
-                        startActivityForResult(
-                            PreferencesActivity.newIntent(this),
-                            REQUEST_CODE_SYNC
-                        )
+                        startActivityAndStartSync(PreferencesActivity.newIntent(this))
 
                         return@observeOnce
                     }
@@ -490,10 +433,7 @@ class HomeActivity : AppCompatActivity() {
                             )
                                 .show()
 
-                            startActivityForResult(
-                                LoginActivity.newIntent(this@HomeActivity),
-                                REQUEST_CODE_SYNC
-                            )
+                            startActivityAndStartSync(LoginActivity.newIntent(this@HomeActivity))
                         }
                     }
                 }
@@ -504,13 +444,34 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun makeSnackbar(text: CharSequence): Snackbar? {
+    private fun startActivityAndStartSync(intent: Intent) {
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            when (result.resultCode) {
+                RESULT_OK -> {
+                    if (appSettings == null) {
+                        packageInfoViewModel.getAvailableApplications()
+                    } else {
+                        appSettings?.run {
+                            startSync(this)
+                        }
+                    }
+                }
+            }
+        }.also { resultLauncher ->
+            resultLauncher.launch(intent)
+        }
+    }
+
+    private fun makeSnackbar(
+        text: CharSequence,
+        @BaseTransientBottomBar.Duration duration: Int = Snackbar.LENGTH_LONG
+    ): Snackbar? {
         val view = homeContent ?: return null
 
         return Snackbar.make(
             view,
             text,
-            Snackbar.LENGTH_LONG
+            duration
         )
     }
 
@@ -616,8 +577,5 @@ class HomeActivity : AppCompatActivity() {
 
     companion object {
         private val TAG = HomeActivity::class.java.name
-
-        private const val REQUEST_STORAGE_PERMISSIONS = 0
-        private const val REQUEST_CODE_SYNC = 0
     }
 }
