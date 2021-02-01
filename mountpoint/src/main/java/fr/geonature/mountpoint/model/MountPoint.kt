@@ -4,7 +4,6 @@ import android.os.Environment
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
-import androidx.annotation.NonNull
 import fr.geonature.mountpoint.BuildConfig
 import fr.geonature.mountpoint.util.DeviceUtils
 import java.io.File
@@ -55,7 +54,6 @@ class MountPoint :
         this.storageType = source.readSerializable() as StorageType
     }
 
-    @NonNull
     fun getStorageState(): String {
         if (DeviceUtils.isPostLollipop) {
             return Environment.getExternalStorageState(mountPath)

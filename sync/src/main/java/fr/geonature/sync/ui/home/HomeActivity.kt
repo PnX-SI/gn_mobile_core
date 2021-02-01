@@ -17,6 +17,7 @@ import android.view.animation.AnimationUtils.loadAnimation
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
@@ -80,6 +81,8 @@ class HomeActivity : AppCompatActivity() {
 
     private var appSettings: AppSettings? = null
     private var isLoggedIn: Boolean = false
+
+    private lateinit var startSyncResultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,6 +158,21 @@ class HomeActivity : AppCompatActivity() {
             addItemDecoration(dividerItemDecoration)
         }
 
+        startSyncResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                when (result.resultCode) {
+                    RESULT_OK -> {
+                        if (appSettings == null) {
+                            packageInfoViewModel.getAvailableApplications()
+                        } else {
+                            appSettings?.run {
+                                startSync(this)
+                            }
+                        }
+                    }
+                }
+            }
+
         checkNetwork()
         checkPermissions()
     }
@@ -199,11 +217,11 @@ class HomeActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_settings -> {
-                startActivityAndStartSync(PreferencesActivity.newIntent(this))
+                startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
                 true
             }
             R.id.menu_login -> {
-                startActivityAndStartSync(LoginActivity.newIntent(this))
+                startSyncResultLauncher.launch(LoginActivity.newIntent(this))
                 true
             }
             R.id.menu_logout -> {
@@ -363,7 +381,7 @@ class HomeActivity : AppCompatActivity() {
                     progressBar?.visibility = View.GONE
 
                     if (!checkGeoNatureSettings()) {
-                        startActivityAndStartSync(PreferencesActivity.newIntent(this))
+                        startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
 
                         return@observeOnce
                     }
@@ -382,7 +400,7 @@ class HomeActivity : AppCompatActivity() {
                     invalidateOptionsMenu()
 
                     if (!checkGeoNatureSettings()) {
-                        startActivityAndStartSync(PreferencesActivity.newIntent(this))
+                        startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
 
                         return@observeOnce
                     }
@@ -433,7 +451,7 @@ class HomeActivity : AppCompatActivity() {
                             )
                                 .show()
 
-                            startActivityAndStartSync(LoginActivity.newIntent(this@HomeActivity))
+                            startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
                         }
                     }
                 }
@@ -441,24 +459,6 @@ class HomeActivity : AppCompatActivity() {
             delay(500)
 
             packageInfoViewModel.synchronizeInstalledApplications()
-        }
-    }
-
-    private fun startActivityAndStartSync(intent: Intent) {
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            when (result.resultCode) {
-                RESULT_OK -> {
-                    if (appSettings == null) {
-                        packageInfoViewModel.getAvailableApplications()
-                    } else {
-                        appSettings?.run {
-                            startSync(this)
-                        }
-                    }
-                }
-            }
-        }.also { resultLauncher ->
-            resultLauncher.launch(intent)
         }
     }
 
