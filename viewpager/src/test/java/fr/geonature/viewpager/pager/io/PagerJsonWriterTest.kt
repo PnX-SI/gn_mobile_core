@@ -16,7 +16,7 @@ import java.io.StringWriter
  */
 @RunWith(RobolectricTestRunner::class)
 class PagerJsonWriterTest {
-    lateinit var pagerJsonWriter: PagerJsonWriter
+    private lateinit var pagerJsonWriter: PagerJsonWriter
 
     @Before
     fun setUp() {

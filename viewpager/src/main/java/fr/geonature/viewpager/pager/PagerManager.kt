@@ -80,7 +80,7 @@ class PagerManager(application: Application) {
         !preferenceManager.contains(buildPagerPreferenceKey(pagerId))
     }
 
-    private fun buildPagerPreferenceKey(pagerId: Long): String? {
+    private fun buildPagerPreferenceKey(pagerId: Long): String {
         return "KEY_PAGER_$pagerId"
     }
 

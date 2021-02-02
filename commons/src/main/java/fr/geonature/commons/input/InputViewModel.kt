@@ -47,7 +47,7 @@ open class InputViewModel<I : AbstractInput>(
      *
      * @param id The [AbstractInput] ID to read. If omitted, read the current saved [AbstractInput].
      */
-    fun readInput(id: Long? = null): LiveData<I> {
+    open fun readInput(id: Long? = null): LiveData<I> {
         viewModelScope.launch {
             inputManager.readInput(id)
         }

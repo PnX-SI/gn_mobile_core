@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 
 /**
- * Helpers for [LiveData] utilities.
+ * Helpers for LiveData utilities.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */

@@ -46,7 +46,7 @@ class InputManager<I : AbstractInput> private constructor(
      */
     suspend fun readInputs(): List<I> = withContext(IO) {
         preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }
-            .values.mapNotNull { if (it is String && !it.isBlank()) inputJsonReader.read(it) else null }
+            .values.mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
             .sortedBy { it.id }
             .also { inputs.postValue(it) }
     }

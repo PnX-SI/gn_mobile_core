@@ -16,7 +16,7 @@ import java.io.StringReader
  */
 @RunWith(RobolectricTestRunner::class)
 class PagerJsonReaderTest {
-    lateinit var pagerJsonReader: PagerJsonReader
+    private lateinit var pagerJsonReader: PagerJsonReader
 
     @Before
     fun setUp() {
