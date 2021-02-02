@@ -19,6 +19,7 @@
     <string name="sync_data_dataset">Synchronisation des jeux de données : %1$d</string>
     <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
     <string name="sync_data_taxa">Synchronisation des taxons : %1$d</string>
+    <string name="sync_data_taxa_areas">Synchronisation des unités géographiques : %1$d</string>
     <string name="sync_data_nomenclature_type">Synchronisation des types de nomenclature : %1$d</string>
     <string name="sync_data_nomenclature">Synchronisation de la nomenclature : %1$d</string>
     <string name="sync_data_nomenclature_default">Synchronisation des valeurs par défaut de la nomenclature : %1$d</string>

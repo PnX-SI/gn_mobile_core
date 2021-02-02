@@ -35,12 +35,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/text_margin"
-        android:ellipsize="end"
+        android:ellipsize="middle"
         android:singleLine="true"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@android:id/title"
-        tools:text="Item #1" />
+        tools:text="@tools:sample/lorem/random" />
 
     <TextView
         android:id="@android:id/text1"

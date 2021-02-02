@@ -22,6 +22,7 @@
     <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
     <string name="sync_data_observers">Synchronize observers: %1$d</string>
     <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
+    <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
     <string name="sync_data_nomenclature_type">Synchronize nomenclature type: %1$d</string>
     <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
     <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>

@@ -398,6 +398,15 @@ class DataSyncWorker(
                     "found ${taxrefAreas.size} taxa with areas from offset $offset"
                 )
 
+                setProgress(
+                    workData(
+                        applicationContext.getString(
+                            R.string.sync_data_taxa_areas,
+                            (offset + taxrefAreas.size)
+                        )
+                    )
+                )
+
                 val taxonAreas = taxrefAreas.asSequence()
                     .filter { taxrefArea -> validTaxaIds.any { it == taxrefArea.taxrefId } }
                     .map {
