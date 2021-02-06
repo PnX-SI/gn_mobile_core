@@ -13,6 +13,7 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import fr.geonature.commons.util.add
 import fr.geonature.commons.util.toIsoDateString
@@ -36,22 +37,32 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
     val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
 
-    fun startSync(appSettings: AppSettings): LiveData<DataSyncStatus?> {
-        val lastSynchronizedDate = dataSyncManager.lastSynchronizedDate.value
+    var isSyncRunning: Boolean = false
+        private set
 
-        if (lastSynchronizedDate?.add(
-                Calendar.HOUR,
-                1
-            )
-                ?.after(Date()) == true
-        ) {
-            Log.d(
-                TAG,
-                "data already synchronized at ${lastSynchronizedDate.toIsoDateString()}"
-            )
+    fun startSync(
+        appSettings: AppSettings,
+        forceRefresh: Boolean = false
+    ): LiveData<DataSyncStatus?> {
+        if (!forceRefresh) {
+            val lastSynchronizedDate = dataSyncManager.lastSynchronizedDate.value
 
-            return MutableLiveData(null)
+            if (lastSynchronizedDate?.add(
+                    Calendar.HOUR,
+                    1
+                )
+                    ?.after(Date()) == true
+            ) {
+                Log.d(
+                    TAG,
+                    "data already synchronized at ${lastSynchronizedDate.toIsoDateString()}"
+                )
+
+                return MutableLiveData(null)
+            }
         }
+
+        isSyncRunning = true
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -106,6 +117,11 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                     )
                 )
             ]
+
+            isSyncRunning = it.state in arrayListOf(
+                WorkInfo.State.ENQUEUED,
+                WorkInfo.State.RUNNING
+            )
 
             DataSyncStatus(
                 it.state,

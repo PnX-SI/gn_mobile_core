@@ -201,6 +201,9 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.run {
+            findItem(R.id.menu_sync_refresh)?.also {
+                it.isEnabled = appSettings != null && !dataSyncViewModel.isSyncRunning
+            }
             findItem(R.id.menu_login)?.also {
                 it.isEnabled = appSettings != null
                 it.isVisible = !isLoggedIn
@@ -218,6 +221,15 @@ class HomeActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.menu_settings -> {
                 startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
+                true
+            }
+            R.id.menu_sync_refresh -> {
+                appSettings?.run {
+                    startSync(
+                        this,
+                        true
+                    )
+                }
                 true
             }
             R.id.menu_login -> {
@@ -286,7 +298,7 @@ class HomeActivity : AppCompatActivity() {
                         "reloading settings after update..."
                     )
 
-                    loadAppSettingsAndStartSync(true)
+                    loadAppSettingsAndStartSync()
                 }
 
                 vm.packageInfos.observe(
@@ -366,7 +378,7 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
-    private fun loadAppSettingsAndStartSync(updated: Boolean = false) {
+    private fun loadAppSettingsAndStartSync() {
         appSettingsViewModel.loadAppSettings()
             .observeOnce(this@HomeActivity) {
                 if (it == null) {
@@ -385,14 +397,12 @@ class HomeActivity : AppCompatActivity() {
                         return@observeOnce
                     }
                 } else {
-                    if (updated) {
-                        makeSnackbar(
-                            getString(
-                                R.string.snackbar_settings_updated,
-                                appSettingsViewModel.getAppSettingsFilename()
-                            )
-                        )?.show()
-                    }
+                    makeSnackbar(
+                        getString(
+                            R.string.snackbar_settings_updated,
+                            appSettingsViewModel.getAppSettingsFilename()
+                        )
+                    )?.show()
 
                     appSettings = it
                     mergeAppSettingsWithSharedPreferences(it)
@@ -413,13 +423,17 @@ class HomeActivity : AppCompatActivity() {
         return GeoNatureAPIClient.instance(this) != null
     }
 
-    private fun startSync(appSettings: AppSettings) {
+    private fun startSync(appSettings: AppSettings, forceRefresh: Boolean = false) {
         GlobalScope.launch(Main) {
-            progressBar?.visibility = View.VISIBLE
+            if (!forceRefresh) {
+                progressBar?.visibility = View.VISIBLE
+                delay(500)
+            }
 
-            delay(500)
-
-            dataSyncViewModel.startSync(appSettings)
+            dataSyncViewModel.startSync(
+                appSettings,
+                forceRefresh
+            )
                 .observeUntil(
                     this@HomeActivity,
                     {
@@ -431,6 +445,8 @@ class HomeActivity : AppCompatActivity() {
                     }
                 ) {
                     it?.run {
+                        invalidateOptionsMenu()
+
                         dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
 
                         if (!it.syncMessage.isNullOrBlank()) {
