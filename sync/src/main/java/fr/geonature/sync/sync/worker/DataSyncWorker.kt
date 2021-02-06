@@ -632,11 +632,11 @@ class DataSyncWorker(
 
     private fun checkResponse(response: Response<*>): Result {
         // not connected
-        if (response.code() == 403) {
+        if (response.code() == ServerStatus.UNAUTHORIZED.httpStatus) {
             return Result.failure(
                 workData(
                     applicationContext.getString(R.string.sync_error_server_not_connected),
-                    ServerStatus.FORBIDDEN
+                    ServerStatus.UNAUTHORIZED
                 )
             )
         }

@@ -44,7 +44,7 @@ import fr.geonature.sync.settings.AppSettingsViewModel
 import fr.geonature.sync.sync.DataSyncViewModel
 import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.PackageInfoViewModel
-import fr.geonature.sync.sync.ServerStatus.FORBIDDEN
+import fr.geonature.sync.sync.ServerStatus.UNAUTHORIZED
 import fr.geonature.sync.ui.login.LoginActivity
 import fr.geonature.sync.ui.settings.PreferencesActivity
 import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
@@ -320,7 +320,6 @@ class HomeActivity : AppCompatActivity() {
             listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
             { result ->
                 if (result.values.all { it }) {
-                    loadAppSettingsAndStartSync()
                     packageInfoViewModel.getAvailableApplications()
                 } else {
                     Toast.makeText(
@@ -438,8 +437,8 @@ class HomeActivity : AppCompatActivity() {
                             dataSyncView?.setMessage(it.syncMessage)
                         }
 
-                        if (it.serverStatus == FORBIDDEN) {
-                            Log.d(
+                        if (it.serverStatus == UNAUTHORIZED) {
+                            Log.i(
                                 TAG,
                                 "not connected, redirect to LoginActivity"
                             )

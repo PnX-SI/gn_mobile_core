@@ -12,6 +12,7 @@ import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -25,12 +26,20 @@ import retrofit2.http.Url
  */
 interface GeoNatureService {
 
+    @Headers(
+        "Accept: application/json",
+        "Content-Type: application/json;charset=UTF-8"
+    )
     @POST("api/auth/login")
     suspend fun authLogin(
         @Body
         authCredentials: AuthCredentials
     ): Response<AuthLogin>
 
+    @Headers(
+        "Accept: application/json",
+        "Content-Type: application/json;charset=UTF-8"
+    )
     @POST("api/{module}/releve")
     fun sendInput(
         @Path("module")
@@ -39,15 +48,18 @@ interface GeoNatureService {
         input: RequestBody
     ): Call<ResponseBody>
 
+    @Headers("Accept: application/json")
     @GET("api/meta/datasets")
     fun getMetaDatasets(): Call<ResponseBody>
 
+    @Headers("Accept: application/json")
     @GET("api/users/menu/{id}")
     fun getUsers(
         @Path("id")
         menuId: Int
     ): Call<List<User>>
 
+    @Headers("Accept: application/json")
     @GET("api/synthese/color_taxon")
     fun getTaxrefAreas(
         @Query("code_area_type") codeAreaType: String? = null,
@@ -55,15 +67,18 @@ interface GeoNatureService {
         @Query("offset") offset: Int? = null
     ): Call<List<TaxrefArea>>
 
+    @Headers("Accept: application/json")
     @GET("api/nomenclatures/nomenclatures/taxonomy")
     fun getNomenclatures(): Call<List<NomenclatureType>>
 
+    @Headers("Accept: application/json")
     @GET("api/{module}/defaultNomenclatures")
     fun getDefaultNomenclaturesValues(
         @Path("module")
         module: String
     ): Call<ResponseBody>
 
+    @Headers("Accept: application/json")
     @GET("api/gn_commons/t_mobile_apps")
     fun getApplications(): Call<List<AppPackage>>
 
