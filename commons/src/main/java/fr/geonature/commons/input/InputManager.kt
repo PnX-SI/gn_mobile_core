@@ -46,7 +46,7 @@ class InputManager<I : AbstractInput> private constructor(
      */
     suspend fun readInputs(): List<I> = withContext(IO) {
         preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }
-            .values.mapNotNull { if (it is String && !it.isBlank()) inputJsonReader.read(it) else null }
+            .values.mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
             .sortedBy { it.id }
             .also { inputs.postValue(it) }
     }
@@ -174,14 +174,14 @@ class InputManager<I : AbstractInput> private constructor(
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
     suspend fun exportInput(input: I): Boolean {
-        val inputExportFile = withContext(IO) {
-            val inputExportFile = getInputExportFile(input)
+        val inputExportFile = getInputExportFile(input)
+
+        @Suppress("BlockingMethodInNonBlockingContext")
+        withContext(IO) {
             inputJsonWriter.write(
                 FileWriter(inputExportFile),
                 input
             )
-
-            return@withContext inputExportFile
         }
 
         Log.i(
@@ -205,11 +205,11 @@ class InputManager<I : AbstractInput> private constructor(
     }
 
     @Throws(IOException::class)
-    private fun getInputExportFile(input: AbstractInput): File {
+    private suspend fun getInputExportFile(input: AbstractInput): File = withContext(IO) {
         val inputDir = FileUtils.getInputsFolder(application)
         inputDir.mkdirs()
 
-        return File(
+        return@withContext File(
             inputDir,
             "input_${input.module}_${input.id}.json"
         )

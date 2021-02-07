@@ -30,7 +30,7 @@ class MainContentProvider : ContentProvider() {
         return true
     }
 
-    override fun getType(uri: Uri): String? {
+    override fun getType(uri: Uri): String {
         return when (MATCHER.match(uri)) {
             APP_SYNC_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${AppSync.TABLE_NAME}"
             DATASET, DATASET_ACTIVE -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Dataset.TABLE_NAME}"

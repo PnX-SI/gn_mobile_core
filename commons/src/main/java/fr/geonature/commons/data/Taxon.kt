@@ -157,5 +157,5 @@ class Taxon : AbstractTaxon {
     /**
      * Order by query builder.
      */
-    class OrderBy: AbstractTaxon.OrderBy(TABLE_NAME)
+    class OrderBy : AbstractTaxon.OrderBy(TABLE_NAME)
 }

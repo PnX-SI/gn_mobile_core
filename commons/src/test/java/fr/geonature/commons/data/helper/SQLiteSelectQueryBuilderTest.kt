@@ -26,7 +26,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT *
             FROM user
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
 
@@ -43,7 +43,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT *
             FROM user u
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -61,7 +61,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT email
             FROM user
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
 
@@ -82,7 +82,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT u.email AS user_email
             FROM user u
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
 
@@ -109,7 +109,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT u.email, u.login
             FROM user u
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
 
@@ -128,7 +128,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT u.email, u.login
             FROM user u
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -146,7 +146,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT *
             FROM user
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
 
@@ -166,7 +166,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT DISTINCT u.email, u.login
             FROM user u
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -193,7 +193,7 @@ class SQLiteSelectQueryBuilderTest {
             """
             SELECT u.email, u.login, p.role
             FROM user u, profile p
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -223,7 +223,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.id, u.email, u.login, p.role
             FROM user u
             LEFT JOIN profile AS p ON p.user_id = u.id
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
 
@@ -265,7 +265,7 @@ class SQLiteSelectQueryBuilderTest {
             JOIN group AS g ON g.name = ?
             LEFT OUTER JOIN user_group AS ug ON ug.group_id = g.id AND ug.user_id = u.id
             LEFT JOIN profile AS p ON p.user_id = u.id
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -296,7 +296,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             WHERE u.email = ?
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -324,7 +324,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             WHERE (u.email = ?)
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -352,7 +352,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             WHERE (u.email = ?)
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -385,7 +385,7 @@ class SQLiteSelectQueryBuilderTest {
             FROM user u
             WHERE (u.email = ?)
               AND (u.login = ?)
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -415,7 +415,7 @@ class SQLiteSelectQueryBuilderTest {
             FROM user u
             WHERE (u.email = ?)
               OR (u.login = 'user')
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -447,7 +447,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             WHERE u.login = ?
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -479,7 +479,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             WHERE u.login = ?
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -510,7 +510,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             WHERE u.email = ?
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
         assertEquals(
@@ -552,7 +552,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login AS login
             FROM user u
             GROUP BY login
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -603,7 +603,7 @@ class SQLiteSelectQueryBuilderTest {
             LEFT JOIN input AS i ON i.user_id = p.id
             GROUP BY u.email
             HAVING SUM(i.id) > 0
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -637,7 +637,7 @@ class SQLiteSelectQueryBuilderTest {
             FROM user u
             INNER JOIN input AS i ON i.user_id = p.id
             ORDER BY count
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -665,7 +665,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             ORDER BY u.email COLLATE NOCASE ASC
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -702,7 +702,7 @@ class SQLiteSelectQueryBuilderTest {
             FROM user u
             INNER JOIN input AS i ON i.user_id = p.id
             ORDER BY count DESC
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -730,7 +730,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             ORDER BY u.login COLLATE NOCASE DESC
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -756,7 +756,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             ORDER BY u.login asc
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -783,7 +783,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login, u.username
             FROM user u
             ORDER BY u.email, COALESCE(u.login, u.username) desc
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }
@@ -807,7 +807,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             LIMIT 10
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
 
@@ -831,7 +831,7 @@ class SQLiteSelectQueryBuilderTest {
             SELECT u.email, u.login
             FROM user u
             LIMIT 10, 3
-        """.trimIndent(),
+            """.trimIndent(),
             sqLiteQuery.sql
         )
     }

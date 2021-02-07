@@ -2,7 +2,6 @@ package fr.geonature.sync.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
@@ -18,18 +17,20 @@ import android.view.animation.AnimationUtils.loadAnimation
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
+import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import fr.geonature.commons.util.PermissionUtils
 import fr.geonature.commons.util.observeOnce
@@ -43,7 +44,7 @@ import fr.geonature.sync.settings.AppSettingsViewModel
 import fr.geonature.sync.sync.DataSyncViewModel
 import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.PackageInfoViewModel
-import fr.geonature.sync.sync.ServerStatus.FORBIDDEN
+import fr.geonature.sync.sync.ServerStatus.UNAUTHORIZED
 import fr.geonature.sync.ui.login.LoginActivity
 import fr.geonature.sync.ui.settings.PreferencesActivity
 import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
@@ -81,6 +82,8 @@ class HomeActivity : AppCompatActivity() {
     private var appSettings: AppSettings? = null
     private var isLoggedIn: Boolean = false
 
+    private lateinit var startSyncResultLauncher: ActivityResultLauncher<Intent>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -97,50 +100,52 @@ class HomeActivity : AppCompatActivity() {
         packageInfoViewModel = configurePackageInfoViewModel()
         dataSyncViewModel = configureDataSyncViewModel()
 
-        adapter = PackageInfoRecyclerViewAdapter(object :
-            PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
-            override fun onClick(item: PackageInfo) {
-                item.launchIntent?.run {
-                    startActivity(this)
-                }
-            }
-
-            override fun onLongClicked(
-                position: Int,
-                item: PackageInfo
-            ) {
-                // nothing to do...
-            }
-
-            override fun showEmptyTextView(show: Boolean) {
-                if (emptyTextView?.visibility == View.VISIBLE == show) {
-                    return
+        adapter = PackageInfoRecyclerViewAdapter(
+            object :
+                PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
+                override fun onClick(item: PackageInfo) {
+                    item.launchIntent?.run {
+                        startActivity(this)
+                    }
                 }
 
-                if (show) {
-                    emptyTextView?.startAnimation(
-                        loadAnimation(
-                            this@HomeActivity,
-                            android.R.anim.fade_in
+                override fun onLongClicked(
+                    position: Int,
+                    item: PackageInfo
+                ) {
+                    // nothing to do...
+                }
+
+                override fun showEmptyTextView(show: Boolean) {
+                    if (emptyTextView?.visibility == View.VISIBLE == show) {
+                        return
+                    }
+
+                    if (show) {
+                        emptyTextView?.startAnimation(
+                            loadAnimation(
+                                this@HomeActivity,
+                                android.R.anim.fade_in
+                            )
                         )
-                    )
-                    emptyTextView?.visibility = View.VISIBLE
-                } else {
-                    emptyTextView?.startAnimation(
-                        loadAnimation(
-                            this@HomeActivity,
-                            android.R.anim.fade_out
+                        emptyTextView?.visibility = View.VISIBLE
+                    } else {
+                        emptyTextView?.startAnimation(
+                            loadAnimation(
+                                this@HomeActivity,
+                                android.R.anim.fade_out
+                            )
                         )
-                    )
-                    emptyTextView?.visibility = View.GONE
+                        emptyTextView?.visibility = View.GONE
+                    }
+                }
+
+                override fun onUpgrade(item: PackageInfo) {
+                    packageInfoViewModel.cancelTasks()
+                    downloadApk(item.packageName)
                 }
             }
-
-            override fun onUpgrade(item: PackageInfo) {
-                packageInfoViewModel.cancelTasks()
-                downloadApk(item.packageName)
-            }
-        })
+        )
 
         with(recyclerView as RecyclerView) {
             layoutManager = LinearLayoutManager(context)
@@ -153,8 +158,23 @@ class HomeActivity : AppCompatActivity() {
             addItemDecoration(dividerItemDecoration)
         }
 
+        startSyncResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                when (result.resultCode) {
+                    RESULT_OK -> {
+                        if (appSettings == null) {
+                            packageInfoViewModel.getAvailableApplications()
+                        } else {
+                            appSettings?.run {
+                                startSync(this)
+                            }
+                        }
+                    }
+                }
+            }
+
         checkNetwork()
-        checkSelfPermissions()
+        checkPermissions()
     }
 
     override fun onResume() {
@@ -181,6 +201,9 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.run {
+            findItem(R.id.menu_sync_refresh)?.also {
+                it.isEnabled = appSettings != null && !dataSyncViewModel.isSyncRunning
+            }
             findItem(R.id.menu_login)?.also {
                 it.isEnabled = appSettings != null
                 it.isVisible = !isLoggedIn
@@ -197,105 +220,71 @@ class HomeActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_settings -> {
-                startActivityForResult(
-                    PreferencesActivity.newIntent(this),
-                    REQUEST_CODE_SYNC
-                )
+                startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
+                true
+            }
+            R.id.menu_sync_refresh -> {
+                appSettings?.run {
+                    startSync(
+                        this,
+                        true
+                    )
+                }
                 true
             }
             R.id.menu_login -> {
-                startActivityForResult(
-                    LoginActivity.newIntent(this),
-                    REQUEST_CODE_SYNC
-                )
+                startSyncResultLauncher.launch(LoginActivity.newIntent(this))
                 true
             }
             R.id.menu_logout -> {
                 authLoginViewModel.logout()
-                    .observe(this,
-                        Observer {
+                    .observe(
+                        this,
+                        {
                             Toast.makeText(
                                 this,
                                 R.string.toast_logout_success,
                                 Toast.LENGTH_SHORT
                             )
                                 .show()
-                        })
+                        }
+                    )
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            REQUEST_STORAGE_PERMISSIONS -> {
-                val requestPermissionsResult = PermissionUtils.checkPermissions(grantResults)
-
-                if (requestPermissionsResult) {
-                    makeSnackbar(getString(R.string.snackbar_permission_external_storage_available))?.show()
-                    loadAppSettingsAndStartSync()
-                    packageInfoViewModel.getAvailableApplications()
-                } else {
-                    makeSnackbar(getString(R.string.snackbar_permissions_not_granted))?.show()
-                }
-            }
-            else -> super.onRequestPermissionsResult(
-                requestCode,
-                permissions,
-                grantResults
-            )
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(
-            requestCode,
-            resultCode,
-            data
-        )
-
-        if ((resultCode != Activity.RESULT_OK)) {
-            return
-        }
-
-        if (requestCode == REQUEST_CODE_SYNC) {
-            if (appSettings == null) {
-                packageInfoViewModel.getAvailableApplications()
-            } else {
-                appSettings?.run {
-                    startSync(this)
-                }
-            }
-        }
-    }
-
     private fun configureAppSettingsViewModel(): AppSettingsViewModel {
-        return ViewModelProvider(this,
+        return ViewModelProvider(
+            this,
             fr.geonature.commons.settings.AppSettingsViewModel.Factory {
                 AppSettingsViewModel(application)
-            }).get(AppSettingsViewModel::class.java)
+            }
+        ).get(AppSettingsViewModel::class.java)
     }
 
     private fun configureAuthLoginViewModel(): AuthLoginViewModel {
-        return ViewModelProvider(this,
-            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }).get(AuthLoginViewModel::class.java)
+        return ViewModelProvider(
+            this,
+            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }
+        ).get(AuthLoginViewModel::class.java)
             .also { vm ->
-                vm.isLoggedIn.observe(this@HomeActivity,
-                    Observer {
+                vm.isLoggedIn.observe(
+                    this@HomeActivity,
+                    {
                         this@HomeActivity.isLoggedIn = it
                         invalidateOptionsMenu()
-                    })
+                    }
+                )
             }
     }
 
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
-        return ViewModelProvider(this,
-            PackageInfoViewModel.Factory { PackageInfoViewModel(application) }).get(
+        return ViewModelProvider(
+            this,
+            PackageInfoViewModel.Factory { PackageInfoViewModel(application) }
+        ).get(
             PackageInfoViewModel::class.java
         )
             .also { vm ->
@@ -309,51 +298,57 @@ class HomeActivity : AppCompatActivity() {
                         "reloading settings after update..."
                     )
 
-                    loadAppSettingsAndStartSync(true)
+                    loadAppSettingsAndStartSync()
                 }
 
-                vm.packageInfos.observe(this@HomeActivity,
-                    Observer {
+                vm.packageInfos.observe(
+                    this@HomeActivity,
+                    {
                         progressBar?.visibility = View.GONE
                         adapter.setItems(it)
-                    })
+                    }
+                )
             }
     }
 
     private fun configureDataSyncViewModel(): DataSyncViewModel {
-        return ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) }).get(DataSyncViewModel::class.java)
+        return ViewModelProvider(
+            this,
+            DataSyncViewModel.Factory { DataSyncViewModel(application) }
+        ).get(DataSyncViewModel::class.java)
             .also { vm ->
-                vm.lastSynchronizedDate.observe(this@HomeActivity,
-                    Observer {
+                vm.lastSynchronizedDate.observe(
+                    this@HomeActivity,
+                    {
                         dataSyncView?.setLastSynchronizedDate(it)
-                    })
+                    }
+                )
             }
     }
 
-    private fun checkSelfPermissions() {
-        PermissionUtils.checkSelfPermissions(
-            this@HomeActivity,
-            object : PermissionUtils.OnCheckSelfPermissionListener {
-                override fun onPermissionsGranted() {
-                    loadAppSettingsAndStartSync()
+    private fun checkPermissions() {
+        PermissionUtils.requestPermissions(
+            this,
+            listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            { result ->
+                if (result.values.all { it }) {
                     packageInfoViewModel.getAvailableApplications()
-                }
-
-                override fun onRequestPermissions(vararg permissions: String) {
-                    homeContent?.also {
-                        PermissionUtils.requestPermissions(
-                            this@HomeActivity,
-                            it,
-                            R.string.snackbar_permission_external_storage_rationale,
-                            REQUEST_STORAGE_PERMISSIONS,
-                            *permissions
-                        )
-                    }
+                } else {
+                    Toast.makeText(
+                        this,
+                        R.string.snackbar_permissions_not_granted,
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
                 }
             },
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+            { callback ->
+                makeSnackbar(
+                    getString(R.string.snackbar_permission_external_storage_rationale),
+                    BaseTransientBottomBar.LENGTH_INDEFINITE
+                )?.setAction(android.R.string.ok) { callback() }
+                    ?.show()
+            })
     }
 
     @RequiresPermission(Manifest.permission.CHANGE_NETWORK_STATE)
@@ -366,8 +361,9 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        connectivityManager.requestNetwork(NetworkRequest.Builder()
-            .build(),
+        connectivityManager.requestNetwork(
+            NetworkRequest.Builder()
+                .build(),
             object :
                 ConnectivityManager.NetworkCallback() {
 
@@ -382,7 +378,7 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
-    private fun loadAppSettingsAndStartSync(updated: Boolean = false) {
+    private fun loadAppSettingsAndStartSync() {
         appSettingsViewModel.loadAppSettings()
             .observeOnce(this@HomeActivity) {
                 if (it == null) {
@@ -396,32 +392,24 @@ class HomeActivity : AppCompatActivity() {
                     progressBar?.visibility = View.GONE
 
                     if (!checkGeoNatureSettings()) {
-                        startActivityForResult(
-                            PreferencesActivity.newIntent(this),
-                            REQUEST_CODE_SYNC
-                        )
+                        startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
 
                         return@observeOnce
                     }
                 } else {
-                    if (updated) {
-                        makeSnackbar(
-                            getString(
-                                R.string.snackbar_settings_updated,
-                                appSettingsViewModel.getAppSettingsFilename()
-                            )
-                        )?.show()
-                    }
+                    makeSnackbar(
+                        getString(
+                            R.string.snackbar_settings_updated,
+                            appSettingsViewModel.getAppSettingsFilename()
+                        )
+                    )?.show()
 
                     appSettings = it
                     mergeAppSettingsWithSharedPreferences(it)
                     invalidateOptionsMenu()
 
                     if (!checkGeoNatureSettings()) {
-                        startActivityForResult(
-                            PreferencesActivity.newIntent(this),
-                            REQUEST_CODE_SYNC
-                        )
+                        startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
 
                         return@observeOnce
                     }
@@ -435,30 +423,38 @@ class HomeActivity : AppCompatActivity() {
         return GeoNatureAPIClient.instance(this) != null
     }
 
-    private fun startSync(appSettings: AppSettings) {
+    private fun startSync(appSettings: AppSettings, forceRefresh: Boolean = false) {
         GlobalScope.launch(Main) {
-            progressBar?.visibility = View.VISIBLE
+            if (!forceRefresh) {
+                progressBar?.visibility = View.VISIBLE
+                delay(500)
+            }
 
-            delay(500)
-
-            dataSyncViewModel.startSync(appSettings)
-                .observeUntil(this@HomeActivity,
+            dataSyncViewModel.startSync(
+                appSettings,
+                forceRefresh
+            )
+                .observeUntil(
+                    this@HomeActivity,
                     {
                         it?.state in arrayListOf(
                             WorkInfo.State.SUCCEEDED,
                             WorkInfo.State.FAILED,
                             WorkInfo.State.CANCELLED
                         )
-                    }) {
+                    }
+                ) {
                     it?.run {
+                        invalidateOptionsMenu()
+
                         dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
 
                         if (!it.syncMessage.isNullOrBlank()) {
                             dataSyncView?.setMessage(it.syncMessage)
                         }
 
-                        if (it.serverStatus == FORBIDDEN) {
-                            Log.d(
+                        if (it.serverStatus == UNAUTHORIZED) {
+                            Log.i(
                                 TAG,
                                 "not connected, redirect to LoginActivity"
                             )
@@ -470,10 +466,7 @@ class HomeActivity : AppCompatActivity() {
                             )
                                 .show()
 
-                            startActivityForResult(
-                                LoginActivity.newIntent(this@HomeActivity),
-                                REQUEST_CODE_SYNC
-                            )
+                            startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
                         }
                     }
                 }
@@ -484,13 +477,16 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun makeSnackbar(text: CharSequence): Snackbar? {
+    private fun makeSnackbar(
+        text: CharSequence,
+        @BaseTransientBottomBar.Duration duration: Int = Snackbar.LENGTH_LONG
+    ): Snackbar? {
         val view = homeContent ?: return null
 
         return Snackbar.make(
             view,
             text,
-            Snackbar.LENGTH_LONG
+            duration
         )
     }
 
@@ -558,7 +554,8 @@ class HomeActivity : AppCompatActivity() {
                         WorkInfo.State.FAILED,
                         WorkInfo.State.CANCELLED
                     )
-                }) {
+                }
+            ) {
                 it?.run {
                     when (state) {
                         WorkInfo.State.FAILED -> progressDialog?.dismiss()
@@ -595,8 +592,5 @@ class HomeActivity : AppCompatActivity() {
 
     companion object {
         private val TAG = HomeActivity::class.java.name
-
-        private const val REQUEST_STORAGE_PERMISSIONS = 0
-        private const val REQUEST_CODE_SYNC = 0
     }
 }

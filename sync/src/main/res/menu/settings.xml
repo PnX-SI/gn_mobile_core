@@ -9,6 +9,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/menu_sync_refresh"
+        android:icon="@drawable/ic_action_refresh"
+        android:title="@string/action_sync_refresh"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_login"
         android:icon="@drawable/ic_action_login"
         android:title="@string/action_login"

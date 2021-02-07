@@ -151,8 +151,9 @@ class DatasetJsonReader {
 
         while (reader.hasNext()) {
             when (reader.nextName()) {
-                "module_path" -> module = reader.nextString()
-                    .toLowerCase(Locale.ROOT)
+                "module_path" ->
+                    module = reader.nextString()
+                        .toLowerCase(Locale.ROOT)
                 else -> reader.skipValue()
             }
         }

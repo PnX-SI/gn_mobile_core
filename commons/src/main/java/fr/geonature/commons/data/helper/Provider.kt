@@ -34,7 +34,8 @@ object Provider {
         val baseUri = Uri.parse("content://$AUTHORITY/$resource")
 
         return if (path.isEmpty()) baseUri
-        else withAppendedPath(baseUri,
+        else withAppendedPath(
+            baseUri,
             path.asSequence().filter { it.isNotBlank() }.joinToString("/")
         )
     }

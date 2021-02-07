@@ -105,13 +105,13 @@ object SettingsUtils {
                 }
         }
 
-        preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_about_app_version_key))
-            ?.summary = context.getString(
-            R.string.app_version,
-            BuildConfig.VERSION_NAME,
-            BuildConfig.VERSION_CODE,
-            DateFormat.getDateTimeInstance()
-                .format(Date(BuildConfig.BUILD_DATE.toLong()))
-        )
+        preferenceScreen.findPreference<Preference?>(context.getString(R.string.preference_category_about_app_version_key))?.summary =
+            context.getString(
+                R.string.app_version,
+                BuildConfig.VERSION_NAME,
+                BuildConfig.VERSION_CODE,
+                DateFormat.getDateTimeInstance()
+                    .format(Date(BuildConfig.BUILD_DATE.toLong()))
+            )
     }
 }

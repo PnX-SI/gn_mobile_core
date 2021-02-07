@@ -21,12 +21,14 @@ import java.util.Date
 @Entity(
     tableName = TaxonArea.TABLE_NAME,
     primaryKeys = [TaxonArea.COLUMN_TAXON_ID, TaxonArea.COLUMN_AREA_ID],
-    foreignKeys = [ForeignKey(
-        entity = Taxon::class,
-        parentColumns = [AbstractTaxon.COLUMN_ID],
-        childColumns = [TaxonArea.COLUMN_TAXON_ID],
-        onDelete = ForeignKey.CASCADE
-    )]
+    foreignKeys = [
+        ForeignKey(
+            entity = Taxon::class,
+            parentColumns = [AbstractTaxon.COLUMN_ID],
+            childColumns = [TaxonArea.COLUMN_TAXON_ID],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 @TypeConverters(Converters::class)
 data class TaxonArea(

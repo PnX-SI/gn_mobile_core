@@ -59,13 +59,15 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                                         ?: workInfos.firstOrNull { workInfo -> workInfo.outputData.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
 
                                 if (workInfo != null) {
-                                    state = WorkInfo.State.values()[workInfo.progress.getInt(
-                                        InputsSyncWorker.KEY_PACKAGE_STATUS,
-                                        workInfo.outputData.getInt(
+                                    state = WorkInfo.State.values()[
+                                        workInfo.progress.getInt(
                                             InputsSyncWorker.KEY_PACKAGE_STATUS,
-                                            WorkInfo.State.ENQUEUED.ordinal
+                                            workInfo.outputData.getInt(
+                                                InputsSyncWorker.KEY_PACKAGE_STATUS,
+                                                WorkInfo.State.ENQUEUED.ordinal
+                                            )
                                         )
-                                    )]
+                                    ]
                                     inputs = workInfo.progress.getInt(
                                         InputsSyncWorker.KEY_PACKAGE_INPUTS,
                                         0
@@ -162,7 +164,7 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                     DownloadPackageWorker.KEY_PROGRESS,
                     -1
                 )
-                    .takeIf { it > 0 }
+                    .takeIf { progress -> progress > 0 }
                     ?: it.progress.getInt(
                         DownloadPackageWorker.KEY_PROGRESS,
                         -1

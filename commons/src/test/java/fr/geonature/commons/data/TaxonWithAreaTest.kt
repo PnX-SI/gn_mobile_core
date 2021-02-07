@@ -417,8 +417,10 @@ class TaxonWithAreaTest {
         assertTrue(taxonFilterByAreaColors.second.isEmpty())
 
         val taxonFilterByNameAndAreaColors =
-            (TaxonWithArea.Filter()
-                .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter)
+            (
+                TaxonWithArea.Filter()
+                    .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter
+                )
                 .byAreaColors(
                     "red",
                     "grey"

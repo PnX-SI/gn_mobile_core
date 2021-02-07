@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 
 /**
- * Helpers for [LiveData] utilities.
+ * Helpers for LiveData utilities.
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
@@ -22,7 +22,8 @@ fun <T> LiveData<T>.observeOnce(owner: LifecycleOwner, observer: (T?) -> Unit) {
                 removeObserver(this)
                 observer(value)
             }
-        })
+        }
+    )
 }
 
 /**
@@ -44,5 +45,6 @@ fun <T> LiveData<T>.observeUntil(
                     removeObserver(this)
                 }
             }
-        })
+        }
+    )
 }

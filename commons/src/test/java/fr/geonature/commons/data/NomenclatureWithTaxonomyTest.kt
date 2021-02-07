@@ -76,25 +76,7 @@ class NomenclatureWithTaxonomyTest {
             )
         )
 
-        assertEquals(NomenclatureWithTaxonomy(
-            NomenclatureWithType(
-                2,
-                "SN",
-                "1234:002",
-                "label",
-                1234,
-                NomenclatureType(
-                    1234,
-                    "SGR",
-                    "label"
-                )
-            )
-        ).also {
-            it.taxonony = Taxonomy(
-                "Animalia",
-                "Ascidies"
-            )
-        },
+        assertEquals(
             NomenclatureWithTaxonomy(
                 NomenclatureWithType(
                     2,
@@ -113,7 +95,27 @@ class NomenclatureWithTaxonomyTest {
                     "Animalia",
                     "Ascidies"
                 )
-            })
+            },
+            NomenclatureWithTaxonomy(
+                NomenclatureWithType(
+                    2,
+                    "SN",
+                    "1234:002",
+                    "label",
+                    1234,
+                    NomenclatureType(
+                        1234,
+                        "SGR",
+                        "label"
+                    )
+                )
+            ).also {
+                it.taxonony = Taxonomy(
+                    "Animalia",
+                    "Ascidies"
+                )
+            }
+        )
     }
 
     @Test

@@ -8,7 +8,6 @@ import androidx.lifecycle.MutableLiveData
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.api.GeoNatureAPIClient
-import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -55,7 +54,7 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                 emptyList()
             }
         } catch (e: Exception) {
-            emptyList<AppPackage>()
+            emptyList()
         }
 
         availableAppPackages.asSequence()

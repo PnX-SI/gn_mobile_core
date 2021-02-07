@@ -141,7 +141,7 @@ class TaxonWithArea : AbstractTaxon {
                         TaxonArea.COLUMN_COLOR,
                         TaxonArea.TABLE_NAME
                     )} IN (${color.filter { it != "none" }
-                        .joinToString(", ") { "'${it}'" }})${color.find { it == "none" }
+                        .joinToString(", ") { "'$it'" }})${color.find { it == "none" }
                         ?.let {
                             " OR (${getColumnAlias(
                                 TaxonArea.COLUMN_COLOR,
@@ -159,5 +159,5 @@ class TaxonWithArea : AbstractTaxon {
     /**
      * Order by query builder.
      */
-    class OrderBy: AbstractTaxon.OrderBy(Taxon.TABLE_NAME)
+    class OrderBy : AbstractTaxon.OrderBy(Taxon.TABLE_NAME)
 }

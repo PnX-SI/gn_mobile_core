@@ -1,6 +1,5 @@
 package fr.geonature.viewpager.pager.io
 
-import java.io.StringReader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -8,6 +7,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.StringReader
 
 /**
  * Unit test for [PagerJsonReader].
@@ -16,7 +16,7 @@ import org.robolectric.RobolectricTestRunner
  */
 @RunWith(RobolectricTestRunner::class)
 class PagerJsonReaderTest {
-    lateinit var pagerJsonReader: PagerJsonReader
+    private lateinit var pagerJsonReader: PagerJsonReader
 
     @Before
     fun setUp() {

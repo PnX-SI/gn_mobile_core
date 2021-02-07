@@ -51,7 +51,7 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
      *
      * @return [IAppSettings] or `null` if not found
      */
-    suspend fun loadAppSettings(): AS? = withContext(IO) {
+    suspend fun loadAppSettings(): AS? {
         val settingsJsonFile = getAppSettingsAsFile()
 
         Log.i(
@@ -65,25 +65,28 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
                 "'${settingsJsonFile.absolutePath}' not found"
             )
 
-            return@withContext null
+            return null
         }
 
-        return@withContext try {
-            val appSettings = appSettingsJsonReader.read(FileReader(settingsJsonFile))
+        @Suppress("BlockingMethodInNonBlockingContext")
+        return withContext(IO) {
+            try {
+                val appSettings = appSettingsJsonReader.read(FileReader(settingsJsonFile))
 
-            Log.i(
-                TAG,
-                "Settings loaded"
-            )
+                Log.i(
+                    TAG,
+                    "Settings loaded"
+                )
 
-            appSettings
-        } catch (e: IOException) {
-            Log.w(
-                TAG,
-                "Failed to load '${settingsJsonFile.name}'"
-            )
+                appSettings
+            } catch (e: IOException) {
+                Log.w(
+                    TAG,
+                    "Failed to load '${settingsJsonFile.name}'"
+                )
 
-            null
+                null
+            }
         }
     }
 

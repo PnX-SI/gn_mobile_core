@@ -21,7 +21,8 @@ import java.util.ArrayList
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
+abstract class AbstractPagerFragmentActivity :
+    AppCompatActivity(),
     View.OnClickListener,
     ViewPager.OnPageChangeListener {
 
@@ -370,8 +371,10 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
 
         val fragment =
             supportFragmentManager.findFragmentByTag(
-                "android:switcher:" + R.id.pager + ":" + (position
-                    ?: currentItem)
+                "android:switcher:" + R.id.pager + ":" + (
+                    position
+                        ?: currentItem
+                    )
             )
 
         return if (fragment != null && fragment is IValidateFragment) {
@@ -379,8 +382,10 @@ abstract class AbstractPagerFragmentActivity : AppCompatActivity(),
         } else {
             Log.w(
                 TAG,
-                "getPageFragment: no fragment found through getSupportFragmentManager() at position " + (position
-                    ?: currentItem)
+                "getPageFragment: no fragment found through getSupportFragmentManager() at position " + (
+                    position
+                        ?: currentItem
+                    )
             )
 
             null

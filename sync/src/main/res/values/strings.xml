@@ -8,6 +8,7 @@
     <string name="activity_login_title">Sign in</string>
 
     <string name="action_settings">Settings</string>
+    <string name="action_sync_refresh">Start sync</string>
     <string name="action_login">Sign in</string>
     <string name="action_logout">Sign out</string>
 
@@ -22,6 +23,7 @@
     <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
     <string name="sync_data_observers">Synchronize observers: %1$d</string>
     <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
+    <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
     <string name="sync_data_nomenclature_type">Synchronize nomenclature type: %1$d</string>
     <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
     <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>
@@ -71,8 +73,6 @@
     <string name="snackbar_settings_not_found">Unable to load settings \'%1$s\'</string>
     <string name="snackbar_settings_updated">Settings \'%1$s\' updated</string>
     <string name="snackbar_permissions_not_granted">Permissions were not granted</string>
-    <string name="snackbar_permissions_granted">Permissions were been granted</string>
     <string name="snackbar_permission_external_storage_rationale">External storage permission is needed</string>
-    <string name="snackbar_permission_external_storage_available">External storage Permissions have been granted</string>
 
 </resources>

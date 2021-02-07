@@ -2,11 +2,11 @@ package fr.geonature.commons.data.helper
 
 import fr.geonature.commons.data.helper.Converters.dateToTimestamp
 import fr.geonature.commons.data.helper.Converters.fromTimestamp
-import java.time.Instant
-import java.util.Date
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.Instant
+import java.util.Date
 
 /**
  * Unit tests about [Converters].

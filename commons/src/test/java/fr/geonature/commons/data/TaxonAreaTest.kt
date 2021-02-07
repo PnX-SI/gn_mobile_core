@@ -5,8 +5,6 @@ import android.os.Parcel
 import fr.geonature.commons.data.TaxonArea.Companion.defaultProjection
 import fr.geonature.commons.data.TaxonArea.Companion.fromCursor
 import fr.geonature.commons.data.helper.EntityHelper.column
-import java.time.Instant
-import java.util.Date
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -16,6 +14,8 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
+import java.time.Instant
+import java.util.Date
 
 /**
  * Unit tests about [TaxonArea].

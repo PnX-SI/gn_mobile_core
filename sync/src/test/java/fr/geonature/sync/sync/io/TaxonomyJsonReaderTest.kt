@@ -66,21 +66,23 @@ class TaxonomyJsonReaderTest {
 
         // then
         assertNotNull(taxonomy)
-        assertArrayEquals(arrayOf(
-            Taxonomy.ANY,
-            "Animalia",
-            "Bacteria",
-            "Chromista",
-            "Fungi",
-            "Plantae",
-            "Protozoa"
-        ),
+        assertArrayEquals(
+            arrayOf(
+                Taxonomy.ANY,
+                "Animalia",
+                "Bacteria",
+                "Chromista",
+                "Fungi",
+                "Plantae",
+                "Protozoa"
+            ),
             taxonomy.map { it.kingdom }.distinct().toTypedArray()
         )
-        assertArrayEquals(arrayOf(
-            Taxonomy.ANY,
-            "Lichens"
-        ),
+        assertArrayEquals(
+            arrayOf(
+                Taxonomy.ANY,
+                "Lichens"
+            ),
             taxonomy.asSequence().filter { it.kingdom == "Fungi" }.map { it.group }.toList().toTypedArray()
         )
     }

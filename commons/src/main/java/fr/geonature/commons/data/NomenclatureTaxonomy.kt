@@ -19,17 +19,19 @@ import fr.geonature.commons.data.helper.get
     tableName = NomenclatureTaxonomy.TABLE_NAME,
     primaryKeys = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID, Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
     indices = [Index(value = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP])],
-    foreignKeys = [ForeignKey(
-        entity = Nomenclature::class,
-        parentColumns = [Nomenclature.COLUMN_ID],
-        childColumns = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID],
-        onDelete = ForeignKey.CASCADE
-    ), ForeignKey(
-        entity = Taxonomy::class,
-        parentColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
-        childColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
-        onDelete = ForeignKey.CASCADE
-    )]
+    foreignKeys = [
+        ForeignKey(
+            entity = Nomenclature::class,
+            parentColumns = [Nomenclature.COLUMN_ID],
+            childColumns = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID],
+            onDelete = ForeignKey.CASCADE
+        ), ForeignKey(
+            entity = Taxonomy::class,
+            parentColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
+            childColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 class NomenclatureTaxonomy(
     @ColumnInfo(name = COLUMN_NOMENCLATURE_ID)

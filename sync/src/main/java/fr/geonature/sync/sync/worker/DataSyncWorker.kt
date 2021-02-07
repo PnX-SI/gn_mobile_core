@@ -36,7 +36,8 @@ import java.util.Locale
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class DataSyncWorker(
-    appContext: Context, workerParams: WorkerParameters
+    appContext: Context,
+    workerParams: WorkerParameters
 ) : CoroutineWorker(
     appContext,
     workerParams
@@ -187,7 +188,8 @@ class DataSyncWorker(
     }
 
     private suspend fun syncInputObservers(
-        geoNatureServiceClient: GeoNatureAPIClient, menuId: Int
+        geoNatureServiceClient: GeoNatureAPIClient,
+        menuId: Int
     ): Result {
         return try {
             val response = geoNatureServiceClient.getUsers(menuId)
@@ -396,6 +398,15 @@ class DataSyncWorker(
                     "found ${taxrefAreas.size} taxa with areas from offset $offset"
                 )
 
+                setProgress(
+                    workData(
+                        applicationContext.getString(
+                            R.string.sync_data_taxa_areas,
+                            (offset + taxrefAreas.size)
+                        )
+                    )
+                )
+
                 val taxonAreas = taxrefAreas.asSequence()
                     .filter { taxrefArea -> validTaxaIds.any { it == taxrefArea.taxrefId } }
                     .map {
@@ -500,13 +511,15 @@ class DataSyncWorker(
                     .flatMap { it.asSequence() }
                     .filter { it.id > 0 }
                     .map { nomenclature ->
-                        (if (nomenclature.taxref.isEmpty()) arrayOf(
-                            fr.geonature.sync.api.model.NomenclatureTaxonomy(
-                                Taxonomy.ANY,
-                                Taxonomy.ANY
+                        (
+                            if (nomenclature.taxref.isEmpty()) arrayOf(
+                                fr.geonature.sync.api.model.NomenclatureTaxonomy(
+                                    Taxonomy.ANY,
+                                    Taxonomy.ANY
+                                )
                             )
-                        )
-                        else nomenclature.taxref.toTypedArray()).asSequence()
+                            else nomenclature.taxref.toTypedArray()
+                            ).asSequence()
                             .map {
                                 Taxonomy(
                                     it.kingdom,
@@ -619,11 +632,11 @@ class DataSyncWorker(
 
     private fun checkResponse(response: Response<*>): Result {
         // not connected
-        if (response.code() == 403) {
+        if (response.code() == ServerStatus.UNAUTHORIZED.httpStatus) {
             return Result.failure(
                 workData(
                     applicationContext.getString(R.string.sync_error_server_not_connected),
-                    ServerStatus.FORBIDDEN
+                    ServerStatus.UNAUTHORIZED
                 )
             )
         }

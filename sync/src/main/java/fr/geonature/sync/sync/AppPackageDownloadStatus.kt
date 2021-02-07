@@ -13,5 +13,4 @@ data class AppPackageDownloadStatus(
     val packageName: String,
     val progress: Int = -1,
     val apkFilePath: String? = null
-) {
-}
+)

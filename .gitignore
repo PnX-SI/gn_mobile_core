@@ -13,6 +13,7 @@
 /build
 /captures
 /docs/.asciidoctor
+/docs/images/uml
 /docs/vendor
 /docs/*.html
 .externalNativeBuild
