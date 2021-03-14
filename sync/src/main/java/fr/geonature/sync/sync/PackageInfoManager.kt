@@ -10,6 +10,11 @@ import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.sync.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import retrofit2.awaitResponse
@@ -88,7 +93,7 @@ class PackageInfoManager private constructor(private val applicationContext: Con
         allPackageInfos.putAll(availablePackageInfos)
 
         pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            .asSequence()
+            .asFlow()
             .filter { it.packageName.startsWith(sharedUserId) }
             .map {
                 val packageInfoFromPackageManager = pm.getPackageInfo(
@@ -111,6 +116,7 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                     pm.getApplicationIcon(it.packageName),
                     pm.getLaunchIntentForPackage(it.packageName)
                 ).apply {
+                    inputs = getInputsToSynchronize(this).size
                     settings = existingPackageInfo?.settings
                 }
             }

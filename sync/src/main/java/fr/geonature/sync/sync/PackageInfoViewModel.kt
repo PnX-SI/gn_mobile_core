@@ -52,6 +52,7 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                     .map { packageInfo ->
                         packageInfo.copy()
                             .apply {
+                                inputs = packageInfo.inputs
                                 settings = packageInfo.settings
 
                                 val workInfo =

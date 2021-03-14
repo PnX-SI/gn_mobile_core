@@ -9,6 +9,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import fr.geonature.sync.api.GeoNatureAPIClient
+import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.PackageInfoManager
 import fr.geonature.sync.sync.SyncInput
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,7 @@ import retrofit2.awaitResponse
 import java.io.File
 
 /**
- * Input synchronization worker.
+ * Inputs synchronization worker from given [PackageInfo].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
@@ -39,7 +40,7 @@ class InputsSyncWorker(
             return Result.failure()
         }
 
-        val packageInfo =
+        val packageInfo: PackageInfo =
             packageInfoManager.getPackageInfo(packageName) ?: return Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
