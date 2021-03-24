@@ -30,8 +30,7 @@ class InputsSyncWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager =
-        PackageInfoManager.getInstance(applicationContext)
+    private val packageInfoManager = PackageInfoManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
@@ -40,18 +39,14 @@ class InputsSyncWorker(
             return Result.failure()
         }
 
-        val packageInfo: PackageInfo =
-            packageInfoManager.getPackageInfo(packageName) ?: return Result.failure()
+        val packageInfo: PackageInfo = packageInfoManager.getPackageInfo(packageName)
+            ?: return Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
             ?: return Result.failure()
 
-        Log.i(
-            TAG,
-            "starting inputs synchronization for '$packageName'..."
-        )
-
-        NotificationManagerCompat.from(applicationContext)
+        NotificationManagerCompat
+            .from(applicationContext)
             .cancel(CheckInputsToSynchronizeWorker.SYNC_NOTIFICATION_ID)
 
         setProgress(
@@ -74,11 +69,16 @@ class InputsSyncWorker(
 
             Log.i(
                 TAG,
-                "No inputs to synchronize for '$packageName'"
+                "no inputs to synchronize for '$packageName'"
             )
 
             return Result.success()
         }
+
+        Log.i(
+            TAG,
+            "${inputsToSynchronize.size} input(s) to synchronize for '$packageName'..."
+        )
 
         setProgress(
             workData(
@@ -90,10 +90,11 @@ class InputsSyncWorker(
 
         inputsToSynchronize.forEach { syncInput ->
             try {
-                val response = geoNatureAPIClient.sendInput(
-                    syncInput.module,
-                    syncInput.payload
-                )
+                val response = geoNatureAPIClient
+                    .sendInput(
+                        syncInput.module,
+                        syncInput.payload
+                    )
                     .awaitResponse()
 
                 if (!response.isSuccessful) {
@@ -101,7 +102,7 @@ class InputsSyncWorker(
                         workData(
                             packageInfo.packageName,
                             WorkInfo.State.FAILED,
-                            inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
+                            inputsToSynchronize.size - inputsSynchronized.size
                         )
                     )
                     delay(1000)
@@ -109,14 +110,15 @@ class InputsSyncWorker(
                     return@forEach
                 }
 
-                deleteSynchronizedInput(syncInput).takeIf { deleted -> deleted }
+                deleteSynchronizedInput(syncInput)
+                    .takeIf { deleted -> deleted }
                     ?.also {
                         inputsSynchronized.add(syncInput)
                         setProgress(
                             workData(
                                 packageInfo.packageName,
                                 WorkInfo.State.RUNNING,
-                                inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
+                                inputsToSynchronize.size - inputsSynchronized.size
                             )
                         )
                     }
@@ -130,7 +132,7 @@ class InputsSyncWorker(
                     workData(
                         packageInfo.packageName,
                         WorkInfo.State.FAILED,
-                        inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
+                        inputsToSynchronize.size - inputsSynchronized.size
                     )
                 )
                 delay(1000)
@@ -147,7 +149,7 @@ class InputsSyncWorker(
                 workData(
                     packageInfo.packageName,
                     WorkInfo.State.SUCCEEDED,
-                    inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
+                    inputsToSynchronize.size - inputsSynchronized.size
                 )
             )
         } else {
@@ -155,7 +157,7 @@ class InputsSyncWorker(
                 workData(
                     packageInfo.packageName,
                     WorkInfo.State.FAILED,
-                    inputsToSynchronize.filter { filtered -> !inputsSynchronized.contains(filtered) }.size
+                    inputsToSynchronize.size - inputsSynchronized.size
                 )
             )
         }
@@ -163,8 +165,10 @@ class InputsSyncWorker(
 
     private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean {
         val deleted = withContext(Dispatchers.IO) {
-            File(syncInput.filePath).takeIf { it.exists() && it.isFile && it.parentFile?.canWrite() ?: false }
-                ?.delete() ?: false
+            File(syncInput.filePath)
+                .takeIf { it.exists() && it.isFile && it.parentFile?.canWrite() ?: false }
+                ?.delete()
+                ?: false
         }
 
         if (deleted) {
@@ -174,7 +178,11 @@ class InputsSyncWorker(
         return deleted
     }
 
-    private fun workData(packageName: String, state: WorkInfo.State, inputs: Int = 0): Data {
+    private fun workData(
+        packageName: String,
+        state: WorkInfo.State,
+        inputs: Int = 0
+    ): Data {
         return workDataOf(
             KEY_PACKAGE_NAME to packageName,
             KEY_PACKAGE_STATUS to state.ordinal,

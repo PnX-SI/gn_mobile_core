@@ -25,14 +25,13 @@ class CheckInputsToSynchronizeWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager =
-        PackageInfoManager.getInstance(applicationContext)
+    private val packageInfoManager = PackageInfoManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
         val availablePackageInfos = packageInfoManager.getInstalledApplications()
-        val availableInputs =
-            availablePackageInfos.map { packageInfo -> packageInfoManager.getInputsToSynchronize(packageInfo) }
-                .flatten()
+        val availableInputs = availablePackageInfos
+            .map { packageInfo -> packageInfoManager.getInputsToSynchronize(packageInfo) }
+            .flatten()
 
         val inputsToSynchronize = availableInputs.size
 
@@ -47,10 +46,11 @@ class CheckInputsToSynchronizeWorker(
             if (inputsToSynchronize > 0) {
                 notify(
                     SYNC_NOTIFICATION_ID,
-                    NotificationCompat.Builder(
-                        applicationContext,
-                        MainApplication.SYNC_CHANNEL_ID
-                    )
+                    NotificationCompat
+                        .Builder(
+                            applicationContext,
+                            MainApplication.CHANNEL_CHECK_INPUTS_TO_SYNCHRONIZE
+                        )
                         .setContentTitle(applicationContext.getText(R.string.notification_inputs_to_synchronize_title))
                         .setContentText(
                             applicationContext.resources.getQuantityString(
@@ -67,8 +67,7 @@ class CheckInputsToSynchronizeWorker(
                                     applicationContext,
                                     HomeActivity::class.java
                                 ).apply {
-                                    flags =
-                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 },
                                 0
                             )

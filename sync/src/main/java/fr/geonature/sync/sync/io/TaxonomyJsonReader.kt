@@ -5,6 +5,7 @@ import android.util.JsonReader
 import android.util.JsonToken.BEGIN_ARRAY
 import android.util.JsonToken.NAME
 import android.util.Log
+import android.util.MalformedJsonException
 import fr.geonature.commons.data.Taxonomy
 import java.io.IOException
 import java.io.Reader
@@ -31,10 +32,10 @@ class TaxonomyJsonReader {
 
         try {
             return read(StringReader(json))
-        } catch (ioe: IOException) {
+        } catch (e: Exception) {
             Log.w(
                 TAG,
-                ioe
+                e
             )
         }
 
@@ -48,7 +49,10 @@ class TaxonomyJsonReader {
      * @return a list of [Taxonomy] instance from the `JSON` reader
      * @throws IOException if something goes wrong
      */
-    @Throws(IOException::class)
+    @Throws(
+        IOException::class,
+        MalformedJsonException::class
+    )
     fun read(reader: Reader): List<Taxonomy> {
         val jsonReader = JsonReader(reader)
         val input = readTaxonomyAsMap(jsonReader)
@@ -57,7 +61,10 @@ class TaxonomyJsonReader {
         return input
     }
 
-    @Throws(IOException::class)
+    @Throws(
+        IOException::class,
+        MalformedJsonException::class
+    )
     private fun readTaxonomyAsMap(reader: JsonReader): List<Taxonomy> {
         val taxonomyAsMap = HashMap<String, MutableSet<String>>()
         taxonomyAsMap[Taxonomy.ANY] = mutableSetOf(Taxonomy.ANY)
@@ -106,18 +113,21 @@ class TaxonomyJsonReader {
 
         reader.endObject()
 
-        return taxonomyAsMap.keys.asSequence()
+        return taxonomyAsMap.keys
+            .asSequence()
             .map { kingdomAsKey ->
                 taxonomyAsMap[kingdomAsKey]?.map { group ->
                     Taxonomy(
                         kingdomAsKey,
                         group
                     )
-                } ?: emptyList()
+                }
+                    ?: emptyList()
             }
             .filter { it.isNotEmpty() }
             .flatMap {
-                it.asSequence()
+                it
+                    .asSequence()
                     .distinct()
             }
             .sortedWith { o1, o2 ->

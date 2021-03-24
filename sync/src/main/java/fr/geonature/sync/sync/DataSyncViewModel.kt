@@ -8,19 +8,28 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
-import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import fr.geonature.commons.util.add
-import fr.geonature.commons.util.toIsoDateString
+import androidx.work.await
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.worker.DataSyncWorker
-import java.util.Calendar
+import fr.geonature.sync.util.parseAsDuration
+import kotlinx.coroutines.launch
 import java.util.Date
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
 
 /**
  * Keeps track of data sync operations from GeoNature.
@@ -30,113 +39,222 @@ import java.util.Date
 class DataSyncViewModel(application: Application) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
-    private val dataSyncManager = DataSyncManager.getInstance(getApplication())
+    private val dataSyncManager = DataSyncManager
+        .getInstance(getApplication())
         .also {
             it.getLastSynchronizedDate()
         }
 
-    val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
-
-    var isSyncRunning: Boolean = false
-        private set
-
-    fun startSync(
-        appSettings: AppSettings,
-        forceRefresh: Boolean = false
-    ): LiveData<DataSyncStatus?> {
-        if (!forceRefresh) {
-            val lastSynchronizedDate = dataSyncManager.lastSynchronizedDate.value
-
-            if (lastSynchronizedDate?.add(
-                    Calendar.HOUR,
-                    1
-                )
-                    ?.after(Date()) == true
-            ) {
-                Log.d(
-                    TAG,
-                    "data already synchronized at ${lastSynchronizedDate.toIsoDateString()}"
-                )
-
-                return MutableLiveData(null)
-            }
+    private var currentSyncWorkerId: UUID? = null
+        set(value) {
+            field = value
+            _isSyncRunning.postValue(field != null)
         }
 
-        isSyncRunning = true
+    val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
 
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
+    private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)
+    val isSyncRunning: LiveData<Boolean> = _isSyncRunning
 
-        val dataSyncWorkRequest = OneTimeWorkRequest.Builder(DataSyncWorker::class.java)
+    fun observeDataSyncStatus(): LiveData<DataSyncStatus?> {
+        return map(workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)) { workInfos ->
+            if (workInfos == null || workInfos.isEmpty()) {
+                currentSyncWorkerId = null
+                return@map null
+            }
+
+            val workInfo = (if (currentSyncWorkerId == null) workInfos[0] else workInfos.firstOrNull { it.id == currentSyncWorkerId })
+                ?: workInfos[0]
+
+            // this work info is not scheduled or not running and no current worker is running: abort
+            if (currentSyncWorkerId == null && workInfo.state !in arrayListOf(
+                    WorkInfo.State.ENQUEUED,
+                    WorkInfo.State.RUNNING
+                )
+            ) {
+                return@map null
+            }
+
+            // this is a new work info: set the current worker
+            if (workInfo.id != currentSyncWorkerId) {
+                currentSyncWorkerId = workInfo.id
+            }
+
+            val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
+                DataSyncWorker.KEY_SERVER_STATUS,
+                workInfo.outputData.getInt(
+                    DataSyncWorker.KEY_SERVER_STATUS,
+                    ServerStatus.OK.ordinal
+                )
+            )]
+
+            // this work info is not scheduled or not running: the current worker is done
+            if (workInfo.state !in arrayListOf(
+                    WorkInfo.State.ENQUEUED,
+                    WorkInfo.State.RUNNING
+                )
+            ) {
+                currentSyncWorkerId = null
+            }
+
+            DataSyncStatus(
+                workInfo.state,
+                workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
+                    ?: workInfo.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
+                serverStatus
+            )
+        }
+    }
+
+    fun startSync(appSettings: AppSettings) {
+        val dataSyncWorkRequest = OneTimeWorkRequest
+            .Builder(DataSyncWorker::class.java)
             .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
-            .setConstraints(constraints)
-            .setInputData(
-                Data.Builder()
-                    .putInt(
-                        DataSyncWorker.INPUT_USERS_MENU_ID,
-                        appSettings.usersListId
-                    )
-                    .putInt(
-                        DataSyncWorker.INPUT_TAXREF_LIST_ID,
-                        appSettings.taxrefListId
-                    )
-                    .putString(
-                        DataSyncWorker.INPUT_CODE_AREA_TYPE,
-                        appSettings.codeAreaType
-                    )
-                    .putInt(
-                        DataSyncWorker.INPUT_PAGE_SIZE,
-                        appSettings.pageSize
-                    )
-                    .putInt(
-                        DataSyncWorker.INPUT_PAGE_MAX_RETRY,
-                        appSettings.pageMaxRetry
-                    )
+            .setConstraints(
+                Constraints
+                    .Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
             )
+            .setInputData(DataSyncWorker.inputData(appSettings))
             .build()
 
-        val continuation = workManager.beginUniqueWork(
+        currentSyncWorkerId = dataSyncWorkRequest.id
+
+        workManager.enqueueUniqueWork(
             DataSyncWorker.DATA_SYNC_WORKER,
             ExistingWorkPolicy.REPLACE,
             dataSyncWorkRequest
         )
+    }
 
-        return map(workManager.getWorkInfoByIdLiveData(dataSyncWorkRequest.id)) {
-            if (it == null) {
-                return@map null
+    @ExperimentalTime
+    fun configurePeriodicSync(appSettings: AppSettings) {
+        viewModelScope.launch {
+            val alreadyRunning = workManager
+                .getWorkInfosByTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+                .await()
+                .any { it.state == WorkInfo.State.RUNNING }
+
+            if (alreadyRunning) {
+                Log.i(
+                    TAG,
+                    "a data synchronization worker is still running: abort the periodic synchronization configuration..."
+                )
+
+                return@launch
             }
 
-            val serverStatus = ServerStatus.values()[
-                it.progress.getInt(
-                    DataSyncWorker.KEY_SERVER_STATUS,
-                    it.outputData.getInt(
-                        DataSyncWorker.KEY_SERVER_STATUS,
-                        ServerStatus.OK.ordinal
-                    )
+            val essentialDataSyncPeriodicity = appSettings.essentialDataSyncPeriodicity?.parseAsDuration()
+                ?: Duration.ZERO
+            val dataSyncPeriodicity = appSettings.dataSyncPeriodicity?.parseAsDuration()
+                ?: Duration.ZERO
+
+            // no periodic synchronization is correctly configured: abort
+            if ((arrayOf(
+                    essentialDataSyncPeriodicity,
+                    dataSyncPeriodicity
+                ).all { it < 15.toDuration(DurationUnit.MINUTES) })
+            ) {
+                Log.w(
+                    TAG,
+                    "no periodic synchronization is correctly configured: abort"
                 )
-            ]
 
-            isSyncRunning = it.state in arrayListOf(
-                WorkInfo.State.ENQUEUED,
-                WorkInfo.State.RUNNING
-            )
+                return@launch
+            }
 
-            DataSyncStatus(
-                it.state,
-                it.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
-                    ?: it.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
-                serverStatus
+            // all periodic synchronizations are correctly configured
+            if ((arrayOf(
+                    essentialDataSyncPeriodicity,
+                    dataSyncPeriodicity
+                ).all { it >= 15.toDuration(DurationUnit.MINUTES) })
+            ) {
+                if (essentialDataSyncPeriodicity >= dataSyncPeriodicity) {
+                    configurePeriodicSync(
+                        appSettings,
+                        dataSyncPeriodicity
+                    )
+
+                    return@launch
+                }
+
+                configurePeriodicSync(
+                    appSettings,
+                    essentialDataSyncPeriodicity,
+                    withAdditionalData = false
+                )
+                configurePeriodicSync(
+                    appSettings,
+                    dataSyncPeriodicity
+                )
+
+                return@launch
+            }
+
+            // at least one periodic synchronization is correctly configured
+            arrayOf(
+                essentialDataSyncPeriodicity,
+                dataSyncPeriodicity
             )
-        }.also {
-            // start the work
-            continuation.enqueue()
+                .firstOrNull { it >= 15.toDuration(DurationUnit.MINUTES) }
+                ?.also {
+                    configurePeriodicSync(
+                        appSettings,
+                        it
+                    )
+                }
         }
     }
 
     fun cancelTasks() {
         workManager.cancelAllWorkByTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+    }
+
+    @ExperimentalTime
+    private fun configurePeriodicSync(
+        appSettings: AppSettings,
+        repeatInterval: Duration,
+        withAdditionalData: Boolean = true
+    ) {
+        if (repeatInterval.inMinutes < 15) {
+            return
+        }
+
+        Log.i(
+            TAG,
+            "configure data sync periodic worker (repeat interval: $repeatInterval, with additional data: $withAdditionalData)..."
+        )
+
+        val request = PeriodicWorkRequestBuilder<DataSyncWorker>(
+            repeatInterval.inSeconds.toLong(),
+            TimeUnit.SECONDS
+        )
+            .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+            .setConstraints(
+                Constraints
+                    .Builder()
+                    .setRequiredNetworkType(NetworkType.UNMETERED)
+                    .build()
+            )
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                (repeatInterval.inSeconds.toLong() * 1.25).toLong(),
+                TimeUnit.SECONDS
+            )
+            .setInputData(
+                DataSyncWorker.inputData(
+                    appSettings,
+                    withAdditionalData
+                )
+            )
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            if (withAdditionalData) DataSyncWorker.DATA_SYNC_WORKER_PERIODIC else DataSyncWorker.DATA_SYNC_WORKER_PERIODIC_ESSENTIAL,
+            ExistingPeriodicWorkPolicy.REPLACE,
+            request
+        )
     }
 
     /**

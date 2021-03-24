@@ -17,7 +17,9 @@ data class AppSettings(
     var taxrefListId: Int = 0,
     var codeAreaType: String? = null,
     var pageSize: Int = DEFAULT_PAGE_SIZE,
-    var pageMaxRetry: Int = DEFAULT_PAGE_MAX_RETRY
+    var pageMaxRetry: Int = DEFAULT_PAGE_MAX_RETRY,
+    var essentialDataSyncPeriodicity: String? = null,
+    var dataSyncPeriodicity: String? = null
 ) : IAppSettings {
 
     private constructor(source: Parcel) : this(
@@ -28,7 +30,9 @@ data class AppSettings(
         source.readInt(),
         source.readString(),
         source.readInt(),
-        source.readInt()
+        source.readInt(),
+        source.readString(),
+        source.readString()
     )
 
     override fun describeContents(): Int {
@@ -48,6 +52,8 @@ data class AppSettings(
             it.writeString(codeAreaType)
             it.writeInt(pageSize)
             it.writeInt(pageMaxRetry)
+            it.writeString(essentialDataSyncPeriodicity)
+            it.writeString(dataSyncPeriodicity)
         }
     }
 

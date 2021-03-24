@@ -21,21 +21,30 @@
     <string name="sync_error_server_error">GeoNature server error</string>
     <string name="sync_error_server_not_connected">Not connected</string>
     <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
+    <string name="sync_data_dataset_error">Synchronize dataset: failure</string>
     <string name="sync_data_observers">Synchronize observers: %1$d</string>
+    <string name="sync_data_observers_error">Synchronize observers: failure</string>
+    <string name="sync_data_taxonomy_ranks">Synchronize taxonomy ranks: %1$d</string>
+    <string name="sync_data_taxonomy_ranks_error">Synchronize taxonomy ranks: failure</string>
     <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
     <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
     <string name="sync_data_nomenclature_type">Synchronize nomenclature type: %1$d</string>
+    <string name="sync_data_nomenclature_type_error">Synchronize nomenclature type: failure</string>
     <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
     <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>
+    <string name="sync_data_nomenclature_default_error">Synchronize nomenclature default values: failure</string>
     <string name="sync_data_succeeded">Done.</string>
 
-    <string name="sync_channel_name">New inputs</string>
-    <string name="sync_channel_description">Inputs to synchronize</string>
+    <string name="channel_name_check_inputs_to_synchronize">New inputs</string>
+    <string name="channel_description_check_inputs_to_synchronize">Inputs to synchronize</string>
+    <string name="channel_name_data_synchronization">Data synchronization</string>
+    <string name="channel_description_data_synchronization">Data to synchronize</string>
     <string name="notification_inputs_to_synchronize_title">Inputs to synchronize</string>
     <plurals name="notification_inputs_to_synchronize_description">
         <item quantity="one">One input is ready to synchronize</item>
         <item quantity="other">%d inputs are ready to synchronize</item>
     </plurals>
+    <string name="notification_data_synchronization_title">Synchronize data…</string>
 
     <string name="home_installed_apps">Available apps</string>
     <string name="home_no_available_app">No compatible app installed</string>

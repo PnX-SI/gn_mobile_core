@@ -2,6 +2,7 @@ package fr.geonature.sync.sync.io
 
 import android.util.JsonReader
 import android.util.Log
+import android.util.MalformedJsonException
 import fr.geonature.commons.data.Dataset
 import java.io.IOException
 import java.io.Reader
@@ -33,10 +34,10 @@ class DatasetJsonReader {
 
         try {
             return read(StringReader(json))
-        } catch (ioe: IOException) {
+        } catch (e: Exception) {
             Log.w(
                 TAG,
-                ioe
+                e
             )
         }
 
@@ -50,7 +51,10 @@ class DatasetJsonReader {
      * @return a list of [Dataset] instance from the `JSON` reader
      * @throws IOException if something goes wrong
      */
-    @Throws(IOException::class)
+    @Throws(
+        IOException::class,
+        MalformedJsonException::class
+    )
     fun read(reader: Reader): List<Dataset> {
         val dataset = mutableListOf<Dataset>()
 
@@ -113,7 +117,8 @@ class DatasetJsonReader {
             return emptyList()
         }
 
-        return modules.asSequence()
+        return modules
+            .asSequence()
             .distinct()
             .map {
                 Dataset(
@@ -151,9 +156,9 @@ class DatasetJsonReader {
 
         while (reader.hasNext()) {
             when (reader.nextName()) {
-                "module_path" ->
-                    module = reader.nextString()
-                        .toLowerCase(Locale.ROOT)
+                "module_path" -> module = reader
+                    .nextString()
+                    .toLowerCase(Locale.ROOT)
                 else -> reader.skipValue()
             }
         }
