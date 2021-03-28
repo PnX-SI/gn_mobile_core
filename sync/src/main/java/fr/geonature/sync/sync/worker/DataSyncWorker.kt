@@ -29,10 +29,12 @@ import fr.geonature.sync.api.model.User
 import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.DataSyncManager
+import fr.geonature.sync.sync.DataSyncStatus
 import fr.geonature.sync.sync.ServerStatus
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import fr.geonature.sync.ui.home.HomeActivity
+import fr.geonature.sync.ui.login.LoginActivity
 import org.json.JSONObject
 import retrofit2.Response
 import retrofit2.awaitResponse
@@ -64,30 +66,28 @@ class DataSyncWorker(
                 workData(applicationContext.getString(R.string.sync_error_server_url_configuration))
             )
 
-        val alreadyScheduled = workManager
+        val alreadyRunning = workManager
             .getWorkInfosByTag(DATA_SYNC_WORKER_TAG)
             .await()
-            .any {
-                it.id != id && it.state in arrayListOf(
-                    WorkInfo.State.ENQUEUED,
-                    WorkInfo.State.RUNNING
-                )
-            }
+            .any { it.id != id && it.state == WorkInfo.State.RUNNING }
 
-        if (alreadyScheduled) {
+        if (alreadyRunning) {
             Log.i(
                 TAG,
-                "already scheduled: abort"
+                "already running: abort"
             )
-
-            workManager.cancelWorkById(id)
 
             return Result.retry()
         }
 
         Log.i(
             TAG,
-            "starting local data synchronization from '${geoNatureAPIClient.geoNatureBaseUrl}'..."
+            "starting local data synchronization from '${geoNatureAPIClient.geoNatureBaseUrl}' (with additional data: ${
+                inputData.getBoolean(
+                    INPUT_WITH_ADDITIONAL_DATA,
+                    true
+                )
+            })..."
         )
 
         setProgress(workData(applicationContext.getString(R.string.sync_start_synchronization)))
@@ -169,11 +169,11 @@ class DataSyncWorker(
             "local data synchronization ${if (syncNomenclatureResult is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms"
         )
 
-        NotificationManagerCompat
-            .from(applicationContext)
-            .cancel(SYNC_NOTIFICATION_ID)
-
         if (syncNomenclatureResult is Result.Success) {
+            NotificationManagerCompat
+                .from(applicationContext)
+                .cancel(SYNC_NOTIFICATION_ID)
+
             dataSyncManager.updateLastSynchronizedDate()
             return Result.success(workData(applicationContext.getString(R.string.sync_data_succeeded)))
         }
@@ -194,20 +194,31 @@ class DataSyncWorker(
         }
             .map {
                 checkResponse(it).run {
-                    if (this is Result.Failure) this else it
+                    if (this.state == WorkInfo.State.FAILED) this else it
                         .body()
                         ?.byteStream()
-                        ?: Result.failure(
-                            workData(applicationContext.getString(R.string.sync_data_dataset_error))
+                        ?: DataSyncStatus(
+                            WorkInfo.State.FAILED,
+                            applicationContext.getString(R.string.sync_data_dataset_error)
                         )
                 }
             }
             .getOrElse {
-                Result.failure(workData(applicationContext.getString(R.string.sync_data_dataset_error)))
+                DataSyncStatus(
+                    WorkInfo.State.FAILED,
+                    applicationContext.getString(R.string.sync_data_dataset_error)
+                )
             }
 
-        if (result is Result.Failure) {
-            return result
+        if (result is DataSyncStatus && result.state == WorkInfo.State.FAILED) {
+            sendNotification(result)
+
+            return Result.failure(
+                workData(
+                    result.syncMessage,
+                    result.serverStatus
+                )
+            )
         }
 
         val dataset = DatasetJsonReader().read(
@@ -267,16 +278,26 @@ class DataSyncWorker(
         }
             .map {
                 checkResponse(it).run {
-                    if (this is Result.Failure) this else runCatching { it.body() }.getOrNull()
+                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it.body() }.getOrNull()
                         ?: emptyList<List<User>>()
                 }
             }
             .getOrElse {
-                Result.failure(workData(applicationContext.getString(R.string.sync_data_observers_error)))
+                DataSyncStatus(
+                    WorkInfo.State.FAILED,
+                    applicationContext.getString(R.string.sync_data_observers_error)
+                )
             }
 
-        if (result is Result.Failure) {
-            return result
+        if (result is DataSyncStatus && result.state == WorkInfo.State.FAILED) {
+            sendNotification(result)
+
+            return Result.failure(
+                workData(
+                    result.syncMessage,
+                    result.serverStatus
+                )
+            )
         }
 
         val inputObservers = (result as List<*>)
@@ -341,22 +362,31 @@ class DataSyncWorker(
         }
             .map {
                 checkResponse(it).run {
-                    if (this is Result.Failure) this else it
+                    if (this.state == WorkInfo.State.FAILED) this else it
                         .body()
                         ?.byteStream()
-                        ?: Result.failure(
-                            workData(
-                                applicationContext.getString(R.string.sync_data_taxonomy_ranks_error)
-                            )
+                        ?: DataSyncStatus(
+                            WorkInfo.State.FAILED,
+                            applicationContext.getString(R.string.sync_data_taxonomy_ranks_error)
                         )
                 }
             }
             .getOrElse {
-                Result.failure(workData(applicationContext.getString(R.string.sync_data_taxonomy_ranks_error)))
+                DataSyncStatus(
+                    WorkInfo.State.FAILED,
+                    applicationContext.getString(R.string.sync_data_taxonomy_ranks_error)
+                )
             }
 
-        if (result is Result.Failure) {
-            return result
+        if (result is DataSyncStatus && result.state == WorkInfo.State.FAILED) {
+            sendNotification(result)
+
+            return Result.failure(
+                workData(
+                    result.syncMessage,
+                    result.serverStatus
+                )
+            )
         }
 
         val taxonomyRanks = TaxonomyJsonReader().read(
@@ -431,7 +461,7 @@ class DataSyncWorker(
             }.getOrNull()
 
 
-            if (taxrefResponse == null || checkResponse(taxrefResponse) is Result.Failure) {
+            if (taxrefResponse == null || checkResponse(taxrefResponse).state == WorkInfo.State.FAILED) {
                 hasNext = false
                 continue
             }
@@ -557,7 +587,7 @@ class DataSyncWorker(
                         .awaitResponse()
                 }.getOrNull()
 
-                if (taxrefAreasResponse == null || checkResponse(taxrefAreasResponse) is Result.Failure) {
+                if (taxrefAreasResponse == null || checkResponse(taxrefAreasResponse).state == WorkInfo.State.FAILED) {
                     hasNext = false
                     continue
                 }
@@ -635,16 +665,26 @@ class DataSyncWorker(
         }
             .map {
                 checkResponse(it).run {
-                    if (this is Result.Failure) this else runCatching { it.body() }.getOrNull()
+                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it.body() }.getOrNull()
                         ?: emptyList<fr.geonature.sync.api.model.NomenclatureType>()
                 }
             }
             .getOrElse {
-                Result.failure(workData(applicationContext.getString(R.string.sync_data_nomenclature_type_error)))
+                DataSyncStatus(
+                    WorkInfo.State.FAILED,
+                    applicationContext.getString(R.string.sync_data_nomenclature_type_error)
+                )
             }
 
-        if (nomenclaturesResult is Result.Failure) {
-            return nomenclaturesResult
+        if (nomenclaturesResult is DataSyncStatus && nomenclaturesResult.state == WorkInfo.State.FAILED) {
+            sendNotification(nomenclaturesResult)
+
+            return Result.failure(
+                workData(
+                    nomenclaturesResult.syncMessage,
+                    nomenclaturesResult.serverStatus
+                )
+            )
         }
 
         val validNomenclatureTypesToUpdate = (nomenclaturesResult as List<*>)
@@ -778,18 +818,31 @@ class DataSyncWorker(
         }
             .map {
                 checkResponse(it).run {
-                    if (this is Result.Failure) this else it
+                    if (this.state == WorkInfo.State.FAILED) this else it
                         .body()
                         ?.byteStream()
-                        ?: Result.failure(workData(applicationContext.getString(R.string.sync_data_nomenclature_default_error)))
+                        ?: DataSyncStatus(
+                            WorkInfo.State.FAILED,
+                            applicationContext.getString(R.string.sync_data_nomenclature_default_error)
+                        )
                 }
             }
             .getOrElse {
-                Result.failure(workData(applicationContext.getString(R.string.sync_data_nomenclature_default_error)))
+                DataSyncStatus(
+                    WorkInfo.State.FAILED,
+                    applicationContext.getString(R.string.sync_data_nomenclature_default_error)
+                )
             }
 
-        if (nomenclaturesResult is Result.Failure) {
-            return nomenclaturesResult
+        if (defaultNomenclatureResult is DataSyncStatus && defaultNomenclatureResult.state == WorkInfo.State.FAILED) {
+            sendNotification(defaultNomenclatureResult)
+
+            return Result.failure(
+                workData(
+                    defaultNomenclatureResult.syncMessage,
+                    defaultNomenclatureResult.serverStatus
+                )
+            )
         }
 
         val defaultNomenclatureAsJson = runCatching {
@@ -855,7 +908,10 @@ class DataSyncWorker(
         return Result.success()
     }
 
-    private fun sendNotification(contentText: CharSequence) {
+    private fun sendNotification(
+        contentText: CharSequence?,
+        componentClassIntent: Class<*> = HomeActivity::class.java
+    ) {
         with(NotificationManagerCompat.from(applicationContext)) {
             notify(
                 SYNC_NOTIFICATION_ID,
@@ -864,6 +920,7 @@ class DataSyncWorker(
                         applicationContext,
                         MainApplication.CHANNEL_DATA_SYNCHRONIZATION
                     )
+                    .setAutoCancel(true)
                     .setContentTitle(applicationContext.getText(R.string.notification_data_synchronization_title))
                     .setContentText(contentText)
                     .setContentIntent(
@@ -872,7 +929,7 @@ class DataSyncWorker(
                             0,
                             Intent(
                                 applicationContext,
-                                HomeActivity::class.java
+                                componentClassIntent
                             ).apply {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                             },
@@ -885,31 +942,47 @@ class DataSyncWorker(
         }
     }
 
-    private fun checkResponse(response: Response<*>): Result {
+    private fun sendNotification(dataSyncStatus: DataSyncStatus) {
+        sendNotification(
+            if (dataSyncStatus.serverStatus == ServerStatus.UNAUTHORIZED) applicationContext.getString(R.string.sync_error_server_not_connected)
+            else dataSyncStatus.syncMessage,
+            if (dataSyncStatus.serverStatus == ServerStatus.UNAUTHORIZED) LoginActivity::class.java
+            else HomeActivity::class.java
+        )
+    }
+
+    private fun checkResponse(response: Response<*>): DataSyncStatus {
         // not connected
         if (response.code() == ServerStatus.UNAUTHORIZED.httpStatus) {
-            return Result.failure(
-                workData(
-                    applicationContext.getString(R.string.sync_error_server_not_connected),
-                    ServerStatus.UNAUTHORIZED
-                )
+            sendNotification(
+                applicationContext.getString(R.string.sync_error_server_not_connected),
+                LoginActivity::class.java
+            )
+
+            return DataSyncStatus(
+                WorkInfo.State.FAILED,
+                applicationContext.getString(R.string.sync_error_server_not_connected),
+                ServerStatus.UNAUTHORIZED
             )
         }
 
         if (!response.isSuccessful) {
-            return Result.failure(
-                workData(
-                    applicationContext.getString(R.string.sync_error_server_error),
-                    ServerStatus.INTERNAL_SERVER_ERROR
-                )
+            return DataSyncStatus(
+                WorkInfo.State.FAILED,
+                applicationContext.getString(R.string.sync_error_server_error),
+                ServerStatus.INTERNAL_SERVER_ERROR
             )
         }
 
-        return Result.success()
+        return DataSyncStatus(
+            WorkInfo.State.RUNNING,
+            null,
+            ServerStatus.OK
+        )
     }
 
     private fun workData(
-        syncMessage: String,
+        syncMessage: String?,
         serverStatus: ServerStatus = ServerStatus.OK
     ): Data {
         return workDataOf(

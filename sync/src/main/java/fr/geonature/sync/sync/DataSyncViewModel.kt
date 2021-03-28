@@ -57,21 +57,18 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
     val isSyncRunning: LiveData<Boolean> = _isSyncRunning
 
     fun observeDataSyncStatus(): LiveData<DataSyncStatus?> {
-        return map(workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)) { workInfos ->
-            if (workInfos == null || workInfos.isEmpty()) {
+        return map(workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)) { workInfoList ->
+            if (workInfoList == null || workInfoList.isEmpty()) {
                 currentSyncWorkerId = null
                 return@map null
             }
 
-            val workInfo = (if (currentSyncWorkerId == null) workInfos[0] else workInfos.firstOrNull { it.id == currentSyncWorkerId })
-                ?: workInfos[0]
+            val workInfo = workInfoList.firstOrNull { it.id == currentSyncWorkerId }
+                ?: workInfoList.firstOrNull { it.state == WorkInfo.State.RUNNING }
 
-            // this work info is not scheduled or not running and no current worker is running: abort
-            if (currentSyncWorkerId == null && workInfo.state !in arrayListOf(
-                    WorkInfo.State.ENQUEUED,
-                    WorkInfo.State.RUNNING
-                )
-            ) {
+            // no work info is running: abort
+            if (workInfo == null) {
+                currentSyncWorkerId = null
                 return@map null
             }
 
@@ -87,15 +84,6 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                     ServerStatus.OK.ordinal
                 )
             )]
-
-            // this work info is not scheduled or not running: the current worker is done
-            if (workInfo.state !in arrayListOf(
-                    WorkInfo.State.ENQUEUED,
-                    WorkInfo.State.RUNNING
-                )
-            ) {
-                currentSyncWorkerId = null
-            }
 
             DataSyncStatus(
                 workInfo.state,
@@ -145,31 +133,32 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 return@launch
             }
 
-            val essentialDataSyncPeriodicity = appSettings.essentialDataSyncPeriodicity?.parseAsDuration()
-                ?: Duration.ZERO
-            val dataSyncPeriodicity = appSettings.dataSyncPeriodicity?.parseAsDuration()
-                ?: Duration.ZERO
+            workManager
+                .cancelUniqueWork(DataSyncWorker.DATA_SYNC_WORKER_PERIODIC)
+                .await()
+            workManager
+                .cancelUniqueWork(DataSyncWorker.DATA_SYNC_WORKER_PERIODIC_ESSENTIAL)
+                .await()
+
+            val essentialDataSyncPeriodicity = appSettings.essentialDataSyncPeriodicity
+                ?.parseAsDuration()
+                ?.coerceAtLeast(DEFAULT_MIN_DURATION)
+            val dataSyncPeriodicity = appSettings.dataSyncPeriodicity
+                ?.parseAsDuration()
+                ?.coerceAtLeast(DEFAULT_MIN_DURATION)
 
             // no periodic synchronization is correctly configured: abort
-            if ((arrayOf(
-                    essentialDataSyncPeriodicity,
-                    dataSyncPeriodicity
-                ).all { it < 15.toDuration(DurationUnit.MINUTES) })
-            ) {
-                Log.w(
+            if (essentialDataSyncPeriodicity == null && dataSyncPeriodicity == null) {
+                Log.i(
                     TAG,
-                    "no periodic synchronization is correctly configured: abort"
+                    "no periodic synchronization configured: abort"
                 )
 
                 return@launch
             }
 
             // all periodic synchronizations are correctly configured
-            if ((arrayOf(
-                    essentialDataSyncPeriodicity,
-                    dataSyncPeriodicity
-                ).all { it >= 15.toDuration(DurationUnit.MINUTES) })
-            ) {
+            if (essentialDataSyncPeriodicity != null && dataSyncPeriodicity != null) {
                 if (essentialDataSyncPeriodicity >= dataSyncPeriodicity) {
                     configurePeriodicSync(
                         appSettings,
@@ -181,12 +170,12 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
                 configurePeriodicSync(
                     appSettings,
-                    essentialDataSyncPeriodicity,
-                    withAdditionalData = false
+                    dataSyncPeriodicity
                 )
                 configurePeriodicSync(
                     appSettings,
-                    dataSyncPeriodicity
+                    essentialDataSyncPeriodicity,
+                    withAdditionalData = false
                 )
 
                 return@launch
@@ -197,7 +186,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 essentialDataSyncPeriodicity,
                 dataSyncPeriodicity
             )
-                .firstOrNull { it >= 15.toDuration(DurationUnit.MINUTES) }
+                .firstOrNull { it != null }
                 ?.also {
                     configurePeriodicSync(
                         appSettings,
@@ -217,10 +206,6 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         repeatInterval: Duration,
         withAdditionalData: Boolean = true
     ) {
-        if (repeatInterval.inMinutes < 15) {
-            return
-        }
-
         Log.i(
             TAG,
             "configure data sync periodic worker (repeat interval: $repeatInterval, with additional data: $withAdditionalData)..."
@@ -237,9 +222,13 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                     .setRequiredNetworkType(NetworkType.UNMETERED)
                     .build()
             )
+            .setInitialDelay(
+                (if (withAdditionalData) DEFAULT_MIN_DURATION else (repeatInterval / 2).coerceAtLeast(30.toDuration(DurationUnit.MINUTES))).inSeconds.toLong(),
+                TimeUnit.SECONDS
+            )
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
-                (repeatInterval.inSeconds.toLong() * 1.25).toLong(),
+                (if (withAdditionalData) 1 else 2).toDuration(DurationUnit.MINUTES).inSeconds.toLong(),
                 TimeUnit.SECONDS
             )
             .setInputData(
@@ -270,5 +259,8 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
     companion object {
         private val TAG = DataSyncViewModel::class.java.name
+
+        @ExperimentalTime
+        private val DEFAULT_MIN_DURATION = 15.toDuration(DurationUnit.MINUTES)
     }
 }

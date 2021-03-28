@@ -8,7 +8,7 @@
     <string name="activity_login_title">Sign in</string>
 
     <string name="action_settings">Settings</string>
-    <string name="action_sync_refresh">Start sync</string>
+    <string name="action_sync_data_refresh">Start data sync</string>
     <string name="action_login">Sign in</string>
     <string name="action_logout">Sign out</string>
 

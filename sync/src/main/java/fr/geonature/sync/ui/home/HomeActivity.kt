@@ -201,7 +201,7 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.run {
-            findItem(R.id.menu_sync_refresh)?.also {
+            findItem(R.id.menu_sync_data_refresh)?.also {
                 it.isEnabled = appSettings != null && !(dataSyncViewModel.isSyncRunning.value
                     ?: false)
             }
@@ -224,7 +224,7 @@ class HomeActivity : AppCompatActivity() {
                 startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
                 true
             }
-            R.id.menu_sync_refresh -> {
+            R.id.menu_sync_data_refresh -> {
                 appSettings?.run {
                     dataSyncViewModel.startSync(this)
                 }
