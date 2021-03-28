@@ -114,17 +114,16 @@ class DataSyncView : ConstraintLayout {
         }
     }
 
-    fun setMessage(text: String) {
+    fun setMessage(text: String?) {
         textViewMessage.text = text
     }
 
     fun setLastSynchronizedDate(lastSynchronized: Date?) {
-        val formatLastSynchronizedDate =
-            if (lastSynchronized == null) context.getString(R.string.sync_last_synchronization_never)
-            else DateFormat.format(
-                context.getString(R.string.sync_last_synchronization_date),
-                lastSynchronized
-            )
+        val formatLastSynchronizedDate = if (lastSynchronized == null) context.getString(R.string.sync_last_synchronization_never)
+        else DateFormat.format(
+            context.getString(R.string.sync_last_synchronization_date),
+            lastSynchronized
+        )
 
         textViewLastSynchronizedDate.text = formatLastSynchronizedDate
     }

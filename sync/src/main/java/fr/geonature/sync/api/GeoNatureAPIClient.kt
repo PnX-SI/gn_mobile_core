@@ -46,13 +46,18 @@ class GeoNatureAPIClient private constructor(
             redactHeader("Cookie")
         }
 
-        val client = OkHttpClient.Builder()
-            .readTimeout(
-                60,
+        val client = OkHttpClient
+            .Builder()
+            .connectTimeout(
+                120,
                 TimeUnit.SECONDS
             )
-            .connectTimeout(
-                60,
+            .readTimeout(
+                120,
+                TimeUnit.SECONDS
+            )
+            .writeTimeout(
+                120,
                 TimeUnit.SECONDS
             )
             .addInterceptor(loggingInterceptor)
@@ -60,7 +65,8 @@ class GeoNatureAPIClient private constructor(
             .addInterceptor { chain ->
                 val originalResponse = chain.proceed(chain.request())
 
-                originalResponse.headers("Set-Cookie")
+                originalResponse
+                    .headers("Set-Cookie")
                     .firstOrNull()
                     ?.also {
                         authManager.setCookie(it)
@@ -70,10 +76,12 @@ class GeoNatureAPIClient private constructor(
             }
             // set cookie interceptor
             .addInterceptor { chain ->
-                val builder = chain.request()
+                val builder = chain
+                    .request()
                     .newBuilder()
 
-                authManager.getCookie()
+                authManager
+                    .getCookie()
                     ?.also {
                         builder.addHeader(
                             "Cookie",
@@ -85,24 +93,28 @@ class GeoNatureAPIClient private constructor(
             }
             .build()
 
-        geoNatureService = Retrofit.Builder()
+        geoNatureService = Retrofit
+            .Builder()
             .baseUrl("$geoNatureBaseUrl/")
             .client(client)
             .addConverterFactory(
                 GsonConverterFactory.create(
-                    GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss")
+                    GsonBuilder()
+                        .setDateFormat("yyyy-MM-dd HH:mm:ss")
                         .create()
                 )
             )
             .build()
             .create(GeoNatureService::class.java)
 
-        taxHubService = Retrofit.Builder()
+        taxHubService = Retrofit
+            .Builder()
             .baseUrl("$taxHubBaseUrl/")
             .client(client)
             .addConverterFactory(
                 GsonConverterFactory.create(
-                    GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss")
+                    GsonBuilder()
+                        .setDateFormat("yyyy-MM-dd HH:mm:ss")
                         .create()
                 )
             )
@@ -139,7 +151,11 @@ class GeoNatureAPIClient private constructor(
         return taxHubService.getTaxonomyRanks()
     }
 
-    fun getTaxref(listId: Int, limit: Int? = null, offset: Int? = null): Call<List<Taxref>> {
+    fun getTaxref(
+        listId: Int,
+        limit: Int? = null,
+        offset: Int? = null
+    ): Call<List<Taxref>> {
         return taxHubService.getTaxref(
             listId,
             limit,
@@ -187,10 +203,8 @@ class GeoNatureAPIClient private constructor(
             geoNatureBaseUrl: String? = null,
             taxHubBaseUrl: String? = null
         ): GeoNatureAPIClient? {
-            val sanitizeGeoNatureBaseUrl =
-                baseUrl(if (geoNatureBaseUrl.isNullOrBlank()) getGeoNatureServerUrl(context) else geoNatureBaseUrl)
-            val sanitizeTaxHubBaseUrl =
-                baseUrl(if (taxHubBaseUrl.isNullOrBlank()) getTaxHubServerUrl(context) else taxHubBaseUrl)
+            val sanitizeGeoNatureBaseUrl = baseUrl(if (geoNatureBaseUrl.isNullOrBlank()) getGeoNatureServerUrl(context) else geoNatureBaseUrl)
+            val sanitizeTaxHubBaseUrl = baseUrl(if (taxHubBaseUrl.isNullOrBlank()) getTaxHubServerUrl(context) else taxHubBaseUrl)
 
             if (sanitizeGeoNatureBaseUrl.isNullOrBlank()) {
                 Log.w(

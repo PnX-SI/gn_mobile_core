@@ -2,6 +2,7 @@ package fr.geonature.sync.settings.io
 
 import android.util.JsonReader
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
+import fr.geonature.commons.util.nextStringOrNull
 import fr.geonature.sync.settings.AppSettings
 
 /**
@@ -11,6 +12,7 @@ import fr.geonature.sync.settings.AppSettings
  */
 class OnAppSettingsJsonReaderListenerImpl :
     AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AppSettings> {
+
     override fun createAppSettings(): AppSettings {
         return AppSettings()
     }
@@ -29,6 +31,8 @@ class OnAppSettingsJsonReaderListenerImpl :
             "code_area_type" -> appSettings.codeAreaType = reader.nextString()
             "page_size" -> appSettings.pageSize = reader.nextInt()
             "page_max_retry" -> appSettings.pageMaxRetry = reader.nextInt()
+            "sync_periodicity_data_essential" -> appSettings.essentialDataSyncPeriodicity = reader.nextStringOrNull()
+            "sync_periodicity_data" -> appSettings.dataSyncPeriodicity = reader.nextStringOrNull()
             else -> reader.skipValue()
         }
     }

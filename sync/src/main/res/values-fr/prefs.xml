@@ -6,6 +6,8 @@
     <string name="preference_category_server_geonature_url_hint">https://demo.geonature.fr/geonature</string>
     <string name="preference_category_server_taxhub_url">URL de TaxHub</string>
     <string name="preference_category_server_taxhub_url_hint">https://demo.geonature.fr/taxhub</string>
+    <string name="preference_category_notifications">Notifications</string>
+    <string name="preference_category_notifications_configure">Configurer les notifications</string>
     <string name="preference_category_storage">Mémoire</string>
     <string name="preference_category_storage_internal">Mémoire interne</string>
     <string name="preference_category_storage_external">Mémoire externe</string>

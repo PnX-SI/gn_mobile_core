@@ -31,53 +31,55 @@ import kotlinx.coroutines.launch
 class PackageInfoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
-    private val packageInfoManager: PackageInfoManager =
-        PackageInfoManager.getInstance(getApplication())
+    private val packageInfoManager: PackageInfoManager = PackageInfoManager.getInstance(getApplication())
 
     private val _appSettingsUpdated: MutableLiveData<Boolean> = MutableLiveData()
 
-    val packageInfos: LiveData<List<PackageInfo>> =
-        switchMap(packageInfoManager.observePackageInfos) { packageInfos ->
-            viewModelScope.launch {
-                packageInfos.asSequence()
-                    .filter { it.launchIntent != null && it.packageName != BuildConfig.APPLICATION_ID }
-                    .forEach {
-                        packageInfoManager.updateAppSettings(it)
-                    }
-            }
+    val packageInfos: LiveData<List<PackageInfo>> = switchMap(packageInfoManager.observePackageInfos) { packageInfos ->
+        viewModelScope.launch {
+            packageInfos
+                .asSequence()
+                .filter { it.launchIntent != null && it.packageName != BuildConfig.APPLICATION_ID }
+                .forEach {
+                    packageInfoManager.updateAppSettings(it)
+                }
+        }
 
-            map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
-                packageInfos.asSequence()
-                    .filter { it.packageName != BuildConfig.APPLICATION_ID }
-                    .map { packageInfo ->
-                        packageInfo.copy()
-                            .apply {
-                                settings = packageInfo.settings
+        map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
+            packageInfos
+                .asSequence()
+                .filter { it.packageName != BuildConfig.APPLICATION_ID }
+                .map { packageInfo ->
+                    packageInfo
+                        .copy()
+                        .apply {
+                            inputs = packageInfo.inputs
+                            settings = packageInfo.settings
 
-                                val workInfo =
-                                    workInfos.firstOrNull { workInfo -> workInfo.progress.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
-                                        ?: workInfos.firstOrNull { workInfo -> workInfo.outputData.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
+                            val workInfo = workInfos.firstOrNull { workInfo -> workInfo.progress.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
+                                ?: workInfos.firstOrNull { workInfo -> workInfo.outputData.getString(InputsSyncWorker.KEY_PACKAGE_NAME) == packageName }
 
-                                if (workInfo != null) {
-                                    state = WorkInfo.State.values()[
-                                        workInfo.progress.getInt(
-                                            InputsSyncWorker.KEY_PACKAGE_STATUS,
-                                            workInfo.outputData.getInt(
-                                                InputsSyncWorker.KEY_PACKAGE_STATUS,
-                                                WorkInfo.State.ENQUEUED.ordinal
-                                            )
-                                        )
-                                    ]
-                                    inputs = workInfo.progress.getInt(
+                            if (workInfo != null) {
+                                state = WorkInfo.State.values()[workInfo.progress.getInt(
+                                    InputsSyncWorker.KEY_PACKAGE_STATUS,
+                                    workInfo.outputData.getInt(
+                                        InputsSyncWorker.KEY_PACKAGE_STATUS,
+                                        WorkInfo.State.ENQUEUED.ordinal
+                                    )
+                                )]
+                                inputs = workInfo.progress.getInt(
+                                    InputsSyncWorker.KEY_PACKAGE_INPUTS,
+                                    workInfo.outputData.getInt(
                                         InputsSyncWorker.KEY_PACKAGE_INPUTS,
                                         0
                                     )
-                                }
+                                )
                             }
-                    }
-                    .toList()
-            }
+                        }
+                }
+                .toList()
         }
+    }
 
     /**
      * Checks if the current app can be updated or not.
@@ -85,7 +87,8 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     val updateAvailable: LiveData<PackageInfo> = MediatorLiveData<PackageInfo>().apply {
         addSource(packageInfoManager.observePackageInfos) { availablePackageInfos: List<PackageInfo> ->
             viewModelScope.launch {
-                availablePackageInfos.find { it.packageName == BuildConfig.APPLICATION_ID }
+                availablePackageInfos
+                    .find { it.packageName == BuildConfig.APPLICATION_ID }
                     ?.also {
                         if (it.settings != null) {
                             packageInfoManager.updateAppSettings(it)
@@ -117,7 +120,8 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
      */
     fun synchronizeInstalledApplications() {
         viewModelScope.launch {
-            packageInfoManager.getInstalledApplications()
+            packageInfoManager
+                .getInstalledApplications()
                 .asSequence()
                 .filter { it.packageName != BuildConfig.APPLICATION_ID }
                 .forEach { startSyncInputs(it) }
@@ -125,15 +129,18 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun downloadAppPackage(packageName: String): LiveData<AppPackageDownloadStatus?> {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
+        val constraints = Constraints
+            .Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
             .build()
 
-        val inputsSyncWorkerRequest = OneTimeWorkRequest.Builder(DownloadPackageWorker::class.java)
+        val inputsSyncWorkerRequest = OneTimeWorkRequest
+            .Builder(DownloadPackageWorker::class.java)
             .addTag(DownloadPackageWorker.DOWNLOAD_PACKAGE_WORKER_TAG)
             .setConstraints(constraints)
             .setInputData(
-                Data.Builder()
+                Data
+                    .Builder()
                     .putString(
                         DownloadPackageWorker.KEY_PACKAGE_NAME,
                         packageName
@@ -157,20 +164,19 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
                 ?: it.outputData.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
                 ?: return@map null
 
-            AppPackageDownloadStatus(
-                it.state,
+            AppPackageDownloadStatus(it.state,
                 packageNameToUpgrade,
-                it.outputData.getInt(
-                    DownloadPackageWorker.KEY_PROGRESS,
-                    -1
-                )
+                it.outputData
+                    .getInt(
+                        DownloadPackageWorker.KEY_PROGRESS,
+                        -1
+                    )
                     .takeIf { progress -> progress > 0 }
                     ?: it.progress.getInt(
                         DownloadPackageWorker.KEY_PROGRESS,
                         -1
                     ),
-                it.outputData.getString(DownloadPackageWorker.KEY_APK_FILE_PATH)
-            )
+                it.outputData.getString(DownloadPackageWorker.KEY_APK_FILE_PATH))
         }.also {
             // start the work
             continuation.enqueue()
@@ -182,15 +188,18 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun startSyncInputs(packageInfo: PackageInfo) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
+        val constraints = Constraints
+            .Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
             .build()
 
-        val inputsSyncWorkerRequest = OneTimeWorkRequest.Builder(InputsSyncWorker::class.java)
+        val inputsSyncWorkerRequest = OneTimeWorkRequest
+            .Builder(InputsSyncWorker::class.java)
             .addTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
             .setConstraints(constraints)
             .setInputData(
-                Data.Builder()
+                Data
+                    .Builder()
                     .putString(
                         InputsSyncWorker.KEY_PACKAGE_NAME,
                         packageInfo.packageName

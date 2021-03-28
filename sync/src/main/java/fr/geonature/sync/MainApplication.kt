@@ -32,18 +32,21 @@ class MainApplication : Application() {
             "external storage: " + getExternalStorage(this)
         )
 
+        val notificationManager = NotificationManagerCompat.from(this)
+        configureCheckInputsToSynchronizeChannel(notificationManager)
+        configureSynchronizeDataChannel(notificationManager)
+
         checkInputsToSynchronize()
     }
 
     private fun checkInputsToSynchronize() {
-        val notificationManager = NotificationManagerCompat.from(this)
-        configureSyncChannel(notificationManager)
         val workManager: WorkManager = WorkManager.getInstance(this)
 
         val request = PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(
             15,
             TimeUnit.MINUTES
-        ).addTag(CheckInputsToSynchronizeWorker.CHECK_INPUTS_TO_SYNC_WORKER_TAG)
+        )
+            .addTag(CheckInputsToSynchronizeWorker.CHECK_INPUTS_TO_SYNC_WORKER_TAG)
             .build()
 
         workManager.enqueueUniquePeriodicWork(
@@ -53,15 +56,34 @@ class MainApplication : Application() {
         )
     }
 
-    private fun configureSyncChannel(notificationManager: NotificationManagerCompat): NotificationChannel? {
+    private fun configureCheckInputsToSynchronizeChannel(notificationManager: NotificationManagerCompat): NotificationChannel? {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                SYNC_CHANNEL_ID,
-                getText(R.string.sync_channel_name),
+                CHANNEL_CHECK_INPUTS_TO_SYNCHRONIZE,
+                getText(R.string.channel_name_check_inputs_to_synchronize),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = getString(R.string.sync_channel_description)
+                description = getString(R.string.channel_description_check_inputs_to_synchronize)
                 setShowBadge(true)
+            }
+
+            // register this channel with the system
+            notificationManager.createNotificationChannel(channel)
+
+            return channel
+        }
+
+        return null
+    }
+
+    private fun configureSynchronizeDataChannel(notificationManager: NotificationManagerCompat): NotificationChannel? {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_DATA_SYNCHRONIZATION,
+                getText(R.string.channel_name_data_synchronization),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = getString(R.string.channel_description_data_synchronization)
             }
 
             // register this channel with the system
@@ -76,6 +98,7 @@ class MainApplication : Application() {
     companion object {
         private val TAG = MainApplication::class.java.name
 
-        const val SYNC_CHANNEL_ID = "sync_channel"
+        const val CHANNEL_CHECK_INPUTS_TO_SYNCHRONIZE = "channel_check_inputs_to_synchronize"
+        const val CHANNEL_DATA_SYNCHRONIZATION = "channel_data_synchronization"
     }
 }
