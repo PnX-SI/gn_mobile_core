@@ -131,7 +131,7 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     fun downloadAppPackage(packageName: String): LiveData<AppPackageDownloadStatus?> {
         val constraints = Constraints
             .Builder()
-            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val inputsSyncWorkerRequest = OneTimeWorkRequest
@@ -190,7 +190,7 @@ class PackageInfoViewModel(application: Application) : AndroidViewModel(applicat
     private fun startSyncInputs(packageInfo: PackageInfo) {
         val constraints = Constraints
             .Builder()
-            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val inputsSyncWorkerRequest = OneTimeWorkRequest

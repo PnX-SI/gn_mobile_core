@@ -219,7 +219,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             .setConstraints(
                 Constraints
                     .Builder()
-                    .setRequiredNetworkType(NetworkType.UNMETERED)
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
             )
             .setInitialDelay(
