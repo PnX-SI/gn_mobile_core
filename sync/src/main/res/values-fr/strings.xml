@@ -9,7 +9,6 @@
     <string name="action_login">Se connecter</string>
     <string name="action_logout">Se déconnecter</string>
 
-    <string name="sync_data">Data synchronization</string>
     <string name="sync_last_synchronization">Dernière synchronisation</string>
     <string name="sync_last_synchronization_date">le EEE dd MMM yyyy à kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Jamais</string>
@@ -17,6 +16,7 @@
     <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
     <string name="sync_error_server_error">Erreur serveur</string>
     <string name="sync_error_server_not_connected">Non connecté</string>
+    <string name="sync_data">Synchronisation des données</string>
     <string name="sync_data_dataset">Synchronisation des jeux de données : %1$d</string>
     <string name="sync_data_dataset_error">Synchronisation des jeux de données : échec</string>
     <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
@@ -30,7 +30,7 @@
     <string name="sync_data_nomenclature">Synchronisation de la nomenclature : %1$d</string>
     <string name="sync_data_nomenclature_default">Synchronisation des valeurs par défaut de la nomenclature : %1$d</string>
     <string name="sync_data_nomenclature_default_error">Synchronisation des valeurs par défaut de la nomenclature : échec</string>
-    <string name="sync_data_succeeded">Done.</string>
+    <string name="sync_data_succeeded">Terminée.</string>
 
     <string name="channel_name_check_inputs_to_synchronize">Nouveaux relevés</string>
     <string name="channel_description_check_inputs_to_synchronize">Relevés à synchroniser</string>
