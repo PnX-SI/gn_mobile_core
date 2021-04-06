@@ -26,7 +26,7 @@ import java.util.Date
 data class Dataset(
 
     /**
-     * The unique ID of the input observer.
+     * The unique ID of this dataset.
      */
     @ColumnInfo(name = COLUMN_ID)
     var id: Long,

@@ -12,7 +12,6 @@
     <string name="action_login">Sign in</string>
     <string name="action_logout">Sign out</string>
 
-    <string name="sync_data">Data synchronization</string>
     <string name="sync_last_synchronization">Last synchronization</string>
     <string name="sync_last_synchronization_date">EEE dd MMM yyyy, kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Never</string>
@@ -20,6 +19,7 @@
     <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
     <string name="sync_error_server_error">GeoNature server error</string>
     <string name="sync_error_server_not_connected">Not connected</string>
+    <string name="sync_data">Data synchronization</string>
     <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
     <string name="sync_data_dataset_error">Synchronize dataset: failure</string>
     <string name="sync_data_observers">Synchronize observers: %1$d</string>
