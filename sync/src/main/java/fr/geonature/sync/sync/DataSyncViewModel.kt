@@ -85,6 +85,15 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 )
             )]
 
+            // this work info is not scheduled or not running: the current worker is done
+            if (workInfo.state !in arrayListOf(
+                    WorkInfo.State.ENQUEUED,
+                    WorkInfo.State.RUNNING
+                )
+            ) {
+                currentSyncWorkerId = null
+            }
+
             DataSyncStatus(
                 workInfo.state,
                 workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
