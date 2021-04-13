@@ -13,6 +13,12 @@ import fr.geonature.sync.api.model.User
 import fr.geonature.sync.auth.AuthManager
 import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
@@ -48,6 +54,35 @@ class GeoNatureAPIClient private constructor(
 
         val client = OkHttpClient
             .Builder()
+            .cookieJar(object : CookieJar {
+                override fun saveFromResponse(
+                    url: HttpUrl,
+                    cookies: MutableList<Cookie>
+                ) {
+                    cookies
+                        .firstOrNull()
+                        ?.also {
+                            authManager.setCookie(it)
+                        }
+                }
+
+                override fun loadForRequest(url: HttpUrl): MutableList<Cookie> {
+                    return authManager
+                        .getCookie()
+                        ?.let {
+                            if (it.expiresAt() < System.currentTimeMillis()) {
+                                GlobalScope.launch(IO) {
+                                    authManager.logout()
+                                }
+
+                                return@let mutableListOf()
+                            }
+
+                            mutableListOf(it)
+                        }
+                        ?: mutableListOf()
+                }
+            })
             .connectTimeout(
                 120,
                 TimeUnit.SECONDS
@@ -61,36 +96,6 @@ class GeoNatureAPIClient private constructor(
                 TimeUnit.SECONDS
             )
             .addInterceptor(loggingInterceptor)
-            // save cookie interceptor
-            .addInterceptor { chain ->
-                val originalResponse = chain.proceed(chain.request())
-
-                originalResponse
-                    .headers("Set-Cookie")
-                    .firstOrNull()
-                    ?.also {
-                        authManager.setCookie(it)
-                    }
-
-                originalResponse
-            }
-            // set cookie interceptor
-            .addInterceptor { chain ->
-                val builder = chain
-                    .request()
-                    .newBuilder()
-
-                authManager
-                    .getCookie()
-                    ?.also {
-                        builder.addHeader(
-                            "Cookie",
-                            it
-                        )
-                    }
-
-                chain.proceed(builder.build())
-            }
             .build()
 
         geoNatureService = Retrofit

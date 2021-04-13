@@ -2,9 +2,11 @@ package fr.geonature.sync.auth
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import fr.geonature.commons.util.add
 import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.api.model.AuthUser
 import kotlinx.coroutines.runBlocking
+import okhttp3.Cookie
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -15,6 +17,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.Calendar
+import java.util.Date
 
 /**
  * Unit tests about [AuthManager].
@@ -31,7 +34,8 @@ class AuthManagerTest {
     fun setUp() {
         val application = ApplicationProvider.getApplicationContext<Application>()
         authManager = AuthManager.getInstance(application)
-        authManager.preferenceManager.edit()
+        authManager.preferenceManager
+            .edit()
             .clear()
             .commit()
     }
@@ -47,16 +51,30 @@ class AuthManagerTest {
 
     @Test
     fun testSaveAndGetCookie() {
+        val cookie = Cookie
+            .Builder()
+            .name("token")
+            .value("some_value")
+            .domain("demo.geonature.fr")
+            .path("/")
+            .expiresAt(
+                Date().add(
+                    Calendar.HOUR,
+                    1
+                ).time
+            )
+            .build()
+
         // when setting new cookie
-        authManager.setCookie("c_1234")
+        authManager.setCookie(cookie)
 
         // when reading this cookie from manager
-        val cookie = authManager.getCookie()
+        val cookieFromManager = authManager.getCookie()
 
         // then
         assertEquals(
-            "c_1234",
-            cookie
+            cookie,
+            cookieFromManager
         )
     }
 
@@ -81,16 +99,18 @@ class AuthManagerTest {
                 1,
                 "admin"
             ),
-            Calendar.getInstance().apply {
-                add(
-                    Calendar.DAY_OF_YEAR,
-                    7
-                )
-                set(
-                    Calendar.MILLISECOND,
-                    0
-                )
-            }.time
+            Calendar
+                .getInstance()
+                .apply {
+                    add(
+                        Calendar.DAY_OF_YEAR,
+                        7
+                    )
+                    set(
+                        Calendar.MILLISECOND,
+                        0
+                    )
+                }.time
         )
 
         // when saving this AuthLogin
@@ -122,12 +142,14 @@ class AuthManagerTest {
                 1,
                 "admin"
             ),
-            Calendar.getInstance().apply {
-                add(
-                    Calendar.DAY_OF_YEAR,
-                    -1
-                )
-            }.time
+            Calendar
+                .getInstance()
+                .apply {
+                    add(
+                        Calendar.DAY_OF_YEAR,
+                        -1
+                    )
+                }.time
         )
 
         // when saving this AuthLogin
