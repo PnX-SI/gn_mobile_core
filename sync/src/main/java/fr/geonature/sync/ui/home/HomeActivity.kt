@@ -161,13 +161,13 @@ class HomeActivity : AppCompatActivity() {
         startSyncResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             when (result.resultCode) {
                 RESULT_OK -> {
+                    val appSettings = appSettings
+
                     if (appSettings == null) {
                         packageInfoViewModel.getAvailableApplications()
                     } else {
-                        appSettings?.run {
-                            dataSyncViewModel.startSync(this)
-                            synchronizeInstalledApplications()
-                        }
+                        dataSyncViewModel.startSync(appSettings)
+                        synchronizeInstalledApplications()
                     }
                 }
             }
@@ -202,8 +202,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.run {
             findItem(R.id.menu_sync_data_refresh)?.also {
-                it.isEnabled = appSettings != null && !(dataSyncViewModel.isSyncRunning.value
-                    ?: false)
+                it.isEnabled = appSettings != null && dataSyncViewModel.isSyncRunning.value != true
             }
             findItem(R.id.menu_login)?.also {
                 it.isEnabled = appSettings != null
@@ -291,7 +290,17 @@ class HomeActivity : AppCompatActivity() {
                         "reloading settings after update..."
                     )
 
-                    loadAppSettingsAndStartSync()
+                    loadAppSettings {
+                        makeSnackbar(
+                            getString(
+                                R.string.snackbar_settings_updated,
+                                appSettingsViewModel.getAppSettingsFilename()
+                            )
+                        )?.show()
+
+                        startFirstSync(it)
+                        synchronizeInstalledApplications()
+                    }
                 }
 
                 vm.packageInfos.observe(this@HomeActivity,
@@ -349,12 +358,15 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
+    @ExperimentalTime
     private fun checkPermissions() {
         PermissionUtils.requestPermissions(this,
             listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
             { result ->
                 if (result.values.all { it }) {
-                    packageInfoViewModel.getAvailableApplications()
+                    loadAppSettings {
+                        packageInfoViewModel.getAvailableApplications()
+                    }
                 } else {
                     Toast
                         .makeText(
@@ -400,7 +412,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     @ExperimentalTime
-    private fun loadAppSettingsAndStartSync() {
+    private fun loadAppSettings(appSettingsLoaded: ((appSettings: AppSettings) -> Unit)? = null) {
         appSettingsViewModel
             .loadAppSettings()
             .observeOnce(this@HomeActivity) {
@@ -416,32 +428,23 @@ class HomeActivity : AppCompatActivity() {
 
                     if (!checkGeoNatureSettings()) {
                         startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
-
-                        return@observeOnce
-                    }
-                } else {
-                    makeSnackbar(
-                        getString(
-                            R.string.snackbar_settings_updated,
-                            appSettingsViewModel.getAppSettingsFilename()
-                        )
-                    )?.show()
-
-                    appSettings = it
-                    mergeAppSettingsWithSharedPreferences(it)
-                    invalidateOptionsMenu()
-
-                    if (!checkGeoNatureSettings()) {
-                        startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
-
-                        return@observeOnce
                     }
 
-                    dataSyncViewModel.configurePeriodicSync(it)
-
-                    startFirstSync(it)
-                    synchronizeInstalledApplications()
+                    return@observeOnce
                 }
+
+                appSettings = it
+                mergeAppSettingsWithSharedPreferences(it)
+                invalidateOptionsMenu()
+
+                if (!checkGeoNatureSettings()) {
+                    startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
+
+                    return@observeOnce
+                }
+
+                dataSyncViewModel.configurePeriodicSync(it)
+                appSettingsLoaded?.invoke(it)
             }
     }
 
@@ -450,10 +453,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun startFirstSync(appSettings: AppSettings) {
-        dataSyncViewModel.lastSynchronizedDate.observeOnce(this@HomeActivity) {
-            if (it == null) {
-                dataSyncViewModel.startSync(appSettings)
-            }
+        if (dataSyncViewModel.lastSynchronizedDate.value == null && dataSyncViewModel.isSyncRunning.value != true) {
+            dataSyncViewModel.startSync(appSettings)
         }
     }
 
