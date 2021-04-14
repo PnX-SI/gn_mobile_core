@@ -79,7 +79,10 @@ class DataSyncView : ConstraintLayout {
                         context?.theme
                     )
                 )
-                iconStatus.startAnimation(stateAnimation)
+
+                if (iconStatus.animation?.hasStarted() != true) {
+                    iconStatus.startAnimation(stateAnimation)
+                }
             }
             WorkInfo.State.FAILED -> {
                 iconStatus.setTextColor(

@@ -28,6 +28,7 @@ import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.api.model.User
+import fr.geonature.sync.auth.AuthManager
 import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.DataSyncManager
@@ -57,11 +58,22 @@ class DataSyncWorker(
     appContext,
     workerParams
 ) {
+    private val authManager: AuthManager = AuthManager.getInstance(applicationContext)
     private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
     private val workManager = WorkManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
         val startTime = Date()
+
+        // not connected: abort
+        if (authManager.getAuthLogin() == null) {
+            return Result.failure(
+                workData(
+                    applicationContext.getString(R.string.sync_error_server_not_connected),
+                    ServerStatus.UNAUTHORIZED
+                )
+            )
+        }
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
             ?: return Result.failure(
