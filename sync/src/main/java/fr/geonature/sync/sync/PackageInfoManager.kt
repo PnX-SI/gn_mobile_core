@@ -3,6 +3,7 @@ package fr.geonature.sync.sync
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import fr.geonature.commons.util.getInputsFolder
@@ -33,8 +34,7 @@ class PackageInfoManager private constructor(private val applicationContext: Con
     private val sharedUserId = pm.getPackageInfo(
         applicationContext.packageName,
         PackageManager.GET_META_DATA
-    )
-        .sharedUserId
+    ).sharedUserId
 
     private val availablePackageInfos = mutableMapOf<String, PackageInfo>()
     private val packageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
@@ -45,89 +45,97 @@ class PackageInfoManager private constructor(private val applicationContext: Con
      * Finds all available applications from GeoNature.
      */
     @SuppressLint("DefaultLocale")
-    suspend fun getAvailableApplications(): List<PackageInfo> = withContext(IO) {
-        availablePackageInfos.clear()
+    suspend fun getAvailableApplications(): List<PackageInfo> =
+        withContext(IO) {
+            availablePackageInfos.clear()
 
-        val availableAppPackages = try {
-            val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            val response = geoNatureAPIClient?.getApplications()
-                ?.awaitResponse()
+            val availableAppPackages = try {
+                val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
+                val response = geoNatureAPIClient
+                    ?.getApplications()
+                    ?.awaitResponse()
 
-            if (response?.isSuccessful == true) {
-                response.body() ?: emptyList()
-            } else {
+                if (response?.isSuccessful == true) {
+                    response.body()
+                        ?: emptyList()
+                } else {
+                    emptyList()
+                }
+            } catch (e: Exception) {
                 emptyList()
             }
-        } catch (e: Exception) {
-            emptyList()
-        }
 
-        availableAppPackages.asSequence()
-            .map {
-                PackageInfo(
-                    it.packageName,
-                    it.code.toLowerCase()
-                        .capitalize(),
-                    it.versionCode.toLong(),
-                    0,
-                    null,
-                    it.apkUrl
-                ).apply {
-                    settings = it.settings
+            availableAppPackages
+                .asSequence()
+                .map {
+                    PackageInfo(
+                        it.packageName,
+                        it.code
+                            .toLowerCase()
+                            .capitalize(),
+                        it.versionCode.toLong(),
+                        0,
+                        null,
+                        it.apkUrl
+                    ).apply {
+                        settings = it.settings
+                    }
                 }
-            }
-            .onEach {
-                availablePackageInfos[it.packageName] = it
-            }
-            .toList()
-            .also {
-                getInstalledApplications()
-            }
-    }
+                .onEach {
+                    availablePackageInfos[it.packageName] = it
+                }
+                .toList()
+                .also {
+                    getInstalledApplications()
+                }
+        }
 
     /**
      * Finds all compatible installed applications.
      */
-    suspend fun getInstalledApplications(): List<PackageInfo> = withContext(IO) {
-        val allPackageInfos = mutableMapOf<String, PackageInfo>()
-        allPackageInfos.putAll(availablePackageInfos)
+    suspend fun getInstalledApplications(): List<PackageInfo> =
+        withContext(IO) {
+            val allPackageInfos = mutableMapOf<String, PackageInfo>()
+            allPackageInfos.putAll(availablePackageInfos)
 
-        pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            .asFlow()
-            .filter { it.packageName.startsWith(sharedUserId) }
-            .map {
-                val packageInfoFromPackageManager = pm.getPackageInfo(
-                    it.packageName,
-                    PackageManager.GET_META_DATA
-                )
+            pm
+                .getInstalledApplications(PackageManager.GET_META_DATA)
+                .asFlow()
+                .filter { it.packageName.startsWith(sharedUserId) }
+                .map {
+                    val packageInfoFromPackageManager = pm.getPackageInfo(
+                        it.packageName,
+                        PackageManager.GET_META_DATA
+                    )
 
-                val existingPackageInfo = availablePackageInfos[it.packageName]
+                    val existingPackageInfo = availablePackageInfos[it.packageName]
 
-                @Suppress("DEPRECATION")
-                PackageInfo(
-                    it.packageName,
-                    pm.getApplicationLabel(it)
-                        .toString(),
-                    existingPackageInfo?.versionCode ?: 0,
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfoFromPackageManager.longVersionCode
-                    else packageInfoFromPackageManager.versionCode.toLong(),
-                    packageInfoFromPackageManager.versionName,
-                    existingPackageInfo?.apkUrl,
-                    pm.getApplicationIcon(it.packageName),
-                    pm.getLaunchIntentForPackage(it.packageName)
-                ).apply {
-                    inputs = getInputsToSynchronize(this).size
-                    settings = existingPackageInfo?.settings
+                    @Suppress("DEPRECATION") PackageInfo(
+                        it.packageName,
+                        pm
+                            .getApplicationLabel(it)
+                            .toString(),
+                        existingPackageInfo?.versionCode
+                            ?: 0,
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfoFromPackageManager.longVersionCode
+                        else packageInfoFromPackageManager.versionCode.toLong(),
+                        packageInfoFromPackageManager.versionName,
+                        existingPackageInfo?.apkUrl,
+                        pm.getApplicationIcon(it.packageName),
+                        pm.getLaunchIntentForPackage(it.packageName)
+                    ).apply {
+                        inputs = getInputsToSynchronize(this).size
+                        settings = existingPackageInfo?.settings
+                    }
                 }
-            }
-            .onEach {
-                allPackageInfos[it.packageName] = it
-            }
-            .toList()
-            .also {
-                packageInfos.postValue(allPackageInfos.values.toList())
-            }
-    }
+                .onEach {
+                    allPackageInfos[it.packageName] = it
+                }
+                .toList()
+                .also {
+                    packageInfos.postValue(allPackageInfos.values.toList())
+                }
+        }
 
     /**
      * Gets related info from package name.
@@ -141,10 +149,11 @@ class PackageInfoManager private constructor(private val applicationContext: Con
      */
     suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput> =
         withContext(IO) {
-            FileUtils.getInputsFolder(
-                applicationContext,
-                packageInfo.packageName
-            )
+            FileUtils
+                .getInputsFolder(
+                    applicationContext,
+                    packageInfo.packageName
+                )
                 .walkTopDown()
                 .filter { f -> f.isFile && f.extension == "json" && f.canRead() }
                 .map {
@@ -160,11 +169,20 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                 .toList()
         }
 
-    suspend fun updateAppSettings(packageInfo: PackageInfo) = withContext(IO) {
-        AppSettingsJsonWriter(applicationContext).write(packageInfo)
-    }
+    suspend fun updateAppSettings(packageInfo: PackageInfo) =
+        withContext(IO) {
+            val result = runCatching { AppSettingsJsonWriter(applicationContext).write(packageInfo) }
+
+            if (result.isFailure) {
+                Log.w(
+                    TAG,
+                    "failed to update settings for '${packageInfo.packageName}'"
+                )
+            }
+        }
 
     companion object {
+        private val TAG = PackageInfoManager::class.java.name
 
         @Volatile
         private var INSTANCE: PackageInfoManager? = null
@@ -176,9 +194,11 @@ class PackageInfoManager private constructor(private val applicationContext: Con
          *
          * @return The singleton instance of [PackageInfoManager].
          */
-        fun getInstance(applicationContext: Context): PackageInfoManager = INSTANCE
-            ?: synchronized(this) {
-                INSTANCE ?: PackageInfoManager(applicationContext).also { INSTANCE = it }
-            }
+        fun getInstance(applicationContext: Context): PackageInfoManager =
+            INSTANCE
+                ?: synchronized(this) {
+                    INSTANCE
+                        ?: PackageInfoManager(applicationContext).also { INSTANCE = it }
+                }
     }
 }
