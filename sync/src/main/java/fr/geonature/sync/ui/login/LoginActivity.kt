@@ -1,6 +1,5 @@
 package fr.geonature.sync.ui.login
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -80,7 +79,7 @@ class LoginActivity : AppCompatActivity() {
                         showToast(R.string.login_success)
 
                         // Complete and destroy login activity once successful
-                        setResult(Activity.RESULT_OK)
+                        setResult(RESULT_OK)
                         finish()
                     }
                 )
@@ -176,7 +175,7 @@ class LoginActivity : AppCompatActivity() {
                                             event
                                         )
 
-                                        setResult(Activity.RESULT_CANCELED)
+                                        setResult(RESULT_CANCELED)
                                         finish()
                                     }
                                 }
