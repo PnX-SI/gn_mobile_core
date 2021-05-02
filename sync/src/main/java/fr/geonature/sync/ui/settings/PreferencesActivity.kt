@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
+import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
 
 /**
  * Global settings.
@@ -15,8 +17,14 @@ import androidx.appcompat.app.AppCompatActivity
  */
 class PreferencesActivity : AppCompatActivity() {
 
+    private var geonatureServerUrl: String? = null
+    private var taxhubServerUrl: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        geonatureServerUrl = getGeoNatureServerUrl(this)
+        taxhubServerUrl = getTaxHubServerUrl(this)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -28,6 +36,15 @@ class PreferencesActivity : AppCompatActivity() {
                 PreferencesFragment.newInstance()
             )
             .commit()
+    }
+
+    override fun finish() {
+        setResult(
+            if (geonatureServerUrl != getGeoNatureServerUrl(this) || taxhubServerUrl != getTaxHubServerUrl(this)) RESULT_OK
+            else RESULT_CANCELED
+        )
+
+        super.finish()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

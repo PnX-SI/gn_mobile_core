@@ -9,6 +9,7 @@ import fr.geonature.mountpoint.util.FileUtils.getRootFolder
 import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.PackageInfo
 import java.io.FileWriter
+import java.io.IOException
 
 /**
  * Default `JsonWriter` about writing app settings as `JSON` from given [AppPackage].
@@ -17,6 +18,7 @@ import java.io.FileWriter
  */
 class AppSettingsJsonWriter(private val context: Context) {
 
+    @Throws(IOException::class)
     fun write(packageInfo: PackageInfo) {
         if (packageInfo.settings == null) {
             Log.w(
@@ -39,7 +41,8 @@ class AppSettingsJsonWriter(private val context: Context) {
         )
         val writer = FileWriter(appSettingsFile)
 
-        GsonBuilder().setPrettyPrinting()
+        GsonBuilder()
+            .setPrettyPrinting()
             .create()
             .toJson(
                 packageInfo.settings,
