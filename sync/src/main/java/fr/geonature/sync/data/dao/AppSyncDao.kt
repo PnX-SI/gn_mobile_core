@@ -19,17 +19,20 @@ import java.util.Date
  */
 class AppSyncDao(private val context: Context) {
 
-    private val sharedPreferences: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(context)
+    private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     fun findByPackageId(packageId: String?): Cursor {
-        val cursor = MatrixCursor(AppSync.defaultProjection().map { it.second }.toTypedArray())
+        val cursor = MatrixCursor(AppSync
+            .defaultProjection()
+            .map { it.second }
+            .toTypedArray())
 
         if (packageId.isNullOrBlank()) return cursor
 
         val values = arrayOf(
             packageId,
             dateToTimestamp(getLastSynchronizedDate()),
+            dateToTimestamp(getLastEssentialSynchronizedDate()),
             countInputsToSynchronize(packageId)
         )
 
@@ -38,13 +41,15 @@ class AppSyncDao(private val context: Context) {
         return cursor
     }
 
-    fun updateLastSynchronizedDate(): Date {
+    fun updateLastSynchronizedDate(complete: Boolean = true): Date {
         val now = Date()
 
-        this.sharedPreferences.edit()
+        this.sharedPreferences
+            .edit()
             .putLong(
-                "sync.${AppSync.COLUMN_LAST_SYNC}",
-                dateToTimestamp(now) ?: -1L
+                buildLastSynchronizedDatePreferenceKey(complete),
+                dateToTimestamp(now)
+                    ?: -1L
             )
             .apply()
 
@@ -52,21 +57,37 @@ class AppSyncDao(private val context: Context) {
     }
 
     fun getLastSynchronizedDate(): Date? {
-        return this.sharedPreferences.getLong(
-            "sync.${AppSync.COLUMN_LAST_SYNC}",
-            -1L
-        )
+        return this.sharedPreferences
+            .getLong(
+                buildLastSynchronizedDatePreferenceKey(),
+                -1L
+            )
+            .takeUnless { it == -1L }
+            .run { fromTimestamp(this) }
+    }
+
+    fun getLastEssentialSynchronizedDate(): Date? {
+        return this.sharedPreferences
+            .getLong(
+                buildLastSynchronizedDatePreferenceKey(false),
+                -1L
+            )
             .takeUnless { it == -1L }
             .run { fromTimestamp(this) }
     }
 
     private fun countInputsToSynchronize(packageId: String): Number {
-        return FileUtils.getInputsFolder(
-            context,
-            packageId
-        )
+        return FileUtils
+            .getInputsFolder(
+                context,
+                packageId
+            )
             .walkTopDown()
             .filter { it.isFile && it.extension == "json" && it.canRead() }
             .count()
+    }
+
+    private fun buildLastSynchronizedDatePreferenceKey(complete: Boolean = true): String {
+        return "sync.${if (complete) AppSync.COLUMN_LAST_SYNC else AppSync.COLUMN_LAST_SYNC_ESSENTIAL}"
     }
 }

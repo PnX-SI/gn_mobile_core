@@ -10,6 +10,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import fr.geonature.mountpoint.util.MountPointUtils.getExternalStorage
 import fr.geonature.mountpoint.util.MountPointUtils.getInternalStorage
+import fr.geonature.sync.sync.worker.CheckAuthLoginWorker
 import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
 import java.util.concurrent.TimeUnit
 
@@ -36,7 +37,25 @@ class MainApplication : Application() {
         configureCheckInputsToSynchronizeChannel(notificationManager)
         configureSynchronizeDataChannel(notificationManager)
 
+        checkAuthLogin()
         checkInputsToSynchronize()
+    }
+
+    private fun checkAuthLogin() {
+        val workManager: WorkManager = WorkManager.getInstance(this)
+
+        val request = PeriodicWorkRequestBuilder<CheckAuthLoginWorker>(
+            1,
+            TimeUnit.HOURS
+        )
+            .addTag(CheckAuthLoginWorker.CHECK_AUTH_LOGIN_WORKER_TAG)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            CheckAuthLoginWorker.CHECK_AUTH_LOGIN_WORKER,
+            ExistingPeriodicWorkPolicy.REPLACE,
+            request
+        )
     }
 
     private fun checkInputsToSynchronize() {

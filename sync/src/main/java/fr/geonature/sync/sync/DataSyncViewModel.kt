@@ -2,6 +2,7 @@ package fr.geonature.sync.sync
 
 import android.app.Application
 import android.util.Log
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -51,7 +52,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             _isSyncRunning.postValue(field != null)
         }
 
-    val lastSynchronizedDate: LiveData<Date?> = dataSyncManager.lastSynchronizedDate
+    val lastSynchronizedDate: LiveData<Pair<DataSyncManager.SyncState, Date?>> = dataSyncManager.lastSynchronizedDate
 
     private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)
     val isSyncRunning: LiveData<Boolean> = _isSyncRunning
@@ -104,6 +105,11 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun startSync(appSettings: AppSettings) {
+        Log.i(
+            TAG,
+            "starting local data synchronization..."
+        )
+
         val dataSyncWorkRequest = OneTimeWorkRequest
             .Builder(DataSyncWorker::class.java)
             .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
@@ -141,6 +147,10 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
                 return@launch
             }
+
+            NotificationManagerCompat
+                .from(getApplication())
+                .cancel(DataSyncWorker.SYNC_NOTIFICATION_ID)
 
             workManager
                 .cancelUniqueWork(DataSyncWorker.DATA_SYNC_WORKER_PERIODIC)
@@ -207,6 +217,9 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
     fun cancelTasks() {
         workManager.cancelAllWorkByTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+        NotificationManagerCompat
+            .from(getApplication())
+            .cancel(DataSyncWorker.SYNC_NOTIFICATION_ID)
     }
 
     @ExperimentalTime
@@ -236,7 +249,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 TimeUnit.SECONDS
             )
             .setBackoffCriteria(
-                BackoffPolicy.EXPONENTIAL,
+                BackoffPolicy.LINEAR,
                 (if (withAdditionalData) 1 else 2).toDuration(DurationUnit.MINUTES).inSeconds.toLong(),
                 TimeUnit.SECONDS
             )

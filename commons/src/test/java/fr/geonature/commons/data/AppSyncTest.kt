@@ -12,6 +12,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.Date
 
 /**
@@ -29,11 +30,27 @@ class AppSyncTest {
         assertEquals(
             AppSync(
                 "fr.geonature.sync",
+                Date.from(
+                    now
+                        .toInstant()
+                        .minus(
+                            1,
+                            ChronoUnit.HOURS
+                        )
+                ),
                 now,
                 3
             ),
             AppSync(
                 "fr.geonature.sync",
+                Date.from(
+                    now
+                        .toInstant()
+                        .minus(
+                            1,
+                            ChronoUnit.HOURS
+                        )
+                ),
                 now,
                 3
             )
@@ -51,8 +68,9 @@ class AppSyncTest {
         }
 
         `when`(cursor.getString(0)).thenReturn("fr.geonature.sync")
-        `when`(cursor.getLong(1)).thenReturn(1477642500000)
-        `when`(cursor.getInt(2)).thenReturn(3)
+        `when`(cursor.getLong(1)).thenReturn(1477638900000)
+        `when`(cursor.getLong(2)).thenReturn(1477642500000)
+        `when`(cursor.getInt(3)).thenReturn(3)
 
         // when getting AppSync instance from Cursor
         val appSync = AppSync.fromCursor(cursor)
@@ -62,6 +80,7 @@ class AppSyncTest {
         assertEquals(
             AppSync(
                 "fr.geonature.sync",
+                Date.from(Instant.parse("2016-10-28T07:15:00Z")),
                 Date.from(Instant.parse("2016-10-28T08:15:00Z")),
                 3
             ),
@@ -74,6 +93,14 @@ class AppSyncTest {
         // given AppSync
         val appSync = AppSync(
             "fr.geonature.sync",
+            Date.from(
+                Instant
+                    .now()
+                    .minus(
+                        1,
+                        ChronoUnit.HOURS
+                    )
+            ),
             Date.from(Instant.now()),
             3
         )
@@ -106,6 +133,10 @@ class AppSyncTest {
                 Pair(
                     "${AppSync.TABLE_NAME}.\"${AppSync.COLUMN_LAST_SYNC}\"",
                     "${AppSync.TABLE_NAME}_${AppSync.COLUMN_LAST_SYNC}"
+                ),
+                Pair(
+                    "${AppSync.TABLE_NAME}.\"${AppSync.COLUMN_LAST_SYNC_ESSENTIAL}\"",
+                    "${AppSync.TABLE_NAME}_${AppSync.COLUMN_LAST_SYNC_ESSENTIAL}"
                 ),
                 Pair(
                     "${AppSync.TABLE_NAME}.\"${AppSync.COLUMN_INPUTS_TO_SYNCHRONIZE}\"",

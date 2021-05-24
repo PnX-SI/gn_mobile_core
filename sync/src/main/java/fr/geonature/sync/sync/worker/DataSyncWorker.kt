@@ -67,6 +67,23 @@ class DataSyncWorker(
 
         // not connected: abort
         if (authManager.getAuthLogin() == null) {
+            Log.w(
+                TAG,
+                "not connected: abort"
+            )
+
+            setForeground(
+                createForegroundInfo(
+                    createNotification(
+                        DataSyncStatus(
+                            WorkInfo.State.FAILED,
+                            applicationContext.getString(R.string.sync_error_server_not_connected),
+                            ServerStatus.UNAUTHORIZED
+                        )
+                    )
+                )
+            )
+
             return Result.failure(
                 workData(
                     applicationContext.getString(R.string.sync_error_server_not_connected),
@@ -188,7 +205,13 @@ class DataSyncWorker(
                 .from(applicationContext)
                 .cancel(SYNC_NOTIFICATION_ID)
 
-            dataSyncManager.updateLastSynchronizedDate()
+            dataSyncManager.updateLastSynchronizedDate(
+                inputData.getBoolean(
+                    INPUT_WITH_ADDITIONAL_DATA,
+                    true
+                )
+            )
+
             return Result.success(workData(applicationContext.getString(R.string.sync_data_succeeded)))
         }
 
@@ -1061,7 +1084,7 @@ class DataSyncWorker(
         const val DATA_SYNC_WORKER_PERIODIC_ESSENTIAL = "data_sync_worker_periodic_essential"
         const val DATA_SYNC_WORKER_TAG = "data_sync_worker_tag"
 
-        private const val SYNC_NOTIFICATION_ID = 3
+        const val SYNC_NOTIFICATION_ID = 3
 
         private const val INPUT_USERS_MENU_ID = "usersMenuId"
         private const val INPUT_TAXREF_LIST_ID = "taxrefListId"

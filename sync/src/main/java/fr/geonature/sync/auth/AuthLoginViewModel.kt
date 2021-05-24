@@ -30,8 +30,7 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val authManager: AuthManager = AuthManager.getInstance(application)
     private val geoNatureAPIClient: GeoNatureAPIClient? = GeoNatureAPIClient.instance(application)
-    private val connectivityManager =
-        application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val _loginFormState = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginFormState
@@ -50,6 +49,16 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
                 passwordError = null
             )
         }
+    }
+
+    fun checkAuthLogin(): LiveData<AuthLogin?> {
+        val authLoginLiveData = MutableLiveData<AuthLogin?>()
+
+        viewModelScope.launch {
+            authLoginLiveData.postValue(authManager.getAuthLogin())
+        }
+
+        return authLoginLiveData
     }
 
     fun login(
@@ -95,13 +104,13 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
                     return@launch
                 }
 
-                authManager.setAuthLogin(authLogin)
+                authManager
+                    .setAuthLogin(authLogin)
                     .also {
                         _loginResult.value = LoginResult(success = authLogin)
                     }
             } catch (e: Exception) {
-                _loginResult.value =
-                    LoginResult(error = if (connectivityManager.allNetworks.isEmpty()) R.string.snackbar_network_lost else R.string.login_failed)
+                _loginResult.value = LoginResult(error = if (connectivityManager.allNetworks.isEmpty()) R.string.snackbar_network_lost else R.string.login_failed)
             }
         }
     }
@@ -111,14 +120,12 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         password: String
     ) {
         if (!isUserNameValid(username)) {
-            _loginFormState.value =
-                LoginFormState(usernameError = R.string.login_form_username_invalid)
+            _loginFormState.value = LoginFormState(usernameError = R.string.login_form_username_invalid)
             return
         }
 
         if (!isPasswordValid(password)) {
-            _loginFormState.value =
-                LoginFormState(passwordError = R.string.login_form_password_invalid)
+            _loginFormState.value = LoginFormState(passwordError = R.string.login_form_password_invalid)
             return
         }
 
@@ -153,7 +160,8 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         val type = object : TypeToken<AuthLoginError>() {}.type
 
         return Gson().fromJson(
-            response.errorBody()!!
+            response
+                .errorBody()!!
                 .charStream(),
             type
         )
@@ -165,10 +173,8 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
     data class LoginFormState(
-        @StringRes
-        val usernameError: Int? = null,
-        @StringRes
-        val passwordError: Int? = null,
+        @StringRes val usernameError: Int? = null,
+        @StringRes val passwordError: Int? = null,
         val isValid: Boolean = false
     )
 
@@ -179,8 +185,7 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
      */
     data class LoginResult(
         val success: AuthLogin? = null,
-        @StringRes
-        val error: Int? = null
+        @StringRes val error: Int? = null
     ) {
 
         fun hasError(): Boolean {

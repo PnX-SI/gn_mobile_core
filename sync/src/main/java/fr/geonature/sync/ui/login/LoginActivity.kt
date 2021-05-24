@@ -27,6 +27,7 @@ import fr.geonature.sync.settings.AppSettingsViewModel
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var authLoginViewModel: AuthLoginViewModel
+
     private var appSettings: AppSettings? = null
 
     private var content: ConstraintLayout? = null
@@ -40,30 +41,26 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
 
-        authLoginViewModel = ViewModelProvider(
-            this,
-            AuthLoginViewModel.Factory { AuthLoginViewModel(application) }
-        ).get(AuthLoginViewModel::class.java)
+        authLoginViewModel = ViewModelProvider(this,
+            AuthLoginViewModel.Factory { AuthLoginViewModel(application) })
+            .get(AuthLoginViewModel::class.java)
             .apply {
-                loginFormState.observe(
-                    this@LoginActivity,
+                loginFormState.observe(this@LoginActivity,
                     Observer {
-                        val loginState = it ?: return@Observer
+                        val loginState = it
+                            ?: return@Observer
 
                         // disable login button unless both username / password is valid
                         buttonLogin?.isEnabled = loginState.isValid && appSettings != null
 
-                        editTextUsername?.error =
-                            if (loginState.usernameError == null) null else getString(loginState.usernameError)
-                        editTextPassword?.error =
-                            if (loginState.passwordError == null) null else getString(loginState.passwordError)
-                    }
-                )
+                        editTextUsername?.error = if (loginState.usernameError == null) null else getString(loginState.usernameError)
+                        editTextPassword?.error = if (loginState.passwordError == null) null else getString(loginState.passwordError)
+                    })
 
-                loginResult.observe(
-                    this@LoginActivity,
+                loginResult.observe(this@LoginActivity,
                     Observer {
-                        val loginResult = it ?: return@Observer
+                        val loginResult = it
+                            ?: return@Observer
 
                         progress?.visibility = View.GONE
 
@@ -81,8 +78,7 @@ class LoginActivity : AppCompatActivity() {
                         // Complete and destroy login activity once successful
                         setResult(RESULT_OK)
                         finish()
-                    }
-                )
+                    })
             }
 
         content = findViewById(R.id.content)
@@ -146,16 +142,16 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loadAppSettings() {
-        ViewModelProvider(
-            this,
+        ViewModelProvider(this,
             fr.geonature.commons.settings.AppSettingsViewModel.Factory {
                 AppSettingsViewModel(
                     application
                 )
-            }
-        ).get(AppSettingsViewModel::class.java)
+            })
+            .get(AppSettingsViewModel::class.java)
             .also { vm ->
-                vm.loadAppSettings()
+                vm
+                    .loadAppSettings()
                     .observeOnce(this) {
                         if (it == null) {
                             makeSnackbar(
@@ -163,8 +159,8 @@ class LoginActivity : AppCompatActivity() {
                                     R.string.snackbar_settings_not_found,
                                     vm.getAppSettingsFilename()
                                 )
-                            )?.addCallback(
-                                object :
+                            )
+                                ?.addCallback(object :
                                     BaseTransientBottomBar.BaseCallback<Snackbar>() {
                                     override fun onDismissed(
                                         transientBottomBar: Snackbar?,
@@ -178,8 +174,7 @@ class LoginActivity : AppCompatActivity() {
                                         setResult(RESULT_CANCELED)
                                         finish()
                                     }
-                                }
-                            )
+                                })
                                 ?.show()
                         } else {
                             appSettings = it
@@ -192,7 +187,8 @@ class LoginActivity : AppCompatActivity() {
         username: String,
         password: String
     ) {
-        val appSettings = appSettings ?: return
+        val appSettings = appSettings
+            ?: return
 
         editTextPassword?.also {
             hideSoftKeyboard(it)
@@ -207,19 +203,20 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun showToast(
-        @StringRes
-        messageResourceId: Int
+        @StringRes messageResourceId: Int
     ) {
-        Toast.makeText(
-            applicationContext,
-            messageResourceId,
-            Toast.LENGTH_LONG
-        )
+        Toast
+            .makeText(
+                applicationContext,
+                messageResourceId,
+                Toast.LENGTH_LONG
+            )
             .show()
     }
 
     private fun makeSnackbar(text: CharSequence): Snackbar? {
-        val view = content ?: return null
+        val view = content
+            ?: return null
 
         return Snackbar.make(
             view,

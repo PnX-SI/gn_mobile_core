@@ -16,11 +16,13 @@ import java.util.Date
 data class AppSync(
     var packageId: String,
     var lastSync: Date? = null,
+    var lastSyncEssential: Date? = null,
     var inputsToSynchronize: Int = 0
 ) : Parcelable {
 
     private constructor(source: Parcel) : this(
         source.readString()!!,
+        source.readSerializable() as Date,
         source.readSerializable() as Date,
         source.readInt()
     )
@@ -36,6 +38,7 @@ data class AppSync(
         dest?.also {
             it.writeString(packageId)
             it.writeSerializable(lastSync)
+            it.writeSerializable(lastSyncEssential)
             it.writeInt(inputsToSynchronize)
         }
     }
@@ -47,6 +50,7 @@ data class AppSync(
         const val TABLE_NAME = "app_sync"
         const val COLUMN_ID = "package_id"
         const val COLUMN_LAST_SYNC = "last_sync"
+        const val COLUMN_LAST_SYNC_ESSENTIAL = "last_sync_essential"
         const val COLUMN_INPUTS_TO_SYNCHRONIZE = "inputs_to_synchronize"
 
         /**
@@ -60,6 +64,10 @@ data class AppSync(
                 ),
                 column(
                     COLUMN_LAST_SYNC,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_LAST_SYNC_ESSENTIAL,
                     tableAlias
                 ),
                 column(
@@ -110,6 +118,12 @@ data class AppSync(
                     cursor.get(
                         getColumnAlias(
                             COLUMN_LAST_SYNC,
+                            tableAlias
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_LAST_SYNC_ESSENTIAL,
                             tableAlias
                         )
                     ),
