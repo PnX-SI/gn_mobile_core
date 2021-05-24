@@ -13,6 +13,7 @@
     <string name="action_logout">Sign out</string>
 
     <string name="sync_last_synchronization">Last synchronization</string>
+    <string name="sync_last_synchronization_full">Last full synchronization</string>
     <string name="sync_last_synchronization_date">EEE dd MMM yyyy, kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Never</string>
     <string name="sync_start_synchronization">Starting local data synchronization…</string>

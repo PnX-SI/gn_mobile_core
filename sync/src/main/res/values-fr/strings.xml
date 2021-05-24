@@ -10,6 +10,7 @@
     <string name="action_logout">Se déconnecter</string>
 
     <string name="sync_last_synchronization">Dernière synchronisation</string>
+    <string name="sync_last_synchronization_full">Dernière synchronisation complète</string>
     <string name="sync_last_synchronization_date">le EEE dd MMM yyyy à kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Jamais</string>
     <string name="sync_start_synchronization">Synchronisation en cours…</string>

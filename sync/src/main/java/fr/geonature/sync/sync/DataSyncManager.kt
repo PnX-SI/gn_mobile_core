@@ -15,18 +15,71 @@ class DataSyncManager private constructor(applicationContext: Context) {
 
     private val appSyncDao = AppSyncDao(applicationContext)
 
-    private val _lastSynchronizedDate: MutableLiveData<Date?> = MutableLiveData()
-    val lastSynchronizedDate: LiveData<Date?> = _lastSynchronizedDate
+    private val _lastSynchronizedDate: MutableLiveData<Pair<SyncState, Date?>> = MutableLiveData(
+        Pair(
+            SyncState.FULL,
+            null
+        )
+    )
+    val lastSynchronizedDate: LiveData<Pair<SyncState, Date?>> = _lastSynchronizedDate
 
-    fun updateLastSynchronizedDate() {
-        _lastSynchronizedDate.postValue(appSyncDao.updateLastSynchronizedDate())
+    fun updateLastSynchronizedDate(complete: Boolean = true) {
+        _lastSynchronizedDate.postValue(
+            Pair(
+                if (complete) SyncState.FULL else SyncState.ESSENTIAL,
+                appSyncDao.updateLastSynchronizedDate(complete)
+            )
+        )
     }
 
-    fun getLastSynchronizedDate(): Date? {
+    fun getLastSynchronizedDate(): Pair<SyncState, Date?> {
         val lastSynchronizedDate = appSyncDao.getLastSynchronizedDate()
-        _lastSynchronizedDate.postValue(lastSynchronizedDate)
+        val lastEssentialSynchronizedDate = appSyncDao.getLastEssentialSynchronizedDate()
 
-        return lastSynchronizedDate
+        if (lastEssentialSynchronizedDate == null) {
+            _lastSynchronizedDate.postValue(
+                Pair(
+                    SyncState.FULL,
+                    lastSynchronizedDate
+                )
+            )
+
+            return Pair(
+                SyncState.FULL,
+                lastSynchronizedDate
+            )
+        }
+
+        if (lastSynchronizedDate == null) {
+            _lastSynchronizedDate.postValue(
+                Pair(
+                    SyncState.FULL,
+                    null
+                )
+            )
+
+            return Pair(
+                SyncState.FULL,
+                null
+            )
+        }
+
+        _lastSynchronizedDate.postValue(
+            Pair(
+                if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) SyncState.FULL else SyncState.ESSENTIAL,
+                if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) lastSynchronizedDate else lastEssentialSynchronizedDate
+            )
+        )
+
+        return Pair(
+            if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) SyncState.FULL else SyncState.ESSENTIAL,
+            if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) lastSynchronizedDate else lastEssentialSynchronizedDate
+        )
+    }
+
+    enum class SyncState {
+        FULL,
+        ESSENTIAL
     }
 
     companion object {
@@ -41,9 +94,11 @@ class DataSyncManager private constructor(applicationContext: Context) {
          *
          * @return The singleton instance of [DataSyncManager].
          */
-        fun getInstance(applicationContext: Context): DataSyncManager = INSTANCE
-            ?: synchronized(this) {
-                INSTANCE ?: DataSyncManager(applicationContext).also { INSTANCE = it }
-            }
+        fun getInstance(applicationContext: Context): DataSyncManager =
+            INSTANCE
+                ?: synchronized(this) {
+                    INSTANCE
+                        ?: DataSyncManager(applicationContext).also { INSTANCE = it }
+                }
     }
 }

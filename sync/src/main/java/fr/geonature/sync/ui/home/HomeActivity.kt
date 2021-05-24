@@ -264,6 +264,16 @@ class HomeActivity : AppCompatActivity() {
             AuthLoginViewModel.Factory { AuthLoginViewModel(application) })
             .get(AuthLoginViewModel::class.java)
             .also { vm ->
+                vm.checkAuthLogin().observeOnce(this@HomeActivity) {
+                    if (checkGeoNatureSettings() && it == null) {
+                        Log.i(
+                            TAG,
+                            "not connected, redirect to LoginActivity"
+                        )
+
+                        startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
+                    }
+                }
                 vm.isLoggedIn.observe(this@HomeActivity,
                     {
                         this@HomeActivity.isLoggedIn = it
@@ -340,7 +350,7 @@ class HomeActivity : AppCompatActivity() {
                                 if (it.serverStatus == UNAUTHORIZED) {
                                     Log.i(
                                         TAG,
-                                        "not connected, redirect to LoginActivity"
+                                        "not connected (HTTP error code: 401), redirect to LoginActivity"
                                     )
 
                                     Toast
