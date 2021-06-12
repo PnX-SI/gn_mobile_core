@@ -14,8 +14,8 @@ import kotlin.time.toDuration
 
 @ExperimentalTime
 fun String.parseAsDuration(): Duration {
-    return Regex("(\\d+)([s|m|h|d])")
-        .findAll(toLowerCase(Locale.ROOT))
+    return Regex("(\\d+)([smhd])")
+        .findAll(lowercase(Locale.ROOT))
         .map { it.destructured.toList() }
         .map {
             Pair(

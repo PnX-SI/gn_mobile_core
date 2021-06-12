@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import retrofit2.awaitResponse
+import java.util.Locale
 
 /**
  * [PackageInfo] manager.
@@ -71,8 +72,8 @@ class PackageInfoManager private constructor(private val applicationContext: Con
                     PackageInfo(
                         it.packageName,
                         it.code
-                            .toLowerCase()
-                            .capitalize(),
+                            .lowercase(Locale.ROOT)
+                            .replaceFirstChar { c -> if (c.isLowerCase()) c.titlecase(Locale.ROOT) else c.toString() },
                         it.versionCode.toLong(),
                         0,
                         null,

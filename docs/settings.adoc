@@ -11,8 +11,7 @@
   "observers_list_id": 1,
   "taxa_list_id": 100,
   "code_area_type": "M1",
-  "page_size": 1000,
-  "page_max_retry": 100
+  "page_size": 1000
 }
 ----
 
@@ -53,10 +52,5 @@
 | `page_size`
 | &#9744;
 | Default page size while fetching paginated values
-| 1000
-
-| `page_max_retry`
-| &#9744;
-| Max attempt to fetch data according to given page size
-| 20
+| 10000
 |===

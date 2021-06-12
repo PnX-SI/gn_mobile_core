@@ -122,7 +122,7 @@ group Fetch GeoNature data
     end
 
     group Taxa
-        loop while response is not empty\nand response size matches ""page_size"" from settings\nand loop doesn't exceed ""page_max_retry"" from settings
+        loop while response is not empty\nand response size matches ""page_size"" from settings
             sync -> gn ++ : **GET** ""/api/taxref/allnamebylist/:taxa_list_id""
             note right of sync
                 ""taxa_list_id"" from settings
@@ -142,7 +142,7 @@ group Fetch GeoNature data
             end note
             sync -> sync : update //taxa// table
         end
-        loop while response is not empty\nand response size matches ""page_size"" from settings\nand loop doesn't exceed ""page_max_retry"" from settings
+        loop while response is not empty\nand response size matches ""page_size"" from settings
             sync -> gn ++ : **GET** ""/api/synthese/color_taxon?:code_area_type""
              note right of sync
                 ""code_area_type"" from settings

@@ -5,6 +5,5 @@
   "observers_list_id": 1,
   "taxa_list_id": 100,
   "code_area_type": "M1",
-  "page_size": 100,
-  "page_max_retry": 5
+  "page_size": 100
 }

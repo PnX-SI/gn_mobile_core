@@ -185,10 +185,6 @@ class DataSyncWorker(
                 INPUT_PAGE_SIZE,
                 AppSettings.DEFAULT_PAGE_SIZE
             ),
-            inputData.getInt(
-                INPUT_PAGE_MAX_RETRY,
-                AppSettings.DEFAULT_PAGE_MAX_RETRY
-            ),
             inputData.getBoolean(
                 INPUT_WITH_ADDITIONAL_DATA,
                 true
@@ -758,7 +754,6 @@ class DataSyncWorker(
         listId: Int,
         codeAreaType: String?,
         pageSize: Int,
-        pageMaxRetry: Int,
         withAdditionalData: Boolean = true
     ): Result {
         Log.i(
@@ -811,7 +806,7 @@ class DataSyncWorker(
                             .toRegex()
                             .find(taxRef.description)?.groupValues
                             ?.elementAtOrNull(1)
-                            ?.let { "${it.toUpperCase(Locale.ROOT)} - ${taxRef.id}" })
+                            ?.let { "${it.uppercase(Locale.ROOT)} - ${taxRef.id}" })
                 }
                 .onEach {
                     validTaxaIds.add(it.id)
@@ -848,12 +843,8 @@ class DataSyncWorker(
                 )
             )
 
-            if (taxa.size == pageSize) {
-                offset += pageSize
-                hasNext = offset / pageSize < pageMaxRetry
-            } else {
-                hasNext = false
-            }
+            offset += pageSize
+            hasNext = taxref.size == pageSize
         } while (hasNext)
 
         // delete orphaned taxa
@@ -976,7 +967,7 @@ class DataSyncWorker(
                 )
 
                 offset += pageSize
-                hasNext = offset / pageSize < pageMaxRetry
+                hasNext = taxrefAreas.size == pageSize
             } while (hasNext)
         }
 
@@ -1090,7 +1081,6 @@ class DataSyncWorker(
         private const val INPUT_TAXREF_LIST_ID = "taxrefListId"
         private const val INPUT_CODE_AREA_TYPE = "codeAreaType"
         private const val INPUT_PAGE_SIZE = "pageSize"
-        private const val INPUT_PAGE_MAX_RETRY = "pageMaxRetry"
         private const val INPUT_WITH_ADDITIONAL_DATA = "withAdditionalData"
 
         /**
@@ -1119,10 +1109,6 @@ class DataSyncWorker(
                         Pair(
                             INPUT_PAGE_SIZE,
                             appSettings.pageSize
-                        ),
-                        Pair(
-                            INPUT_PAGE_MAX_RETRY,
-                            appSettings.pageMaxRetry
                         ),
                         Pair(
                             INPUT_WITH_ADDITIONAL_DATA,

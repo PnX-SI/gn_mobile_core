@@ -234,7 +234,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         )
 
         val request = PeriodicWorkRequestBuilder<DataSyncWorker>(
-            repeatInterval.inSeconds.toLong(),
+            repeatInterval.inWholeSeconds,
             TimeUnit.SECONDS
         )
             .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
@@ -245,12 +245,12 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                     .build()
             )
             .setInitialDelay(
-                (if (withAdditionalData) DEFAULT_MIN_DURATION else (repeatInterval / 2).coerceAtLeast(30.toDuration(DurationUnit.MINUTES))).inSeconds.toLong(),
+                (if (withAdditionalData) DEFAULT_MIN_DURATION else (repeatInterval / 2).coerceAtLeast(30.toDuration(DurationUnit.MINUTES))).inWholeSeconds,
                 TimeUnit.SECONDS
             )
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
-                (if (withAdditionalData) 1 else 2).toDuration(DurationUnit.MINUTES).inSeconds.toLong(),
+                (if (withAdditionalData) 1 else 2).toDuration(DurationUnit.MINUTES).inWholeSeconds,
                 TimeUnit.SECONDS
             )
             .setInputData(

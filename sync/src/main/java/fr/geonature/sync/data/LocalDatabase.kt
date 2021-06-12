@@ -48,7 +48,7 @@ import kotlinx.coroutines.withContext
         NomenclatureTaxonomy::class,
         DefaultNomenclature::class
     ],
-    version = 17,
+    version = 18,
     exportSchema = false
 )
 abstract class LocalDatabase : RoomDatabase() {
