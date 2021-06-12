@@ -30,7 +30,6 @@ class OnAppSettingsJsonReaderListenerImpl :
             "taxa_list_id" -> appSettings.taxrefListId = reader.nextInt()
             "code_area_type" -> appSettings.codeAreaType = reader.nextString()
             "page_size" -> appSettings.pageSize = reader.nextInt()
-            "page_max_retry" -> appSettings.pageMaxRetry = reader.nextInt()
             "sync_periodicity_data_essential" -> appSettings.essentialDataSyncPeriodicity = reader.nextStringOrNull()
             "sync_periodicity_data" -> appSettings.dataSyncPeriodicity = reader.nextStringOrNull()
             else -> reader.skipValue()

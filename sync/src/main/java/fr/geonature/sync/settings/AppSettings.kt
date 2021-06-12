@@ -17,7 +17,6 @@ data class AppSettings(
     var taxrefListId: Int = 0,
     var codeAreaType: String? = null,
     var pageSize: Int = DEFAULT_PAGE_SIZE,
-    var pageMaxRetry: Int = DEFAULT_PAGE_MAX_RETRY,
     var essentialDataSyncPeriodicity: String? = null,
     var dataSyncPeriodicity: String? = null
 ) : IAppSettings {
@@ -29,7 +28,6 @@ data class AppSettings(
         source.readInt(),
         source.readInt(),
         source.readString(),
-        source.readInt(),
         source.readInt(),
         source.readString(),
         source.readString()
@@ -51,15 +49,13 @@ data class AppSettings(
             it.writeInt(taxrefListId)
             it.writeString(codeAreaType)
             it.writeInt(pageSize)
-            it.writeInt(pageMaxRetry)
             it.writeString(essentialDataSyncPeriodicity)
             it.writeString(dataSyncPeriodicity)
         }
     }
 
     companion object {
-        const val DEFAULT_PAGE_SIZE = 1000
-        const val DEFAULT_PAGE_MAX_RETRY = 20
+        const val DEFAULT_PAGE_SIZE = 10000
 
         @JvmField
         val CREATOR: Parcelable.Creator<AppSettings> = object : Parcelable.Creator<AppSettings> {

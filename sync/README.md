@@ -31,8 +31,7 @@ Example:
   "observers_list_id": 1,
   "taxa_list_id": 100,
   "code_area_type": "M1",
-  "page_size": 1000,
-  "page_max_retry": 100
+  "page_size": 10000
 }
 ```
 
@@ -46,8 +45,7 @@ Example:
 | `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub        |               |
 | `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                        |               |
 | `code_area_type`                  | &#9744; | GeoNature selected area type                           |               |
-| `page_size`                       | &#9744; | Default page size while fetching paginated values      | 1000          |
-| `page_max_retry`                  | &#9744; | Max attempt to fetch data according to given page size | 20            |
+| `page_size`                       | &#9744; | Default page size while fetching paginated values      | 10000         |
 | `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity   |               |
 | `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity         |               |
 
