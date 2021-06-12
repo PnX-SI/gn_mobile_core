@@ -44,7 +44,7 @@ open class Nomenclature(
     @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
     var defaultLabel: String,
 
-    @ColumnInfo(name = COLUMN_TYPE_ID)
+    @ColumnInfo(name = COLUMN_TYPE_ID, index = true)
     var typeId: Long
 ) : Parcelable {
 
