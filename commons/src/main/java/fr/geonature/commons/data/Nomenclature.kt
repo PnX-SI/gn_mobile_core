@@ -18,47 +18,35 @@ import fr.geonature.commons.data.helper.get
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-@Entity(tableName = Nomenclature.TABLE_NAME)
-open class Nomenclature : Parcelable {
-
+@Entity(
+    tableName = Nomenclature.TABLE_NAME,
+    foreignKeys = [ForeignKey(
+        entity = NomenclatureType::class,
+        parentColumns = [NomenclatureType.COLUMN_ID],
+        childColumns = [Nomenclature.COLUMN_TYPE_ID],
+        onDelete = CASCADE
+    )]
+)
+open class Nomenclature(
     /**
      * The unique ID of this nomenclature.
      */
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
-    var id: Long
+    var id: Long,
 
     @ColumnInfo(name = COLUMN_CODE)
-    var code: String
+    var code: String,
 
     @ColumnInfo(name = COLUMN_HIERARCHY)
-    var hierarchy: String
-
+    var hierarchy: String,
+    
     @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
-    var defaultLabel: String
+    var defaultLabel: String,
 
-    @ForeignKey(
-        entity = NomenclatureType::class,
-        parentColumns = [NomenclatureType.COLUMN_ID],
-        childColumns = [COLUMN_TYPE_ID],
-        onDelete = CASCADE
-    )
     @ColumnInfo(name = COLUMN_TYPE_ID)
     var typeId: Long
-
-    constructor(
-        id: Long,
-        code: String,
-        hierarchy: String,
-        defaultLabel: String,
-        typeId: Long
-    ) {
-        this.id = id
-        this.code = code
-        this.hierarchy = hierarchy
-        this.defaultLabel = defaultLabel
-        this.typeId = typeId
-    }
+) : Parcelable {
 
     internal constructor(source: Parcel) : this(
         source.readLong(),

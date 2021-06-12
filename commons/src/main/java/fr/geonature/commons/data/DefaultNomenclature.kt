@@ -18,33 +18,23 @@ import fr.geonature.commons.data.helper.get
 @Entity(
     tableName = DefaultNomenclature.TABLE_NAME,
     primaryKeys = [DefaultNomenclature.COLUMN_MODULE, DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
-    foreignKeys = [
-        ForeignKey(
-            entity = Nomenclature::class,
-            parentColumns = [Nomenclature.COLUMN_ID],
-            childColumns = [DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
+    foreignKeys = [ForeignKey(
+        entity = Nomenclature::class,
+        parentColumns = [Nomenclature.COLUMN_ID],
+        childColumns = [DefaultNomenclature.COLUMN_NOMENCLATURE_ID],
+        onDelete = ForeignKey.CASCADE
+    )]
 )
-open class DefaultNomenclature : Parcelable {
-
+open class DefaultNomenclature(
     @ColumnInfo(name = COLUMN_MODULE)
-    var module: String
+    var module: String,
 
     @ColumnInfo(
         name = COLUMN_NOMENCLATURE_ID,
         index = true
     )
     var nomenclatureId: Long
-
-    constructor(
-        module: String,
-        nomenclatureId: Long
-    ) {
-        this.module = module
-        this.nomenclatureId = nomenclatureId
-    }
+) : Parcelable {
 
     internal constructor(source: Parcel) : this(
         source.readString()!!,
@@ -168,16 +158,16 @@ open class DefaultNomenclature : Parcelable {
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<DefaultNomenclature> =
-            object : Parcelable.Creator<DefaultNomenclature> {
+        val CREATOR: Parcelable.Creator<DefaultNomenclature> = object :
+            Parcelable.Creator<DefaultNomenclature> {
 
-                override fun createFromParcel(source: Parcel): DefaultNomenclature {
-                    return DefaultNomenclature(source)
-                }
-
-                override fun newArray(size: Int): Array<DefaultNomenclature?> {
-                    return arrayOfNulls(size)
-                }
+            override fun createFromParcel(source: Parcel): DefaultNomenclature {
+                return DefaultNomenclature(source)
             }
+
+            override fun newArray(size: Int): Array<DefaultNomenclature?> {
+                return arrayOfNulls(size)
+            }
+        }
     }
 }

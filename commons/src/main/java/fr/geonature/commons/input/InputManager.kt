@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileWriter
-import java.io.IOException
 
 /**
  * Manage [AbstractInput]:
@@ -204,7 +203,6 @@ class InputManager<I : AbstractInput> private constructor(
         return "${KEY_PREFERENCE_INPUT}_$id"
     }
 
-    @Throws(IOException::class)
     private suspend fun getInputExportFile(input: AbstractInput): File = withContext(IO) {
         val inputDir = FileUtils.getInputsFolder(application)
         inputDir.mkdirs()

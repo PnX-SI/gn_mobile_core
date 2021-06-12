@@ -101,7 +101,8 @@ class Taxonomy : Parcelable {
                     "autre",
                     "all"
                 ).any {
-                    value.toLowerCase(Locale.ROOT)
+                    value
+                        .lowercase(Locale.ROOT)
                         .startsWith(it)
                 }
             ) ANY
