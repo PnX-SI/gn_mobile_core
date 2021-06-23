@@ -13,7 +13,7 @@ import fr.geonature.sync.api.model.User
 import fr.geonature.sync.auth.AuthManager
 import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
-import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.Cookie
@@ -71,7 +71,12 @@ class GeoNatureAPIClient private constructor(
                         .getCookie()
                         ?.let {
                             if (it.expiresAt() < System.currentTimeMillis()) {
-                                GlobalScope.launch(IO) {
+                                Log.i(
+                                    TAG,
+                                    "cookie expiry date ${it.expiresAt()} reached: perform logout"
+                                )
+
+                                GlobalScope.launch(Default) {
                                     authManager.logout()
                                 }
 
