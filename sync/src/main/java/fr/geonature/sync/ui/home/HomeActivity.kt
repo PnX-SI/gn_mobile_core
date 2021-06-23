@@ -202,7 +202,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.run {
             findItem(R.id.menu_sync_data_refresh)?.also {
-                it.isEnabled = appSettings != null && dataSyncViewModel.isSyncRunning.value != true
+                it.isEnabled = isLoggedIn && appSettings != null && dataSyncViewModel.isSyncRunning.value != true
             }
             findItem(R.id.menu_login)?.also {
                 it.isEnabled = appSettings != null

@@ -2,6 +2,8 @@ package fr.geonature.sync.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -10,8 +12,8 @@ import fr.geonature.sync.api.model.AuthLogin
 import fr.geonature.sync.auth.io.AuthLoginJsonReader
 import fr.geonature.sync.auth.io.AuthLoginJsonWriter
 import fr.geonature.sync.auth.io.CookieHelper
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
+import fr.geonature.sync.sync.worker.CheckAuthLoginWorker
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,20 +28,24 @@ import java.util.Calendar
 class AuthManager private constructor(applicationContext: Context) {
 
     internal val preferenceManager: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+    private val notificationManager = NotificationManagerCompat.from(applicationContext)
     private val authLoginJsonReader = AuthLoginJsonReader()
     private val authLoginJsonWriter = AuthLoginJsonWriter()
 
     private val _authLogin = MutableLiveData<AuthLogin?>()
+    private var cookie: Cookie? = null
 
     val isLoggedIn: LiveData<Boolean> = Transformations.map(_authLogin) { it != null }
 
     init {
-        GlobalScope.launch(Main) {
+        GlobalScope.launch(Default) {
             getAuthLogin()
         }
     }
 
     fun setCookie(cookie: Cookie) {
+        this.cookie = cookie
+
         preferenceManager
             .edit()
             .putString(
@@ -50,18 +56,23 @@ class AuthManager private constructor(applicationContext: Context) {
     }
 
     fun getCookie(): Cookie? {
-        return runCatching {
-            preferenceManager
-                .getString(
-                    KEY_PREFERENCE_COOKIE,
-                    null
-                )
-                ?.let { CookieHelper.deserialize(it) }
-        }.getOrNull()
+        return cookie
+            ?: runCatching {
+                preferenceManager
+                    .getString(
+                        KEY_PREFERENCE_COOKIE,
+                        null
+                    )
+                    ?.let { CookieHelper.deserialize(it) }
+            }.getOrNull()
     }
 
     suspend fun getAuthLogin(): AuthLogin? =
-        withContext(IO) {
+        withContext(Default) {
+            val authLogin = _authLogin.value
+
+            if (authLogin != null) return@withContext authLogin
+
             val authLoginAsJson = preferenceManager.getString(
                 KEY_PREFERENCE_AUTH_LOGIN,
                 null
@@ -76,6 +87,11 @@ class AuthManager private constructor(applicationContext: Context) {
                 .read(authLoginAsJson)
                 .let {
                     if (it?.expires?.before(Calendar.getInstance().time) == true) {
+                        Log.i(
+                            TAG,
+                            "auth login expiry date ${it.expires} reached: perform logout"
+                        )
+
                         logout()
                         return@let null
                     }
@@ -85,14 +101,24 @@ class AuthManager private constructor(applicationContext: Context) {
                 }
         }
 
-    suspend fun setAuthLogin(authLogin: AuthLogin): Boolean =
-        withContext(IO) {
+    suspend fun setAuthLogin(authLogin: AuthLogin): Boolean {
+        Log.i(
+            TAG,
+            "successfully authenticated, login expiration date: ${authLogin.expires}"
+        )
+
+        _authLogin.value = authLogin
+
+        return withContext(Default) {
+
             val authLoginAsJson = authLoginJsonWriter.write(authLogin)
 
             if (authLoginAsJson.isNullOrBlank()) {
                 _authLogin.postValue(null)
                 return@withContext false
             }
+
+            notificationManager.cancel(CheckAuthLoginWorker.NOTIFICATION_ID)
 
             preferenceManager
                 .edit()
@@ -101,13 +127,11 @@ class AuthManager private constructor(applicationContext: Context) {
                     authLoginAsJson
                 )
                 .commit()
-                .also {
-                    _authLogin.postValue(if (it) authLogin else null)
-                }
         }
+    }
 
     suspend fun logout(): Boolean =
-        withContext(IO) {
+        withContext(Default) {
             preferenceManager
                 .edit()
                 .remove(KEY_PREFERENCE_COOKIE)
@@ -121,6 +145,8 @@ class AuthManager private constructor(applicationContext: Context) {
         }
 
     companion object {
+        private val TAG = AuthManager::class.java.name
+
         private const val KEY_PREFERENCE_COOKIE = "key_preference_cookie"
         private const val KEY_PREFERENCE_AUTH_LOGIN = "key_preference_auth_login"
 
