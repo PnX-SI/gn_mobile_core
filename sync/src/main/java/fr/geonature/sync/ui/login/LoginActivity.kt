@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.StringRes
@@ -16,6 +15,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputLayout
 import fr.geonature.commons.util.KeyboardUtils.hideSoftKeyboard
 import fr.geonature.commons.util.afterTextChanged
 import fr.geonature.commons.util.observeOnce
@@ -31,8 +31,8 @@ class LoginActivity : AppCompatActivity() {
     private var appSettings: AppSettings? = null
 
     private var content: ConstraintLayout? = null
-    private var editTextUsername: EditText? = null
-    private var editTextPassword: EditText? = null
+    private var editTextUsername: TextInputLayout? = null
+    private var editTextPassword: TextInputLayout? = null
     private var buttonLogin: Button? = null
     private var progress: ProgressBar? = null
 
@@ -86,17 +86,17 @@ class LoginActivity : AppCompatActivity() {
 
         editTextUsername = findViewById(R.id.edit_text_username)
         editTextUsername?.apply {
-            afterTextChanged {
+            editText?.afterTextChanged {
                 authLoginViewModel.loginDataChanged(
-                    editTextUsername?.text.toString(),
-                    editTextPassword?.text.toString()
+                    editTextUsername?.editText?.text.toString(),
+                    editTextPassword?.editText?.text.toString()
                 )
             }
             setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     authLoginViewModel.loginDataChanged(
-                        editTextUsername?.text.toString(),
-                        editTextPassword?.text.toString()
+                        editTextUsername?.editText?.text.toString(),
+                        editTextPassword?.editText?.text.toString()
                     )
                 }
             }
@@ -104,25 +104,25 @@ class LoginActivity : AppCompatActivity() {
 
         editTextPassword = findViewById(R.id.edit_text_password)
         editTextPassword?.apply {
-            afterTextChanged {
+            editText?.afterTextChanged {
                 authLoginViewModel.loginDataChanged(
-                    editTextUsername?.text.toString(),
-                    editTextPassword?.text.toString()
+                    editTextUsername?.editText?.text.toString(),
+                    editTextPassword?.editText?.text.toString()
                 )
             }
             setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     authLoginViewModel.loginDataChanged(
-                        editTextUsername?.text.toString(),
-                        editTextPassword?.text.toString()
+                        editTextUsername?.editText?.text.toString(),
+                        editTextPassword?.editText?.text.toString()
                     )
                 }
             }
-            setOnEditorActionListener { _, actionId, _ ->
+            editText?.setOnEditorActionListener { _, actionId, _ ->
                 when (actionId) {
                     EditorInfo.IME_ACTION_DONE -> performLogin(
-                        editTextUsername?.text.toString(),
-                        editTextPassword?.text.toString()
+                        editTextUsername?.editText?.text.toString(),
+                        editTextPassword?.editText?.text.toString()
                     )
                 }
 
@@ -133,8 +133,8 @@ class LoginActivity : AppCompatActivity() {
         buttonLogin = findViewById(R.id.button_login)
         buttonLogin?.setOnClickListener {
             performLogin(
-                editTextUsername?.text.toString(),
-                editTextPassword?.text.toString()
+                editTextUsername?.editText?.text.toString(),
+                editTextPassword?.editText?.text.toString()
             )
         }
 
