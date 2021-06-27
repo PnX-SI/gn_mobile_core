@@ -1,8 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="fr.geonature.commons"
-          android:sharedUserId="@string/sharedUserId">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="fr.geonature.commons"
+    android:sharedUserId="@string/sharedUserId">
 
-    <uses-permission android:name="fr.geonature.sync.permission.READ"/>
-    <permission android:name="fr.geonature.sync.permission.READ"/>
+    <uses-permission android:name="fr.geonature.sync.permission.READ" />
+    <permission
+        android:name="fr.geonature.sync.permission.READ"
+        android:protectionLevel="signature" />
 
 </manifest>

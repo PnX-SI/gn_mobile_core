@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.Dataset
 import fr.geonature.commons.data.DefaultNomenclature
@@ -16,8 +17,12 @@ import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.Taxonomy
 import fr.geonature.commons.data.helper.Provider.AUTHORITY
 import fr.geonature.commons.data.helper.Provider.checkReadPermission
+import fr.geonature.mountpoint.model.MountPoint
+import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.data.dao.AppSyncDao
 import fr.geonature.sync.data.dao.TaxonDao
+import java.io.File
+import java.io.FileNotFoundException
 
 /**
  * Default ContentProvider implementation.
@@ -55,7 +60,8 @@ class MainContentProvider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor? {
-        val context = context ?: return null
+        val context = context
+            ?: return null
 
         if (!checkReadPermission(
                 context,
@@ -129,6 +135,50 @@ class MainContentProvider : ContentProvider() {
         }
     }
 
+    override fun openFile(
+        uri: Uri,
+        mode: String
+    ): ParcelFileDescriptor? {
+        val context = context
+            ?: return null
+
+        if (!checkReadPermission(
+                context,
+                readPermission
+            )
+        ) {
+            throw SecurityException("Permission denial: require READ permission")
+        }
+
+        return when (MATCHER.match(uri)) {
+            SETTINGS -> {
+                val filename = uri.lastPathSegment
+
+                if (filename.isNullOrEmpty()) {
+                    throw IllegalArgumentException("Missing filename")
+                }
+
+                val file = File(
+                    FileUtils.getRootFolder(
+                        context,
+                        MountPoint.StorageType.INTERNAL
+                    ),
+                    filename
+                )
+
+                if (!file.exists()) {
+                    throw FileNotFoundException("No file found at $uri")
+                }
+
+                ParcelFileDescriptor.open(
+                    file,
+                    ParcelFileDescriptor.MODE_READ_ONLY
+                )
+            }
+            else -> throw IllegalArgumentException("Unknown URI: $uri")
+        }
+    }
+
     override fun insert(
         uri: Uri,
         values: ContentValues?
@@ -167,16 +217,16 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module =
-            uri.pathSegments
-                .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-                .take(1)
-                .firstOrNull()
-                ?.substringAfterLast(".")
+        val module = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+            ?.substringAfterLast(".")
 
         val onlyActive = uri.lastPathSegment == "active"
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .datasetDao()
             .QB()
             .whereModule(module)
@@ -192,14 +242,14 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module =
-            uri.pathSegments
-                .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-                .take(1)
-                .firstOrNull()
-                ?.substringAfterLast(".")
+        val module = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+            ?.substringAfterLast(".")
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .datasetDao()
             .QB()
             .whereModule(module)
@@ -212,12 +262,16 @@ class MainContentProvider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<String>?
     ): Cursor {
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .inputObserverDao()
             .QB()
             .whereSelection(
                 selection,
-                arrayOf(*selectionArgs ?: emptyArray())
+                arrayOf(
+                    *selectionArgs
+                        ?: emptyArray()
+                )
             )
             .cursor()
     }
@@ -226,12 +280,12 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val selectedObserverIds =
-            uri.lastPathSegment?.split(",")
-                ?.mapNotNull { it.toLongOrNull() }
-                ?.distinct()
-                ?.toLongArray()
-                ?: longArrayOf()
+        val selectedObserverIds = uri.lastPathSegment
+            ?.split(",")
+            ?.mapNotNull { it.toLongOrNull() }
+            ?.distinct()
+            ?.toLongArray()
+            ?: longArrayOf()
 
         if (selectedObserverIds.size == 1) {
             return inputObserverByIdQuery(
@@ -240,7 +294,8 @@ class MainContentProvider : ContentProvider() {
             )
         }
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .inputObserverDao()
             .QB()
             .whereIdsIn(*selectedObserverIds)
@@ -251,7 +306,8 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .inputObserverDao()
             .QB()
             .whereId(uri.lastPathSegment?.toLongOrNull())
@@ -262,12 +318,12 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val lastPathSegments =
-            uri.pathSegments
-                .drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
-                .take(2)
+        val lastPathSegments = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
+            .take(2)
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .taxonomyDao()
             .QB()
             .also {
@@ -289,12 +345,16 @@ class MainContentProvider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor {
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .taxonDao()
             .QB()
             .whereSelection(
                 selection,
-                arrayOf(*selectionArgs ?: emptyArray())
+                arrayOf(
+                    *selectionArgs
+                        ?: emptyArray()
+                )
             )
             .also {
                 if (sortOrder.isNullOrEmpty()) {
@@ -310,7 +370,8 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .taxonDao()
             .QB()
             .whereId(uri.lastPathSegment?.toLongOrNull())
@@ -326,13 +387,17 @@ class MainContentProvider : ContentProvider() {
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .taxonDao()
             .QB()
             .withArea(filterOnArea)
             .whereSelection(
                 selection,
-                arrayOf(*selectionArgs ?: emptyArray())
+                arrayOf(
+                    *selectionArgs
+                        ?: emptyArray()
+                )
             )
             .also {
                 if (sortOrder.isNullOrEmpty()) {
@@ -355,7 +420,8 @@ class MainContentProvider : ContentProvider() {
             .filterNotNull()
             .firstOrNull()
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .taxonDao()
             .QB()
             .withArea(filterOnArea)
@@ -364,7 +430,8 @@ class MainContentProvider : ContentProvider() {
     }
 
     private fun nomenclatureTypesQuery(context: Context): Cursor {
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .nomenclatureTypeDao()
             .QB()
             .cursor()
@@ -374,14 +441,14 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module =
-            uri.pathSegments
-                .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
-                .take(1)
-                .firstOrNull()
-                ?.substringAfterLast(".")
+        val module = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+            ?.substringAfterLast(".")
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .nomenclatureDao()
             .QB()
             .withNomenclatureType()
@@ -393,16 +460,16 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val mnemonic =
-            uri.pathSegments
-                .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
-                .take(1)
-                .firstOrNull()
+        val mnemonic = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
         val lastPathSegments = uri.pathSegments
             .drop(uri.pathSegments.indexOf("items") + 1)
             .take(2)
 
-        return LocalDatabase.getInstance(context)
+        return LocalDatabase
+            .getInstance(context)
             .nomenclatureDao()
             .QB()
             .withNomenclatureType(mnemonic)
@@ -434,6 +501,7 @@ class MainContentProvider : ContentProvider() {
         const val NOMENCLATURE_TYPES_DEFAULT = 51
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 52
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 53
+        const val SETTINGS = 60
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
@@ -532,6 +600,11 @@ class MainContentProvider : ContentProvider() {
                 AUTHORITY,
                 "${NomenclatureType.TABLE_NAME}/*/items/*/*",
                 NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP
+            )
+            addURI(
+                AUTHORITY,
+                "settings/*",
+                SETTINGS
             )
         }
     }

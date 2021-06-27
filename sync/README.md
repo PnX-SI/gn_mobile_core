@@ -37,17 +37,17 @@ Example:
 
 ### Parameters description
 
-| Parameter                         | UI      | Description                                            | Default value |
-| --------------------------------- | ------- | ------------------------------------------------------ | ------------- |
-| `geonature_url`                   | &#9745; | GeoNature URL                                          |               |
-| `taxhub_url`                      | &#9745; | TaxHub URL                                             |               |
-| `uh_application_id`               | &#9744; | GeoNature application ID in UsersHub                   |               |
-| `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub        |               |
-| `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                        |               |
-| `code_area_type`                  | &#9744; | GeoNature selected area type                           |               |
-| `page_size`                       | &#9744; | Default page size while fetching paginated values      | 10000         |
-| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity   |               |
-| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity         |               |
+| Parameter                         | UI      | Description                                          | Default value |
+| --------------------------------- | ------- | ---------------------------------------------------- | ------------- |
+| `geonature_url`                   | &#9745; | GeoNature URL                                        |               |
+| `taxhub_url`                      | &#9745; | TaxHub URL                                           |               |
+| `uh_application_id`               | &#9744; | GeoNature application ID in UsersHub                 |               |
+| `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub      |               |
+| `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                      |               |
+| `code_area_type`                  | &#9744; | GeoNature selected area type                         |               |
+| `page_size`                       | &#9744; | Default page size while fetching paginated values    | 10000         |
+| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity |               |
+| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity       |               |
 
 ### Data synchronization periodicity
 
@@ -102,6 +102,7 @@ The authority of this content provider is `fr.geonature.sync.provider`.
 | **\<Base URI\>**/nomenclature_types/\*/default     | String                                  | Fetch all default nomenclature definitions from given application package ID (e.g. `fr.geonature.occtax`) |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*    | String, String                          | Fetch all nomenclature definitions from given type, matching a given kingdom                              |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*/\* | String, String, String                  | Fetch all nomenclature definitions from given type, matching a given kingdom and group                    |
+| **\<Base URI\>**/settings/\*                       | String                                  | Fetch app settings JSON file                                                                              |
 
 ## Full Build
 

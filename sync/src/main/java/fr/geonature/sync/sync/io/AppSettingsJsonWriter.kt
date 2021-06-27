@@ -31,8 +31,7 @@ class AppSettingsJsonWriter(private val context: Context) {
         
         val appRootFolder = getRootFolder(
             context,
-            MountPoint.StorageType.INTERNAL,
-            packageInfo.packageName
+            MountPoint.StorageType.INTERNAL
         ).also { it.mkdirs() }
 
         val appSettingsFile = getFile(

@@ -32,7 +32,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import fr.geonature.commons.util.PermissionUtils
 import fr.geonature.commons.util.observeOnce
 import fr.geonature.commons.util.observeUntil
 import fr.geonature.sync.BuildConfig
@@ -174,7 +173,9 @@ class HomeActivity : AppCompatActivity() {
         }
 
         checkNetwork()
-        checkPermissions()
+        loadAppSettings {
+            packageInfoViewModel.getAvailableApplications()
+        }
     }
 
     override fun onResume() {
@@ -264,16 +265,18 @@ class HomeActivity : AppCompatActivity() {
             AuthLoginViewModel.Factory { AuthLoginViewModel(application) })
             .get(AuthLoginViewModel::class.java)
             .also { vm ->
-                vm.checkAuthLogin().observeOnce(this@HomeActivity) {
-                    if (checkGeoNatureSettings() && it == null) {
-                        Log.i(
-                            TAG,
-                            "not connected, redirect to LoginActivity"
-                        )
+                vm
+                    .checkAuthLogin()
+                    .observeOnce(this@HomeActivity) {
+                        if (checkGeoNatureSettings() && it == null) {
+                            Log.i(
+                                TAG,
+                                "not connected, redirect to LoginActivity"
+                            )
 
-                        startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
+                            startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
+                        }
                     }
-                }
                 vm.isLoggedIn.observe(this@HomeActivity,
                     {
                         this@HomeActivity.isLoggedIn = it
@@ -368,35 +371,6 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    @ExperimentalTime
-    private fun checkPermissions() {
-        PermissionUtils.requestPermissions(this,
-            listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-            { result ->
-                if (result.values.all { it }) {
-                    loadAppSettings {
-                        packageInfoViewModel.getAvailableApplications()
-                    }
-                } else {
-                    Toast
-                        .makeText(
-                            this,
-                            R.string.snackbar_permissions_not_granted,
-                            Toast.LENGTH_LONG
-                        )
-                        .show()
-                }
-            },
-            { callback ->
-                makeSnackbar(
-                    getString(R.string.snackbar_permission_external_storage_rationale),
-                    BaseTransientBottomBar.LENGTH_INDEFINITE
-                )
-                    ?.setAction(android.R.string.ok) { callback() }
-                    ?.show()
-            })
-    }
-
     @RequiresPermission(Manifest.permission.CHANGE_NETWORK_STATE)
     private fun checkNetwork() {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -480,7 +454,8 @@ class HomeActivity : AppCompatActivity() {
 
     private fun makeSnackbar(
         text: CharSequence,
-        @BaseTransientBottomBar.Duration duration: Int = Snackbar.LENGTH_LONG
+        @BaseTransientBottomBar.Duration
+        duration: Int = Snackbar.LENGTH_LONG
     ): Snackbar? {
         val view = homeContent
             ?: return null
