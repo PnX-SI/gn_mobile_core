@@ -34,10 +34,7 @@ class AuthManagerTest {
     fun setUp() {
         val application = ApplicationProvider.getApplicationContext<Application>()
         authManager = AuthManager.getInstance(application)
-        authManager.preferenceManager
-            .edit()
-            .clear()
-            .commit()
+        runBlocking { authManager.logout() }
     }
 
     @Test
@@ -50,7 +47,78 @@ class AuthManagerTest {
     }
 
     @Test
+    fun testGetUndefinedAuthLogin() {
+        // when reading non existing AuthLogin instance
+        val noSuchAuthLogin = runBlocking { authManager.getAuthLogin() }
+
+        // then
+        assertNull(noSuchAuthLogin)
+    }
+
+    @Test
+    fun testLogout() {
+        // given a valid Cookie to save and read
+        val cookie = Cookie
+            .Builder()
+            .name("token")
+            .value("some_value")
+            .domain("demo.geonature.fr")
+            .path("/")
+            .expiresAt(
+                Date().add(
+                    Calendar.HOUR,
+                    1
+                ).time
+            )
+            .build()
+
+        // when setting new cookie
+        authManager.setCookie(cookie)
+
+        // given an AuthLogin instance to save and read
+        val authLogin = AuthLogin(
+            AuthUser(
+                1234L,
+                "Admin",
+                "Test",
+                3,
+                1,
+                "admin"
+            ),
+            Calendar
+                .getInstance()
+                .apply {
+                    add(
+                        Calendar.DAY_OF_YEAR,
+                        7
+                    )
+                    set(
+                        Calendar.MILLISECOND,
+                        0
+                    )
+                }.time
+        )
+
+        // when saving this AuthLogin
+        val saved = runBlocking { authManager.setAuthLogin(authLogin) }
+
+        // then
+        assertTrue(saved)
+
+        // when perform logout from manager
+        runBlocking { authManager.logout() }
+
+        // then
+        val noSuchCookie = authManager.getCookie()
+        assertNull(noSuchCookie)
+
+        val noSuchAuthLogin = runBlocking { authManager.getAuthLogin() }
+        assertNull(noSuchAuthLogin)
+    }
+
+    @Test
     fun testSaveAndGetCookie() {
+        // given a valid Cookie to save and read
         val cookie = Cookie
             .Builder()
             .name("token")
@@ -79,12 +147,30 @@ class AuthManagerTest {
     }
 
     @Test
-    fun testGetUndefinedAuthLogin() {
-        // when reading non existing AuthLogin instance
-        val noSuchAuthLogin = runBlocking { authManager.getAuthLogin() }
+    fun testSaveAndGetExpiredCookie() {
+        // given an expired Cookie to save and read
+        val cookie = Cookie
+            .Builder()
+            .name("token")
+            .value("some_value")
+            .domain("demo.geonature.fr")
+            .path("/")
+            .expiresAt(
+                Date().add(
+                    Calendar.HOUR,
+                    -1
+                ).time
+            )
+            .build()
+
+        // when setting new cookie
+        authManager.setCookie(cookie)
+
+        // when reading this cookie from manager
+        val cookieFromManager = authManager.getCookie()
 
         // then
-        assertNull(noSuchAuthLogin)
+        assertNull(cookieFromManager)
     }
 
     @Test

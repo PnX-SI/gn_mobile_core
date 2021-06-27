@@ -38,7 +38,8 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
-    val isLoggedIn: LiveData<Boolean> = authManager.isLoggedIn
+    private val _isLoggedIn = MutableLiveData<Boolean>()
+    val isLoggedIn: LiveData<Boolean> = _isLoggedIn
 
     init {
         if (geoNatureAPIClient == null) {
@@ -107,6 +108,7 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
                 authManager
                     .setAuthLogin(authLogin)
                     .also {
+                        _isLoggedIn.value = it
                         _loginResult.value = LoginResult(success = authLogin)
                     }
             } catch (e: Exception) {
@@ -137,13 +139,15 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun logout(): LiveData<Boolean> {
-        val disconnected = MutableLiveData<Boolean>()
+        val disconnectedLiveData = MutableLiveData<Boolean>()
 
         viewModelScope.launch {
-            disconnected.value = authManager.logout()
+            val disconnected = authManager.logout()
+            disconnectedLiveData.value = disconnected
+            _isLoggedIn.value = disconnected
         }
 
-        return disconnected
+        return disconnectedLiveData
     }
 
     // A placeholder username validation check
@@ -173,8 +177,10 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
     data class LoginFormState(
-        @StringRes val usernameError: Int? = null,
-        @StringRes val passwordError: Int? = null,
+        @StringRes
+        val usernameError: Int? = null,
+        @StringRes
+        val passwordError: Int? = null,
         val isValid: Boolean = false
     )
 
@@ -185,7 +191,8 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
      */
     data class LoginResult(
         val success: AuthLogin? = null,
-        @StringRes val error: Int? = null
+        @StringRes
+        val error: Int? = null
     ) {
 
         fun hasError(): Boolean {
