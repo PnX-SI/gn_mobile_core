@@ -103,6 +103,8 @@ The authority of this content provider is `fr.geonature.sync.provider`.
 | **\<Base URI\>**/nomenclature_types/\*/items/\*    | String, String                          | Fetch all nomenclature definitions from given type, matching a given kingdom                              |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*/\* | String, String, String                  | Fetch all nomenclature definitions from given type, matching a given kingdom and group                    |
 | **\<Base URI\>**/settings/\*                       | String                                  | Fetch app settings JSON file                                                                              |
+| **\<Base URI\>**/inputs/\*/#                       | String, Number                          | Get input as JSON file from given package ID (e.g. `fr.geonature.occtax`)                                 |
+| **\<Base URI\>**/inputs/export                     | ContentValues                           | Export input data to JSON file                                                                            |
 
 ## Full Build
 

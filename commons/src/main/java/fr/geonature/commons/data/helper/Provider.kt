@@ -1,9 +1,7 @@
 package fr.geonature.commons.data.helper
 
-import android.content.Context
 import android.net.Uri
 import android.net.Uri.withAppendedPath
-import fr.geonature.commons.R
 
 /**
  * Base content provider.
@@ -18,12 +16,6 @@ object Provider {
     const val AUTHORITY = "fr.geonature.sync.provider"
 
     /**
-     * Check if 'READ' permission is granted for content provider.
-     */
-    val checkReadPermission: (Context, String?) -> Boolean =
-        { context, permission -> context.getString(R.string.permission_read) == permission }
-
-    /**
      * Build resource [Uri].
      */
     fun buildUri(
@@ -34,9 +26,10 @@ object Provider {
         val baseUri = Uri.parse("content://$AUTHORITY/$resource")
 
         return if (path.isEmpty()) baseUri
-        else withAppendedPath(
-            baseUri,
-            path.asSequence().filter { it.isNotBlank() }.joinToString("/")
-        )
+        else withAppendedPath(baseUri,
+            path
+                .asSequence()
+                .filter { it.isNotBlank() }
+                .joinToString("/"))
     }
 }

@@ -16,10 +16,10 @@ import fr.geonature.commons.data.NomenclatureType
 import fr.geonature.commons.data.Taxon
 import fr.geonature.commons.data.Taxonomy
 import fr.geonature.commons.data.helper.Provider.AUTHORITY
-import fr.geonature.commons.data.helper.Provider.checkReadPermission
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.sync.data.dao.AppSyncDao
+import fr.geonature.sync.data.dao.InputDao
 import fr.geonature.sync.data.dao.TaxonDao
 import java.io.File
 import java.io.FileNotFoundException
@@ -62,14 +62,6 @@ class MainContentProvider : ContentProvider() {
     ): Cursor? {
         val context = context
             ?: return null
-
-        if (!checkReadPermission(
-                context,
-                readPermission
-            )
-        ) {
-            throw SecurityException("Permission denial: require READ permission")
-        }
 
         return when (MATCHER.match(uri)) {
             APP_SYNC_ID -> appSyncByPackageIdQuery(
@@ -142,14 +134,6 @@ class MainContentProvider : ContentProvider() {
         val context = context
             ?: return null
 
-        if (!checkReadPermission(
-                context,
-                readPermission
-            )
-        ) {
-            throw SecurityException("Permission denial: require READ permission")
-        }
-
         return when (MATCHER.match(uri)) {
             SETTINGS -> {
                 val filename = uri.lastPathSegment
@@ -175,6 +159,33 @@ class MainContentProvider : ContentProvider() {
                     ParcelFileDescriptor.MODE_READ_ONLY
                 )
             }
+            INPUT_ID -> {
+                val packageId = uri.pathSegments
+                    .drop(uri.pathSegments.indexOf("inputs") + 1)
+                    .take(1)
+                    .firstOrNull()
+
+                if (packageId.isNullOrEmpty()) {
+                    throw IllegalArgumentException("Missing package ID from URI '$uri'")
+                }
+
+                val inputId = uri.lastPathSegment?.toLongOrNull()
+                    ?: throw IllegalArgumentException("Missing input ID from URI '$uri'")
+
+                val file = InputDao(context).getExportedInput(
+                    packageId,
+                    inputId
+                )
+
+                if (!file.exists()) {
+                    throw FileNotFoundException("No input file found at $uri")
+                }
+
+                ParcelFileDescriptor.open(
+                    file,
+                    ParcelFileDescriptor.MODE_READ_ONLY
+                )
+            }
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -183,7 +194,19 @@ class MainContentProvider : ContentProvider() {
         uri: Uri,
         values: ContentValues?
     ): Uri? {
-        throw NotImplementedError("'insert' operation not implemented")
+        val context = context
+            ?: return null
+
+        return when (MATCHER.match(uri)) {
+            INPUTS_EXPORT -> {
+                if (values == null) {
+                    throw IllegalArgumentException("Missing ContentValues")
+                }
+
+                InputDao(context).exportInput(values)
+            }
+            else -> throw IllegalArgumentException("Unknown URI: $uri")
+        }
     }
 
     override fun update(
@@ -502,6 +525,8 @@ class MainContentProvider : ContentProvider() {
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 52
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 53
         const val SETTINGS = 60
+        const val INPUT_ID = 70
+        const val INPUTS_EXPORT = 71
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
@@ -605,6 +630,16 @@ class MainContentProvider : ContentProvider() {
                 AUTHORITY,
                 "settings/*",
                 SETTINGS
+            )
+            addURI(
+                AUTHORITY,
+                "inputs/*/#",
+                INPUT_ID
+            )
+            addURI(
+                AUTHORITY,
+                "inputs/export",
+                INPUTS_EXPORT
             )
         }
     }

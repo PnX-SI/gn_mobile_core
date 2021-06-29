@@ -2,18 +2,16 @@ package fr.geonature.commons.input
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.ContentValues
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
+import fr.geonature.commons.data.helper.Provider
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
-import fr.geonature.commons.util.getInputsFolder
-import fr.geonature.mountpoint.util.FileUtils
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileWriter
 
 /**
  * Manage [AbstractInput]:
@@ -30,8 +28,7 @@ class InputManager<I : AbstractInput> private constructor(
     inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>
 ) {
 
-    internal val preferenceManager: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(application)
+    internal val preferenceManager: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
     private val inputJsonReader: InputJsonReader<I> = InputJsonReader(inputJsonReaderListener)
     private val inputJsonWriter: InputJsonWriter<I> = InputJsonWriter(inputJsonWriterListener)
 
@@ -43,12 +40,13 @@ class InputManager<I : AbstractInput> private constructor(
      *
      * @return A list of [AbstractInput]s
      */
-    suspend fun readInputs(): List<I> = withContext(IO) {
-        preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }
-            .values.mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
-            .sortedBy { it.id }
-            .also { inputs.postValue(it) }
-    }
+    suspend fun readInputs(): List<I> =
+        withContext(IO) {
+            preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }.values
+                .mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
+                .sortedBy { it.id }
+                .also { inputs.postValue(it) }
+        }
 
     /**
      * Reads [AbstractInput] from given ID.
@@ -57,26 +55,28 @@ class InputManager<I : AbstractInput> private constructor(
      *
      * @return [AbstractInput] or `null` if not found
      */
-    suspend fun readInput(id: Long? = null): I? = withContext(IO) {
-        val inputPreferenceKey = buildInputPreferenceKey(
-            id
-                ?: preferenceManager.getLong(
-                    KEY_PREFERENCE_CURRENT_INPUT,
-                    0
-                )
-        )
-        val inputAsJson = preferenceManager.getString(
-            inputPreferenceKey,
-            null
-        )
+    suspend fun readInput(id: Long? = null): I? =
+        withContext(IO) {
+            val inputPreferenceKey = buildInputPreferenceKey(
+                id
+                    ?: preferenceManager.getLong(
+                        KEY_PREFERENCE_CURRENT_INPUT,
+                        0
+                    )
+            )
+            val inputAsJson = preferenceManager.getString(
+                inputPreferenceKey,
+                null
+            )
 
-        if (inputAsJson.isNullOrBlank()) {
-            return@withContext null
+            if (inputAsJson.isNullOrBlank()) {
+                return@withContext null
+            }
+
+            inputJsonReader
+                .read(inputAsJson)
+                .also { input.postValue(it) }
         }
-
-        inputJsonReader.read(inputAsJson)
-            .also { input.postValue(it) }
-    }
 
     /**
      * Reads the current [AbstractInput].
@@ -100,7 +100,8 @@ class InputManager<I : AbstractInput> private constructor(
             val inputAsJson = inputJsonWriter.write(input)
             if (inputAsJson.isNullOrBlank()) return@withContext false
 
-            preferenceManager.edit()
+            preferenceManager
+                .edit()
                 .putString(
                     buildInputPreferenceKey(input.id),
                     inputAsJson
@@ -112,7 +113,8 @@ class InputManager<I : AbstractInput> private constructor(
                 .commit()
         }
 
-        return saved && preferenceManager.contains(buildInputPreferenceKey(input.id))
+        return saved && preferenceManager
+            .contains(buildInputPreferenceKey(input.id))
             .also { readInputs() }
     }
 
@@ -126,7 +128,8 @@ class InputManager<I : AbstractInput> private constructor(
     @SuppressLint("ApplySharedPref")
     suspend fun deleteInput(id: Long): Boolean {
         val deleted = withContext(IO) {
-            preferenceManager.edit()
+            preferenceManager
+                .edit()
                 .remove(buildInputPreferenceKey(id))
                 .also {
                     if (preferenceManager.getLong(
@@ -145,7 +148,8 @@ class InputManager<I : AbstractInput> private constructor(
             "input '$id' deleted: $deleted"
         )
 
-        return deleted && !preferenceManager.contains(buildInputPreferenceKey(id))
+        return deleted && !preferenceManager
+            .contains(buildInputPreferenceKey(id))
             .also {
                 readInputs()
                 input.postValue(null)
@@ -160,7 +164,8 @@ class InputManager<I : AbstractInput> private constructor(
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
     suspend fun exportInput(id: Long): Boolean {
-        val inputToExport = readInput(id) ?: return false
+        val inputToExport = readInput(id)
+            ?: return false
 
         return exportInput(inputToExport)
     }
@@ -172,45 +177,61 @@ class InputManager<I : AbstractInput> private constructor(
      *
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
+    @SuppressLint("Recycle")
     suspend fun exportInput(input: I): Boolean {
-        val inputExportFile = getInputExportFile(input)
+        val inputExportUri = Provider.buildUri(
+            "input",
+            "export"
+        )
 
-        @Suppress("BlockingMethodInNonBlockingContext")
-        withContext(IO) {
-            inputJsonWriter.write(
-                FileWriter(inputExportFile),
-                input
+        val inputUri = application.contentResolver
+            .acquireContentProviderClient(inputExportUri)
+            ?.let {
+                val uri = it.insert(
+                    inputExportUri,
+                    toContentValues(input)
+                )
+
+                it.close()
+                uri
+            }
+
+        if (inputUri == null) {
+            Log.w(
+                TAG,
+                "failed to export input '${input.id}'"
             )
+
+            return false
         }
 
         Log.i(
             TAG,
-            "export input '${input.id}' to JSON file '${inputExportFile.absolutePath}'"
-        )
-        Log.d(
-            TAG,
-            "'${inputExportFile.absolutePath}' exists? ${inputExportFile.exists()}"
+            "input '${input.id}' exported (URI: $inputUri)"
         )
 
-        return if (inputExportFile.exists()) {
-            deleteInput(input.id)
-        } else {
-            false
+        return deleteInput(input.id)
+    }
+
+    private fun toContentValues(input: I): ContentValues {
+        return ContentValues().apply {
+            put(
+                "id",
+                input.id
+            )
+            put(
+                "packageName",
+                application.packageName
+            )
+            put(
+                "data",
+                inputJsonWriter.write(input)
+            )
         }
     }
 
     private fun buildInputPreferenceKey(id: Long): String {
         return "${KEY_PREFERENCE_INPUT}_$id"
-    }
-
-    private suspend fun getInputExportFile(input: AbstractInput): File = withContext(IO) {
-        val inputDir = FileUtils.getInputsFolder(application)
-        inputDir.mkdirs()
-
-        return@withContext File(
-            inputDir,
-            "input_${input.module}_${input.id}.json"
-        )
     }
 
     companion object {
@@ -234,13 +255,15 @@ class InputManager<I : AbstractInput> private constructor(
             application: Application,
             inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
             inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>
-        ): InputManager<I> = INSTANCE as InputManager<I>?
-            ?: synchronized(this) {
-                INSTANCE as InputManager<I>? ?: InputManager(
-                    application,
-                    inputJsonReaderListener,
-                    inputJsonWriterListener
-                ).also { INSTANCE = it }
-            }
+        ): InputManager<I> =
+            INSTANCE as InputManager<I>?
+                ?: synchronized(this) {
+                    INSTANCE as InputManager<I>?
+                        ?: InputManager(
+                            application,
+                            inputJsonReaderListener,
+                            inputJsonWriterListener
+                        ).also { INSTANCE = it }
+                }
     }
 }

@@ -5,6 +5,7 @@
 
     <string name="sharedUserId" translatable="false">fr.geonature</string>
     <string name="permission_read" translatable="false">fr.geonature.sync.permission.READ</string>
+    <string name="permission_write" translatable="false">fr.geonature.sync.permission.WRITE</string>
 
     <string name="storage_status_mounted">mounted (rw)</string>
     <string name="storage_status_mounted_ro">mounted (ro)</string>

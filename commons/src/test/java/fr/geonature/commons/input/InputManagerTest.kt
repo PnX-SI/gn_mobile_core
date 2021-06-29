@@ -1,10 +1,13 @@
 package fr.geonature.commons.input
 
 import android.app.Application
+import android.content.pm.ProviderInfo
 import android.util.JsonReader
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import fr.geonature.commons.data.DummyContentProvider
+import fr.geonature.commons.data.helper.Provider
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import kotlinx.coroutines.runBlocking
@@ -23,6 +26,7 @@ import org.mockito.Mockito.atMost
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -67,6 +71,14 @@ class InputManagerTest {
         }
 
         val application = getApplicationContext<Application>()
+
+        val info = ProviderInfo()
+        info.authority = Provider.AUTHORITY
+        info.grantUriPermissions = true
+        Robolectric
+            .buildContentProvider(DummyContentProvider::class.java)
+            .create(info)
+
         inputManager = InputManager.getInstance(
             application,
             onInputJsonReaderListener,
@@ -75,14 +87,14 @@ class InputManagerTest {
         inputManager.inputs.observeForever(observerForListOfInputs)
         inputManager.input.observeForever(observerForInput)
 
-        inputManager.preferenceManager.edit()
+        inputManager.preferenceManager
+            .edit()
             .clear()
             .commit()
     }
 
     @Test
-    fun testReadUndefinedInputs() {
-        // when reading non existing inputs
+    fun testReadUndefinedInputs() { // when reading non existing inputs
         val noSuchInputs = runBlocking { inputManager.readInputs() }
 
         // then
@@ -90,8 +102,7 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndReadInputs() {
-        // given some inputs to save and read
+    fun testSaveAndReadInputs() { // given some inputs to save and read
         val input1 = DummyInput().apply { id = 1234 }
         val input2 = DummyInput().apply { id = 1235 }
         val input3 = DummyInput().apply { id = 1236 }
@@ -117,15 +128,16 @@ class InputManagerTest {
                 input2.id,
                 input3.id
             ),
-            inputs.map { it.id }.toTypedArray()
+            inputs
+                .map { it.id }
+                .toTypedArray()
         )
 
         verify(observerForListOfInputs).onChanged(inputs)
     }
 
     @Test
-    fun testReadUndefinedInput() {
-        // when reading non existing Input
+    fun testReadUndefinedInput() { // when reading non existing Input
         val noSuchInput = runBlocking { inputManager.readInput(1234) }
 
         // then
@@ -133,8 +145,7 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndReadInput() {
-        // given an Input to save and read
+    fun testSaveAndReadInput() { // given an Input to save and read
         val input = DummyInput().apply { id = 1234 }
 
         // when saving this Input
@@ -189,8 +200,7 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndDeleteInput() {
-        // given an Input to save and delete
+    fun testSaveAndDeleteInput() { // given an Input to save and delete
         val input = DummyInput().apply { id = 1234 }
 
         // when saving this Input
@@ -215,8 +225,7 @@ class InputManagerTest {
     }
 
     @Test
-    fun testExportUndefinedInput() {
-        // when exporting non existing Input
+    fun testExportUndefinedInput() { // when exporting non existing Input
         val exported = runBlocking { inputManager.exportInput(1234) }
 
         // then
@@ -224,13 +233,11 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndExportExistingInput() {
-        // given an Input to save and export
+    fun testSaveAndExportExistingInput() { // given an Input to save and export
         val input = DummyInput().apply { id = 1234 }
 
         // when saving this Input
-        val saved = runBlocking { inputManager.saveInput(input) }
-        // and exporting this Input
+        val saved = runBlocking { inputManager.saveInput(input) } // and exporting this Input
         val exported = runBlocking { inputManager.exportInput(input.id) }
 
         // then
@@ -251,8 +258,7 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndExportInput() {
-        // given an Input to save and export
+    fun testSaveAndExportInput() { // given an Input to save and export
         val input = DummyInput().apply { id = 1234 }
 
         // when exporting this Input

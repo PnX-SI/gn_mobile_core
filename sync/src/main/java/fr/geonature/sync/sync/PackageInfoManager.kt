@@ -151,22 +151,49 @@ class PackageInfoManager private constructor(private val applicationContext: Con
     suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput> =
         withContext(IO) {
             FileUtils
-                .getInputsFolder(
-                    applicationContext,
-                    packageInfo.packageName
-                )
+                .getInputsFolder(applicationContext)
                 .walkTopDown()
-                .filter { f -> f.isFile && f.extension == "json" && f.canRead() }
+                .filter { it.isFile && it.extension == "json" }
+                .filter { it.nameWithoutExtension.startsWith("input") }
+                .filter { it.nameWithoutExtension.contains(packageInfo.packageName.substringAfterLast(".")) }
+                .filter { it.canRead() }
                 .map {
-                    val rawString = it.readText()
-                    val toJson = JSONObject(rawString)
+                    val toJson = kotlin
+                        .runCatching { JSONObject(it.readText()) }
+                        .getOrNull()
+
+                    if (toJson == null) {
+                        Log.w(
+                            TAG,
+                            "invalid input file found '${it.name}'"
+                        )
+
+                        it.delete()
+
+                        return@map null
+                    }
+
+                    val module = kotlin
+                        .runCatching { toJson.getString("module") }
+                        .getOrNull()
+
+                    if (module.isNullOrBlank()) {
+                        Log.w(
+                            TAG,
+                            "invalid input file found '${it.name}': missing 'module' attribute"
+                        )
+
+                        return@map null
+                    }
+
                     SyncInput(
                         packageInfo,
                         it.absolutePath,
-                        toJson.getString("module"),
+                        module,
                         toJson
                     )
                 }
+                .filterNotNull()
                 .toList()
         }
 

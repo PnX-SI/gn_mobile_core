@@ -31,7 +31,8 @@ abstract class AbstractInput(
     constructor(source: Parcel) : this(source.readString()!!) {
         this.id = source.readLong()
         this.date = source.readSerializable() as Date
-        this.datasetId = source.readLong()
+        this.datasetId = source
+            .readLong()
             .takeIf { it != -1L }
 
         val inputObserverId = source.readLong()
@@ -61,9 +62,16 @@ abstract class AbstractInput(
             it.writeString(module)
             it.writeLong(this.id)
             it.writeSerializable(this.date)
-            it.writeLong(this.datasetId ?: -1L)
+            it.writeLong(
+                this.datasetId
+                    ?: -1L
+            )
             it.writeLong(if (inputObserverIds.isEmpty()) -1 else inputObserverIds.first())
-            it.writeLongArray(inputObserverIds.drop(1).toLongArray())
+            it.writeLongArray(
+                inputObserverIds
+                    .drop(1)
+                    .toLongArray()
+            )
             it.writeTypedList(getInputTaxa())
         }
     }
@@ -96,7 +104,8 @@ abstract class AbstractInput(
     }
 
     fun setDate(isoDate: String?) {
-        this.date = toDate(isoDate) ?: Date()
+        this.date = toDate(isoDate)
+            ?: Date()
     }
 
     /**
@@ -117,7 +126,8 @@ abstract class AbstractInput(
      * Gets only selected input observers without the primary input observer.
      */
     fun getInputObserverIds(): Set<Long> {
-        return this.inputObserverIds.drop(1)
+        return this.inputObserverIds
+            .drop(1)
             .toSet()
     }
 
@@ -126,7 +136,8 @@ abstract class AbstractInput(
     }
 
     fun setPrimaryInputObserverId(id: Long) {
-        val inputObservers = this.inputObserverIds.toMutableList()
+        val inputObservers = this.inputObserverIds
+            .toMutableList()
             .apply {
                 add(
                     0,

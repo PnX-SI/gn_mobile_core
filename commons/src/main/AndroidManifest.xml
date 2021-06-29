@@ -4,8 +4,13 @@
     android:sharedUserId="@string/sharedUserId">
 
     <uses-permission android:name="fr.geonature.sync.permission.READ" />
+    <uses-permission android:name="fr.geonature.sync.permission.WRITE" />
+
     <permission
         android:name="fr.geonature.sync.permission.READ"
+        android:protectionLevel="signature" />
+    <permission
+        android:name="fr.geonature.sync.permission.WRITE"
         android:protectionLevel="signature" />
 
 </manifest>

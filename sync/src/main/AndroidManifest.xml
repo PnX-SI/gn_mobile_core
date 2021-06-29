@@ -41,7 +41,8 @@
             android:name=".data.MainContentProvider"
             android:authorities="${applicationId}.provider"
             android:exported="true"
-            android:readPermission="@string/permission_read" />
+            android:readPermission="@string/permission_read"
+            android:writePermission="@string/permission_write" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.file.provider"
