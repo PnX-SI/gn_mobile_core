@@ -5,6 +5,7 @@ import android.content.pm.ProviderInfo
 import android.util.JsonReader
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import fr.geonature.commons.data.DummyContentProvider
 import fr.geonature.commons.data.helper.Provider
@@ -23,14 +24,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.atMost
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Unit tests about [InputManager].
+ * Unit tests about [InputManagerImpl].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
@@ -40,7 +40,7 @@ class InputManagerTest {
     @get:Rule
     val rule = InstantTaskExecutorRule()
 
-    private lateinit var inputManager: InputManager<DummyInput>
+    private lateinit var inputManager: InputManagerImpl<DummyInput>
 
     @Mock
     private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>
@@ -79,7 +79,7 @@ class InputManagerTest {
             .buildContentProvider(DummyContentProvider::class.java)
             .create(info)
 
-        inputManager = InputManager.getInstance(
+        inputManager = InputManagerImpl(
             application,
             onInputJsonReaderListener,
             onInputJsonWriterListener
@@ -87,7 +87,8 @@ class InputManagerTest {
         inputManager.inputs.observeForever(observerForListOfInputs)
         inputManager.input.observeForever(observerForInput)
 
-        inputManager.preferenceManager
+        PreferenceManager
+            .getDefaultSharedPreferences(application)
             .edit()
             .clear()
             .commit()
@@ -122,16 +123,14 @@ class InputManagerTest {
         val inputs = runBlocking { inputManager.readInputs() }
 
         // then
-        assertArrayEquals(
-            arrayOf(
-                input1.id,
-                input2.id,
-                input3.id
-            ),
+        assertArrayEquals(arrayOf(
+            input1.id,
+            input2.id,
+            input3.id
+        ),
             inputs
                 .map { it.id }
-                .toTypedArray()
-        )
+                .toTypedArray())
 
         verify(observerForListOfInputs).onChanged(inputs)
     }
@@ -196,7 +195,10 @@ class InputManagerTest {
             currentInput.module
         )
 
-        verify(observerForInput).onChanged(readInput)
+        verify(
+            observerForInput,
+            atMost(2)
+        ).onChanged(readInput)
     }
 
     @Test
@@ -249,11 +251,11 @@ class InputManagerTest {
 
         verify(
             observerForListOfInputs,
-            times(2)
+            atMost(2)
         ).onChanged(emptyList())
         verify(
             observerForInput,
-            times(2)
+            atMost(2)
         ).onChanged(null)
     }
 

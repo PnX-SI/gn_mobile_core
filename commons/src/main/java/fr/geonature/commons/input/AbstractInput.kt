@@ -23,6 +23,7 @@ abstract class AbstractInput(
 
     var id: Long = generateId()
     var date: Date = Date()
+    var status: Status = Status.DRAFT
     var datasetId: Long? = null
     private val inputObserverIds: MutableSet<Long> = mutableSetOf()
     private val inputTaxa: MutableMap<Long, AbstractInputTaxon> = LinkedHashMap()
@@ -31,6 +32,14 @@ abstract class AbstractInput(
     constructor(source: Parcel) : this(source.readString()!!) {
         this.id = source.readLong()
         this.date = source.readSerializable() as Date
+        this.status = source
+            .readString()
+            .let { statusAsString ->
+                Status
+                    .values()
+                    .firstOrNull { it.name == statusAsString }
+                    ?: Status.DRAFT
+            }
         this.datasetId = source
             .readLong()
             .takeIf { it != -1L }
@@ -62,6 +71,7 @@ abstract class AbstractInput(
             it.writeString(module)
             it.writeLong(this.id)
             it.writeSerializable(this.date)
+            it.writeString(this.status.name)
             it.writeLong(
                 this.datasetId
                     ?: -1L
@@ -85,6 +95,7 @@ abstract class AbstractInput(
         if (module != other.module) return false
         if (id != other.id) return false
         if (date != other.date) return false
+        if (status != other.status) return false
         if (datasetId != other.datasetId) return false
         if (inputObserverIds != other.inputObserverIds) return false
         if (inputTaxa != other.inputTaxa) return false
@@ -96,6 +107,7 @@ abstract class AbstractInput(
         var result = module.hashCode()
         result = 31 * result + id.hashCode()
         result = 31 * result + date.hashCode()
+        result = 31 * result + status.hashCode()
         result = 31 * result + datasetId.hashCode()
         result = 31 * result + inputObserverIds.hashCode()
         result = 31 * result + inputTaxa.hashCode()
@@ -214,6 +226,11 @@ abstract class AbstractInput(
     }
 
     abstract fun getTaxaFromParcel(source: Parcel): List<AbstractInputTaxon>
+
+    enum class Status {
+        DRAFT,
+        TO_SYNC
+    }
 
     /**
      * Generates a pseudo unique ID. The value is the number of seconds since Jan. 1, 2016, midnight.
