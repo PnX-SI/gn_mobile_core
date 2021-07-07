@@ -3,6 +3,7 @@ package fr.geonature.sync.data.dao
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import fr.geonature.commons.data.helper.Provider.buildUri
 import fr.geonature.commons.input.AbstractInput
 import fr.geonature.commons.util.getInputsFolder
@@ -30,9 +31,7 @@ class InputDao(private val context: Context) {
         val file = getExportedInput(
             values.getAsString("packageName"),
             values.getAsLong("id")
-        ).also {
-            it.mkdirs()
-        }
+        )
 
         val asJson = kotlin
             .runCatching { JSONObject(values.getAsString("data")) }
@@ -45,13 +44,20 @@ class InputDao(private val context: Context) {
             close()
         }
 
-        return buildUri(
+        val exportedInputUri = buildUri(
             "inputs",
-            values.getAsString("module"),
+            values.getAsString("packageName"),
             values
                 .getAsLong("id")
                 .toString()
         )
+
+        Log.i(
+            TAG,
+            "input '${values.getAsLong("id")}' exported (URI: $exportedInputUri)"
+        )
+
+        return exportedInputUri
     }
 
     fun getExportedInput(
@@ -59,7 +65,7 @@ class InputDao(private val context: Context) {
         inputId: Long
     ): File {
         return File(
-            FileUtils.getInputsFolder(context),
+            FileUtils.getInputsFolder(context).also { it.mkdirs() },
             "input_${packageId.substringAfterLast(".")}_${inputId}.json"
         )
     }
@@ -73,5 +79,9 @@ class InputDao(private val context: Context) {
             .filter { it.nameWithoutExtension.contains(packageId.substringAfterLast(".")) }
             .filter { it.canRead() }
             .count()
+    }
+
+    companion object {
+        private val TAG = InputDao::class.java.name
     }
 }

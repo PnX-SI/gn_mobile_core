@@ -123,7 +123,7 @@ class MainContentProvider : ContentProvider() {
                 context,
                 uri
             )
-            else -> throw IllegalArgumentException("Unknown URI: $uri")
+            else -> throw IllegalArgumentException("Unknown URI (query): $uri")
         }
     }
 
@@ -186,7 +186,7 @@ class MainContentProvider : ContentProvider() {
                     ParcelFileDescriptor.MODE_READ_ONLY
                 )
             }
-            else -> throw IllegalArgumentException("Unknown URI: $uri")
+            else -> throw IllegalArgumentException("Unknown URI (openFile): $uri")
         }
     }
 
@@ -205,7 +205,7 @@ class MainContentProvider : ContentProvider() {
 
                 InputDao(context).exportInput(values)
             }
-            else -> throw IllegalArgumentException("Unknown URI: $uri")
+            else -> throw IllegalArgumentException("Unknown URI (insert): $uri")
         }
     }
 
@@ -525,8 +525,8 @@ class MainContentProvider : ContentProvider() {
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 52
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 53
         const val SETTINGS = 60
-        const val INPUT_ID = 70
-        const val INPUTS_EXPORT = 71
+        const val INPUTS_EXPORT = 70
+        const val INPUT_ID = 71
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
@@ -633,13 +633,13 @@ class MainContentProvider : ContentProvider() {
             )
             addURI(
                 AUTHORITY,
-                "inputs/*/#",
-                INPUT_ID
+                "inputs/export",
+                INPUTS_EXPORT
             )
             addURI(
                 AUTHORITY,
-                "inputs/export",
-                INPUTS_EXPORT
+                "inputs/*/#",
+                INPUT_ID
             )
         }
     }
