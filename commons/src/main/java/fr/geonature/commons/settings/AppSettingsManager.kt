@@ -75,35 +75,39 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
             "Loading settings from URI '${appSettingsUri}'..."
         )
 
-        return application.contentResolver
-            .acquireContentProviderClient(appSettingsUri)
-            ?.let {
-                val appSettings = it
-                    .openFile(
-                        appSettingsUri,
-                        "r"
-                    )
-                    ?.let { pfd ->
-                        val appSettings = kotlin
-                            .runCatching { appSettingsJsonReader.read(FileReader(pfd.fileDescriptor)) }
-                            .getOrNull()
-
-                        if (appSettings == null) {
-                            Log.w(
-                                TAG,
-                                "failed to load settings from URI '${appSettingsUri}'"
+        return kotlin
+            .runCatching {
+                application.contentResolver
+                    .acquireContentProviderClient(appSettingsUri)
+                    ?.let {
+                        val appSettings = it
+                            .openFile(
+                                appSettingsUri,
+                                "r"
                             )
-                        }
+                            ?.let { pfd ->
+                                val appSettings = kotlin
+                                    .runCatching { appSettingsJsonReader.read(FileReader(pfd.fileDescriptor)) }
+                                    .getOrNull()
 
-                        pfd.close()
+                                if (appSettings == null) {
+                                    Log.w(
+                                        TAG,
+                                        "failed to load settings from URI '${appSettingsUri}'"
+                                    )
+                                }
+
+                                pfd.close()
+
+                                appSettings
+                            }
+
+                        it.close()
 
                         appSettings
                     }
-
-                it.close()
-
-                appSettings
             }
+            .getOrNull()
     }
 
     private fun loadAppSettingsFromFile(): AS? {
