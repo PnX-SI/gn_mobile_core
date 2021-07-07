@@ -56,7 +56,9 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         val authLoginLiveData = MutableLiveData<AuthLogin?>()
 
         viewModelScope.launch {
-            authLoginLiveData.postValue(authManager.getAuthLogin())
+            val authLogin = authManager.getAuthLogin()
+            authLoginLiveData.postValue(authLogin)
+            _isLoggedIn.postValue(authLogin != null)
         }
 
         return authLoginLiveData
