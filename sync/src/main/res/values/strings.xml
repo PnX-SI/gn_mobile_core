@@ -82,6 +82,7 @@
     <string name="snackbar_network_lost_sync">You are not connected to the Internet.\nSynchronization will resume automatically.</string>
     <string name="snackbar_settings_not_found">Unable to load settings \'%1$s\'</string>
     <string name="snackbar_settings_updated">Settings \'%1$s\' updated</string>
+    <string name="snackbar_upgrading_app">Upgrading…</string>
     <string name="snackbar_permissions_not_granted">Permissions were not granted</string>
     <string name="snackbar_permission_external_storage_rationale">External storage permission is needed</string>
 

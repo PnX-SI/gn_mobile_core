@@ -8,8 +8,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import fr.geonature.mountpoint.util.MountPointUtils.getExternalStorage
-import fr.geonature.mountpoint.util.MountPointUtils.getInternalStorage
+import fr.geonature.mountpoint.util.MountPointUtils
+import fr.geonature.sync.di.ServiceLocator
 import fr.geonature.sync.sync.worker.CheckAuthLoginWorker
 import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
 import java.util.concurrent.TimeUnit
@@ -20,26 +20,6 @@ import java.util.concurrent.TimeUnit
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 class MainApplication : Application() {
-
-    override fun onCreate() {
-        super.onCreate()
-
-        Log.i(
-            TAG,
-            "internal storage: " + getInternalStorage(this)
-        )
-        Log.i(
-            TAG,
-            "external storage: " + getExternalStorage(this)
-        )
-
-        val notificationManager = NotificationManagerCompat.from(this)
-        configureCheckInputsToSynchronizeChannel(notificationManager)
-        configureSynchronizeDataChannel(notificationManager)
-
-        checkAuthLogin()
-        checkInputsToSynchronize()
-    }
 
     private fun checkAuthLogin() {
         val workManager: WorkManager = WorkManager.getInstance(this)
@@ -112,6 +92,28 @@ class MainApplication : Application() {
         }
 
         return null
+    }
+
+    val sl = ServiceLocator(this)
+
+    override fun onCreate() {
+        super.onCreate()
+
+        Log.i(
+            TAG,
+            "internal storage: " + MountPointUtils.getInternalStorage(this)
+        )
+        Log.i(
+            TAG,
+            "external storage: " + MountPointUtils.getExternalStorage(this)
+        )
+
+        val notificationManager = NotificationManagerCompat.from(this)
+        configureCheckInputsToSynchronizeChannel(notificationManager)
+        configureSynchronizeDataChannel(notificationManager)
+
+        checkAuthLogin()
+        checkInputsToSynchronize()
     }
 
     companion object {

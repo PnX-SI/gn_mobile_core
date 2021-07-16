@@ -6,9 +6,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import fr.geonature.sync.MainApplication
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.sync.PackageInfo
-import fr.geonature.sync.sync.PackageInfoManager
 import okhttp3.ResponseBody
 import okhttp3.internal.Util
 import okio.Buffer
@@ -28,8 +28,7 @@ class DownloadPackageWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager =
-        PackageInfoManager.getInstance(applicationContext)
+    private val packageInfoManager = (applicationContext as MainApplication).sl.providePackageInfoManager()
 
     override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
@@ -38,10 +37,10 @@ class DownloadPackageWorker(
             return Result.failure()
         }
 
-        val packageInfoToUpdate =
-            packageInfoManager.getPackageInfo(packageName)
-                ?: return Result.failure()
-        val apkUrl = packageInfoToUpdate.apkUrl ?: return Result.failure()
+        val packageInfoToUpdate = packageInfoManager.getPackageInfo(packageName)
+            ?: return Result.failure()
+        val apkUrl = packageInfoToUpdate.apkUrl
+            ?: return Result.failure()
 
         val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
             ?: return Result.failure()
@@ -54,7 +53,8 @@ class DownloadPackageWorker(
         setProgress(workData(packageInfoToUpdate.packageName))
 
         return try {
-            val response = geoNatureAPIClient.downloadPackage(apkUrl)
+            val response = geoNatureAPIClient
+                .downloadPackage(apkUrl)
                 .awaitResponse()
 
             if (!response.isSuccessful) {
@@ -66,12 +66,13 @@ class DownloadPackageWorker(
                 )
             }
 
-            val responseBody = response.body() ?: return Result.failure(
-                workData(
-                    packageInfoToUpdate.packageName,
-                    100
+            val responseBody = response.body()
+                ?: return Result.failure(
+                    workData(
+                        packageInfoToUpdate.packageName,
+                        100
+                    )
                 )
-            )
 
             downloadAsFile(
                 responseBody,
@@ -99,19 +100,20 @@ class DownloadPackageWorker(
         val source = responseBody.source()
         val contentLength = responseBody.contentLength()
 
-        val apkFilePath =
-            "${applicationContext.getExternalFilesDir(null)?.absolutePath}/${packageInfo.packageName}_${packageInfo.versionCode}.apk"
+        val apkFilePath = "${applicationContext.getExternalFilesDir(null)?.absolutePath}/${packageInfo.packageName}_${packageInfo.versionCode}.apk"
 
         val buffer = Buffer()
         val bufferedSink = Okio.buffer(Okio.sink(File(apkFilePath)))
         var total = 0L
 
         while (true) {
-            val read: Long = source.read(
-                buffer,
-                4096
-            )
-                .takeUnless { it == -1L } ?: break
+            val read: Long = source
+                .read(
+                    buffer,
+                    4096
+                )
+                .takeUnless { it == -1L }
+                ?: break
 
             bufferedSink.write(
                 buffer,
@@ -134,6 +136,13 @@ class DownloadPackageWorker(
         Util.closeQuietly(source)
         Util.closeQuietly(bufferedSink)
         Util.closeQuietly(responseBody)
+
+        setProgressAsync(
+            workData(
+                packageInfo.packageName,
+                100
+            )
+        )
 
         return Result.success(
             workData(

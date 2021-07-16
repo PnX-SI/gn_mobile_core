@@ -12,6 +12,8 @@
         <!-- status bar color -->
         <item name="android:statusBarColor">?attr/colorPrimaryDark</item>
 
+        <item name="circularProgressIndicatorStyle">@style/Widget.App.CircularProgressIndicator</item>
+
     </style>
 
     <style name="Theme.Sync.Login" parent="Theme.Sync">
@@ -48,6 +50,14 @@
         <item name="boxStrokeColor">?android:textColorPrimaryInverse</item>
         <item name="android:textColorHint">?android:textColorPrimaryInverse</item>
         <item name="hintTextColor">?android:textColorPrimaryInverse</item>
+    </style>
+
+    <style name="Widget.App.CircularProgressIndicator" parent="Widget.MaterialComponents.CircularProgressIndicator">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.CircularProgressIndicator</item>
+    </style>
+
+    <style name="ThemeOverlay.App.CircularProgressIndicator" parent="">
+        <item name="colorPrimary">?attr/colorAccent</item>
     </style>
 
 </resources>

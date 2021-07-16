@@ -6,43 +6,41 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:minHeight="?attr/listPreferredItemHeight"
-    tools:ignore="RtlSymmetry">
+    android:minHeight="?attr/listPreferredItemHeight">
 
     <ImageView
         android:id="@android:id/icon1"
-        android:layout_width="?attr/listPreferredItemHeight"
-        android:layout_height="?attr/listPreferredItemHeight"
-        android:padding="@dimen/padding_default"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toBottomOf="@android:id/progress"
+        app:layout_constraintEnd_toEndOf="@android:id/progress"
+        app:layout_constraintStart_toStartOf="@android:id/progress"
+        app:layout_constraintTop_toTopOf="@android:id/progress"
         tools:ignore="ContentDescription"
         tools:srcCompat="@tools:sample/avatars" />
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@android:id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="invisible"
+        app:indicatorSize="52dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@android:id/icon2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingEnd="@dimen/padding_default"
         android:text="⬤"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textStyle="bold"
         android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@android:id/icon1"
-        app:layout_constraintTop_toTopOf="@android:id/icon1"
+        app:layout_constraintEnd_toEndOf="@android:id/progress"
+        app:layout_constraintTop_toTopOf="@android:id/progress"
         tools:ignore="HardcodedText" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="?attr/listPreferredItemHeight"
-        android:layout_height="?attr/listPreferredItemHeight"
-        android:indeterminate="true"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@android:id/button1"

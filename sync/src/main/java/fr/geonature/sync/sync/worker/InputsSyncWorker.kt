@@ -8,9 +8,9 @@ import androidx.work.Data
 import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import fr.geonature.sync.MainApplication
 import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.sync.PackageInfo
-import fr.geonature.sync.sync.PackageInfoManager
 import fr.geonature.sync.sync.SyncInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -30,7 +30,7 @@ class InputsSyncWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager = PackageInfoManager.getInstance(applicationContext)
+    private val packageInfoManager = (applicationContext as MainApplication).sl.providePackageInfoManager()
 
     override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
@@ -164,18 +164,12 @@ class InputsSyncWorker(
     }
 
     private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean {
-        val deleted = withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             File(syncInput.filePath)
                 .takeIf { it.exists() && it.isFile && it.parentFile?.canWrite() ?: false }
                 ?.delete()
                 ?: false
         }
-
-        if (deleted) {
-            packageInfoManager.getInputsToSynchronize(syncInput.packageInfo)
-        }
-
-        return deleted
     }
 
     private fun workData(
