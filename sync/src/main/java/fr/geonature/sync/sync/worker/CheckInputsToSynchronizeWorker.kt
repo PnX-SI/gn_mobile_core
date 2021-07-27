@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.firstOrNull
 /**
  * Checks Inputs to synchronize.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class CheckInputsToSynchronizeWorker(
     appContext: Context,
@@ -25,9 +25,9 @@ class CheckInputsToSynchronizeWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager = (applicationContext as MainApplication).sl.providePackageInfoManager()
-
     override suspend fun doWork(): Result {
+        val packageInfoManager = (applicationContext as MainApplication).sl.packageInfoManager
+
         val availableInputs = (packageInfoManager
             .getInstalledApplications()
             .firstOrNull()

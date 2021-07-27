@@ -11,9 +11,9 @@ import retrofit2.http.Query
 /**
  * TaxHub API interface definition.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-interface TaxHubService {
+interface ITaxHubService {
 
     @Headers("Accept: application/json")
     @GET("api/taxref/regnewithgroupe2")

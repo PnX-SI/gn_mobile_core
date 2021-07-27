@@ -9,7 +9,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.auth.AuthManager
 import fr.geonature.sync.ui.login.LoginActivity
 
 /**
@@ -24,9 +23,9 @@ class CheckAuthLoginWorker(
     appContext,
     workerParams
 ) {
-    private val authManager: AuthManager = AuthManager.getInstance(applicationContext)
-
     override suspend fun doWork(): Result {
+        val authManager = (applicationContext as MainApplication).sl.authManager
+
         // not connected: notify user
         if (authManager.getAuthLogin() == null) {
             with(NotificationManagerCompat.from(applicationContext)) {

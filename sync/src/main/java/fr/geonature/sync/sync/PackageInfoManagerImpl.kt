@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.work.WorkInfo
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
-import fr.geonature.sync.api.GeoNatureAPIClient
+import fr.geonature.sync.api.IGeoNatureAPIClient
 import fr.geonature.sync.sync.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +27,10 @@ import java.util.Locale
  *
  * @author S. Grimault
  */
-class PackageInfoManagerImpl(private val applicationContext: Context) : IPackageInfoManager {
+class PackageInfoManagerImpl(
+    private val applicationContext: Context,
+    private val geoNatureAPIClient: IGeoNatureAPIClient
+) : IPackageInfoManager {
 
     private val pm = applicationContext.packageManager
     private val sharedUserId = pm.getPackageInfo(
@@ -179,18 +182,13 @@ class PackageInfoManagerImpl(private val applicationContext: Context) : IPackage
     private suspend fun getAvailableApplications(): List<PackageInfo> =
         withContext(IO) {
             runCatching {
-                GeoNatureAPIClient
-                    .instance(applicationContext)
-                    ?.getApplications()
+                geoNatureAPIClient
+                    .getApplications()
                     ?.awaitResponse()
             }
                 .map {
-                    if (it?.isSuccessful == true) {
-                        it.body()
-                            ?: emptyList()
-                    } else {
-                        emptyList()
-                    }
+                    if (it?.isSuccessful == true) it.body()
+                        ?: emptyList() else emptyList()
                 }
                 .map { appPackages ->
                     appPackages

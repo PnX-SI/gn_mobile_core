@@ -38,7 +38,6 @@ import fr.geonature.commons.util.observeUntil
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
@@ -62,7 +61,7 @@ import kotlin.time.ExperimentalTime
 /**
  * Home screen Activity.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class HomeActivity : AppCompatActivity() {
 
@@ -263,7 +262,13 @@ class HomeActivity : AppCompatActivity() {
 
     private fun configureAuthLoginViewModel(): AuthLoginViewModel {
         return ViewModelProvider(this,
-            AuthLoginViewModel.Factory { AuthLoginViewModel(application) })
+            AuthLoginViewModel.Factory {
+                AuthLoginViewModel(
+                    application,
+                    (application as MainApplication).sl.authManager,
+                    (application as MainApplication).sl.geoNatureAPIClient
+                )
+            })
             .get(AuthLoginViewModel::class.java)
             .also { vm ->
                 vm
@@ -292,7 +297,7 @@ class HomeActivity : AppCompatActivity() {
             PackageInfoViewModel.Factory {
                 PackageInfoViewModel(
                     application,
-                    (application as MainApplication).sl.providePackageInfoManager()
+                    (application as MainApplication).sl.packageInfoManager
                 )
             })
             .get(
@@ -439,7 +444,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun checkGeoNatureSettings(): Boolean {
-        return GeoNatureAPIClient.instance(this) != null
+        return (application as MainApplication).sl.geoNatureAPIClient.checkSettings()
     }
 
     private fun startFirstSync(appSettings: AppSettings) {
@@ -460,8 +465,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun makeSnackbar(
         text: CharSequence,
-        @BaseTransientBottomBar.Duration
-        duration: Int = Snackbar.LENGTH_LONG
+        @BaseTransientBottomBar.Duration duration: Int = Snackbar.LENGTH_LONG
     ): Snackbar? {
         val view = homeContent
             ?: return null

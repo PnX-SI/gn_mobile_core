@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -19,11 +18,17 @@ import com.google.android.material.textfield.TextInputLayout
 import fr.geonature.commons.util.KeyboardUtils.hideSoftKeyboard
 import fr.geonature.commons.util.afterTextChanged
 import fr.geonature.commons.util.observeOnce
+import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
 import fr.geonature.sync.auth.AuthLoginViewModel
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.settings.AppSettingsViewModel
 
+/**
+ * Login Activity.
+ *
+ * @author S. Grimault
+ */
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var authLoginViewModel: AuthLoginViewModel
@@ -42,13 +47,19 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         authLoginViewModel = ViewModelProvider(this,
-            AuthLoginViewModel.Factory { AuthLoginViewModel(application) })
+            AuthLoginViewModel.Factory {
+                AuthLoginViewModel(
+                    application,
+                    (application as MainApplication).sl.authManager,
+                    (application as MainApplication).sl.geoNatureAPIClient
+                )
+            })
             .get(AuthLoginViewModel::class.java)
             .apply {
                 loginFormState.observe(this@LoginActivity,
-                    Observer {
+                    {
                         val loginState = it
-                            ?: return@Observer
+                            ?: return@observe
 
                         // disable login button unless both username / password is valid
                         buttonLogin?.isEnabled = loginState.isValid && appSettings != null
@@ -58,9 +69,9 @@ class LoginActivity : AppCompatActivity() {
                     })
 
                 loginResult.observe(this@LoginActivity,
-                    Observer {
+                    {
                         val loginResult = it
-                            ?: return@Observer
+                            ?: return@observe
 
                         progress?.visibility = View.GONE
 
@@ -70,7 +81,7 @@ class LoginActivity : AppCompatActivity() {
                                     ?: R.string.login_failed
                             )
 
-                            return@Observer
+                            return@observe
                         }
 
                         showToast(R.string.login_success)

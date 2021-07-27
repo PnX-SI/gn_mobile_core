@@ -7,7 +7,6 @@ import androidx.work.Data
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import fr.geonature.sync.MainApplication
-import fr.geonature.sync.api.GeoNatureAPIClient
 import fr.geonature.sync.sync.PackageInfo
 import okhttp3.ResponseBody
 import okhttp3.internal.Util
@@ -19,7 +18,7 @@ import java.io.File
 /**
  * Download given application package.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DownloadPackageWorker(
     appContext: Context,
@@ -28,8 +27,6 @@ class DownloadPackageWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager = (applicationContext as MainApplication).sl.providePackageInfoManager()
-
     override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
 
@@ -37,13 +34,12 @@ class DownloadPackageWorker(
             return Result.failure()
         }
 
-        val packageInfoToUpdate = packageInfoManager.getPackageInfo(packageName)
+        val packageInfoToUpdate = (applicationContext as MainApplication).sl.packageInfoManager.getPackageInfo(packageName)
             ?: return Result.failure()
         val apkUrl = packageInfoToUpdate.apkUrl
             ?: return Result.failure()
 
-        val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            ?: return Result.failure()
+        val geoNatureAPIClient = (applicationContext as MainApplication).sl.geoNatureAPIClient
 
         Log.i(
             TAG,
@@ -55,9 +51,9 @@ class DownloadPackageWorker(
         return try {
             val response = geoNatureAPIClient
                 .downloadPackage(apkUrl)
-                .awaitResponse()
+                ?.awaitResponse()
 
-            if (!response.isSuccessful) {
+            if (response?.isSuccessful == false) {
                 return Result.failure(
                     workData(
                         packageInfoToUpdate.packageName,
@@ -66,7 +62,7 @@ class DownloadPackageWorker(
                 )
             }
 
-            val responseBody = response.body()
+            val responseBody = response?.body()
                 ?: return Result.failure(
                     workData(
                         packageInfoToUpdate.packageName,

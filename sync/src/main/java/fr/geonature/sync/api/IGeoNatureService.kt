@@ -9,7 +9,6 @@ import fr.geonature.sync.api.model.User
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -22,19 +21,18 @@ import retrofit2.http.Url
 /**
  * GeoNature API interface definition.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-interface GeoNatureService {
+interface IGeoNatureService {
 
     @Headers(
         "Accept: application/json",
         "Content-Type: application/json;charset=UTF-8"
     )
     @POST("api/auth/login")
-    suspend fun authLogin(
-        @Body
-        authCredentials: AuthCredentials
-    ): Response<AuthLogin>
+    fun authLogin(
+        @Body authCredentials: AuthCredentials
+    ): Call<AuthLogin>
 
     @Headers(
         "Accept: application/json",
@@ -42,10 +40,8 @@ interface GeoNatureService {
     )
     @POST("api/{module}/releve")
     fun sendInput(
-        @Path("module")
-        module: String,
-        @Body
-        input: RequestBody
+        @Path("module") module: String,
+        @Body input: RequestBody
     ): Call<ResponseBody>
 
     @Headers("Accept: application/json")
@@ -55,8 +51,7 @@ interface GeoNatureService {
     @Headers("Accept: application/json")
     @GET("api/users/menu/{id}")
     fun getUsers(
-        @Path("id")
-        menuId: Int
+        @Path("id") menuId: Int
     ): Call<List<User>>
 
     @Headers("Accept: application/json")
@@ -74,8 +69,7 @@ interface GeoNatureService {
     @Headers("Accept: application/json")
     @GET("api/{module}/defaultNomenclatures")
     fun getDefaultNomenclaturesValues(
-        @Path("module")
-        module: String
+        @Path("module") module: String
     ): Call<ResponseBody>
 
     @Headers("Accept: application/json")
@@ -84,5 +78,7 @@ interface GeoNatureService {
 
     @Streaming
     @GET
-    fun downloadPackage(@Url url: String): Call<ResponseBody>
+    fun downloadPackage(
+        @Url url: String
+    ): Call<ResponseBody>
 }
