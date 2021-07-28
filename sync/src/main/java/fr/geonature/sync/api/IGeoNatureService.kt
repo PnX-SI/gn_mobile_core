@@ -45,7 +45,7 @@ interface IGeoNatureService {
     ): Call<ResponseBody>
 
     @Headers("Accept: application/json")
-    @GET("api/meta/datasets")
+    @GET("api/meta/datasets?fields=modules")
     fun getMetaDatasets(): Call<ResponseBody>
 
     @Headers("Accept: application/json")
