@@ -1,44 +1,30 @@
 package fr.geonature.commons.settings
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
+import fr.geonature.commons.data.helper.Provider
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import fr.geonature.mountpoint.model.MountPoint.StorageType.INTERNAL
 import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.mountpoint.util.FileUtils.getRootFolder
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileReader
-import java.io.IOException
 
 /**
  * Manage [IAppSettings].
- * - Read [IAppSettings] from `JSON` file
+ * - Read [IAppSettings] from URI
+ * - Read [IAppSettings] from `JSON` file as fallback
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class AppSettingsManager<AS : IAppSettings> private constructor(
     internal val application: Application,
     onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>
 ) {
-    private val appSettingsJsonReader: AppSettingsJsonReader<AS> =
-        AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
-
-    init {
-        GlobalScope.launch(Main) {
-            withContext(IO) {
-                getRootFolder(
-                    application,
-                    INTERNAL
-                )
-                    .mkdirs()
-            }
-        }
-    }
+    private val appSettingsJsonReader: AppSettingsJsonReader<AS> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     fun getAppSettingsFilename(): String {
         val packageName = application.packageName
@@ -47,47 +33,24 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
     }
 
     /**
-     * Loads [IAppSettings] from `JSON` file.
+     * Loads [IAppSettings] from URI or `JSON` file as fallback.
      *
      * @return [IAppSettings] or `null` if not found
      */
     suspend fun loadAppSettings(): AS? {
-        val settingsJsonFile = getAppSettingsAsFile()
+        val appSettings = withContext(Dispatchers.Default) {
+            loadAppSettingsFromUri()
+                ?: loadAppSettingsFromFile()
+        }
 
-        Log.i(
-            TAG,
-            "Loading settings from '${settingsJsonFile.absolutePath}'..."
-        )
-
-        if (!settingsJsonFile.exists()) {
+        if (appSettings == null) {
             Log.w(
                 TAG,
-                "'${settingsJsonFile.absolutePath}' not found"
+                "Failed to load '${getAppSettingsFilename()}'"
             )
-
-            return null
         }
 
-        @Suppress("BlockingMethodInNonBlockingContext")
-        return withContext(IO) {
-            try {
-                val appSettings = appSettingsJsonReader.read(FileReader(settingsJsonFile))
-
-                Log.i(
-                    TAG,
-                    "Settings loaded"
-                )
-
-                appSettings
-            } catch (e: IOException) {
-                Log.w(
-                    TAG,
-                    "Failed to load '${settingsJsonFile.name}'"
-                )
-
-                null
-            }
-        }
+        return appSettings
     }
 
     internal fun getAppSettingsAsFile(): File {
@@ -98,6 +61,75 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
             ),
             getAppSettingsFilename()
         )
+    }
+
+    @SuppressLint("Recycle")
+    private fun loadAppSettingsFromUri(): AS? {
+        val appSettingsUri = Provider.buildUri(
+            "settings",
+            getAppSettingsFilename()
+        )
+
+        Log.i(
+            TAG,
+            "Loading settings from URI '${appSettingsUri}'..."
+        )
+
+        return kotlin
+            .runCatching {
+                application.contentResolver
+                    .acquireContentProviderClient(appSettingsUri)
+                    ?.let {
+                        val appSettings = it
+                            .openFile(
+                                appSettingsUri,
+                                "r"
+                            )
+                            ?.let { pfd ->
+                                val appSettings = kotlin
+                                    .runCatching { appSettingsJsonReader.read(FileReader(pfd.fileDescriptor)) }
+                                    .getOrNull()
+
+                                if (appSettings == null) {
+                                    Log.w(
+                                        TAG,
+                                        "failed to load settings from URI '${appSettingsUri}'"
+                                    )
+                                }
+
+                                pfd.close()
+
+                                appSettings
+                            }
+
+                        it.close()
+
+                        appSettings
+                    }
+            }
+            .getOrNull()
+    }
+
+    private fun loadAppSettingsFromFile(): AS? {
+        val appSettingsJsonFile = getAppSettingsAsFile()
+
+        Log.i(
+            TAG,
+            "Loading settings from '${appSettingsJsonFile.absolutePath}'..."
+        )
+
+        if (!appSettingsJsonFile.exists()) {
+            Log.w(
+                TAG,
+                "'${appSettingsJsonFile.absolutePath}' not found"
+            )
+
+            return null
+        }
+
+        return kotlin
+            .runCatching { appSettingsJsonReader.read(FileReader(appSettingsJsonFile)) }
+            .getOrNull()
     }
 
     companion object {
@@ -117,12 +149,14 @@ class AppSettingsManager<AS : IAppSettings> private constructor(
         fun <AS : IAppSettings> getInstance(
             application: Application,
             onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>
-        ): AppSettingsManager<AS> = INSTANCE as AppSettingsManager<AS>?
-            ?: synchronized(this) {
-                INSTANCE as AppSettingsManager<AS>? ?: AppSettingsManager(
-                    application,
-                    onAppSettingsJsonJsonReaderListener
-                ).also { INSTANCE = it }
-            }
+        ): AppSettingsManager<AS> =
+            INSTANCE as AppSettingsManager<AS>?
+                ?: synchronized(this) {
+                    INSTANCE as AppSettingsManager<AS>?
+                        ?: AppSettingsManager(
+                            application,
+                            onAppSettingsJsonJsonReaderListener
+                        ).also { INSTANCE = it }
+                }
     }
 }

@@ -1,13 +1,9 @@
 package fr.geonature.commons.input
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import fr.geonature.commons.input.io.InputJsonReader
-import fr.geonature.commons.input.io.InputJsonWriter
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -17,17 +13,8 @@ import kotlinx.coroutines.launch
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-open class InputViewModel<I : AbstractInput>(
-    application: Application,
-    inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
-    inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>
-) : AndroidViewModel(application) {
-
-    private val inputManager = InputManager.getInstance(
-        application,
-        inputJsonReaderListener,
-        inputJsonWriterListener
-    )
+open class InputViewModel<I : AbstractInput>(private val inputManager: IInputManager<I>) :
+    ViewModel() {
 
     private var deletedInputToRestore: I? = null
 
@@ -90,7 +77,8 @@ open class InputViewModel<I : AbstractInput>(
      * Restores previously deleted [AbstractInput].
      */
     fun restoreDeletedInput() {
-        val selectedInputToRestore = deletedInputToRestore ?: return
+        val selectedInputToRestore = deletedInputToRestore
+            ?: return
 
         viewModelScope.launch {
             inputManager.saveInput(selectedInputToRestore)
@@ -103,20 +91,38 @@ open class InputViewModel<I : AbstractInput>(
      *
      * @param id the [AbstractInput] ID to export
      */
-    fun exportInput(id: Long) {
+    fun exportInput(
+        id: Long,
+        exported: () -> Unit = {}
+    ) {
         GlobalScope.launch(Main) {
-            inputManager.exportInput(id)
+            inputManager
+                .exportInput(id)
+                .also {
+                    if (it) {
+                        exported()
+                    }
+                }
         }
     }
 
     /**
-     * Exports [AbstractInput] from given ID as `JSON` file.
+     * Exports given [AbstractInput] as `JSON` file.
      *
      * @param input the [AbstractInput] to export
      */
-    fun exportInput(input: I) {
+    fun exportInput(
+        input: I,
+        exported: () -> Unit = {}
+    ) {
         GlobalScope.launch(Main) {
-            inputManager.exportInput(input)
+            inputManager
+                .exportInput(input)
+                .also {
+                    if (it) {
+                        exported()
+                    }
+                }
         }
     }
 

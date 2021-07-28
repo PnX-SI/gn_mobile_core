@@ -8,9 +8,8 @@ import androidx.work.Data
 import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import fr.geonature.sync.api.GeoNatureAPIClient
+import fr.geonature.sync.MainApplication
 import fr.geonature.sync.sync.PackageInfo
-import fr.geonature.sync.sync.PackageInfoManager
 import fr.geonature.sync.sync.SyncInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -21,7 +20,7 @@ import java.io.File
 /**
  * Inputs synchronization worker from given [PackageInfo].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class InputsSyncWorker(
     appContext: Context,
@@ -30,8 +29,6 @@ class InputsSyncWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager = PackageInfoManager.getInstance(applicationContext)
-
     override suspend fun doWork(): Result {
         val packageName = inputData.getString(KEY_PACKAGE_NAME)
 
@@ -39,11 +36,12 @@ class InputsSyncWorker(
             return Result.failure()
         }
 
+        val packageInfoManager = (applicationContext as MainApplication).sl.packageInfoManager
+
         val packageInfo: PackageInfo = packageInfoManager.getPackageInfo(packageName)
             ?: return Result.failure()
 
-        val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            ?: return Result.failure()
+        val geoNatureAPIClient = (applicationContext as MainApplication).sl.geoNatureAPIClient
 
         NotificationManagerCompat
             .from(applicationContext)
@@ -95,9 +93,9 @@ class InputsSyncWorker(
                         syncInput.module,
                         syncInput.payload
                     )
-                    .awaitResponse()
+                    ?.awaitResponse()
 
-                if (!response.isSuccessful) {
+                if (response?.isSuccessful == false) {
                     setProgress(
                         workData(
                             packageInfo.packageName,
@@ -164,18 +162,12 @@ class InputsSyncWorker(
     }
 
     private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean {
-        val deleted = withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             File(syncInput.filePath)
                 .takeIf { it.exists() && it.isFile && it.parentFile?.canWrite() ?: false }
                 ?.delete()
                 ?: false
         }
-
-        if (deleted) {
-            packageInfoManager.getInputsToSynchronize(syncInput.packageInfo)
-        }
-
-        return deleted
     }
 
     private fun workData(

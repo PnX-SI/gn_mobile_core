@@ -11,13 +11,14 @@ Synchronize observers inputs from synchronized apps (e.g. "Occtax").
 
 ## Launcher icons
 
-| Name                                                                 | Flavor    | Launcher icon                                                                                                          |
-| -------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Default                                                              | _generic_ | ![PNX](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/main/res/mipmap-xhdpi/ic_launcher.png) |
-| [Parc National des Cévennes](http://www.cevennes-parcnational.fr)    | _pnc_     | ![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xhdpi/ic_launcher.png)  |
-| [Parc National des Écrins](http://www.ecrins-parcnational.fr)        | _pne_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xhdpi/ic_launcher.png)  |
-| [Parc National du Mercantour](http://www.mercantour-parcnational.fr) | _pnm_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xhdpi/ic_launcher.png)  |
-| [Parc National de la Vanoise](http://www.vanoise-parcnational.fr)    | _pnv_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xhdpi/ic_launcher.png)  |
+| Name                                                                 | Flavor    | Launcher icon                                                                                                                                                                                                                                          |
+| -------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Default                                                              | _generic_ | ![PNX](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/main/res/mipmap-xhdpi/ic_launcher.png) ![PNX_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/debug/res/mipmap-xhdpi/ic_launcher.png)   |
+| [Parc amazonien de Guyane](https://www.parc-amazonien-guyane.fr)     | _pag_     | ![PAG](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pag/res/mipmap-xhdpi/ic_launcher.png) ![PAG_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pagDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national des Cévennes](http://www.cevennes-parcnational.fr)    | _pnc_     | ![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xhdpi/ic_launcher.png) ![PNC_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pncDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national des Écrins](http://www.ecrins-parcnational.fr)        | _pne_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xhdpi/ic_launcher.png) ![PNE_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pneDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national du Mercantour](http://www.mercantour-parcnational.fr) | _pnm_     | ![PNM](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xhdpi/ic_launcher.png) ![PNM_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnmDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national de la Vanoise](http://www.vanoise-parcnational.fr)    | _pnv_     | ![PNV](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xhdpi/ic_launcher.png) ![PNV_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnvDebug/res/mipmap-xhdpi/ic_launcher.png) |
 
 ## Settings
 
@@ -37,17 +38,17 @@ Example:
 
 ### Parameters description
 
-| Parameter                         | UI      | Description                                            | Default value |
-| --------------------------------- | ------- | ------------------------------------------------------ | ------------- |
-| `geonature_url`                   | &#9745; | GeoNature URL                                          |               |
-| `taxhub_url`                      | &#9745; | TaxHub URL                                             |               |
-| `uh_application_id`               | &#9744; | GeoNature application ID in UsersHub                   |               |
-| `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub        |               |
-| `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                        |               |
-| `code_area_type`                  | &#9744; | GeoNature selected area type                           |               |
-| `page_size`                       | &#9744; | Default page size while fetching paginated values      | 10000         |
-| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity   |               |
-| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity         |               |
+| Parameter                         | UI      | Description                                          | Default value |
+| --------------------------------- | ------- | ---------------------------------------------------- | ------------- |
+| `geonature_url`                   | &#9745; | GeoNature URL                                        |               |
+| `taxhub_url`                      | &#9745; | TaxHub URL                                           |               |
+| `uh_application_id`               | &#9744; | GeoNature application ID in UsersHub                 |               |
+| `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub      |               |
+| `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                      |               |
+| `code_area_type`                  | &#9744; | GeoNature selected area type                         |               |
+| `page_size`                       | &#9744; | Default page size while fetching paginated values    | 10000         |
+| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity |               |
+| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity       |               |
 
 ### Data synchronization periodicity
 
@@ -102,6 +103,9 @@ The authority of this content provider is `fr.geonature.sync.provider`.
 | **\<Base URI\>**/nomenclature_types/\*/default     | String                                  | Fetch all default nomenclature definitions from given application package ID (e.g. `fr.geonature.occtax`) |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*    | String, String                          | Fetch all nomenclature definitions from given type, matching a given kingdom                              |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*/\* | String, String, String                  | Fetch all nomenclature definitions from given type, matching a given kingdom and group                    |
+| **\<Base URI\>**/settings/\*                       | String                                  | Fetch app settings JSON file                                                                              |
+| **\<Base URI\>**/inputs/\*/#                       | String, Number                          | Get input as JSON file from given package ID (e.g. `fr.geonature.occtax`)                                 |
+| **\<Base URI\>**/inputs/export                     | ContentValues                           | Export input data to JSON file                                                                            |
 
 ## Full Build
 

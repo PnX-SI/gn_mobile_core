@@ -26,9 +26,8 @@ import fr.geonature.commons.data.TaxonArea
 import fr.geonature.commons.data.Taxonomy
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.api.GeoNatureAPIClient
+import fr.geonature.sync.api.IGeoNatureAPIClient
 import fr.geonature.sync.api.model.User
-import fr.geonature.sync.auth.AuthManager
 import fr.geonature.sync.data.LocalDatabase
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.DataSyncManager
@@ -49,7 +48,7 @@ import java.util.Locale
 /**
  * Local data synchronization worker.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DataSyncWorker(
     appContext: Context,
@@ -58,11 +57,12 @@ class DataSyncWorker(
     appContext,
     workerParams
 ) {
-    private val authManager: AuthManager = AuthManager.getInstance(applicationContext)
     private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
     private val workManager = WorkManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
+        val authManager = (applicationContext as MainApplication).sl.authManager
+
         val startTime = Date()
 
         // not connected: abort
@@ -92,10 +92,7 @@ class DataSyncWorker(
             )
         }
 
-        val geoNatureAPIClient = GeoNatureAPIClient.instance(applicationContext)
-            ?: return Result.failure(
-                workData(applicationContext.getString(R.string.sync_error_server_url_configuration))
-            )
+        val geoNatureAPIClient = (applicationContext as MainApplication).sl.geoNatureAPIClient
 
         val alreadyRunning = workManager
             .getWorkInfosByTag(DATA_SYNC_WORKER_TAG)
@@ -214,7 +211,7 @@ class DataSyncWorker(
         return syncTaxaResult
     }
 
-    private suspend fun syncDataset(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private suspend fun syncDataset(geoNatureServiceClient: IGeoNatureAPIClient): Result {
         Log.i(
             TAG,
             "synchronize dataset..."
@@ -223,12 +220,12 @@ class DataSyncWorker(
         val result = runCatching {
             geoNatureServiceClient
                 .getMetaDatasets()
-                .awaitResponse()
+                ?.awaitResponse()
         }
             .map {
                 checkResponse(it).run {
                     if (this.state == WorkInfo.State.FAILED) this else it
-                        .body()
+                        ?.body()
                         ?.byteStream()
                         ?: DataSyncStatus(
                             WorkInfo.State.FAILED,
@@ -302,7 +299,7 @@ class DataSyncWorker(
     }
 
     private suspend fun syncInputObservers(
-        geoNatureServiceClient: GeoNatureAPIClient,
+        geoNatureServiceClient: IGeoNatureAPIClient,
         menuId: Int
     ): Result {
         Log.i(
@@ -313,11 +310,11 @@ class DataSyncWorker(
         val result = runCatching {
             geoNatureServiceClient
                 .getUsers(menuId)
-                .awaitResponse()
+                ?.awaitResponse()
         }
             .map {
                 checkResponse(it).run {
-                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it.body() }.getOrNull()
+                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it?.body() }.getOrNull()
                         ?: emptyList<List<User>>()
                 }
             }
@@ -392,7 +389,7 @@ class DataSyncWorker(
         return Result.success()
     }
 
-    private suspend fun syncTaxonomyRanks(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private suspend fun syncTaxonomyRanks(geoNatureServiceClient: IGeoNatureAPIClient): Result {
         Log.i(
             TAG,
             "synchronize taxonomy ranks..."
@@ -401,12 +398,12 @@ class DataSyncWorker(
         val result = runCatching {
             geoNatureServiceClient
                 .getTaxonomyRanks()
-                .awaitResponse()
+                ?.awaitResponse()
         }
             .map {
                 checkResponse(it).run {
                     if (this.state == WorkInfo.State.FAILED) this else it
-                        .body()
+                        ?.body()
                         ?.byteStream()
                         ?: DataSyncStatus(
                             WorkInfo.State.FAILED,
@@ -479,7 +476,7 @@ class DataSyncWorker(
         return Result.success()
     }
 
-    private suspend fun syncNomenclature(geoNatureServiceClient: GeoNatureAPIClient): Result {
+    private suspend fun syncNomenclature(geoNatureServiceClient: IGeoNatureAPIClient): Result {
         Log.i(
             TAG,
             "synchronize nomenclature types..."
@@ -488,11 +485,11 @@ class DataSyncWorker(
         val nomenclaturesResult = runCatching {
             geoNatureServiceClient
                 .getNomenclatures()
-                .awaitResponse()
+                ?.awaitResponse()
         }
             .map {
                 checkResponse(it).run {
-                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it.body() }.getOrNull()
+                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it?.body() }.getOrNull()
                         ?: emptyList<fr.geonature.sync.api.model.NomenclatureType>()
                 }
             }
@@ -649,12 +646,12 @@ class DataSyncWorker(
         val defaultNomenclatureResult = runCatching {
             geoNatureServiceClient
                 .getDefaultNomenclaturesValues("occtax")
-                .awaitResponse()
+                ?.awaitResponse()
         }
             .map {
                 checkResponse(it).run {
                     if (this.state == WorkInfo.State.FAILED) this else it
-                        .body()
+                        ?.body()
                         ?.byteStream()
                         ?: DataSyncStatus(
                             WorkInfo.State.FAILED,
@@ -750,7 +747,7 @@ class DataSyncWorker(
     }
 
     private suspend fun syncTaxa(
-        geoNatureServiceClient: GeoNatureAPIClient,
+        geoNatureServiceClient: IGeoNatureAPIClient,
         listId: Int,
         codeAreaType: String?,
         pageSize: Int,
@@ -775,7 +772,7 @@ class DataSyncWorker(
                         pageSize,
                         offset
                     )
-                    .awaitResponse()
+                    ?.awaitResponse()
             }.getOrNull()
 
 
@@ -902,7 +899,7 @@ class DataSyncWorker(
                             pageSize,
                             offset
                         )
-                        .awaitResponse()
+                        ?.awaitResponse()
                 }.getOrNull()
 
                 if (taxrefAreasResponse == null || checkResponse(taxrefAreasResponse).state == WorkInfo.State.FAILED) {
@@ -1019,9 +1016,9 @@ class DataSyncWorker(
         )
     }
 
-    private suspend fun checkResponse(response: Response<*>): DataSyncStatus {
+    private suspend fun checkResponse(response: Response<*>?): DataSyncStatus {
         // not connected
-        if (response.code() == ServerStatus.UNAUTHORIZED.httpStatus) {
+        if (response?.code() == ServerStatus.UNAUTHORIZED.httpStatus) {
             setForeground(
                 createForegroundInfo(
                     createNotification(
@@ -1038,7 +1035,7 @@ class DataSyncWorker(
             )
         }
 
-        if (!response.isSuccessful) {
+        if (response?.isSuccessful == false) {
             return DataSyncStatus(
                 WorkInfo.State.FAILED,
                 applicationContext.getString(R.string.sync_error_server_error),

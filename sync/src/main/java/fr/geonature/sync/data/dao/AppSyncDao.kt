@@ -8,8 +8,6 @@ import androidx.preference.PreferenceManager
 import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.helper.Converters.dateToTimestamp
 import fr.geonature.commons.data.helper.Converters.fromTimestamp
-import fr.geonature.commons.util.getInputsFolder
-import fr.geonature.mountpoint.util.FileUtils
 import java.util.Date
 
 /**
@@ -17,9 +15,10 @@ import java.util.Date
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSyncDao(private val context: Context) {
+class AppSyncDao(context: Context) {
 
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val inputDao: InputDao = InputDao(context)
 
     fun findByPackageId(packageId: String?): Cursor {
         val cursor = MatrixCursor(AppSync
@@ -33,7 +32,7 @@ class AppSyncDao(private val context: Context) {
             packageId,
             dateToTimestamp(getLastSynchronizedDate()),
             dateToTimestamp(getLastEssentialSynchronizedDate()),
-            countInputsToSynchronize(packageId)
+            inputDao.countInputsToSynchronize(packageId)
         )
 
         cursor.addRow(values)
@@ -74,17 +73,6 @@ class AppSyncDao(private val context: Context) {
             )
             .takeUnless { it == -1L }
             .run { fromTimestamp(this) }
-    }
-
-    private fun countInputsToSynchronize(packageId: String): Number {
-        return FileUtils
-            .getInputsFolder(
-                context,
-                packageId
-            )
-            .walkTopDown()
-            .filter { it.isFile && it.extension == "json" && it.canRead() }
-            .count()
     }
 
     private fun buildLastSynchronizedDatePreferenceKey(complete: Boolean = true): String {

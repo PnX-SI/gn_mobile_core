@@ -22,43 +22,50 @@
         app:tint="@android:color/background_light"
         tools:ignore="ContentDescription" />
 
-    <EditText
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/edit_text_username"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="@dimen/text_margin"
         android:layout_marginEnd="24dp"
-        android:autofillHints="@string/login_login_hint"
         android:hint="@string/login_login_hint"
-        android:inputType="textEmailAddress"
-        android:selectAllOnFocus="true"
+        app:errorEnabled="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@android:id/icon"
-        tools:targetApi="o" />
+        app:layout_constraintTop_toBottomOf="@android:id/icon">
 
-    <EditText
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:selectAllOnFocus="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/edit_text_password"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/text_margin"
         android:layout_marginEnd="24dp"
-        android:autofillHints="@string/login_action_sign_in"
         android:hint="@string/login_password_hint"
-        android:imeActionLabel="@string/login_action_sign_in"
-        android:imeOptions="actionDone"
-        android:inputType="textPassword"
-        android:selectAllOnFocus="true"
+        app:errorEnabled="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_text_username"
-        tools:targetApi="o" />
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_username">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:selectAllOnFocus="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/button_login"
-        style="@style/TextAppearance.AppCompat.Medium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="start"

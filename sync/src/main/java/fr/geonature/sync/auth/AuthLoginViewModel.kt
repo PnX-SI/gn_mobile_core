@@ -1,8 +1,6 @@
 package fr.geonature.sync.auth
 
 import android.app.Application
-import android.content.Context
-import android.net.ConnectivityManager
 import android.text.TextUtils
 import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
@@ -11,26 +9,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import fr.geonature.commons.fp.Failure
 import fr.geonature.sync.R
-import fr.geonature.sync.api.GeoNatureAPIClient
-import fr.geonature.sync.api.model.AuthCredentials
+import fr.geonature.sync.api.IGeoNatureAPIClient
 import fr.geonature.sync.api.model.AuthLogin
-import fr.geonature.sync.api.model.AuthLoginError
 import kotlinx.coroutines.launch
-import retrofit2.Response
 
 /**
  * Login view model.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-class AuthLoginViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val authManager: AuthManager = AuthManager.getInstance(application)
-    private val geoNatureAPIClient: GeoNatureAPIClient? = GeoNatureAPIClient.instance(application)
-    private val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+class AuthLoginViewModel(
+    application: Application,
+    private val authManager: IAuthManager,
+    private val geoNatureAPIClient: IGeoNatureAPIClient
+) : AndroidViewModel(application) {
 
     private val _loginFormState = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginFormState
@@ -38,11 +32,10 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
-    private val _isLoggedIn = MutableLiveData<Boolean>()
-    val isLoggedIn: LiveData<Boolean> = _isLoggedIn
+    val isLoggedIn: LiveData<Boolean> = authManager.isLoggedIn
 
     init {
-        if (geoNatureAPIClient == null) {
+        if (!geoNatureAPIClient.checkSettings()) {
             _loginResult.value = LoginResult(error = R.string.login_failed_server_url_configuration)
             _loginFormState.value = LoginFormState(
                 isValid = false,
@@ -56,7 +49,8 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         val authLoginLiveData = MutableLiveData<AuthLogin?>()
 
         viewModelScope.launch {
-            authLoginLiveData.postValue(authManager.getAuthLogin())
+            val authLogin = authManager.getAuthLogin()
+            authLoginLiveData.postValue(authLogin)
         }
 
         return authLoginLiveData
@@ -67,53 +61,36 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         password: String,
         applicationId: Int
     ) {
-        if (geoNatureAPIClient == null) {
+        if (!geoNatureAPIClient.checkSettings()) {
             _loginResult.value = LoginResult(error = R.string.login_failed_server_url_configuration)
             return
         }
 
         viewModelScope.launch {
-            try {
-                val authLoginResponse = geoNatureAPIClient.authLogin(
-                    AuthCredentials(
-                        username,
-                        password,
-                        applicationId
-                    )
-                )
+            val authLogin = authManager.login(
+                username,
+                password,
+                applicationId
+            )
 
-                if (!authLoginResponse.isSuccessful) {
-                    val authLoginError = buildErrorResponse(authLoginResponse)
-
-                    _loginResult.value = if (authLoginError != null) {
-                        when (authLoginError.type) {
+            _loginResult.value = authLogin.fold({
+                when (it) {
+                    is AuthFailure -> {
+                        when (it.authLoginError.type) {
                             "login" -> LoginResult(error = R.string.login_failed_login)
                             "password" -> LoginResult(error = R.string.login_failed_password)
                             else -> LoginResult(error = R.string.login_failed)
                         }
-                    } else {
-                        LoginResult(error = R.string.login_failed)
                     }
-
-                    return@launch
-                }
-
-                val authLogin = authLoginResponse.body()
-
-                if (authLogin == null) {
-                    _loginResult.value = LoginResult(error = R.string.login_failed)
-                    return@launch
-                }
-
-                authManager
-                    .setAuthLogin(authLogin)
-                    .also {
-                        _isLoggedIn.value = it
-                        _loginResult.value = LoginResult(success = authLogin)
+                    is Failure.NetworkFailure -> {
+                        LoginResult(error = R.string.snackbar_network_lost)
                     }
-            } catch (e: Exception) {
-                _loginResult.value = LoginResult(error = if (connectivityManager.allNetworks.isEmpty()) R.string.snackbar_network_lost else R.string.login_failed)
-            }
+                    else -> LoginResult(error = R.string.login_failed)
+                }
+            },
+                {
+                    LoginResult(success = it)
+                }) as LoginResult
         }
     }
 
@@ -144,7 +121,6 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             val disconnected = authManager.logout()
             disconnectedLiveData.value = disconnected
-            _isLoggedIn.value = disconnected
         }
 
         return disconnectedLiveData
@@ -160,27 +136,14 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
         return !TextUtils.isEmpty(password)
     }
 
-    private fun buildErrorResponse(response: Response<AuthLogin>): AuthLoginError? {
-        val type = object : TypeToken<AuthLoginError>() {}.type
-
-        return Gson().fromJson(
-            response
-                .errorBody()!!
-                .charStream(),
-            type
-        )
-    }
-
     /**
      * Data validation state of the login form.
      *
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
     data class LoginFormState(
-        @StringRes
-        val usernameError: Int? = null,
-        @StringRes
-        val passwordError: Int? = null,
+        @StringRes val usernameError: Int? = null,
+        @StringRes val passwordError: Int? = null,
         val isValid: Boolean = false
     )
 
@@ -191,8 +154,7 @@ class AuthLoginViewModel(application: Application) : AndroidViewModel(applicatio
      */
     data class LoginResult(
         val success: AuthLogin? = null,
-        @StringRes
-        val error: Int? = null
+        @StringRes val error: Int? = null
     ) {
 
         fun hasError(): Boolean {
