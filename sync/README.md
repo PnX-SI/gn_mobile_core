@@ -11,13 +11,14 @@ Synchronize observers inputs from synchronized apps (e.g. "Occtax").
 
 ## Launcher icons
 
-| Name                                                                 | Flavor    | Launcher icon                                                                                                          |
-| -------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Default                                                              | _generic_ | ![PNX](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/main/res/mipmap-xhdpi/ic_launcher.png) |
-| [Parc National des Cévennes](http://www.cevennes-parcnational.fr)    | _pnc_     | ![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xhdpi/ic_launcher.png)  |
-| [Parc National des Écrins](http://www.ecrins-parcnational.fr)        | _pne_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xhdpi/ic_launcher.png)  |
-| [Parc National du Mercantour](http://www.mercantour-parcnational.fr) | _pnm_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xhdpi/ic_launcher.png)  |
-| [Parc National de la Vanoise](http://www.vanoise-parcnational.fr)    | _pnv_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xhdpi/ic_launcher.png)  |
+| Name                                                                 | Flavor    | Launcher icon                                                                                                                                                                                                                                          |
+| -------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Default                                                              | _generic_ | ![PNX](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/main/res/mipmap-xhdpi/ic_launcher.png) ![PNX_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/debug/res/mipmap-xhdpi/ic_launcher.png)   |
+| [Parc amazonien de Guyane](https://www.parc-amazonien-guyane.fr)     | _pag_     | ![PAG](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pag/res/mipmap-xhdpi/ic_launcher.png) ![PAG_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pagDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national des Cévennes](http://www.cevennes-parcnational.fr)    | _pnc_     | ![PNC](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnc/res/mipmap-xhdpi/ic_launcher.png) ![PNC_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pncDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national des Écrins](http://www.ecrins-parcnational.fr)        | _pne_     | ![PNE](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pne/res/mipmap-xhdpi/ic_launcher.png) ![PNE_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pneDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national du Mercantour](http://www.mercantour-parcnational.fr) | _pnm_     | ![PNM](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnm/res/mipmap-xhdpi/ic_launcher.png) ![PNM_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnmDebug/res/mipmap-xhdpi/ic_launcher.png) |
+| [Parc national de la Vanoise](http://www.vanoise-parcnational.fr)    | _pnv_     | ![PNV](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnv/res/mipmap-xhdpi/ic_launcher.png) ![PNV_debug](https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/sync/src/pnvDebug/res/mipmap-xhdpi/ic_launcher.png) |
 
 ## Settings
 
