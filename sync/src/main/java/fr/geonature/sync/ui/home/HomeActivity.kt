@@ -448,7 +448,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun startFirstSync(appSettings: AppSettings) {
-        if (dataSyncViewModel.lastSynchronizedDate.value == null && dataSyncViewModel.isSyncRunning.value != true) {
+        if (dataSyncViewModel.lastSynchronizedDate.value?.second == null && dataSyncViewModel.isSyncRunning.value != true) {
             dataSyncViewModel.startSync(appSettings)
         }
     }
