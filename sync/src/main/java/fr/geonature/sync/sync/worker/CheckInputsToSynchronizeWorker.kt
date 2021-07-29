@@ -10,13 +10,13 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.sync.PackageInfoManager
 import fr.geonature.sync.ui.home.HomeActivity
+import kotlinx.coroutines.flow.firstOrNull
 
 /**
  * Checks Inputs to synchronize.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class CheckInputsToSynchronizeWorker(
     appContext: Context,
@@ -25,11 +25,13 @@ class CheckInputsToSynchronizeWorker(
     appContext,
     workerParams
 ) {
-    private val packageInfoManager = PackageInfoManager.getInstance(applicationContext)
-
     override suspend fun doWork(): Result {
-        val availablePackageInfos = packageInfoManager.getInstalledApplications()
-        val availableInputs = availablePackageInfos
+        val packageInfoManager = (applicationContext as MainApplication).sl.packageInfoManager
+
+        val availableInputs = (packageInfoManager
+            .getInstalledApplications()
+            .firstOrNull()
+            ?: emptyList())
             .map { packageInfo -> packageInfoManager.getInputsToSynchronize(packageInfo) }
             .flatten()
 

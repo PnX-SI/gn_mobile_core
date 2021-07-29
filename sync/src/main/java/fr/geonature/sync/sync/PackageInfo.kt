@@ -2,7 +2,6 @@ package fr.geonature.sync.sync
 
 import android.content.Intent
 import android.graphics.drawable.Drawable
-import androidx.work.WorkInfo
 
 /**
  * Describes the contents of a package.
@@ -19,9 +18,9 @@ data class PackageInfo(
     val icon: Drawable? = null,
     val launchIntent: Intent? = null
 ) : Comparable<PackageInfo> {
-    var inputs: Int = 0
-    var state: WorkInfo.State = WorkInfo.State.ENQUEUED
     var settings: Any? = null
+    var inputsStatus: AppPackageInputsStatus? = null
+    var downloadStatus: AppPackageDownloadStatus? = null
 
     override fun compareTo(other: PackageInfo): Int {
         return packageName.compareTo(other.packageName)

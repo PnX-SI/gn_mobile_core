@@ -32,6 +32,15 @@ class InputTest {
     }
 
     @Test
+    fun testHasDefaultStatus() {
+        // given an empty Input
+        val input = DummyInput()
+
+        // then
+        assertTrue(input.status == AbstractInput.Status.DRAFT)
+    }
+
+    @Test
     fun testSetDate() {
         // given an empty Input
         val input = DummyInput()
@@ -90,11 +99,13 @@ class InputTest {
         // then
         assertNull(input.getPrimaryObserverId())
         assertTrue(
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .isEmpty()
         )
         assertTrue(
-            input.getInputObserverIds()
+            input
+                .getInputObserverIds()
                 .isEmpty()
         )
 
@@ -114,11 +125,13 @@ class InputTest {
         )
         assertArrayEquals(
             longArrayOf(6),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
         assertTrue(
-            input.getInputObserverIds()
+            input
+                .getInputObserverIds()
                 .isEmpty()
         )
 
@@ -139,7 +152,8 @@ class InputTest {
                 3,
                 4
             ),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
         assertArrayEquals(
@@ -147,7 +161,8 @@ class InputTest {
                 3,
                 4
             ),
-            input.getInputObserverIds()
+            input
+                .getInputObserverIds()
                 .toLongArray()
         )
     }
@@ -169,7 +184,8 @@ class InputTest {
         // then
         assertArrayEquals(
             longArrayOf(1),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
 
@@ -190,7 +206,8 @@ class InputTest {
                 1,
                 2
             ),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
 
@@ -213,7 +230,8 @@ class InputTest {
                 5,
                 6
             ),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
     }
@@ -259,7 +277,8 @@ class InputTest {
                 3,
                 5
             ),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
 
@@ -291,7 +310,8 @@ class InputTest {
                 8,
                 6
             ),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
     }
@@ -330,7 +350,8 @@ class InputTest {
                 3,
                 5
             ),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
 
@@ -345,7 +366,8 @@ class InputTest {
                 5,
                 7
             ),
-            input.getAllInputObserverIds()
+            input
+                .getAllInputObserverIds()
                 .toLongArray()
         )
     }
@@ -383,7 +405,8 @@ class InputTest {
                     )
                 )
             ),
-            input.getInputTaxa()
+            input
+                .getInputTaxa()
                 .toTypedArray()
         )
 
@@ -415,7 +438,8 @@ class InputTest {
                     )
                 )
             ),
-            input.getInputTaxa()
+            input
+                .getInputTaxa()
                 .toTypedArray()
         )
     }
@@ -500,7 +524,8 @@ class InputTest {
                     )
                 )
             ),
-            input.getInputTaxa()
+            input
+                .getInputTaxa()
                 .toTypedArray()
         )
 
@@ -522,7 +547,8 @@ class InputTest {
                     )
                 )
             ),
-            input.getInputTaxa()
+            input
+                .getInputTaxa()
                 .toTypedArray()
         )
     }
@@ -745,8 +771,7 @@ class InputTest {
         // given an Input
         val input = DummyInput().apply {
             id = 1234
-            date = Calendar.getInstance()
-                .time
+            date = Calendar.getInstance().time
             datasetId = 17
             setAllInputObservers(
                 listOf(
