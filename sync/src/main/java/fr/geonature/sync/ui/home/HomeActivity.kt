@@ -56,7 +56,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.time.ExperimentalTime
 
 /**
  * Home screen Activity.
@@ -84,7 +83,6 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var startSyncResultLauncher: ActivityResultLauncher<Intent>
 
-    @ExperimentalTime
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -291,7 +289,6 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    @ExperimentalTime
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
         return ViewModelProvider(this,
             PackageInfoViewModel.Factory {
@@ -406,7 +403,6 @@ class HomeActivity : AppCompatActivity() {
             })
     }
 
-    @ExperimentalTime
     private fun loadAppSettings(appSettingsLoaded: ((appSettings: AppSettings) -> Unit)? = null) {
         appSettingsViewModel
             .loadAppSettings()

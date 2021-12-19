@@ -29,7 +29,6 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 
 /**
@@ -131,7 +130,6 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-    @ExperimentalTime
     fun configurePeriodicSync(appSettings: AppSettings) {
         viewModelScope.launch {
             val alreadyRunning = workManager
@@ -222,7 +220,6 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             .cancel(DataSyncWorker.SYNC_NOTIFICATION_ID)
     }
 
-    @ExperimentalTime
     private fun configurePeriodicSync(
         appSettings: AppSettings,
         repeatInterval: Duration,
@@ -282,7 +279,6 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
     companion object {
         private val TAG = DataSyncViewModel::class.java.name
 
-        @ExperimentalTime
         private val DEFAULT_MIN_DURATION = 15.toDuration(DurationUnit.MINUTES)
     }
 }

@@ -3,7 +3,6 @@ package fr.geonature.sync.util
 import java.util.Locale
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 
 /**
@@ -12,7 +11,6 @@ import kotlin.time.toDuration
  * @author S. Grimault
  */
 
-@ExperimentalTime
 fun String.parseAsDuration(): Duration {
     return Regex("(\\d+)([smhd])")
         .findAll(lowercase(Locale.ROOT))
