@@ -168,7 +168,7 @@ class AuthLoginViewModel(
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
     class Factory(val creator: () -> AuthLoginViewModel) : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AuthLoginViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST") return creator() as T
             }

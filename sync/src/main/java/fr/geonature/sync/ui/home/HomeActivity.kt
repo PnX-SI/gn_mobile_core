@@ -51,8 +51,8 @@ import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
 import fr.geonature.sync.util.SettingsUtils.setGeoNatureServerUrl
 import fr.geonature.sync.util.SettingsUtils.setTaxHubServerUrl
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -254,8 +254,8 @@ class HomeActivity : AppCompatActivity() {
     private fun configureAppSettingsViewModel(): AppSettingsViewModel {
         return ViewModelProvider(this,
             fr.geonature.commons.settings.AppSettingsViewModel.Factory {
-                AppSettingsViewModel(application)
-            }).get(AppSettingsViewModel::class.java)
+                AppSettingsViewModel((application as MainApplication).sl.appSettingsManager)
+            })[AppSettingsViewModel::class.java]
     }
 
     private fun configureAuthLoginViewModel(): AuthLoginViewModel {
@@ -266,27 +266,25 @@ class HomeActivity : AppCompatActivity() {
                     (application as MainApplication).sl.authManager,
                     (application as MainApplication).sl.geoNatureAPIClient
                 )
-            })
-            .get(AuthLoginViewModel::class.java)
-            .also { vm ->
-                vm
-                    .checkAuthLogin()
-                    .observeOnce(this@HomeActivity) {
-                        if (checkGeoNatureSettings() && it == null) {
-                            Log.i(
-                                TAG,
-                                "not connected, redirect to LoginActivity"
-                            )
+            })[AuthLoginViewModel::class.java].also { vm ->
+            vm
+                .checkAuthLogin()
+                .observeOnce(this@HomeActivity) {
+                    if (checkGeoNatureSettings() && it == null) {
+                        Log.i(
+                            TAG,
+                            "not connected, redirect to LoginActivity"
+                        )
 
-                            startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
-                        }
+                        startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
                     }
-                vm.isLoggedIn.observe(this@HomeActivity,
-                    {
-                        this@HomeActivity.isLoggedIn = it
-                        invalidateOptionsMenu()
-                    })
-            }
+                }
+            vm.isLoggedIn.observe(this@HomeActivity,
+                {
+                    this@HomeActivity.isLoggedIn = it
+                    invalidateOptionsMenu()
+                })
+        }
     }
 
     private fun configurePackageInfoViewModel(): PackageInfoViewModel {
@@ -296,97 +294,86 @@ class HomeActivity : AppCompatActivity() {
                     application,
                     (application as MainApplication).sl.packageInfoManager
                 )
-            })
-            .get(
-                PackageInfoViewModel::class.java
-            )
-            .also { vm ->
-                vm.updateAvailable.observeOnce(this@HomeActivity) { appPackage ->
-                    appPackage?.run { confirmBeforeUpgrade(this.packageName) }
-                }
-
-                vm.appSettingsUpdated.observeOnce(this@HomeActivity) {
-                    Log.d(
-                        TAG,
-                        "reloading settings after update..."
-                    )
-
-                    loadAppSettings {
-                        makeSnackbar(
-                            getString(
-                                R.string.snackbar_settings_updated,
-                                appSettingsViewModel.getAppSettingsFilename()
-                            )
-                        )?.show()
-
-                        startFirstSync(it)
-                        synchronizeInstalledApplications()
-                    }
-                }
-
-                vm.packageInfos.observe(this@HomeActivity,
-                    {
-                        progressBar?.visibility = View.GONE
-                        adapter.setItems(it)
-                    })
+            })[PackageInfoViewModel::class.java].also { vm ->
+            vm.updateAvailable.observeOnce(this@HomeActivity) { appPackage ->
+                appPackage?.run { confirmBeforeUpgrade(this.packageName) }
             }
+
+            vm.appSettingsUpdated.observeOnce(this@HomeActivity) {
+                Log.d(
+                    TAG,
+                    "reloading settings after update..."
+                )
+
+                loadAppSettings {
+                    makeSnackbar(
+                        getString(
+                            R.string.snackbar_settings_updated,
+                            appSettingsViewModel.getAppSettingsFilename()
+                        )
+                    )?.show()
+
+                    startFirstSync(it)
+                    synchronizeInstalledApplications()
+                }
+            }
+
+            vm.packageInfos.observe(this@HomeActivity,
+                {
+                    progressBar?.visibility = View.GONE
+                    adapter.setItems(it)
+                })
+        }
     }
 
     private fun configureDataSyncViewModel(): DataSyncViewModel {
         return ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) })
-            .get(DataSyncViewModel::class.java)
-            .also { vm ->
-                vm.lastSynchronizedDate.observe(this@HomeActivity,
+            DataSyncViewModel.Factory { DataSyncViewModel(application) })[DataSyncViewModel::class.java].also { vm ->
+            vm.lastSynchronizedDate.observe(this@HomeActivity,
+                {
+                    dataSyncView?.setLastSynchronizedDate(it)
+                })
+            vm.isSyncRunning.observe(this@HomeActivity,
+                {
+                    invalidateOptionsMenu()
+                })
+            vm
+                .observeDataSyncStatus()
+                .observe(this@HomeActivity,
                     {
-                        dataSyncView?.setLastSynchronizedDate(it)
-                    })
-                vm.isSyncRunning.observe(this@HomeActivity,
-                    {
-                        invalidateOptionsMenu()
-                    })
-                vm
-                    .observeDataSyncStatus()
-                    .observe(this@HomeActivity,
-                        {
-                            if (it == null) {
-                                dataSyncView?.setState(WorkInfo.State.ENQUEUED)
-                                dataSyncView?.setMessage(null)
-                            }
+                        if (it == null) {
+                            dataSyncView?.setState(WorkInfo.State.ENQUEUED)
+                            dataSyncView?.setMessage(null)
+                        }
 
-                            it?.run {
-                                dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
-                                dataSyncView?.setMessage(it.syncMessage)
+                        it?.run {
+                            dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
+                            dataSyncView?.setMessage(it.syncMessage)
 
-                                if (it.serverStatus == UNAUTHORIZED) {
-                                    Log.i(
-                                        TAG,
-                                        "not connected (HTTP error code: 401), redirect to LoginActivity"
+                            if (it.serverStatus == UNAUTHORIZED) {
+                                Log.i(
+                                    TAG,
+                                    "not connected (HTTP error code: 401), redirect to LoginActivity"
+                                )
+
+                                Toast
+                                    .makeText(
+                                        this@HomeActivity,
+                                        R.string.toast_not_connected,
+                                        Toast.LENGTH_SHORT
                                     )
+                                    .show()
 
-                                    Toast
-                                        .makeText(
-                                            this@HomeActivity,
-                                            R.string.toast_not_connected,
-                                            Toast.LENGTH_SHORT
-                                        )
-                                        .show()
-
-                                    startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
-                                }
+                                startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
                             }
-                        })
-            }
+                        }
+                    })
+        }
     }
 
     @RequiresPermission(Manifest.permission.CHANGE_NETWORK_STATE)
     private fun checkNetwork() {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        if (connectivityManager.allNetworks.isEmpty()) {
-            makeSnackbar(getString(R.string.snackbar_network_lost_sync))?.show()
-            return
-        }
 
         connectivityManager.requestNetwork(NetworkRequest
             .Builder()
@@ -450,7 +437,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun synchronizeInstalledApplications() {
-        GlobalScope.launch(Main) {
+        CoroutineScope(Main).launch {
             progressBar?.visibility = View.VISIBLE
 
             delay(500)

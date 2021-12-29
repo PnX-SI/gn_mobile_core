@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 /**
  * [PackageInfo] view model.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class PackageInfoViewModel(
     application: Application,
@@ -254,7 +254,7 @@ class PackageInfoViewModel(
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
     class Factory(val creator: () -> PackageInfoViewModel) : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST") return creator() as T
         }
     }

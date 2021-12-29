@@ -1,5 +1,6 @@
 package fr.geonature.commons.input
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.SharedPreferences
@@ -31,8 +32,8 @@ class InputManagerImpl<I : AbstractInput>(
     private val _inputs: MutableLiveData<List<I>> = MutableLiveData()
     override val inputs: LiveData<List<I>> = _inputs
 
-    private val _input: MutableLiveData<I> = MutableLiveData()
-    override val input: LiveData<I> = _input
+    private val _input: MutableLiveData<I?> = MutableLiveData()
+    override val input: LiveData<I?> = _input
 
     override suspend fun readInputs(): List<I> =
         withContext(Default) {
@@ -127,6 +128,7 @@ class InputManagerImpl<I : AbstractInput>(
         return exportInput(inputToExport)
     }
 
+    @SuppressLint("Recycle")
     override suspend fun exportInput(input: I): Boolean {
         input.status = AbstractInput.Status.TO_SYNC
 

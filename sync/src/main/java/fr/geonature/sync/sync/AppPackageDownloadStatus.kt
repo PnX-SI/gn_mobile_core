@@ -1,6 +1,7 @@
 package fr.geonature.sync.sync
 
 import androidx.work.WorkInfo
+import fr.geonature.sync.api.model.AppPackage
 
 /**
  * Describes [AppPackage] download status.

@@ -34,7 +34,7 @@ import kotlin.time.toDuration
 /**
  * Keeps track of data sync operations from GeoNature.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DataSyncViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -271,7 +271,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
      * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
      */
     class Factory(val creator: () -> DataSyncViewModel) : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST") return creator() as T
         }
     }

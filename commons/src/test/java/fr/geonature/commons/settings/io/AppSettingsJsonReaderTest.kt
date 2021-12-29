@@ -17,7 +17,7 @@ import org.mockito.Mockito.atMost
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -35,7 +35,7 @@ class AppSettingsJsonReaderTest {
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         doReturn(DummyAppSettings()).`when`(onAppSettingsJsonJsonReaderListener)
             .createAppSettings()

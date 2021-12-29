@@ -53,9 +53,7 @@ class LoginActivity : AppCompatActivity() {
                     (application as MainApplication).sl.authManager,
                     (application as MainApplication).sl.geoNatureAPIClient
                 )
-            })
-            .get(AuthLoginViewModel::class.java)
-            .apply {
+            })[AuthLoginViewModel::class.java].apply {
                 loginFormState.observe(this@LoginActivity,
                     {
                         val loginState = it
@@ -155,43 +153,38 @@ class LoginActivity : AppCompatActivity() {
     private fun loadAppSettings() {
         ViewModelProvider(this,
             fr.geonature.commons.settings.AppSettingsViewModel.Factory {
-                AppSettingsViewModel(
-                    application
-                )
-            })
-            .get(AppSettingsViewModel::class.java)
-            .also { vm ->
-                vm
-                    .loadAppSettings()
-                    .observeOnce(this) {
-                        if (it == null) {
-                            makeSnackbar(
-                                getString(
-                                    R.string.snackbar_settings_not_found,
-                                    vm.getAppSettingsFilename()
-                                )
+                AppSettingsViewModel((application as MainApplication).sl.appSettingsManager)
+            })[AppSettingsViewModel::class.java].also { vm ->
+            vm
+                .loadAppSettings()
+                .observeOnce(this) {
+                    if (it == null) {
+                        makeSnackbar(
+                            getString(
+                                R.string.snackbar_settings_not_found,
+                                vm.getAppSettingsFilename()
                             )
-                                ?.addCallback(object :
-                                    BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                                    override fun onDismissed(
-                                        transientBottomBar: Snackbar?,
-                                        event: Int
-                                    ) {
-                                        super.onDismissed(
-                                            transientBottomBar,
-                                            event
-                                        )
+                        )
+                            ?.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                                override fun onDismissed(
+                                    transientBottomBar: Snackbar?,
+                                    event: Int
+                                ) {
+                                    super.onDismissed(
+                                        transientBottomBar,
+                                        event
+                                    )
 
-                                        setResult(RESULT_CANCELED)
-                                        finish()
-                                    }
-                                })
-                                ?.show()
-                        } else {
-                            appSettings = it
-                        }
+                                    setResult(RESULT_CANCELED)
+                                    finish()
+                                }
+                            })
+                            ?.show()
+                    } else {
+                        appSettings = it
                     }
-            }
+                }
+        }
     }
 
     private fun performLogin(

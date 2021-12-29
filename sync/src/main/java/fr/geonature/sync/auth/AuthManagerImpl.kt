@@ -22,8 +22,6 @@ import fr.geonature.sync.auth.io.AuthLoginJsonWriter
 import fr.geonature.sync.sync.worker.CheckAuthLoginWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.util.Calendar
@@ -175,22 +173,23 @@ class AuthManagerImpl(
                 }
         }
 
-    private fun checkSessionValidity(authLogin: AuthLogin): Boolean {
-        if (authLogin.expires.before(Calendar.getInstance().time)) {
-            Log.i(
-                TAG,
-                "auth login expiry date ${authLogin.expires} reached: perform logout"
-            )
+    private suspend fun checkSessionValidity(authLogin: AuthLogin): Boolean =
+        withContext(Dispatchers.Default) {
+            if (authLogin.expires.before(Calendar.getInstance().time)) {
+                Log.i(
+                    TAG,
+                    "auth login expiry date ${authLogin.expires} reached: perform logout"
+                )
 
-            GlobalScope.launch(Dispatchers.Default) {
+
                 logout()
+
+
+                return@withContext false
             }
 
-            return false
+            return@withContext true
         }
-
-        return true
-    }
 
     private fun buildAuthLoginErrorResponse(response: Response<AuthLogin>): AuthLoginError? {
         val responseErrorBody = response.errorBody()

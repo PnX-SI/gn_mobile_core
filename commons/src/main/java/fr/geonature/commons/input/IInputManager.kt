@@ -21,7 +21,7 @@ interface IInputManager<I : AbstractInput> {
     /**
      * Current loaded [AbstractInput] to edit.
      */
-    val input: LiveData<I>
+    val input: LiveData<I?>
 
     /**
      * Reads all [AbstractInput]s.

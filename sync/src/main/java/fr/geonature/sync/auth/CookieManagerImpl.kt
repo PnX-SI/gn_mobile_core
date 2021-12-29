@@ -5,9 +5,6 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.preference.PreferenceManager
 import fr.geonature.sync.auth.io.CookieHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import okhttp3.Cookie
 
 /**
@@ -29,9 +26,7 @@ class CookieManagerImpl(applicationContext: Context) : ICookieManager {
                         "cookie expiry date ${cookie.expiresAt()} reached: perform logout"
                     )
 
-                    GlobalScope.launch(Dispatchers.Default) {
-                        clearCookie()
-                    }
+                    clearCookie()
 
                     return null
                 }

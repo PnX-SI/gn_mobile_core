@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.atMost
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
@@ -51,11 +51,11 @@ class InputManagerTest {
     private lateinit var observerForListOfInputs: Observer<List<DummyInput>>
 
     @Mock
-    private lateinit var observerForInput: Observer<DummyInput>
+    private lateinit var observerForInput: Observer<DummyInput?>
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         onInputJsonReaderListener = object : InputJsonReader.OnInputJsonReaderListener<DummyInput> {
             override fun createInput(): DummyInput {

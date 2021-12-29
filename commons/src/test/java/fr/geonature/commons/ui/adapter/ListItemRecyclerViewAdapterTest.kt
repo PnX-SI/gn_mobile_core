@@ -13,7 +13,7 @@ import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -31,7 +31,7 @@ class ListItemRecyclerViewAdapterTest {
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         stringListItemRecyclerViewAdapter =
             StringListItemRecyclerViewAdapter(onListItemRecyclerViewAdapterListener)
