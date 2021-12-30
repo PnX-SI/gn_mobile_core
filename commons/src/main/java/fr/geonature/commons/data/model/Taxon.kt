@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.database.Cursor
 import android.os.Parcel
@@ -11,7 +11,7 @@ import fr.geonature.commons.data.helper.get
 /**
  * Describes a taxon.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @Entity(
     tableName = Taxon.TABLE_NAME,
@@ -85,7 +85,8 @@ class Taxon : AbstractTaxon {
                 val taxonomy = Taxonomy.fromCursor(
                     cursor,
                     tableAlias
-                ) ?: return null
+                )
+                    ?: return null
 
                 Taxon(
                     requireNotNull(

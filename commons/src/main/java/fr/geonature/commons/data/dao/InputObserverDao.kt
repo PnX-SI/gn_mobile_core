@@ -1,13 +1,14 @@
-package fr.geonature.sync.data.dao
+package fr.geonature.commons.data.dao
 
 import androidx.room.Dao
-import fr.geonature.commons.data.InputObserver
-import fr.geonature.commons.data.dao.BaseDao
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.ASC
+import fr.geonature.commons.data.model.InputObserver
 
 /**
  * Data access object for [InputObserver].
+ *
+ * @author S. Grimault
  */
 @Dao
 abstract class InputObserverDao : BaseDao<InputObserver>() {

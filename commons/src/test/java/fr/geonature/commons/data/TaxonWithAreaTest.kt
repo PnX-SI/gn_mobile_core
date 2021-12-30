@@ -2,8 +2,13 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.TaxonWithArea.Companion.defaultProjection
-import fr.geonature.commons.data.TaxonWithArea.Companion.fromCursor
+import fr.geonature.commons.data.model.AbstractTaxon
+import fr.geonature.commons.data.model.Taxon
+import fr.geonature.commons.data.model.TaxonArea
+import fr.geonature.commons.data.model.TaxonWithArea
+import fr.geonature.commons.data.model.TaxonWithArea.Companion.defaultProjection
+import fr.geonature.commons.data.model.TaxonWithArea.Companion.fromCursor
+import fr.geonature.commons.data.model.Taxonomy
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -403,7 +408,8 @@ class TaxonWithAreaTest {
     @Test
     fun testFilter() {
         val taxonFilterByAreaColors =
-            TaxonWithArea.Filter()
+            TaxonWithArea
+                .Filter()
                 .byAreaColors(
                     "red",
                     "grey"
@@ -418,7 +424,8 @@ class TaxonWithAreaTest {
 
         val taxonFilterByNameAndAreaColors =
             (
-                TaxonWithArea.Filter()
+                TaxonWithArea
+                    .Filter()
                     .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter
                 )
                 .byAreaColors(

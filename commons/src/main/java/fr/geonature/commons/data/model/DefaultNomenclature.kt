@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.database.Cursor
 import android.os.Parcel
@@ -13,7 +13,7 @@ import fr.geonature.commons.data.helper.get
 /**
  * Describes a default nomenclature item from given module.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @Entity(
     tableName = DefaultNomenclature.TABLE_NAME,

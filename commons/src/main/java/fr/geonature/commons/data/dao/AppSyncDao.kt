@@ -1,19 +1,19 @@
-package fr.geonature.sync.data.dao
+package fr.geonature.commons.data.dao
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.MatrixCursor
 import androidx.preference.PreferenceManager
-import fr.geonature.commons.data.AppSync
 import fr.geonature.commons.data.helper.Converters.dateToTimestamp
 import fr.geonature.commons.data.helper.Converters.fromTimestamp
+import fr.geonature.commons.data.model.AppSync
 import java.util.Date
 
 /**
  * Data access object for [AppSync].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class AppSyncDao(context: Context) {
 
@@ -21,7 +21,8 @@ class AppSyncDao(context: Context) {
     private val inputDao: InputDao = InputDao(context)
 
     fun findByPackageId(packageId: String?): Cursor {
-        val cursor = MatrixCursor(AppSync
+        val cursor = MatrixCursor(
+            AppSync
             .defaultProjection()
             .map { it.second }
             .toTypedArray())

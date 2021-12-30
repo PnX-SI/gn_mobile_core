@@ -3,7 +3,7 @@ package fr.geonature.sync.sync.io
 import android.util.JsonReader
 import android.util.Log
 import android.util.MalformedJsonException
-import fr.geonature.commons.data.Dataset
+import fr.geonature.commons.data.model.Dataset
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -16,7 +16,7 @@ import java.util.TimeZone
 /**
  * Default `JsonReader` about reading a `JSON` stream and build the corresponding [Dataset].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DatasetJsonReader {
 

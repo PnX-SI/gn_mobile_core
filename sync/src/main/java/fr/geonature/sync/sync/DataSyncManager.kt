@@ -3,13 +3,13 @@ package fr.geonature.sync.sync
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import fr.geonature.sync.data.dao.AppSyncDao
+import fr.geonature.commons.data.dao.AppSyncDao
 import java.util.Date
 
 /**
  * Manage synchronization statuses.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DataSyncManager private constructor(applicationContext: Context) {
 

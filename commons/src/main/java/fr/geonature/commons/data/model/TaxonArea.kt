@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.database.Cursor
 import android.os.Parcel
@@ -16,7 +16,7 @@ import java.util.Date
 /**
  * Describes a taxon data within an area.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @Entity(
     tableName = TaxonArea.TABLE_NAME,

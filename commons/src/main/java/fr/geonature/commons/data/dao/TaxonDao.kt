@@ -1,17 +1,16 @@
-package fr.geonature.sync.data.dao
+package fr.geonature.commons.data.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import fr.geonature.commons.data.AbstractTaxon
-import fr.geonature.commons.data.Taxon
-import fr.geonature.commons.data.TaxonArea
-import fr.geonature.commons.data.dao.BaseDao
 import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.model.AbstractTaxon
+import fr.geonature.commons.data.model.Taxon
+import fr.geonature.commons.data.model.TaxonArea
 
 /**
  * Data access object for [Taxon].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @Dao
 abstract class TaxonDao : BaseDao<Taxon>() {

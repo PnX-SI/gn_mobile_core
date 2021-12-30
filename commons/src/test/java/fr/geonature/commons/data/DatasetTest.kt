@@ -2,8 +2,9 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.Dataset.Companion.defaultProjection
-import fr.geonature.commons.data.Dataset.Companion.fromCursor
+import fr.geonature.commons.data.model.Dataset
+import fr.geonature.commons.data.model.Dataset.Companion.defaultProjection
+import fr.geonature.commons.data.model.Dataset.Companion.fromCursor
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

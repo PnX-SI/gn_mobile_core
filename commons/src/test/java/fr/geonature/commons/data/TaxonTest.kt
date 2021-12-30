@@ -2,9 +2,12 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.Taxon.Companion.defaultProjection
-import fr.geonature.commons.data.Taxon.Companion.fromCursor
+import fr.geonature.commons.data.model.Taxon.Companion.defaultProjection
+import fr.geonature.commons.data.model.Taxon.Companion.fromCursor
 import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.model.AbstractTaxon
+import fr.geonature.commons.data.model.Taxon
+import fr.geonature.commons.data.model.Taxonomy
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -302,7 +305,8 @@ class TaxonTest {
     @Test
     fun testFilter() {
         val taxonFilterByNameAndTaxonomy =
-            Taxon.Filter()
+            Taxon
+                .Filter()
                 .byNameOrDescriptionOrRank("as")
                 .byTaxonomy(
                     Taxonomy(
@@ -329,7 +333,8 @@ class TaxonTest {
         )
 
         val taxonFilterByNameAndKingdom =
-            Taxon.Filter()
+            Taxon
+                .Filter()
                 .byNameOrDescriptionOrRank("as")
                 .byTaxonomy(
                     Taxonomy(
@@ -353,7 +358,8 @@ class TaxonTest {
             taxonFilterByNameAndKingdom.second
         )
 
-        val taxonFilterByKingdom = Taxon.Filter()
+        val taxonFilterByKingdom = Taxon
+            .Filter()
             .byKingdom("Animalia")
             .build()
 
@@ -366,7 +372,8 @@ class TaxonTest {
             taxonFilterByKingdom.second
         )
 
-        val taxonFilterByAnyTaxonomy = Taxon.Filter()
+        val taxonFilterByAnyTaxonomy = Taxon
+            .Filter()
             .byTaxonomy(Taxonomy(""))
             .build()
 

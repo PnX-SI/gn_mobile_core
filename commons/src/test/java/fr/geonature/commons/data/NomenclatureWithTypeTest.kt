@@ -2,8 +2,11 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.NomenclatureWithType.Companion.defaultProjection
-import fr.geonature.commons.data.NomenclatureWithType.Companion.fromCursor
+import fr.geonature.commons.data.model.Nomenclature
+import fr.geonature.commons.data.model.NomenclatureWithType.Companion.defaultProjection
+import fr.geonature.commons.data.model.NomenclatureWithType.Companion.fromCursor
+import fr.geonature.commons.data.model.NomenclatureType
+import fr.geonature.commons.data.model.NomenclatureWithType
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -135,11 +138,13 @@ class NomenclatureWithTypeTest {
         // given a mocked Cursor
         val cursor = mock(Cursor::class.java)
 
-        Nomenclature.defaultProjection()
+        Nomenclature
+            .defaultProjection()
             .forEachIndexed { index, c ->
                 `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
             }
-        NomenclatureType.defaultProjection()
+        NomenclatureType
+            .defaultProjection()
             .forEach { c ->
                 `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
             }

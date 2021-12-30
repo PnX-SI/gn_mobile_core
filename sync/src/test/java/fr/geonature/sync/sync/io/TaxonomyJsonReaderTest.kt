@@ -1,7 +1,7 @@
 package fr.geonature.sync.sync.io
 
 import android.app.Application
-import fr.geonature.commons.data.Taxonomy
+import fr.geonature.commons.data.model.Taxonomy
 import fr.geonature.sync.FixtureHelper.getFixture
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNotNull

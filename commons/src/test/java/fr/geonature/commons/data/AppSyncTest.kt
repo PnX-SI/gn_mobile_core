@@ -2,7 +2,8 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.AppSync.Companion.defaultProjection
+import fr.geonature.commons.data.model.AppSync
+import fr.geonature.commons.data.model.AppSync.Companion.defaultProjection
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

@@ -1,9 +1,9 @@
 package fr.geonature.commons.input
 
 import android.os.Parcel
-import fr.geonature.commons.data.InputObserver
-import fr.geonature.commons.data.Taxon
-import fr.geonature.commons.data.Taxonomy
+import fr.geonature.commons.data.model.InputObserver
+import fr.geonature.commons.data.model.Taxon
+import fr.geonature.commons.data.model.Taxonomy
 import fr.geonature.commons.util.toDate
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals

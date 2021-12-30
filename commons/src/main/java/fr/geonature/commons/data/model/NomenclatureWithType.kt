@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.database.Cursor
 import android.os.Parcel
@@ -7,7 +7,7 @@ import android.os.Parcelable
 /**
  * Describes a nomenclature item with type.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 open class NomenclatureWithType : Nomenclature {
 
@@ -94,7 +94,8 @@ open class NomenclatureWithType : Nomenclature {
          * @return A newly created [NomenclatureWithType] instance
          */
         fun fromCursor(cursor: Cursor): NomenclatureWithType? {
-            val nomenclature = Nomenclature.fromCursor(cursor) ?: return null
+            val nomenclature = Nomenclature.fromCursor(cursor)
+                ?: return null
             val nomenclatureType = NomenclatureType.fromCursor(cursor)
 
             return NomenclatureWithType(nomenclature).also {

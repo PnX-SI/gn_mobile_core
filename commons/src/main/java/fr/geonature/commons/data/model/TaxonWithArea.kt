@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.database.Cursor
 import android.os.Parcel
@@ -7,7 +7,7 @@ import android.os.Parcelable
 /**
  * Describes a taxon with area.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class TaxonWithArea : AbstractTaxon {
 
@@ -97,7 +97,8 @@ class TaxonWithArea : AbstractTaxon {
          * @return A newly created [TaxonWithArea] instance
          */
         fun fromCursor(cursor: Cursor): TaxonWithArea? {
-            val taxon = Taxon.fromCursor(cursor) ?: return null
+            val taxon = Taxon.fromCursor(cursor)
+                ?: return null
             val taxonArea = TaxonArea.fromCursor(cursor)
 
             return TaxonWithArea(taxon).also {
@@ -137,16 +138,20 @@ class TaxonWithArea : AbstractTaxon {
 
             this.wheres.add(
                 Pair(
-                    "(${getColumnAlias(
+                    "(${
+                        getColumnAlias(
                         TaxonArea.COLUMN_COLOR,
                         TaxonArea.TABLE_NAME
-                    )} IN (${color.filter { it != "none" }
+                    )
+                    } IN (${color.filter { it != "none" }
                         .joinToString(", ") { "'$it'" }})${color.find { it == "none" }
                         ?.let {
-                            " OR (${getColumnAlias(
+                            " OR (${
+                                getColumnAlias(
                                 TaxonArea.COLUMN_COLOR,
                                 TaxonArea.TABLE_NAME
-                            )} IS NULL)"
+                            )
+                            } IS NULL)"
                         } ?: ""})",
                     null
                 )

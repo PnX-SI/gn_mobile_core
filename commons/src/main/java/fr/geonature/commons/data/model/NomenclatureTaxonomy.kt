@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.database.Cursor
 import android.util.Log
@@ -13,7 +13,7 @@ import fr.geonature.commons.data.helper.get
 /**
  * Describes a nomenclature item with taxonomy as join table.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @Entity(
     tableName = NomenclatureTaxonomy.TABLE_NAME,
@@ -119,7 +119,8 @@ class NomenclatureTaxonomy(
             val taxonomy = Taxonomy.fromCursor(
                 cursor,
                 tableAlias
-            ) ?: return null
+            )
+                ?: return null
 
             return try {
                 NomenclatureTaxonomy(

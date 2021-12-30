@@ -1,21 +1,20 @@
-package fr.geonature.sync.data.dao
+package fr.geonature.commons.data.dao
 
 import androidx.room.Dao
-import fr.geonature.commons.data.DefaultNomenclature
-import fr.geonature.commons.data.Nomenclature
-import fr.geonature.commons.data.NomenclatureTaxonomy
-import fr.geonature.commons.data.NomenclatureType
-import fr.geonature.commons.data.NomenclatureWithTaxonomy
-import fr.geonature.commons.data.Taxonomy
-import fr.geonature.commons.data.dao.BaseDao
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.JoinOperator.DEFAULT
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.ASC
+import fr.geonature.commons.data.model.DefaultNomenclature
+import fr.geonature.commons.data.model.Nomenclature
+import fr.geonature.commons.data.model.NomenclatureTaxonomy
+import fr.geonature.commons.data.model.NomenclatureType
+import fr.geonature.commons.data.model.NomenclatureWithTaxonomy
+import fr.geonature.commons.data.model.Taxonomy
 
 /**
  * Data access object for [Nomenclature].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @Dao
 abstract class NomenclatureDao : BaseDao<Nomenclature>() {

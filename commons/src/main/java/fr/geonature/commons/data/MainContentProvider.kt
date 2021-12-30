@@ -1,4 +1,4 @@
-package fr.geonature.sync.data
+package fr.geonature.commons.data
 
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -7,27 +7,27 @@ import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import fr.geonature.commons.data.AppSync
-import fr.geonature.commons.data.Dataset
-import fr.geonature.commons.data.DefaultNomenclature
-import fr.geonature.commons.data.InputObserver
-import fr.geonature.commons.data.Nomenclature
-import fr.geonature.commons.data.NomenclatureType
-import fr.geonature.commons.data.Taxon
-import fr.geonature.commons.data.Taxonomy
+import fr.geonature.commons.data.dao.AppSyncDao
+import fr.geonature.commons.data.dao.InputDao
+import fr.geonature.commons.data.dao.TaxonDao
 import fr.geonature.commons.data.helper.Provider.AUTHORITY
+import fr.geonature.commons.data.model.AppSync
+import fr.geonature.commons.data.model.Dataset
+import fr.geonature.commons.data.model.DefaultNomenclature
+import fr.geonature.commons.data.model.InputObserver
+import fr.geonature.commons.data.model.Nomenclature
+import fr.geonature.commons.data.model.NomenclatureType
+import fr.geonature.commons.data.model.Taxon
+import fr.geonature.commons.data.model.Taxonomy
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
-import fr.geonature.sync.data.dao.AppSyncDao
-import fr.geonature.sync.data.dao.InputDao
-import fr.geonature.sync.data.dao.TaxonDao
 import java.io.File
 import java.io.FileNotFoundException
 
 /**
  * Default ContentProvider implementation.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class MainContentProvider : ContentProvider() {
 

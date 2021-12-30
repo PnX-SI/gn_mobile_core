@@ -2,9 +2,10 @@ package fr.geonature.commons.data
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.Taxonomy.Companion.ANY
-import fr.geonature.commons.data.Taxonomy.Companion.defaultProjection
-import fr.geonature.commons.data.Taxonomy.Companion.fromCursor
+import fr.geonature.commons.data.model.Taxonomy
+import fr.geonature.commons.data.model.Taxonomy.Companion.ANY
+import fr.geonature.commons.data.model.Taxonomy.Companion.defaultProjection
+import fr.geonature.commons.data.model.Taxonomy.Companion.fromCursor
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

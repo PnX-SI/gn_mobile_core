@@ -6,7 +6,7 @@ import android.util.JsonToken.BEGIN_ARRAY
 import android.util.JsonToken.NAME
 import android.util.Log
 import android.util.MalformedJsonException
-import fr.geonature.commons.data.Taxonomy
+import fr.geonature.commons.data.model.Taxonomy
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -14,7 +14,7 @@ import java.io.StringReader
 /**
  * Default `JsonReader` about reading a `JSON` stream and build the corresponding [Taxonomy].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class TaxonomyJsonReader {
 

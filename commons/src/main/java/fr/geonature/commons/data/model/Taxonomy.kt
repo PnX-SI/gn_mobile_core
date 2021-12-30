@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.database.Cursor
 import android.os.Parcel
@@ -13,7 +13,7 @@ import java.util.Locale
 /**
  * Describes a taxonomic rank.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @Entity(
     tableName = Taxonomy.TABLE_NAME,

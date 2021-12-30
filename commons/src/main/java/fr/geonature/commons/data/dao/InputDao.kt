@@ -1,4 +1,4 @@
-package fr.geonature.sync.data.dao
+package fr.geonature.commons.data.dao
 
 import android.content.ContentValues
 import android.content.Context

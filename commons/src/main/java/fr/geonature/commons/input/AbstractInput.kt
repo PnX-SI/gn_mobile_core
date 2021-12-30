@@ -2,7 +2,7 @@ package fr.geonature.commons.input
 
 import android.os.Parcel
 import android.os.Parcelable
-import fr.geonature.commons.data.InputObserver
+import fr.geonature.commons.data.model.InputObserver
 import fr.geonature.commons.util.toDate
 import java.util.ArrayList
 import java.util.Calendar

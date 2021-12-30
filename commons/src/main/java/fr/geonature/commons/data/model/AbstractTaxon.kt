@@ -1,4 +1,4 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.model
 
 import android.os.Parcel
 import android.os.Parcelable
@@ -11,7 +11,7 @@ import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 /**
  * Base taxon.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 abstract class AbstractTaxon : Parcelable {
 
@@ -192,19 +192,27 @@ abstract class AbstractTaxon : Parcelable {
 
             this.wheres.add(
                 Pair(
-                    "(${getColumnAlias(
+                    "(${
+                        getColumnAlias(
                         COLUMN_NAME,
                         tableAlias
-                    )} LIKE ? OR ${getColumnAlias(
+                    )
+                    } LIKE ? OR ${
+                        getColumnAlias(
                         COLUMN_NAME_COMMON,
                         tableAlias
-                    )} LIKE ? OR ${getColumnAlias(
+                    )
+                    } LIKE ? OR ${
+                        getColumnAlias(
                         COLUMN_DESCRIPTION,
                         tableAlias
-                    )} LIKE ? OR ${getColumnAlias(
+                    )
+                    } LIKE ? OR ${
+                        getColumnAlias(
                         COLUMN_RANK,
                         tableAlias
-                    )} LIKE ?)",
+                    )
+                    } LIKE ?)",
                     arrayOf(
                         "%$queryString%",
                         "%$queryString%",
@@ -233,13 +241,17 @@ abstract class AbstractTaxon : Parcelable {
 
             this.wheres.add(
                 Pair(
-                    "((${Taxonomy.getColumnAlias(
-                        Taxonomy.COLUMN_KINGDOM,
-                        tableAlias
-                    )} = ?) AND (${Taxonomy.getColumnAlias(
-                        Taxonomy.COLUMN_GROUP,
-                        tableAlias
-                    )} = ?))",
+                    "((${
+                        Taxonomy.getColumnAlias(
+                            Taxonomy.COLUMN_KINGDOM,
+                            tableAlias
+                        )
+                    } = ?) AND (${
+                        Taxonomy.getColumnAlias(
+                            Taxonomy.COLUMN_GROUP,
+                            tableAlias
+                        )
+                    } = ?))",
                     arrayOf(
                         taxonomy.kingdom,
                         taxonomy.group
@@ -258,10 +270,12 @@ abstract class AbstractTaxon : Parcelable {
         fun byKingdom(kingdom: String): Filter {
             this.wheres.add(
                 Pair(
-                    "(${Taxonomy.getColumnAlias(
-                        Taxonomy.COLUMN_KINGDOM,
-                        tableAlias
-                    )} = ?)",
+                    "(${
+                        Taxonomy.getColumnAlias(
+                            Taxonomy.COLUMN_KINGDOM,
+                            tableAlias
+                        )
+                    } = ?)",
                     arrayOf(kingdom)
                 )
             )
@@ -329,13 +343,17 @@ abstract class AbstractTaxon : Parcelable {
         fun byCommonName(orderingTerm: SQLiteSelectQueryBuilder.OrderingTerm = SQLiteSelectQueryBuilder.OrderingTerm.ASC): OrderBy {
             this.orderBy.add(
                 Pair(
-                    "COALESCE(${getColumnAlias(
+                    "COALESCE(${
+                        getColumnAlias(
                         COLUMN_NAME_COMMON,
                         tableAlias
-                    )}, ${getColumnAlias(
+                    )
+                    }, ${
+                        getColumnAlias(
                         COLUMN_NAME,
                         tableAlias
-                    )})",
+                    )
+                    })",
                     orderingTerm
                 )
             )
