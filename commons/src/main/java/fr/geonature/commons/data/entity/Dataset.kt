@@ -1,4 +1,4 @@
-package fr.geonature.commons.data.model
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
@@ -7,77 +7,69 @@ import android.provider.BaseColumns
 import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.ForeignKey.CASCADE
-import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import java.util.Date
 
 /**
- * Describes a nomenclature item.
+ * Describes a dataset.
  *
  * @author S. Grimault
  */
 @Entity(
-    tableName = Nomenclature.TABLE_NAME,
-    foreignKeys = [ForeignKey(
-        entity = NomenclatureType::class,
-        parentColumns = [NomenclatureType.COLUMN_ID],
-        childColumns = [Nomenclature.COLUMN_TYPE_ID],
-        onDelete = CASCADE
-    )]
+    tableName = Dataset.TABLE_NAME,
+    primaryKeys = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE]
 )
-open class Nomenclature(
+@TypeConverters(Converters::class)
+data class Dataset(
+
     /**
-     * The unique ID of this nomenclature.
+     * The unique ID of this dataset.
      */
-    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
     var id: Long,
 
-    @ColumnInfo(name = COLUMN_CODE)
-    var code: String,
+    /**
+     * The related module of this dataset.
+     */
+    @ColumnInfo(name = COLUMN_MODULE)
+    var module: String,
 
-    @ColumnInfo(name = COLUMN_HIERARCHY)
-    var hierarchy: String,
-    
-    @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
-    var defaultLabel: String,
+    /**
+     * The name of the dataset.
+     */
+    @ColumnInfo(name = COLUMN_NAME)
+    var name: String,
 
-    @ColumnInfo(name = COLUMN_TYPE_ID, index = true)
-    var typeId: Long
+    /**
+     * The description of the dataset.
+     */
+    @ColumnInfo(name = COLUMN_DESCRIPTION)
+    var description: String?,
+
+    /**
+     * Whether this dataset is active or not.
+     */
+    @ColumnInfo(name = COLUMN_ACTIVE)
+    var active: Boolean = false,
+
+    /**
+     * The creation date of this dataset.
+     */
+    @ColumnInfo(name = COLUMN_CREATED_AT)
+    var createdAt: Date?
 ) : Parcelable {
 
-    internal constructor(source: Parcel) : this(
+    private constructor(source: Parcel) : this(
         source.readLong(),
         source.readString()!!,
         source.readString()!!,
-        source.readString()!!,
-        source.readLong()
+        source.readString(),
+        source.readByte() == 1.toByte(),
+        source.readSerializable() as Date
     )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Nomenclature) return false
-
-        if (id != other.id) return false
-        if (code != other.code) return false
-        if (hierarchy != other.hierarchy) return false
-        if (defaultLabel != other.defaultLabel) return false
-        if (typeId != other.typeId) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + code.hashCode()
-        result = 31 * result + hierarchy.hashCode()
-        result = 31 * result + defaultLabel.hashCode()
-        result = 31 * result + typeId.hashCode()
-
-        return result
-    }
 
     override fun describeContents(): Int {
         return 0
@@ -89,31 +81,33 @@ open class Nomenclature(
     ) {
         dest?.also {
             it.writeLong(id)
-            it.writeString(code)
-            it.writeString(hierarchy)
-            it.writeString(defaultLabel)
-            it.writeLong(typeId)
+            it.writeString(module)
+            it.writeString(name)
+            it.writeString(description)
+            it.writeByte((if (active) 1 else 0).toByte()) // as boolean value
+            it.writeSerializable(createdAt)
         }
     }
 
     companion object {
 
-        private val TAG = Nomenclature::class.java.name
+        private val TAG = Dataset::class.java.name
 
         /**
-         * The name of the 'nomenclatures' table.
+         * The name of the 'observers' table.
          */
-        const val TABLE_NAME = "nomenclatures"
+        const val TABLE_NAME = "dataset"
 
         /**
          * The name of the 'ID' column.
          */
         const val COLUMN_ID = BaseColumns._ID
 
-        const val COLUMN_CODE = "code"
-        const val COLUMN_HIERARCHY = "hierarchy"
-        const val COLUMN_DEFAULT_LABEL = "default_label"
-        const val COLUMN_TYPE_ID = "type_id"
+        const val COLUMN_MODULE = "module"
+        const val COLUMN_NAME = "name"
+        const val COLUMN_DESCRIPTION = "description"
+        const val COLUMN_ACTIVE = "active"
+        const val COLUMN_CREATED_AT = "created_at"
 
         /**
          * Gets the default projection.
@@ -125,19 +119,23 @@ open class Nomenclature(
                     tableAlias
                 ),
                 column(
-                    COLUMN_CODE,
+                    COLUMN_MODULE,
                     tableAlias
                 ),
                 column(
-                    COLUMN_HIERARCHY,
+                    COLUMN_NAME,
                     tableAlias
                 ),
                 column(
-                    COLUMN_DEFAULT_LABEL,
+                    COLUMN_DESCRIPTION,
                     tableAlias
                 ),
                 column(
-                    COLUMN_TYPE_ID,
+                    COLUMN_ACTIVE,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_CREATED_AT,
                     tableAlias
                 )
             )
@@ -157,22 +155,22 @@ open class Nomenclature(
         }
 
         /**
-         * Create a new [Nomenclature] from the specified [Cursor].
+         * Create a new [Dataset] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
          *
-         * @return A newly created [Nomenclature] instance
+         * @return A newly created [Dataset] instance
          */
         fun fromCursor(
             cursor: Cursor,
             tableAlias: String = TABLE_NAME
-        ): Nomenclature? {
+        ): Dataset? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                Nomenclature(
+                Dataset(
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
@@ -184,7 +182,7 @@ open class Nomenclature(
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
-                                COLUMN_CODE,
+                                COLUMN_MODULE,
                                 tableAlias
                             )
                         )
@@ -192,25 +190,30 @@ open class Nomenclature(
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
-                                COLUMN_HIERARCHY,
+                                COLUMN_NAME,
                                 tableAlias
                             )
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_DESCRIPTION,
+                            tableAlias
                         )
                     ),
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
-                                COLUMN_DEFAULT_LABEL,
+                                COLUMN_ACTIVE,
                                 tableAlias
-                            )
+                            ),
+                            false
                         )
                     ),
-                    requireNotNull(
-                        cursor.get(
-                            getColumnAlias(
-                                COLUMN_TYPE_ID,
-                                tableAlias
-                            )
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_CREATED_AT,
+                            tableAlias
                         )
                     )
                 )
@@ -225,13 +228,13 @@ open class Nomenclature(
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<Nomenclature> = object : Parcelable.Creator<Nomenclature> {
+        val CREATOR: Parcelable.Creator<Dataset> = object : Parcelable.Creator<Dataset> {
 
-            override fun createFromParcel(source: Parcel): Nomenclature {
-                return Nomenclature(source)
+            override fun createFromParcel(source: Parcel): Dataset {
+                return Dataset(source)
             }
 
-            override fun newArray(size: Int): Array<Nomenclature?> {
+            override fun newArray(size: Int): Array<Dataset?> {
                 return arrayOfNulls(size)
             }
         }

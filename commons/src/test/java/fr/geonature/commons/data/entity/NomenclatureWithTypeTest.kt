@@ -1,29 +1,38 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.Nomenclature
-import fr.geonature.commons.data.model.NomenclatureWithType.Companion.defaultProjection
-import fr.geonature.commons.data.model.NomenclatureWithType.Companion.fromCursor
-import fr.geonature.commons.data.model.NomenclatureType
-import fr.geonature.commons.data.model.NomenclatureWithType
+import fr.geonature.commons.data.entity.NomenclatureWithType.Companion.defaultProjection
+import fr.geonature.commons.data.entity.NomenclatureWithType.Companion.fromCursor
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [NomenclatureWithType].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class NomenclatureWithTypeTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -96,20 +105,17 @@ class NomenclatureWithTypeTest {
     @Test
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("SGR")
-        `when`(cursor.getString(2)).thenReturn("label")
-        `when`(cursor.getLong(3)).thenReturn(2)
-        `when`(cursor.getString(4)).thenReturn("SN")
-        `when`(cursor.getString(5)).thenReturn("1234:002")
-        `when`(cursor.getString(6)).thenReturn("label")
-        `when`(cursor.getLong(7)).thenReturn(1234)
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "SGR"
+        every { cursor.getString(2) } returns "label"
+        every { cursor.getLong(3) } returns 2
+        every { cursor.getString(4) } returns "SN"
+        every { cursor.getString(5) } returns "1234:002"
+        every { cursor.getString(6) } returns "label"
+        every { cursor.getLong(7) } returns 1234
 
         // when getting a nomenclature with type instance from Cursor
         val nomenclatureWithType = fromCursor(cursor)
@@ -136,24 +142,21 @@ class NomenclatureWithTypeTest {
     @Test
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         Nomenclature
             .defaultProjection()
             .forEachIndexed { index, c ->
-                `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                every { cursor.getColumnIndexOrThrow(c.second) } returns index
             }
         NomenclatureType
             .defaultProjection()
             .forEach { c ->
-                `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+                every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
             }
-
-        `when`(cursor.getLong(0)).thenReturn(2)
-        `when`(cursor.getString(1)).thenReturn("SN")
-        `when`(cursor.getString(2)).thenReturn("1234:002")
-        `when`(cursor.getString(3)).thenReturn("label")
-        `when`(cursor.getLong(4)).thenReturn(1234)
+        every { cursor.getLong(0) } returns 2
+        every { cursor.getString(1) } returns "SN"
+        every { cursor.getString(2) } returns "1234:002"
+        every { cursor.getString(3) } returns "label"
+        every { cursor.getLong(4) } returns 1234
 
         // when getting a nomenclature with type instance from Cursor
         val nomenclatureWithType = fromCursor(cursor)
@@ -175,10 +178,8 @@ class NomenclatureWithTypeTest {
     @Test
     fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEach { c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+            every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
         }
 
         // when getting a nomenclature with type instance from Cursor

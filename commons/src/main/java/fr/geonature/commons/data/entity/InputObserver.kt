@@ -1,4 +1,4 @@
-package fr.geonature.commons.data.model
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
@@ -7,45 +7,42 @@ import android.provider.BaseColumns
 import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
 
 /**
- * Describes a nomenclature type.
+ * Describes an input observer.
  *
  * @author S. Grimault
  */
-@Entity(
-    tableName = NomenclatureType.TABLE_NAME,
-    indices = [
-        Index(
-            value = [NomenclatureType.COLUMN_MNEMONIC],
-            unique = true
-        )
-    ]
-)
-data class NomenclatureType(
+@Entity(tableName = InputObserver.TABLE_NAME)
+data class InputObserver(
 
     /**
-     * The unique ID of this nomenclature type.
+     * The unique ID of the input observer.
      */
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = COLUMN_ID)
     var id: Long,
 
-    @ColumnInfo(name = COLUMN_MNEMONIC)
-    var mnemonic: String,
+    /**
+     * The last name of the input observer.
+     */
+    @ColumnInfo(name = COLUMN_LASTNAME)
+    var lastname: String?,
 
-    @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
-    var defaultLabel: String
+    /**
+     * The first name of the input observer.
+     */
+    @ColumnInfo(name = COLUMN_FIRSTNAME)
+    var firstname: String?
 ) : Parcelable {
 
     private constructor(source: Parcel) : this(
         source.readLong(),
-        source.readString()!!,
-        source.readString()!!
+        source.readString(),
+        source.readString()
     )
 
     override fun describeContents(): Int {
@@ -58,27 +55,34 @@ data class NomenclatureType(
     ) {
         dest?.also {
             it.writeLong(id)
-            it.writeString(mnemonic)
-            it.writeString(defaultLabel)
+            it.writeString(lastname)
+            it.writeString(firstname)
         }
     }
 
     companion object {
 
-        private val TAG = NomenclatureType::class.java.name
+        private val TAG = InputObserver::class.java.name
 
         /**
-         * The name of the 'nomenclature_types' table.
+         * The name of the 'observers' table.
          */
-        const val TABLE_NAME = "nomenclature_types"
+        const val TABLE_NAME = "observers"
 
         /**
          * The name of the 'ID' column.
          */
         const val COLUMN_ID = BaseColumns._ID
 
-        const val COLUMN_MNEMONIC = "mnemonic"
-        const val COLUMN_DEFAULT_LABEL = "default_label"
+        /**
+         * The name of the 'lastname' column.
+         */
+        const val COLUMN_LASTNAME = "lastname"
+
+        /**
+         * The name of the 'firstname' column.
+         */
+        const val COLUMN_FIRSTNAME = "firstname"
 
         /**
          * Gets the default projection.
@@ -90,11 +94,11 @@ data class NomenclatureType(
                     tableAlias
                 ),
                 column(
-                    COLUMN_MNEMONIC,
+                    COLUMN_LASTNAME,
                     tableAlias
                 ),
                 column(
-                    COLUMN_DEFAULT_LABEL,
+                    COLUMN_FIRSTNAME,
                     tableAlias
                 )
             )
@@ -114,22 +118,42 @@ data class NomenclatureType(
         }
 
         /**
-         * Create a new [NomenclatureType] from the specified [Cursor].
+         * Apply custom filter.
+         */
+        fun filter(queryString: String?): Pair<String?, Array<String>?> {
+            return if (queryString.isNullOrBlank()) Pair(
+                null,
+                null
+            )
+            else {
+                val filter = "%$queryString%"
+                Pair(
+                    "${getColumnAlias(COLUMN_LASTNAME)} LIKE ? OR ${getColumnAlias(COLUMN_FIRSTNAME)} LIKE ?",
+                    arrayOf(
+                        filter,
+                        filter
+                    )
+                )
+            }
+        }
+
+        /**
+         * Create a new [InputObserver] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
          *
-         * @return A newly created [NomenclatureType] instance
+         * @return A newly created [InputObserver] instance
          */
         fun fromCursor(
             cursor: Cursor,
             tableAlias: String = TABLE_NAME
-        ): NomenclatureType? {
+        ): InputObserver? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                NomenclatureType(
+                InputObserver(
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
@@ -138,20 +162,16 @@ data class NomenclatureType(
                             )
                         )
                     ),
-                    requireNotNull(
-                        cursor.get(
-                            getColumnAlias(
-                                COLUMN_MNEMONIC,
-                                tableAlias
-                            )
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_LASTNAME,
+                            tableAlias
                         )
                     ),
-                    requireNotNull(
-                        cursor.get(
-                            getColumnAlias(
-                                COLUMN_DEFAULT_LABEL,
-                                tableAlias
-                            )
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_FIRSTNAME,
+                            tableAlias
                         )
                     )
                 )
@@ -166,14 +186,14 @@ data class NomenclatureType(
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<NomenclatureType> =
-            object : Parcelable.Creator<NomenclatureType> {
+        val CREATOR: Parcelable.Creator<InputObserver> =
+            object : Parcelable.Creator<InputObserver> {
 
-                override fun createFromParcel(source: Parcel): NomenclatureType {
-                    return NomenclatureType(source)
+                override fun createFromParcel(source: Parcel): InputObserver {
+                    return InputObserver(source)
                 }
 
-                override fun newArray(size: Int): Array<NomenclatureType?> {
+                override fun newArray(size: Int): Array<InputObserver?> {
                     return arrayOfNulls(size)
                 }
             }

@@ -1,26 +1,36 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
-import fr.geonature.commons.data.model.NomenclatureTaxonomy
-import fr.geonature.commons.data.model.NomenclatureTaxonomy.Companion.defaultProjection
-import fr.geonature.commons.data.model.NomenclatureTaxonomy.Companion.fromCursor
-import fr.geonature.commons.data.model.Taxonomy
+import fr.geonature.commons.data.entity.NomenclatureTaxonomy.Companion.defaultProjection
+import fr.geonature.commons.data.entity.NomenclatureTaxonomy.Companion.fromCursor
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [NomenclatureTaxonomy].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class NomenclatureTaxonomyTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -45,15 +55,12 @@ class NomenclatureTaxonomyTest {
     @Test
     fun testCreateFromCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("Animalia")
-        `when`(cursor.getString(2)).thenReturn("Ascidies")
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "Animalia"
+        every { cursor.getString(2) } returns "Ascidies"
 
         // when getting a NomenclatureTaxonomy instance from Cursor
         val nomenclatureTaxonomy = fromCursor(cursor)

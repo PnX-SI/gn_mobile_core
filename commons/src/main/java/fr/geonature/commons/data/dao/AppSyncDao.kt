@@ -7,7 +7,7 @@ import android.database.MatrixCursor
 import androidx.preference.PreferenceManager
 import fr.geonature.commons.data.helper.Converters.dateToTimestamp
 import fr.geonature.commons.data.helper.Converters.fromTimestamp
-import fr.geonature.commons.data.model.AppSync
+import fr.geonature.commons.data.entity.AppSync
 import java.util.Date
 
 /**

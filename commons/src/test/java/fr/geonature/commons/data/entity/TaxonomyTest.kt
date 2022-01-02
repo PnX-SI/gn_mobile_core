@@ -1,29 +1,40 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.Taxonomy
-import fr.geonature.commons.data.model.Taxonomy.Companion.ANY
-import fr.geonature.commons.data.model.Taxonomy.Companion.defaultProjection
-import fr.geonature.commons.data.model.Taxonomy.Companion.fromCursor
+import fr.geonature.commons.data.entity.Taxonomy.Companion.ANY
+import fr.geonature.commons.data.entity.Taxonomy.Companion.defaultProjection
+import fr.geonature.commons.data.entity.Taxonomy.Companion.fromCursor
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [Taxonomy].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class TaxonomyTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -151,14 +162,11 @@ class TaxonomyTest {
     @Test
     fun testCreateFromCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getString(0)).thenReturn("Animalia")
-        `when`(cursor.getString(1)).thenReturn("Ascidies")
+        every { cursor.getString(0) } returns "Animalia"
+        every { cursor.getString(1) } returns "Ascidies"
 
         // when getting a Taxonomy instance from Cursor
         val taxonomy = fromCursor(cursor)

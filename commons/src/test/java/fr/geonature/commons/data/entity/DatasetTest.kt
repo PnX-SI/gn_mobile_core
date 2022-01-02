@@ -1,18 +1,19 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.Dataset
-import fr.geonature.commons.data.model.Dataset.Companion.defaultProjection
-import fr.geonature.commons.data.model.Dataset.Companion.fromCursor
+import fr.geonature.commons.data.entity.Dataset.Companion.defaultProjection
+import fr.geonature.commons.data.entity.Dataset.Companion.fromCursor
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
 import java.util.Date
@@ -20,10 +21,20 @@ import java.util.Date
 /**
  * Unit tests about [Dataset].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class DatasetTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -52,19 +63,16 @@ class DatasetTest {
     @Test
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
-            `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
+            every { cursor.getColumnIndex(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("occtax")
-        `when`(cursor.getString(2)).thenReturn("Dataset #1")
-        `when`(cursor.getString(3)).thenReturn("description")
-        `when`(cursor.getInt(4)).thenReturn(1)
-        `when`(cursor.getLong(5)).thenReturn(1477642500000)
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "occtax"
+        every { cursor.getString(2) } returns "Dataset #1"
+        every { cursor.getString(3) } returns "description"
+        every { cursor.getInt(4) } returns 1
+        every { cursor.getLong(5) } returns 1477642500000
 
         // when getting a dataset instance from Cursor
         val dataset = fromCursor(cursor)
@@ -87,8 +95,7 @@ class DatasetTest {
     @Test
     fun testCreateFromClosedCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-        `when`(cursor.isClosed).thenReturn(true)
+        every { cursor.isClosed } returns true
 
         // when getting InputObserver instance from Cursor
         val dataset = fromCursor(cursor)

@@ -5,21 +5,29 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import dagger.hilt.android.HiltAndroidApp
 import fr.geonature.mountpoint.util.MountPointUtils
 import fr.geonature.sync.di.ServiceLocator
 import fr.geonature.sync.sync.worker.CheckAuthLoginWorker
 import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 /**
  * Base class to maintain global application state.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-class MainApplication : Application() {
+@HiltAndroidApp
+class MainApplication : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     private fun checkAuthLogin() {
         val workManager: WorkManager = WorkManager.getInstance(this)
@@ -94,6 +102,7 @@ class MainApplication : Application() {
         return null
     }
 
+    @Deprecated("use instead Hilt as default dependency injection")
     val sl = ServiceLocator(this)
 
     override fun onCreate() {
@@ -114,6 +123,13 @@ class MainApplication : Application() {
 
         checkAuthLogin()
         checkInputsToSynchronize()
+    }
+
+    override fun getWorkManagerConfiguration(): Configuration {
+        return Configuration
+            .Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
     }
 
     companion object {

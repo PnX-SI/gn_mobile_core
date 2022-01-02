@@ -1,9 +1,9 @@
 package fr.geonature.commons.input
 
 import android.os.Parcel
-import fr.geonature.commons.data.model.InputObserver
-import fr.geonature.commons.data.model.Taxon
-import fr.geonature.commons.data.model.Taxonomy
+import fr.geonature.commons.data.entity.InputObserver
+import fr.geonature.commons.data.entity.Taxon
+import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.util.toDate
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -17,7 +17,7 @@ import java.util.Calendar
 /**
  * Unit tests about [AbstractInput].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class InputTest {

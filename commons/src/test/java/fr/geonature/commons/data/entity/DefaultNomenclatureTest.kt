@@ -1,25 +1,36 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.DefaultNomenclature
-import fr.geonature.commons.data.model.DefaultNomenclature.Companion.defaultProjection
+import fr.geonature.commons.data.entity.DefaultNomenclature.Companion.defaultProjection
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [DefaultNomenclature].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class DefaultNomenclatureTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -38,14 +49,12 @@ class DefaultNomenclatureTest {
     @Test
     fun testCreateFromCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
 
-        `when`(cursor.getString(0)).thenReturn("occtax")
-        `when`(cursor.getLong(1)).thenReturn(1234)
+        every { cursor.getString(0) } returns "occtax"
+        every { cursor.getLong(1) } returns 1234
 
         // when getting a DefaultNomenclature instance from Cursor
         val defaultNomenclature = DefaultNomenclature.fromCursor(cursor)

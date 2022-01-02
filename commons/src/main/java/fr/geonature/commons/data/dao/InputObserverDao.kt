@@ -3,7 +3,7 @@ package fr.geonature.commons.data.dao
 import androidx.room.Dao
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.ASC
-import fr.geonature.commons.data.model.InputObserver
+import fr.geonature.commons.data.entity.InputObserver
 
 /**
  * Data access object for [InputObserver].

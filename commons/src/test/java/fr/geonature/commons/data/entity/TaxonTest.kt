@@ -1,31 +1,40 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.Taxon.Companion.defaultProjection
-import fr.geonature.commons.data.model.Taxon.Companion.fromCursor
+import fr.geonature.commons.data.entity.Taxon.Companion.defaultProjection
+import fr.geonature.commons.data.entity.Taxon.Companion.fromCursor
 import fr.geonature.commons.data.helper.EntityHelper.column
-import fr.geonature.commons.data.model.AbstractTaxon
-import fr.geonature.commons.data.model.Taxon
-import fr.geonature.commons.data.model.Taxonomy
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [Taxon].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class TaxonTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -100,20 +109,17 @@ class TaxonTest {
     @Test
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
-            `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
+            every { cursor.getColumnIndex(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("taxon_01")
-        `when`(cursor.getString(2)).thenReturn("Animalia")
-        `when`(cursor.getString(3)).thenReturn("Ascidies")
-        `when`(cursor.getString(4)).thenReturn("taxon_01_common")
-        `when`(cursor.getString(5)).thenReturn("desc")
-        `when`(cursor.getString(6)).thenReturn("ES - 1234")
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "taxon_01"
+        every { cursor.getString(2) } returns "Animalia"
+        every { cursor.getString(3) } returns "Ascidies"
+        every { cursor.getString(4) } returns "taxon_01_common"
+        every { cursor.getString(5) } returns "desc"
+        every { cursor.getString(6) } returns "ES - 1234"
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -139,8 +145,6 @@ class TaxonTest {
     @Test
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
                 in arrayOf(
@@ -151,21 +155,24 @@ class TaxonTest {
                     column(
                         AbstractTaxon.COLUMN_DESCRIPTION,
                         Taxon.TABLE_NAME
+                    ),
+                    column(
+                        AbstractTaxon.COLUMN_RANK,
+                        Taxon.TABLE_NAME
                     )
                 ) -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
-                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                    every { cursor.getColumnIndexOrThrow(c.second) } returns -1
+                    every { cursor.getColumnIndex(c.second) } returns -1
                 }
                 else -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                    every { cursor.getColumnIndexOrThrow(c.second) } returns index
                 }
             }
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("taxon_01")
-        `when`(cursor.getString(2)).thenReturn("Animalia")
-        `when`(cursor.getString(3)).thenReturn("Ascidies")
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "taxon_01"
+        every { cursor.getString(2) } returns "Animalia"
+        every { cursor.getString(3) } returns "Ascidies"
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -188,8 +195,7 @@ class TaxonTest {
     @Test
     fun testCreateFromClosedCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-        `when`(cursor.isClosed).thenReturn(true)
+        every { cursor.isClosed } returns true
 
         // when getting a Taxon instance from Cursor
         val taxon = fromCursor(cursor)
@@ -201,8 +207,6 @@ class TaxonTest {
     @Test
     fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEach { c ->
             when (c) {
                 in arrayOf(
@@ -215,13 +219,11 @@ class TaxonTest {
                         Taxon.TABLE_NAME
                     )
                 ) -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
-                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                    every { cursor.getColumnIndexOrThrow(c.second) } returns -1
+                    every { cursor.getColumnIndex(c.second) } returns -1
                 }
                 else -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
-                        IllegalArgumentException::class.java
-                    )
+                    every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
                 }
             }
         }
@@ -304,17 +306,16 @@ class TaxonTest {
 
     @Test
     fun testFilter() {
-        val taxonFilterByNameAndTaxonomy =
-            Taxon
-                .Filter()
-                .byNameOrDescriptionOrRank("as")
-                .byTaxonomy(
-                    Taxonomy(
-                        "Animalia",
-                        "Ascidies"
-                    )
+        val taxonFilterByNameAndTaxonomy = Taxon
+            .Filter()
+            .byNameOrDescriptionOrRank("as")
+            .byTaxonomy(
+                Taxonomy(
+                    "Animalia",
+                    "Ascidies"
                 )
-                .build()
+            )
+            .build()
 
         assertEquals(
             "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
@@ -332,16 +333,15 @@ class TaxonTest {
             taxonFilterByNameAndTaxonomy.second
         )
 
-        val taxonFilterByNameAndKingdom =
-            Taxon
-                .Filter()
-                .byNameOrDescriptionOrRank("as")
-                .byTaxonomy(
-                    Taxonomy(
-                        "Animalia"
-                    )
+        val taxonFilterByNameAndKingdom = Taxon
+            .Filter()
+            .byNameOrDescriptionOrRank("as")
+            .byTaxonomy(
+                Taxonomy(
+                    "Animalia"
                 )
-                .build()
+            )
+            .build()
 
         assertEquals(
             "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",

@@ -1,16 +1,17 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.AppSync
-import fr.geonature.commons.data.model.AppSync.Companion.defaultProjection
+import fr.geonature.commons.data.entity.AppSync.Companion.defaultProjection
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -19,10 +20,20 @@ import java.util.Date
 /**
  * Unit tests about [AppSync].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class AppSyncTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -61,17 +72,14 @@ class AppSyncTest {
     @Test
     fun testCreateFromCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
-            `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
+            every { cursor.getColumnIndex(c.second) } returns index
         }
-
-        `when`(cursor.getString(0)).thenReturn("fr.geonature.sync")
-        `when`(cursor.getLong(1)).thenReturn(1477638900000)
-        `when`(cursor.getLong(2)).thenReturn(1477642500000)
-        `when`(cursor.getInt(3)).thenReturn(3)
+        every { cursor.getString(0) } returns "fr.geonature.sync"
+        every { cursor.getLong(1) } returns 1477638900000
+        every { cursor.getLong(2) } returns 1477642500000
+        every { cursor.getInt(3) } returns 3
 
         // when getting AppSync instance from Cursor
         val appSync = AppSync.fromCursor(cursor)

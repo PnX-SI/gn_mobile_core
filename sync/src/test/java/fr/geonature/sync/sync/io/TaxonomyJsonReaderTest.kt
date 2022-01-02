@@ -1,7 +1,7 @@
 package fr.geonature.sync.sync.io
 
 import android.app.Application
-import fr.geonature.commons.data.model.Taxonomy
+import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.sync.FixtureHelper.getFixture
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNotNull
@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
 /**
  * Unit tests about [TaxonomyJsonReader].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class)

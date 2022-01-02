@@ -1,30 +1,51 @@
-package fr.geonature.commons.data.model
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import android.provider.BaseColumns
 import android.util.Log
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
-import java.util.Date
 
 /**
- * Synchronization status.
+ * Describes a nomenclature type.
  *
  * @author S. Grimault
  */
-data class AppSync(
-    var packageId: String,
-    var lastSync: Date? = null,
-    var lastSyncEssential: Date? = null,
-    var inputsToSynchronize: Int = 0
+@Entity(
+    tableName = NomenclatureType.TABLE_NAME,
+    indices = [
+        Index(
+            value = [NomenclatureType.COLUMN_MNEMONIC],
+            unique = true
+        )
+    ]
+)
+data class NomenclatureType(
+
+    /**
+     * The unique ID of this nomenclature type.
+     */
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = COLUMN_ID)
+    var id: Long,
+
+    @ColumnInfo(name = COLUMN_MNEMONIC)
+    var mnemonic: String,
+
+    @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
+    var defaultLabel: String
 ) : Parcelable {
 
     private constructor(source: Parcel) : this(
+        source.readLong(),
         source.readString()!!,
-        source.readSerializable() as Date,
-        source.readSerializable() as Date,
-        source.readInt()
+        source.readString()!!
     )
 
     override fun describeContents(): Int {
@@ -36,22 +57,28 @@ data class AppSync(
         flags: Int
     ) {
         dest?.also {
-            it.writeString(packageId)
-            it.writeSerializable(lastSync)
-            it.writeSerializable(lastSyncEssential)
-            it.writeInt(inputsToSynchronize)
+            it.writeLong(id)
+            it.writeString(mnemonic)
+            it.writeString(defaultLabel)
         }
     }
 
     companion object {
 
-        private val TAG = AppSync::class.java.name
+        private val TAG = NomenclatureType::class.java.name
 
-        const val TABLE_NAME = "app_sync"
-        const val COLUMN_ID = "package_id"
-        const val COLUMN_LAST_SYNC = "last_sync"
-        const val COLUMN_LAST_SYNC_ESSENTIAL = "last_sync_essential"
-        const val COLUMN_INPUTS_TO_SYNCHRONIZE = "inputs_to_synchronize"
+        /**
+         * The name of the 'nomenclature_types' table.
+         */
+        const val TABLE_NAME = "nomenclature_types"
+
+        /**
+         * The name of the 'ID' column.
+         */
+        const val COLUMN_ID = BaseColumns._ID
+
+        const val COLUMN_MNEMONIC = "mnemonic"
+        const val COLUMN_DEFAULT_LABEL = "default_label"
 
         /**
          * Gets the default projection.
@@ -63,15 +90,11 @@ data class AppSync(
                     tableAlias
                 ),
                 column(
-                    COLUMN_LAST_SYNC,
+                    COLUMN_MNEMONIC,
                     tableAlias
                 ),
                 column(
-                    COLUMN_LAST_SYNC_ESSENTIAL,
-                    tableAlias
-                ),
-                column(
-                    COLUMN_INPUTS_TO_SYNCHRONIZE,
+                    COLUMN_DEFAULT_LABEL,
                     tableAlias
                 )
             )
@@ -91,22 +114,22 @@ data class AppSync(
         }
 
         /**
-         * Create a new [AppSync] from the specified [Cursor].
+         * Create a new [NomenclatureType] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
          *
-         * @return A newly created [AppSync] instance.
+         * @return A newly created [NomenclatureType] instance
          */
         fun fromCursor(
             cursor: Cursor,
             tableAlias: String = TABLE_NAME
-        ): AppSync? {
+        ): NomenclatureType? {
             if (cursor.isClosed) {
                 return null
             }
 
             return try {
-                AppSync(
+                NomenclatureType(
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
@@ -115,25 +138,20 @@ data class AppSync(
                             )
                         )
                     ),
-                    cursor.get(
-                        getColumnAlias(
-                            COLUMN_LAST_SYNC,
-                            tableAlias
-                        )
-                    ),
-                    cursor.get(
-                        getColumnAlias(
-                            COLUMN_LAST_SYNC_ESSENTIAL,
-                            tableAlias
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_MNEMONIC,
+                                tableAlias
+                            )
                         )
                     ),
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
-                                COLUMN_INPUTS_TO_SYNCHRONIZE,
+                                COLUMN_DEFAULT_LABEL,
                                 tableAlias
-                            ),
-                            0
+                            )
                         )
                     )
                 )
@@ -148,15 +166,16 @@ data class AppSync(
         }
 
         @JvmField
-        val CREATOR: Parcelable.Creator<AppSync> = object : Parcelable.Creator<AppSync> {
+        val CREATOR: Parcelable.Creator<NomenclatureType> =
+            object : Parcelable.Creator<NomenclatureType> {
 
-            override fun createFromParcel(source: Parcel): AppSync {
-                return AppSync(source)
-            }
+                override fun createFromParcel(source: Parcel): NomenclatureType {
+                    return NomenclatureType(source)
+                }
 
-            override fun newArray(size: Int): Array<AppSync?> {
-                return arrayOfNulls(size)
+                override fun newArray(size: Int): Array<NomenclatureType?> {
+                    return arrayOfNulls(size)
+                }
             }
-        }
     }
 }

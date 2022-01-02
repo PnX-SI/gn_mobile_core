@@ -1,4 +1,4 @@
-package fr.geonature.commons.data.model
+package fr.geonature.commons.data.entity
 
 import android.os.Parcel
 import android.os.Parcelable

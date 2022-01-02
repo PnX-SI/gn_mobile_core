@@ -1,32 +1,38 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.Nomenclature
-import fr.geonature.commons.data.model.NomenclatureTaxonomy
-import fr.geonature.commons.data.model.NomenclatureWithTaxonomy.Companion.defaultProjection
-import fr.geonature.commons.data.model.NomenclatureWithTaxonomy.Companion.fromCursor
-import fr.geonature.commons.data.model.NomenclatureType
-import fr.geonature.commons.data.model.NomenclatureWithTaxonomy
-import fr.geonature.commons.data.model.NomenclatureWithType
-import fr.geonature.commons.data.model.Taxonomy
+import fr.geonature.commons.data.entity.NomenclatureWithTaxonomy.Companion.defaultProjection
+import fr.geonature.commons.data.entity.NomenclatureWithTaxonomy.Companion.fromCursor
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [NomenclatureWithTaxonomy].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class NomenclatureWithTaxonomyTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -82,7 +88,25 @@ class NomenclatureWithTaxonomyTest {
             )
         )
 
-        assertEquals(
+        assertEquals(NomenclatureWithTaxonomy(
+            NomenclatureWithType(
+                2,
+                "SN",
+                "1234:002",
+                "label",
+                1234,
+                NomenclatureType(
+                    1234,
+                    "SGR",
+                    "label"
+                )
+            )
+        ).also {
+            it.taxonony = Taxonomy(
+                "Animalia",
+                "Ascidies"
+            )
+        },
             NomenclatureWithTaxonomy(
                 NomenclatureWithType(
                     2,
@@ -101,49 +125,26 @@ class NomenclatureWithTaxonomyTest {
                     "Animalia",
                     "Ascidies"
                 )
-            },
-            NomenclatureWithTaxonomy(
-                NomenclatureWithType(
-                    2,
-                    "SN",
-                    "1234:002",
-                    "label",
-                    1234,
-                    NomenclatureType(
-                        1234,
-                        "SGR",
-                        "label"
-                    )
-                )
-            ).also {
-                it.taxonony = Taxonomy(
-                    "Animalia",
-                    "Ascidies"
-                )
-            }
-        )
+            })
     }
 
     @Test
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("SGR")
-        `when`(cursor.getString(2)).thenReturn("label")
-        `when`(cursor.getLong(3)).thenReturn(2)
-        `when`(cursor.getString(4)).thenReturn("SN")
-        `when`(cursor.getString(5)).thenReturn("1234:002")
-        `when`(cursor.getString(6)).thenReturn("label")
-        `when`(cursor.getLong(7)).thenReturn(1234)
-        `when`(cursor.getLong(8)).thenReturn(2)
-        `when`(cursor.getString(9)).thenReturn("Animalia")
-        `when`(cursor.getString(10)).thenReturn("Ascidies")
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "SGR"
+        every { cursor.getString(2) } returns "label"
+        every { cursor.getLong(3) } returns 2
+        every { cursor.getString(4) } returns "SN"
+        every { cursor.getString(5) } returns "1234:002"
+        every { cursor.getString(6) } returns "label"
+        every { cursor.getLong(7) } returns 1234
+        every { cursor.getLong(8) } returns 2
+        every { cursor.getString(9) } returns "Animalia"
+        every { cursor.getString(10) } returns "Ascidies"
 
         // when getting a nomenclature with taxonomy instance from Cursor
         val nomenclatureWithTaxonomy = fromCursor(cursor)
@@ -177,25 +178,20 @@ class NomenclatureWithTaxonomyTest {
     @Test
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in NomenclatureTaxonomy.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
-                    IllegalArgumentException::class.java
-                )
-                else -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                in NomenclatureTaxonomy.defaultProjection() -> every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
+                else -> every { cursor.getColumnIndexOrThrow(c.second) } returns index
             }
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("SGR")
-        `when`(cursor.getString(2)).thenReturn("label")
-        `when`(cursor.getLong(3)).thenReturn(2)
-        `when`(cursor.getString(4)).thenReturn("SN")
-        `when`(cursor.getString(5)).thenReturn("1234:002")
-        `when`(cursor.getString(6)).thenReturn("label")
-        `when`(cursor.getLong(7)).thenReturn(1234)
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "SGR"
+        every { cursor.getString(2) } returns "label"
+        every { cursor.getLong(3) } returns 2
+        every { cursor.getString(4) } returns "SN"
+        every { cursor.getString(5) } returns "1234:002"
+        every { cursor.getString(6) } returns "label"
+        every { cursor.getLong(7) } returns 1234
 
         // when getting a nomenclature with taxonomy instance from Cursor
         val nomenclatureWithTaxonomy = fromCursor(cursor)
@@ -224,16 +220,10 @@ class NomenclatureWithTaxonomyTest {
     @Test
     fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in NomenclatureTaxonomy.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(
-                    index
-                )
-                else -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
-                    IllegalArgumentException::class.java
-                )
+                in NomenclatureTaxonomy.defaultProjection() -> every { cursor.getColumnIndexOrThrow(c.second) } returns index
+                else -> every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
             }
         }
 

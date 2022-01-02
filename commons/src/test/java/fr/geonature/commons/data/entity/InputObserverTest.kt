@@ -1,27 +1,38 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.InputObserver
-import fr.geonature.commons.data.model.InputObserver.Companion.defaultProjection
-import fr.geonature.commons.data.model.InputObserver.Companion.fromCursor
+import fr.geonature.commons.data.entity.InputObserver.Companion.defaultProjection
+import fr.geonature.commons.data.entity.InputObserver.Companion.fromCursor
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [InputObserver].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class InputObserverTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -42,15 +53,12 @@ class InputObserverTest {
     @Test
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("lastname")
-        `when`(cursor.getString(2)).thenReturn("firstname")
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "lastname"
+        every { cursor.getString(2) } returns "firstname"
 
         // when getting InputObserver instance from Cursor
         val inputObserver = fromCursor(cursor)
@@ -70,15 +78,12 @@ class InputObserverTest {
     @Test
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn(null)
-        `when`(cursor.getString(2)).thenReturn(null)
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns null
+        every { cursor.getString(2) } returns null
 
         // when getting InputObserver instance from Cursor
         val inputObserver = fromCursor(cursor)
@@ -98,15 +103,12 @@ class InputObserverTest {
     @Test
     fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEach { c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(IllegalArgumentException::class.java)
+            every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
         }
-
-        `when`(cursor.getLong(0)).thenReturn(0)
-        `when`(cursor.getString(1)).thenReturn(null)
-        `when`(cursor.getString(2)).thenReturn(null)
+        every { cursor.getLong(0) } returns 0
+        every { cursor.getString(1) } returns null
+        every { cursor.getString(2) } returns null
 
         // when getting InputObserver instance from Cursor
         val inputObserver = fromCursor(cursor)
@@ -118,8 +120,7 @@ class InputObserverTest {
     @Test
     fun testCreateFromClosedCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-        `when`(cursor.isClosed).thenReturn(true)
+        every { cursor.isClosed } returns true
 
         // when getting InputObserver instance from Cursor
         val inputObserver = fromCursor(cursor)

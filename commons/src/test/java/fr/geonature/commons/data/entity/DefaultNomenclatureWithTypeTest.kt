@@ -1,29 +1,36 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.DefaultNomenclatureWithType.Companion.defaultProjection
-import fr.geonature.commons.data.model.DefaultNomenclature
-import fr.geonature.commons.data.model.DefaultNomenclatureWithType
-import fr.geonature.commons.data.model.Nomenclature
-import fr.geonature.commons.data.model.NomenclatureType
-import fr.geonature.commons.data.model.NomenclatureWithType
+import fr.geonature.commons.data.entity.DefaultNomenclatureWithType.Companion.defaultProjection
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [DefaultNomenclatureWithType].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class DefaultNomenclatureWithTypeTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -102,22 +109,19 @@ class DefaultNomenclatureWithTypeTest {
     @Test
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getString(1)).thenReturn("SGR")
-        `when`(cursor.getString(2)).thenReturn("label")
-        `when`(cursor.getLong(3)).thenReturn(2)
-        `when`(cursor.getString(4)).thenReturn("SN")
-        `when`(cursor.getString(5)).thenReturn("1234:002")
-        `when`(cursor.getString(6)).thenReturn("label")
-        `when`(cursor.getLong(7)).thenReturn(1234)
-        `when`(cursor.getString(8)).thenReturn("occtax")
-        `when`(cursor.getLong(9)).thenReturn(2)
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getString(1) } returns "SGR"
+        every { cursor.getString(2) } returns "label"
+        every { cursor.getLong(3) } returns 2
+        every { cursor.getString(4) } returns "SN"
+        every { cursor.getString(5) } returns "1234:002"
+        every { cursor.getString(6) } returns "label"
+        every { cursor.getLong(7) } returns 1234
+        every { cursor.getString(8) } returns "occtax"
+        every { cursor.getLong(9) } returns 2
 
         // when getting a nomenclature with taxonomy instance from Cursor
         val defaultNomenclatureWithNomenclature = DefaultNomenclatureWithType.fromCursor(cursor)
@@ -148,19 +152,14 @@ class DefaultNomenclatureWithTypeTest {
     @Test
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
-                in NomenclatureWithType.defaultProjection() -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
-                    IllegalArgumentException::class.java
-                )
-                else -> `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                in NomenclatureWithType.defaultProjection() -> every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
+                else -> every { cursor.getColumnIndexOrThrow(c.second) } returns index
             }
         }
-
-        `when`(cursor.getString(8)).thenReturn("occtax")
-        `when`(cursor.getLong(9)).thenReturn(2)
+        every { cursor.getString(8) } returns "occtax"
+        every { cursor.getLong(9) } returns 2
 
         // when getting a nomenclature with taxonomy instance from Cursor
         val defaultNomenclatureWithNomenclature = DefaultNomenclatureWithType.fromCursor(cursor)

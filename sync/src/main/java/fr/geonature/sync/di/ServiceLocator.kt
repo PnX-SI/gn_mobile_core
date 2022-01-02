@@ -19,6 +19,7 @@ import fr.geonature.sync.sync.PackageInfoManagerImpl
  *
  * @author S. Grimault
  */
+@Deprecated("use instead Hilt as default dependency injection")
 class ServiceLocator(private val application: Application) {
 
     private val networkHandler: NetworkHandler by lazy {

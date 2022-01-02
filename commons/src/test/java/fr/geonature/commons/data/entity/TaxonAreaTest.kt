@@ -1,19 +1,20 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.TaxonArea.Companion.defaultProjection
-import fr.geonature.commons.data.model.TaxonArea.Companion.fromCursor
+import fr.geonature.commons.data.entity.TaxonArea.Companion.defaultProjection
+import fr.geonature.commons.data.entity.TaxonArea.Companion.fromCursor
 import fr.geonature.commons.data.helper.EntityHelper.column
-import fr.geonature.commons.data.model.TaxonArea
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import java.time.Instant
 import java.util.Date
@@ -21,10 +22,20 @@ import java.util.Date
 /**
  * Unit tests about [TaxonArea].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class TaxonAreaTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -68,18 +79,15 @@ class TaxonAreaTest {
     @Test
     fun testCreateFromCompleteCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
-            `when`(cursor.getColumnIndex(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
+            every { cursor.getColumnIndex(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getLong(1)).thenReturn(10)
-        `when`(cursor.getString(2)).thenReturn("red")
-        `when`(cursor.getInt(3)).thenReturn(3)
-        `when`(cursor.getLong(4)).thenReturn(1477642500000)
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getLong(1) } returns 10
+        every { cursor.getString(2) } returns "red"
+        every { cursor.getInt(3) } returns 3
+        every { cursor.getLong(4) } returns 1477642500000
 
         // when getting a TaxonArea instance from Cursor
         val taxonArea = fromCursor(cursor)
@@ -101,8 +109,6 @@ class TaxonAreaTest {
     @Test
     fun testCreateFromPartialCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
                 in arrayOf(
@@ -119,20 +125,19 @@ class TaxonAreaTest {
                         TaxonArea.TABLE_NAME
                     )
                 ) -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
-                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                    every { cursor.getColumnIndexOrThrow(c.second) } returns -1
+                    every { cursor.getColumnIndex(c.second) } returns -1
                 }
                 else -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+                    every { cursor.getColumnIndexOrThrow(c.second) } returns index
                 }
             }
         }
-
-        `when`(cursor.getLong(0)).thenReturn(1234)
-        `when`(cursor.getLong(1)).thenReturn(10)
-        `when`(cursor.getString(2)).thenReturn(null)
-        `when`(cursor.getInt(3)).thenReturn(0)
-        `when`(cursor.getLong(4)).thenReturn(0)
+        every { cursor.getLong(0) } returns 1234
+        every { cursor.getLong(1) } returns 10
+        every { cursor.getString(2) } returns null
+        every { cursor.getInt(3) } returns 0
+        every { cursor.getLong(4) } returns 0
 
         // when getting a TaxonArea instance from Cursor
         val taxonArea = fromCursor(cursor)
@@ -154,8 +159,7 @@ class TaxonAreaTest {
     @Test
     fun testCreateFromClosedCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-        `when`(cursor.isClosed).thenReturn(true)
+        every { cursor.isClosed } returns true
 
         // when getting a TaxonArea instance from Cursor
         val taxonArea = fromCursor(cursor)
@@ -167,8 +171,6 @@ class TaxonAreaTest {
     @Test
     fun testCreateFromInvalidCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEach { c ->
             when (c) {
                 in arrayOf(
@@ -185,22 +187,19 @@ class TaxonAreaTest {
                         TaxonArea.TABLE_NAME
                     )
                 ) -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(-1)
-                    `when`(cursor.getColumnIndex(c.second)).thenReturn(-1)
+                    every { cursor.getColumnIndexOrThrow(c.second) } returns -1
+                    every { cursor.getColumnIndex(c.second) } returns -1
                 }
                 else -> {
-                    `when`(cursor.getColumnIndexOrThrow(c.second)).thenThrow(
-                        IllegalArgumentException::class.java
-                    )
+                    every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
                 }
             }
         }
-
-        `when`(cursor.getLong(0)).thenReturn(0)
-        `when`(cursor.getLong(1)).thenReturn(0)
-        `when`(cursor.getString(2)).thenReturn(null)
-        `when`(cursor.getInt(3)).thenReturn(0)
-        `when`(cursor.getLong(4)).thenReturn(0)
+        every { cursor.getLong(0) } returns 0
+        every { cursor.getLong(1) } returns 0
+        every { cursor.getString(2) } returns null
+        every { cursor.getInt(3) } returns 0
+        every { cursor.getLong(4) } returns 0
 
         // when getting a TaxonArea instance from Cursor
         val taxonArea = fromCursor(cursor)

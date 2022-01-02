@@ -4,12 +4,12 @@ import androidx.room.Dao
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.JoinOperator.DEFAULT
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.ASC
-import fr.geonature.commons.data.model.DefaultNomenclature
-import fr.geonature.commons.data.model.Nomenclature
-import fr.geonature.commons.data.model.NomenclatureTaxonomy
-import fr.geonature.commons.data.model.NomenclatureType
-import fr.geonature.commons.data.model.NomenclatureWithTaxonomy
-import fr.geonature.commons.data.model.Taxonomy
+import fr.geonature.commons.data.entity.DefaultNomenclature
+import fr.geonature.commons.data.entity.Nomenclature
+import fr.geonature.commons.data.entity.NomenclatureTaxonomy
+import fr.geonature.commons.data.entity.NomenclatureType
+import fr.geonature.commons.data.entity.NomenclatureWithTaxonomy
+import fr.geonature.commons.data.entity.Taxonomy
 
 /**
  * Data access object for [Nomenclature].

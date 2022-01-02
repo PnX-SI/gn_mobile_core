@@ -1,26 +1,37 @@
-package fr.geonature.commons.data
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
-import fr.geonature.commons.data.model.Nomenclature
-import fr.geonature.commons.data.model.Nomenclature.Companion.defaultProjection
-import fr.geonature.commons.data.model.Nomenclature.Companion.fromCursor
+import fr.geonature.commons.data.entity.Nomenclature.Companion.defaultProjection
+import fr.geonature.commons.data.entity.Nomenclature.Companion.fromCursor
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [Nomenclature].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class NomenclatureTest {
+
+    @MockK
+    private lateinit var cursor: Cursor
+
+    @Before
+    fun setUp() {
+        init(this)
+
+        every { cursor.isClosed } returns false
+    }
 
     @Test
     fun testEquals() {
@@ -45,17 +56,14 @@ class NomenclatureTest {
     @Test
     fun testCreateFromCursor() {
         // given a mocked Cursor
-        val cursor = mock(Cursor::class.java)
-
         defaultProjection().forEachIndexed { index, c ->
-            `when`(cursor.getColumnIndexOrThrow(c.second)).thenReturn(index)
+            every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
-
-        `when`(cursor.getLong(0)).thenReturn(2)
-        `when`(cursor.getString(1)).thenReturn("SN")
-        `when`(cursor.getString(2)).thenReturn("1234:002")
-        `when`(cursor.getString(3)).thenReturn("label")
-        `when`(cursor.getLong(4)).thenReturn(1234)
+        every { cursor.getLong(0) } returns 2
+        every { cursor.getString(1) } returns "SN"
+        every { cursor.getString(2) } returns "1234:002"
+        every { cursor.getString(3) } returns "label"
+        every { cursor.getLong(4) } returns 1234
 
         // when getting a nomenclature instance from Cursor
         val nomenclature = fromCursor(cursor)

@@ -3,9 +3,9 @@ package fr.geonature.commons.data.dao
 import androidx.room.Dao
 import androidx.room.Query
 import fr.geonature.commons.data.helper.EntityHelper.column
-import fr.geonature.commons.data.model.AbstractTaxon
-import fr.geonature.commons.data.model.Taxon
-import fr.geonature.commons.data.model.TaxonArea
+import fr.geonature.commons.data.entity.AbstractTaxon
+import fr.geonature.commons.data.entity.Taxon
+import fr.geonature.commons.data.entity.TaxonArea
 
 /**
  * Data access object for [Taxon].

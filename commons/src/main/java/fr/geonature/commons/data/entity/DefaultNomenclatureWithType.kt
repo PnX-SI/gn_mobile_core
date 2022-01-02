@@ -1,4 +1,4 @@
-package fr.geonature.commons.data.model
+package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel

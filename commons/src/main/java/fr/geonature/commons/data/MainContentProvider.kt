@@ -7,18 +7,27 @@ import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors.fromApplication
+import dagger.hilt.components.SingletonComponent
 import fr.geonature.commons.data.dao.AppSyncDao
+import fr.geonature.commons.data.dao.DatasetDao
 import fr.geonature.commons.data.dao.InputDao
+import fr.geonature.commons.data.dao.InputObserverDao
+import fr.geonature.commons.data.dao.NomenclatureDao
+import fr.geonature.commons.data.dao.NomenclatureTypeDao
 import fr.geonature.commons.data.dao.TaxonDao
+import fr.geonature.commons.data.dao.TaxonomyDao
+import fr.geonature.commons.data.entity.AppSync
+import fr.geonature.commons.data.entity.Dataset
+import fr.geonature.commons.data.entity.DefaultNomenclature
+import fr.geonature.commons.data.entity.InputObserver
+import fr.geonature.commons.data.entity.Nomenclature
+import fr.geonature.commons.data.entity.NomenclatureType
+import fr.geonature.commons.data.entity.Taxon
+import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.data.helper.Provider.AUTHORITY
-import fr.geonature.commons.data.model.AppSync
-import fr.geonature.commons.data.model.Dataset
-import fr.geonature.commons.data.model.DefaultNomenclature
-import fr.geonature.commons.data.model.InputObserver
-import fr.geonature.commons.data.model.Nomenclature
-import fr.geonature.commons.data.model.NomenclatureType
-import fr.geonature.commons.data.model.Taxon
-import fr.geonature.commons.data.model.Taxonomy
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
 import java.io.File
@@ -30,6 +39,18 @@ import java.io.FileNotFoundException
  * @author S. Grimault
  */
 class MainContentProvider : ContentProvider() {
+
+    @InstallIn(SingletonComponent::class)
+    @EntryPoint
+    interface MainContentProviderEntryPoint {
+        fun appSyncDao(): AppSyncDao
+        fun datasetDao(): DatasetDao
+        fun inputObserverDao(): InputObserverDao
+        fun taxonomyDao(): TaxonomyDao
+        fun taxonDao(): TaxonDao
+        fun nomenclatureTypeDao(): NomenclatureTypeDao
+        fun nomenclatureDao(): NomenclatureDao
+    }
 
     override fun onCreate(): Boolean {
         return true
@@ -59,68 +80,68 @@ class MainContentProvider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
-    ): Cursor? {
-        val context = context
-            ?: return null
+    ): Cursor {
+        val appContext = context?.applicationContext
+            ?: throw IllegalStateException()
 
         return when (MATCHER.match(uri)) {
             APP_SYNC_ID -> appSyncByPackageIdQuery(
-                context,
+                appContext,
                 uri
             )
             DATASET, DATASET_ACTIVE -> datasetQuery(
-                context,
+                appContext,
                 uri
             )
             DATASET_ID -> datasetByIdQuery(
-                context,
+                appContext,
                 uri
             )
             INPUT_OBSERVERS -> inputObserversQuery(
-                context,
+                appContext,
                 selection,
                 selectionArgs
             )
             INPUT_OBSERVERS_IDS -> inputObserversByIdsQuery(
-                context,
+                appContext,
                 uri
             )
             INPUT_OBSERVER_ID -> inputObserverByIdQuery(
-                context,
+                appContext,
                 uri
             )
             TAXONOMY, TAXONOMY_KINGDOM, TAXONOMY_KINGDOM_GROUP -> taxonomyQuery(
-                context,
+                appContext,
                 uri
             )
             TAXA -> taxaQuery(
-                context,
+                appContext,
                 selection,
                 selectionArgs,
                 sortOrder
             )
             TAXON_ID -> taxonByIdQuery(
-                context,
+                appContext,
                 uri
             )
             TAXA_AREA -> taxaWithAreaQuery(
-                context,
+                appContext,
                 uri,
                 selection,
                 selectionArgs,
                 sortOrder
             )
             TAXON_AREA_ID -> taxonWithAreaByIdQuery(
-                context,
+                appContext,
                 uri
             )
-            NOMENCLATURE_TYPES -> nomenclatureTypesQuery(context)
+            NOMENCLATURE_TYPES -> nomenclatureTypesQuery(appContext)
             NOMENCLATURE_TYPES_DEFAULT -> defaultNomenclaturesByModule(
-                context,
+                appContext,
                 uri
             )
             NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> nomenclaturesWithTaxonomyQuery(
-                context,
+                appContext,
                 uri
             )
             else -> throw IllegalArgumentException("Unknown URI (query): $uri")
@@ -160,10 +181,9 @@ class MainContentProvider : ContentProvider() {
                 )
             }
             INPUT_ID -> {
-                val packageId = uri.pathSegments
-                    .drop(uri.pathSegments.indexOf("inputs") + 1)
-                    .take(1)
-                    .firstOrNull()
+                val packageId =
+                    uri.pathSegments.drop(uri.pathSegments.indexOf("inputs") + 1).take(1)
+                        .firstOrNull()
 
                 if (packageId.isNullOrEmpty()) {
                     throw IllegalArgumentException("Missing package ID from URI '$uri'")
@@ -227,57 +247,37 @@ class MainContentProvider : ContentProvider() {
     }
 
     private fun appSyncByPackageIdQuery(
-        context: Context,
+        appContext: Context,
         uri: Uri
     ): Cursor {
-        val appSyncDao = AppSyncDao(context)
-        val packageId = uri.lastPathSegment
-
-        return appSyncDao.findByPackageId(packageId)
+        return getAppSyncDao(appContext).findByPackageId(uri.lastPathSegment)
     }
 
     private fun datasetQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-            ?.substringAfterLast(".")
+        val module = uri.pathSegments.drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1).take(1)
+            .firstOrNull()?.substringAfterLast(".")
 
         val onlyActive = uri.lastPathSegment == "active"
 
-        return LocalDatabase
-            .getInstance(context)
-            .datasetDao()
-            .QB()
-            .whereModule(module)
-            .also {
-                if (onlyActive) {
-                    it.whereActive()
-                }
+        return getDatasetDao(context).QB().whereModule(module).also {
+            if (onlyActive) {
+                it.whereActive()
             }
-            .cursor()
+        }.cursor()
     }
 
     private fun datasetByIdQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-            ?.substringAfterLast(".")
+        val module = uri.pathSegments.drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1).take(1)
+            .firstOrNull()?.substringAfterLast(".")
 
-        return LocalDatabase
-            .getInstance(context)
-            .datasetDao()
-            .QB()
-            .whereModule(module)
-            .whereId(uri.lastPathSegment?.toLongOrNull())
-            .cursor()
+        return getDatasetDao(context).QB().whereModule(module)
+            .whereId(uri.lastPathSegment?.toLongOrNull()).cursor()
     }
 
     private fun inputObserversQuery(
@@ -285,30 +285,23 @@ class MainContentProvider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<String>?
     ): Cursor {
-        return LocalDatabase
-            .getInstance(context)
-            .inputObserverDao()
-            .QB()
-            .whereSelection(
-                selection,
-                arrayOf(
-                    *selectionArgs
-                        ?: emptyArray()
-                )
+        return getInputObserverDao(context).QB().whereSelection(
+            selection,
+            arrayOf(
+                *selectionArgs
+                    ?: emptyArray()
             )
-            .cursor()
+        ).cursor()
     }
 
     private fun inputObserversByIdsQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        val selectedObserverIds = uri.lastPathSegment
-            ?.split(",")
-            ?.mapNotNull { it.toLongOrNull() }
-            ?.distinct()
-            ?.toLongArray()
-            ?: longArrayOf()
+        val selectedObserverIds =
+            uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()
+                ?.toLongArray()
+                ?: longArrayOf()
 
         if (selectedObserverIds.size == 1) {
             return inputObserverByIdQuery(
@@ -317,23 +310,14 @@ class MainContentProvider : ContentProvider() {
             )
         }
 
-        return LocalDatabase
-            .getInstance(context)
-            .inputObserverDao()
-            .QB()
-            .whereIdsIn(*selectedObserverIds)
-            .cursor()
+        return getInputObserverDao(context).QB().whereIdsIn(*selectedObserverIds).cursor()
     }
 
     private fun inputObserverByIdQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        return LocalDatabase
-            .getInstance(context)
-            .inputObserverDao()
-            .QB()
-            .whereId(uri.lastPathSegment?.toLongOrNull())
+        return getInputObserverDao(context).QB().whereId(uri.lastPathSegment?.toLongOrNull())
             .cursor()
     }
 
@@ -341,25 +325,19 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val lastPathSegments = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
-            .take(2)
+        val lastPathSegments =
+            uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1).take(2)
 
-        return LocalDatabase
-            .getInstance(context)
-            .taxonomyDao()
-            .QB()
-            .also {
-                when (lastPathSegments.size) {
-                    1 -> it.whereKingdom(lastPathSegments[0])
-                    2 -> it.whereKingdomAndGroup(
-                        lastPathSegments[0],
-                        lastPathSegments[1]
-                    )
-                    else -> return@also
-                }
+        return getTaxonomyDao(context).QB().also {
+            when (lastPathSegments.size) {
+                1 -> it.whereKingdom(lastPathSegments[0])
+                2 -> it.whereKingdomAndGroup(
+                    lastPathSegments[0],
+                    lastPathSegments[1]
+                )
+                else -> return@also
             }
-            .cursor()
+        }.cursor()
     }
 
     private fun taxaQuery(
@@ -368,37 +346,26 @@ class MainContentProvider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor {
-        return LocalDatabase
-            .getInstance(context)
-            .taxonDao()
-            .QB()
-            .whereSelection(
-                selection,
-                arrayOf(
-                    *selectionArgs
-                        ?: emptyArray()
-                )
+        return getTaxonDao(context).QB().whereSelection(
+            selection,
+            arrayOf(
+                *selectionArgs
+                    ?: emptyArray()
             )
-            .also {
-                if (sortOrder.isNullOrEmpty()) {
-                    return@also
-                }
-
-                (it as TaxonDao.QB).orderBy(sortOrder)
+        ).also {
+            if (sortOrder.isNullOrEmpty()) {
+                return@also
             }
-            .cursor()
+
+            (it as TaxonDao.QB).orderBy(sortOrder)
+        }.cursor()
     }
 
     private fun taxonByIdQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        return LocalDatabase
-            .getInstance(context)
-            .taxonDao()
-            .QB()
-            .whereId(uri.lastPathSegment?.toLongOrNull())
-            .cursor()
+        return getTaxonDao(context).QB().whereId(uri.lastPathSegment?.toLongOrNull()).cursor()
     }
 
     private fun taxaWithAreaQuery(
@@ -410,26 +377,19 @@ class MainContentProvider : ContentProvider() {
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
 
-        return LocalDatabase
-            .getInstance(context)
-            .taxonDao()
-            .QB()
-            .withArea(filterOnArea)
-            .whereSelection(
+        return getTaxonDao(context).QB().withArea(filterOnArea).whereSelection(
                 selection,
                 arrayOf(
                     *selectionArgs
                         ?: emptyArray()
                 )
-            )
-            .also {
+            ).also {
                 if (sortOrder.isNullOrEmpty()) {
                     return@also
                 }
 
                 (it as TaxonDao.QB).orderBy(sortOrder)
-            }
-            .cursor()
+            }.cursor()
     }
 
     private fun taxonWithAreaByIdQuery(
@@ -437,70 +397,111 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
-        val taxonId = uri.pathSegments
-            .asSequence()
-            .map { it.toLongOrNull() }
-            .filterNotNull()
-            .firstOrNull()
+        val taxonId =
+            uri.pathSegments.asSequence().map { it.toLongOrNull() }.filterNotNull().firstOrNull()
 
-        return LocalDatabase
-            .getInstance(context)
-            .taxonDao()
-            .QB()
-            .withArea(filterOnArea)
-            .whereId(taxonId)
-            .cursor()
+        return getTaxonDao(context).QB().withArea(filterOnArea).whereId(taxonId).cursor()
     }
 
     private fun nomenclatureTypesQuery(context: Context): Cursor {
-        return LocalDatabase
-            .getInstance(context)
-            .nomenclatureTypeDao()
-            .QB()
-            .cursor()
+        return getNomenclatureTypeDao(context).QB().cursor()
     }
 
     private fun defaultNomenclaturesByModule(
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-            ?.substringAfterLast(".")
+        val module =
+            uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1).take(1)
+                .firstOrNull()?.substringAfterLast(".")
 
-        return LocalDatabase
-            .getInstance(context)
-            .nomenclatureDao()
-            .QB()
-            .withNomenclatureType()
-            .withDefaultNomenclature(module)
-            .cursor()
+        return getNomenclatureDao(context).QB().withNomenclatureType()
+            .withDefaultNomenclature(module).cursor()
     }
 
     private fun nomenclaturesWithTaxonomyQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        val mnemonic = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-        val lastPathSegments = uri.pathSegments
-            .drop(uri.pathSegments.indexOf("items") + 1)
-            .take(2)
+        val mnemonic =
+            uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1).take(1)
+                .firstOrNull()
+        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf("items") + 1).take(2)
 
-        return LocalDatabase
-            .getInstance(context)
-            .nomenclatureDao()
-            .QB()
-            .withNomenclatureType(mnemonic)
-            .withTaxonomy(
+        return getNomenclatureDao(context).QB().withNomenclatureType(mnemonic).withTaxonomy(
                 lastPathSegments.getOrNull(0),
                 lastPathSegments.getOrNull(1)
-            )
-            .cursor()
+            ).cursor()
+    }
+
+    /**
+     * Gets a [AppSyncDao] instance provided by Hilt using the @EntryPoint annotated interface.
+     */
+    private fun getAppSyncDao(appContext: Context): AppSyncDao {
+        return fromApplication(
+            appContext,
+            MainContentProviderEntryPoint::class.java
+        ).appSyncDao()
+    }
+
+    /**
+     * Gets a [DatasetDao] instance provided by Hilt using the @EntryPoint annotated interface.
+     */
+    private fun getDatasetDao(appContext: Context): DatasetDao {
+        return fromApplication(
+            appContext,
+            MainContentProviderEntryPoint::class.java
+        ).datasetDao()
+    }
+
+    /**
+     * Gets a [InputObserverDao] instance provided by Hilt using the @EntryPoint annotated interface.
+     */
+    private fun getInputObserverDao(appContext: Context): InputObserverDao {
+        return fromApplication(
+            appContext,
+            MainContentProviderEntryPoint::class.java
+        ).inputObserverDao()
+    }
+
+    /**
+     * Gets a [TaxonomyDao] instance provided by Hilt using the @EntryPoint annotated interface.
+     */
+    private fun getTaxonomyDao(appContext: Context): TaxonomyDao {
+        return fromApplication(
+            appContext,
+            MainContentProviderEntryPoint::class.java
+        ).taxonomyDao()
+    }
+
+    /**
+     * Gets a [TaxonDao] instance provided by Hilt using the @EntryPoint annotated interface.
+     */
+    private fun getTaxonDao(appContext: Context): TaxonDao {
+        return fromApplication(
+            appContext,
+            MainContentProviderEntryPoint::class.java
+        ).taxonDao()
+    }
+
+    /**
+     * Gets a [NomenclatureTypeDao] instance provided by Hilt using the @EntryPoint annotated interface.
+     */
+    private fun getNomenclatureTypeDao(appContext: Context): NomenclatureTypeDao {
+        return fromApplication(
+            appContext,
+            MainContentProviderEntryPoint::class.java
+        ).nomenclatureTypeDao()
+    }
+
+    /**
+     * Gets a [NomenclatureDao] instance provided by Hilt using the @EntryPoint annotated interface.
+     */
+    private fun getNomenclatureDao(appContext: Context): NomenclatureDao {
+        return fromApplication(
+            appContext,
+            MainContentProviderEntryPoint::class.java
+        ).nomenclatureDao()
     }
 
     companion object {

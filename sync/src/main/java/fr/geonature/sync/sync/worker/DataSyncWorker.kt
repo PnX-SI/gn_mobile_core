@@ -4,10 +4,12 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.text.TextUtils
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ForegroundInfo
@@ -16,15 +18,25 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.await
 import androidx.work.workDataOf
-import fr.geonature.commons.data.LocalDatabase
-import fr.geonature.commons.data.model.DefaultNomenclature
-import fr.geonature.commons.data.model.InputObserver
-import fr.geonature.commons.data.model.Nomenclature
-import fr.geonature.commons.data.model.NomenclatureTaxonomy
-import fr.geonature.commons.data.model.NomenclatureType
-import fr.geonature.commons.data.model.Taxon
-import fr.geonature.commons.data.model.TaxonArea
-import fr.geonature.commons.data.model.Taxonomy
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import fr.geonature.commons.data.dao.DatasetDao
+import fr.geonature.commons.data.dao.DefaultNomenclatureDao
+import fr.geonature.commons.data.dao.InputObserverDao
+import fr.geonature.commons.data.dao.NomenclatureDao
+import fr.geonature.commons.data.dao.NomenclatureTaxonomyDao
+import fr.geonature.commons.data.dao.NomenclatureTypeDao
+import fr.geonature.commons.data.dao.TaxonAreaDao
+import fr.geonature.commons.data.dao.TaxonDao
+import fr.geonature.commons.data.dao.TaxonomyDao
+import fr.geonature.commons.data.entity.DefaultNomenclature
+import fr.geonature.commons.data.entity.InputObserver
+import fr.geonature.commons.data.entity.Nomenclature
+import fr.geonature.commons.data.entity.NomenclatureTaxonomy
+import fr.geonature.commons.data.entity.NomenclatureType
+import fr.geonature.commons.data.entity.Taxon
+import fr.geonature.commons.data.entity.TaxonArea
+import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
 import fr.geonature.sync.api.IGeoNatureAPIClient
@@ -50,9 +62,19 @@ import java.util.Locale
  *
  * @author S. Grimault
  */
-class DataSyncWorker(
-    appContext: Context,
-    workerParams: WorkerParameters
+@HiltWorker
+class DataSyncWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val datasetDao: DatasetDao,
+    private val inputObserverDao: InputObserverDao,
+    private val taxonomyDao: TaxonomyDao,
+    private val taxonDao: TaxonDao,
+    private val taxonAreaDao: TaxonAreaDao,
+    private val nomenclatureTypeDao: NomenclatureTypeDao,
+    private val nomenclatureDao: NomenclatureDao,
+    private val nomenclatureTaxonomyDao: NomenclatureTaxonomyDao,
+    private val defaultNomenclatureDao: DefaultNomenclatureDao
 ) : CoroutineWorker(
     appContext,
     workerParams
@@ -287,13 +309,10 @@ class DataSyncWorker(
             )
         )
 
-        LocalDatabase
-            .getInstance(applicationContext)
-            .datasetDao()
-            .run {
-                deleteAll()
-                insert(*dataset.toTypedArray())
-            }
+        datasetDao.run {
+            deleteAll()
+            insert(*dataset.toTypedArray())
+        }
 
         return Result.success()
     }
@@ -378,13 +397,10 @@ class DataSyncWorker(
             )
         )
 
-        LocalDatabase
-            .getInstance(applicationContext)
-            .inputObserverDao()
-            .run {
-                deleteAll()
-                insert(*inputObservers)
-            }
+        inputObserverDao.run {
+            deleteAll()
+            insert(*inputObservers)
+        }
 
         return Result.success()
     }
@@ -465,13 +481,10 @@ class DataSyncWorker(
             )
         )
 
-        LocalDatabase
-            .getInstance(applicationContext)
-            .taxonomyDao()
-            .run {
-                deleteAll()
-                insert(*taxonomyRanks.toTypedArray())
-            }
+        taxonomyDao.run {
+            deleteAll()
+            insert(*taxonomyRanks.toTypedArray())
+        }
 
         return Result.success()
     }
@@ -725,23 +738,19 @@ class DataSyncWorker(
             )
         )
 
-        LocalDatabase
-            .getInstance(applicationContext)
-            .run {
-                nomenclatureTypeDao().run {
-                    deleteAll()
-                    insert(*nomenclatureTypesToUpdate)
-                }
-                nomenclatureDao().run {
-                    if (nomenclaturesToUpdate.isNotEmpty()) {
-                        deleteAll()
-                        insert(*nomenclaturesToUpdate)
-                    }
-                }
-                taxonomyDao().insertOrIgnore(*taxonomyToUpdate)
-                nomenclatureTaxonomyDao().insert(*nomenclaturesTaxonomyToUpdate)
-                defaultNomenclatureDao().insert(*defaultNomenclaturesToUpdate)
+        nomenclatureTypeDao.run {
+            deleteAll()
+            insert(*nomenclatureTypesToUpdate)
+        }
+        nomenclatureDao.run {
+            if (nomenclaturesToUpdate.isNotEmpty()) {
+                deleteAll()
+                insert(*nomenclaturesToUpdate)
             }
+        }
+        taxonomyDao.insertOrIgnore(*taxonomyToUpdate)
+        nomenclatureTaxonomyDao.insert(*nomenclaturesTaxonomyToUpdate)
+        defaultNomenclatureDao.insert(*defaultNomenclaturesToUpdate)
 
         return Result.success()
     }
@@ -811,10 +820,7 @@ class DataSyncWorker(
                 .toList()
                 .toTypedArray()
 
-            LocalDatabase
-                .getInstance(applicationContext)
-                .taxonDao()
-                .insert(*taxa)
+            taxonDao.insert(*taxa)
 
             Log.i(
                 TAG,
@@ -845,9 +851,7 @@ class DataSyncWorker(
         } while (hasNext)
 
         // delete orphaned taxa
-        LocalDatabase
-            .getInstance(applicationContext)
-            .taxonDao()
+        taxonDao
             .QB()
             .cursor()
             .run {
@@ -865,10 +869,7 @@ class DataSyncWorker(
                         .fromCursor(this)
                         ?.run {
                             if (!validTaxaIds.contains(id)) {
-                                LocalDatabase
-                                    .getInstance(applicationContext)
-                                    .taxonDao()
-                                    .deleteById(id)
+                                taxonDao.deleteById(id)
                                 orphanedTaxaIds.add(id)
                             }
                         }
@@ -953,10 +954,8 @@ class DataSyncWorker(
                     .toList()
                     .toTypedArray()
 
-                LocalDatabase
-                    .getInstance(applicationContext)
-                    .taxonAreaDao()
-                    .insert(*taxonAreas)
+
+                taxonAreaDao.insert(*taxonAreas)
 
                 Log.i(
                     TAG,
@@ -1000,7 +999,7 @@ class DataSyncWorker(
                     ).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     },
-                    0
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
                 )
             )
             .setSmallIcon(R.drawable.ic_sync)

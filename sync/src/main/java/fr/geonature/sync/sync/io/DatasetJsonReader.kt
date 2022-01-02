@@ -3,7 +3,7 @@ package fr.geonature.sync.sync.io
 import android.util.JsonReader
 import android.util.Log
 import android.util.MalformedJsonException
-import fr.geonature.commons.data.model.Dataset
+import fr.geonature.commons.data.entity.Dataset
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
