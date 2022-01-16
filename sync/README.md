@@ -26,13 +26,15 @@ Example:
 
 ```json
 {
-  "geonature_url": "https://demo.geonature/geonature",
-  "taxhub_url": "https://demo.geonature/taxhub",
-  "uh_application_id": 3,
-  "observers_list_id": 1,
-  "taxa_list_id": 100,
-  "code_area_type": "M1",
-  "page_size": 10000
+  "sync": {
+    "geonature_url": "https://demo.geonature/geonature",
+    "taxhub_url": "https://demo.geonature/taxhub",
+    "uh_application_id": 3,
+    "observers_list_id": 1,
+    "taxa_list_id": 100,
+    "code_area_type": "M1",
+    "page_size": 10000
+  }
 }
 ```
 
@@ -47,8 +49,8 @@ Example:
 | `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                      |               |
 | `code_area_type`                  | &#9744; | GeoNature selected area type                         |               |
 | `page_size`                       | &#9744; | Default page size while fetching paginated values    | 10000         |
-| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity |               |
-| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity       |               |
+| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity | null          |
+| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity       | null          |
 
 ### Data synchronization periodicity
 

@@ -7,10 +7,14 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
+import fr.geonature.sync.sync.IPackageInfoManager
 import fr.geonature.sync.ui.home.HomeActivity
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -19,16 +23,16 @@ import kotlinx.coroutines.flow.firstOrNull
  *
  * @author S. Grimault
  */
-class CheckInputsToSynchronizeWorker(
-    appContext: Context,
-    workerParams: WorkerParameters
+@HiltWorker
+class CheckInputsToSynchronizeWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val packageInfoManager: IPackageInfoManager
 ) : CoroutineWorker(
     appContext,
     workerParams
 ) {
     override suspend fun doWork(): Result {
-        val packageInfoManager = (applicationContext as MainApplication).sl.packageInfoManager
-
         val availableInputs = (packageInfoManager
             .getInstalledApplications()
             .firstOrNull()
@@ -70,7 +74,8 @@ class CheckInputsToSynchronizeWorker(
                                     applicationContext,
                                     HomeActivity::class.java
                                 ).apply {
-                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 },
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
                             )

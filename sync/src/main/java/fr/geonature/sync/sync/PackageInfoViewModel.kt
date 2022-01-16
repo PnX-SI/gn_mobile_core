@@ -37,34 +37,35 @@ class PackageInfoViewModel(
     private val _appSettingsUpdated: MutableLiveData<Boolean> = MutableLiveData()
     private val _allPackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
 
-    private val _synchronizeInputsFromPackageInfo = map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
-        val workInfoData = workInfos
-            .firstOrNull()
-            ?.let { workInfo ->
-                workInfo.progress
-                    .getString(InputsSyncWorker.KEY_PACKAGE_NAME)
-                    ?.let { workInfo.progress }
-                    ?: workInfo.outputData
+    private val _synchronizeInputsFromPackageInfo =
+        map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
+            val workInfoData = workInfos
+                .firstOrNull()
+                ?.let { workInfo ->
+                    workInfo.progress
                         .getString(InputsSyncWorker.KEY_PACKAGE_NAME)
-                        ?.let { workInfo.outputData }
-            }
-            ?: return@map null
+                        ?.let { workInfo.progress }
+                        ?: workInfo.outputData
+                            .getString(InputsSyncWorker.KEY_PACKAGE_NAME)
+                            ?.let { workInfo.outputData }
+                }
+                ?: return@map null
 
-        val packageName = workInfoData.getString(InputsSyncWorker.KEY_PACKAGE_NAME)
-            ?: return@map null
+            val packageName = workInfoData.getString(InputsSyncWorker.KEY_PACKAGE_NAME)
+                ?: return@map null
 
-        AppPackageInputsStatus(
-            packageName,
-            WorkInfo.State.values()[workInfoData.getInt(
-                InputsSyncWorker.KEY_PACKAGE_STATUS,
-                WorkInfo.State.ENQUEUED.ordinal
-            )],
-            workInfoData.getInt(
-                InputsSyncWorker.KEY_PACKAGE_INPUTS,
-                0
+            AppPackageInputsStatus(
+                packageName,
+                WorkInfo.State.values()[workInfoData.getInt(
+                    InputsSyncWorker.KEY_PACKAGE_STATUS,
+                    WorkInfo.State.ENQUEUED.ordinal
+                )],
+                workInfoData.getInt(
+                    InputsSyncWorker.KEY_PACKAGE_INPUTS,
+                    0
+                )
             )
-        )
-    }
+        }
     private val _downloadPackageInfo = MutableLiveData<AppPackageDownloadStatus>()
 
     /**
@@ -79,9 +80,11 @@ class PackageInfoViewModel(
             value = value?.map { packageInfo ->
                 inputsStatus?.let {
                     if (it.packageName == inputsStatus.packageName) {
-                        packageInfo.copy().apply {
-                            this.inputsStatus = inputsStatus
-                        }
+                        packageInfo
+                            .copy()
+                            .apply {
+                                this.inputsStatus = inputsStatus
+                            }
                     } else packageInfo
                 }
                     ?: packageInfo
@@ -91,9 +94,11 @@ class PackageInfoViewModel(
             value = value?.map { packageInfo ->
                 downloadStatus?.let {
                     if (it.packageName == downloadStatus.packageName) {
-                        packageInfo.copy().apply {
-                            this.downloadStatus = downloadStatus
-                        }
+                        packageInfo
+                            .copy()
+                            .apply {
+                                this.downloadStatus = downloadStatus
+                            }
                     } else packageInfo
                 }
                     ?: packageInfo

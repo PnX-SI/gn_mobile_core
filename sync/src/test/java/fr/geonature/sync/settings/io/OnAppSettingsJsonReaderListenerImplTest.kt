@@ -2,6 +2,7 @@ package fr.geonature.sync.settings.io
 
 import android.app.Application
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
+import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.sync.FixtureHelper.getFixture
 import fr.geonature.sync.settings.AppSettings
 import org.junit.Assert.assertEquals
@@ -12,6 +13,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 /**
  * Unit tests about [AppSettingsJsonReader].
@@ -41,13 +44,21 @@ class OnAppSettingsJsonReaderListenerImplTest {
         assertNotNull(appSettings)
         assertEquals(
             AppSettings(
-                "https://demo.geonature/geonature",
-                "https://demo.geonature/taxhub",
-                3,
-                1,
-                100,
-                "M1",
-                100
+                sync = DataSyncSettings
+                    .Builder()
+                    .serverUrls(
+                        geoNatureServerUrl = "https://demo.geonature.fr/geonature",
+                        taxHubServerUrl = "https://demo.geonature.fr/taxhub"
+                    )
+                    .applicationId(3)
+                    .usersListId(1)
+                    .taxrefListId(100)
+                    .codeAreaType("M10")
+                    .dataSyncPeriodicity(
+                        dataSyncPeriodicity = 30.toDuration(DurationUnit.MINUTES),
+                        essentialDataSyncPeriodicity = 20.toDuration(DurationUnit.MINUTES)
+                    )
+                    .build()
             ),
             appSettings
         )

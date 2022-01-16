@@ -2,7 +2,7 @@ package fr.geonature.sync.settings.io
 
 import android.util.JsonReader
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
-import fr.geonature.commons.util.nextStringOrNull
+import fr.geonature.datasync.settings.io.DataSyncSettingsJsonReader
 import fr.geonature.sync.settings.AppSettings
 
 /**
@@ -22,17 +22,6 @@ class OnAppSettingsJsonReaderListenerImpl :
         keyName: String,
         appSettings: AppSettings
     ) {
-        when (keyName) {
-            "geonature_url" -> appSettings.geoNatureServerUrl = reader.nextString()
-            "taxhub_url" -> appSettings.taxHubServerUrl = reader.nextString()
-            "uh_application_id" -> appSettings.applicationId = reader.nextInt()
-            "observers_list_id" -> appSettings.usersListId = reader.nextInt()
-            "taxa_list_id" -> appSettings.taxrefListId = reader.nextInt()
-            "code_area_type" -> appSettings.codeAreaType = reader.nextString()
-            "page_size" -> appSettings.pageSize = reader.nextInt()
-            "sync_periodicity_data_essential" -> appSettings.essentialDataSyncPeriodicity = reader.nextStringOrNull()
-            "sync_periodicity_data" -> appSettings.dataSyncPeriodicity = reader.nextStringOrNull()
-            else -> reader.skipValue()
-        }
+        appSettings.sync = DataSyncSettingsJsonReader().read(reader)
     }
 }

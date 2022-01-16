@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="sync_error_server_not_connected">Not connected</string>
+
+    <string name="login_login_hint">Login</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_action_sign_in">Sign in</string>
+
+    <string name="login_form_username_invalid">Username must not be empty</string>
+    <string name="login_form_password_invalid">Password must not be empty</string>
+    <string name="login_failed">Login failed</string>
+    <string name="login_failed_login">Invalid login</string>
+    <string name="login_failed_password">Invalid password</string>
+    <string name="login_failed_server_url_configuration">Missing GeoNature server configuration</string>
+    <string name="login_success">Successfully authenticated</string>
+
+    <string name="notification_data_synchronization_title">Synchronize data…</string>
+
+    <string name="snackbar_network_lost">You are not connected to the Internet</string>
+    <string name="snackbar_settings_undefined">Unable to load settings</string>
+    <string name="snackbar_settings_not_found">Unable to load settings \'%1$s\'</string>
+
+</resources>

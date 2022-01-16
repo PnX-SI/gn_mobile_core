@@ -11,9 +11,9 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
+import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.mountpoint.util.MountPointUtils
 import fr.geonature.sync.di.ServiceLocator
-import fr.geonature.sync.sync.worker.CheckAuthLoginWorker
 import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -30,20 +30,7 @@ class MainApplication : Application(), Configuration.Provider {
     lateinit var workerFactory: HiltWorkerFactory
 
     private fun checkAuthLogin() {
-        val workManager: WorkManager = WorkManager.getInstance(this)
-
-        val request = PeriodicWorkRequestBuilder<CheckAuthLoginWorker>(
-            1,
-            TimeUnit.HOURS
-        )
-            .addTag(CheckAuthLoginWorker.CHECK_AUTH_LOGIN_WORKER_TAG)
-            .build()
-
-        workManager.enqueueUniquePeriodicWork(
-            CheckAuthLoginWorker.CHECK_AUTH_LOGIN_WORKER,
-            ExistingPeriodicWorkPolicy.REPLACE,
-            request
-        )
+        CheckAuthLoginWorker.enqueueUniquePeriodicWork(this)
     }
 
     private fun checkInputsToSynchronize() {

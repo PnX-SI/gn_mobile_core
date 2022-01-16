@@ -3,10 +3,10 @@ package fr.geonature.sync.sync.io
 import android.content.Context
 import android.util.Log
 import com.google.gson.GsonBuilder
+import fr.geonature.datasync.api.model.AppPackage
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.mountpoint.util.FileUtils.getRootFolder
-import fr.geonature.sync.api.model.AppPackage
 import fr.geonature.sync.sync.PackageInfo
 import java.io.FileWriter
 import java.io.IOException

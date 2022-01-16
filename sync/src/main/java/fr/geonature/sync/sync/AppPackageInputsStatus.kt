@@ -1,7 +1,7 @@
 package fr.geonature.sync.sync
 
 import androidx.work.WorkInfo
-import fr.geonature.sync.api.model.AppPackage
+import fr.geonature.datasync.api.model.AppPackage
 
 /**
  * Describes [AppPackage] inputs status.

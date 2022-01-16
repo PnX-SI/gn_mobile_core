@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="sync_error_server_not_connected">Non connecté</string>
+
+    <string name="login_login_hint">Identifiant</string>
+    <string name="login_password_hint">Mot de passe</string>
+    <string name="login_action_sign_in">Se connecter</string>
+
+    <string name="login_form_username_invalid">Identifiant invalide</string>
+    <string name="login_form_password_invalid">Mot de passe invalide</string>
+    <string name="login_failed">Echec lors de l\'authentification</string>
+    <string name="login_failed_login">Utilisateur inconnu</string>
+    <string name="login_failed_password">Mot de passe invalide</string>
+    <string name="login_failed_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
+    <string name="login_success">Authentification réussie</string>
+
+    <string name="notification_data_synchronization_title">Synchronisation des données…</string>
+
+    <string name="snackbar_network_lost">Vous n\'êtes pas connecté à Internet</string>
+    <string name="snackbar_settings_undefined">Erreur lors du chargement des paramètres</string>
+    <string name="snackbar_settings_not_found">Erreur lors du chargement des paramètres \'%1$s\'</string>
+
+</resources>

@@ -6,8 +6,8 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.work.WorkInfo
 import fr.geonature.commons.util.getInputsFolder
+import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.mountpoint.util.FileUtils
-import fr.geonature.sync.api.IGeoNatureAPIClient
 import fr.geonature.sync.sync.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
@@ -40,76 +40,74 @@ class PackageInfoManagerImpl(
 
     private val allPackageInfos = mutableMapOf<String, PackageInfo>()
 
-    override fun getAllApplications(): Flow<List<PackageInfo>> =
-        flow {
-            val installedApplications = (getInstalledApplications().firstOrNull()
-                ?: emptyList())
+    override fun getAllApplications(): Flow<List<PackageInfo>> = flow {
+        val installedApplications = (getInstalledApplications().firstOrNull()
+            ?: emptyList())
 
-            emit(installedApplications)
+        emit(installedApplications)
 
-            allPackageInfos.clear()
-            allPackageInfos.putAll((installedApplications
-                .associateBy { it.packageName }
-                .asSequence() + getAvailableApplications()
-                .associateBy { it.packageName }
-                .asSequence())
-                .distinct()
-                .groupBy({ it.key },
-                    { it.value })
-                .mapValues {
-                    when (it.value.size) {
-                        2 -> it.value[0]
-                            .copy(
-                                versionCode = it.value[1].versionCode,
-                                apkUrl = it.value[1].apkUrl
-                            )
-                            .apply {
-                                settings = it.value[1].settings
-                            }
-                        else -> it.value[0]
-                    }
-                })
+        allPackageInfos.clear()
+        allPackageInfos.putAll((installedApplications
+            .associateBy { it.packageName }
+            .asSequence() + getAvailableApplications()
+            .associateBy { it.packageName }
+            .asSequence())
+            .distinct()
+            .groupBy({ it.key },
+                { it.value })
+            .mapValues {
+                when (it.value.size) {
+                    2 -> it.value[0]
+                        .copy(
+                            versionCode = it.value[1].versionCode,
+                            apkUrl = it.value[1].apkUrl
+                        )
+                        .apply {
+                            settings = it.value[1].settings
+                        }
+                    else -> it.value[0]
+                }
+            })
 
-            emit(allPackageInfos.values.toList())
-        }
+        emit(allPackageInfos.values.toList())
+    }
 
     @SuppressLint("QueryPermissionsNeeded")
-    override fun getInstalledApplications(): Flow<List<PackageInfo>> =
-        flow {
-            emit(withContext(IO) {
-                pm
-                    .getInstalledApplications(PackageManager.GET_META_DATA)
-                    .asFlow()
-                    .filter { it.packageName.startsWith(sharedUserId) }
-                    .map {
-                        val packageInfoFromPackageManager = pm.getPackageInfo(
-                            it.packageName,
-                            PackageManager.GET_META_DATA
-                        )
+    override fun getInstalledApplications(): Flow<List<PackageInfo>> = flow {
+        emit(withContext(IO) {
+            pm
+                .getInstalledApplications(PackageManager.GET_META_DATA)
+                .asFlow()
+                .filter { it.packageName.startsWith(sharedUserId) }
+                .map {
+                    val packageInfoFromPackageManager = pm.getPackageInfo(
+                        it.packageName,
+                        PackageManager.GET_META_DATA
+                    )
 
-                        @Suppress("DEPRECATION") PackageInfo(
+                    @Suppress("DEPRECATION") PackageInfo(
+                        it.packageName,
+                        pm
+                            .getApplicationLabel(it)
+                            .toString(),
+                        0,
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfoFromPackageManager.longVersionCode
+                        else packageInfoFromPackageManager.versionCode.toLong(),
+                        packageInfoFromPackageManager.versionName,
+                        null,
+                        pm.getApplicationIcon(it.packageName),
+                        pm.getLaunchIntentForPackage(it.packageName)
+                    ).apply {
+                        inputsStatus = AppPackageInputsStatus(
                             it.packageName,
-                            pm
-                                .getApplicationLabel(it)
-                                .toString(),
-                            0,
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) packageInfoFromPackageManager.longVersionCode
-                            else packageInfoFromPackageManager.versionCode.toLong(),
-                            packageInfoFromPackageManager.versionName,
-                            null,
-                            pm.getApplicationIcon(it.packageName),
-                            pm.getLaunchIntentForPackage(it.packageName)
-                        ).apply {
-                            inputsStatus = AppPackageInputsStatus(
-                                it.packageName,
-                                WorkInfo.State.ENQUEUED,
-                                getInputsToSynchronize(this).size
-                            )
-                        }
+                            WorkInfo.State.ENQUEUED,
+                            getInputsToSynchronize(this).size
+                        )
                     }
-                    .toList()
-            })
-        }
+                }
+                .toList()
+        })
+    }
 
     override suspend fun getPackageInfo(packageName: String): PackageInfo? {
         return allPackageInfos[packageName]
@@ -164,53 +162,51 @@ class PackageInfoManagerImpl(
                 .toList()
         }
 
-    override suspend fun updateAppSettings(packageInfo: PackageInfo) =
-        withContext(IO) {
-            val result = runCatching { AppSettingsJsonWriter(applicationContext).write(packageInfo) }
+    override suspend fun updateAppSettings(packageInfo: PackageInfo) = withContext(IO) {
+        val result = runCatching { AppSettingsJsonWriter(applicationContext).write(packageInfo) }
 
-            if (result.isFailure) {
-                Log.w(
-                    TAG,
-                    "failed to update settings for '${packageInfo.packageName}'"
-                )
-            }
+        if (result.isFailure) {
+            Log.w(
+                TAG,
+                "failed to update settings for '${packageInfo.packageName}'"
+            )
         }
+    }
 
     /**
      * Finds all available applications from GeoNature.
      */
-    private suspend fun getAvailableApplications(): List<PackageInfo> =
-        withContext(IO) {
-            runCatching {
-                geoNatureAPIClient
-                    .getApplications()
-                    ?.awaitResponse()
-            }
-                .map {
-                    if (it?.isSuccessful == true) it.body()
-                        ?: emptyList() else emptyList()
-                }
-                .map { appPackages ->
-                    appPackages
-                        .asSequence()
-                        .map {
-                            PackageInfo(
-                                it.packageName,
-                                it.code
-                                    .lowercase(Locale.ROOT)
-                                    .replaceFirstChar { c -> if (c.isLowerCase()) c.titlecase(Locale.ROOT) else c.toString() },
-                                it.versionCode.toLong(),
-                                0,
-                                null,
-                                it.apkUrl
-                            ).apply {
-                                settings = it.settings
-                            }
-                        }
-                        .toList()
-                }
-                .getOrElse { emptyList() }
+    private suspend fun getAvailableApplications(): List<PackageInfo> = withContext(IO) {
+        runCatching {
+            geoNatureAPIClient
+                .getApplications()
+                .awaitResponse()
         }
+            .map {
+                if (it.isSuccessful) it.body()
+                    ?: emptyList() else emptyList()
+            }
+            .map { appPackages ->
+                appPackages
+                    .asSequence()
+                    .map {
+                        PackageInfo(
+                            it.packageName,
+                            it.code
+                                .lowercase(Locale.ROOT)
+                                .replaceFirstChar { c -> if (c.isLowerCase()) c.titlecase(Locale.ROOT) else c.toString() },
+                            it.versionCode.toLong(),
+                            0,
+                            null,
+                            it.apkUrl
+                        ).apply {
+                            settings = it.settings
+                        }
+                    }
+                    .toList()
+            }
+            .getOrElse { emptyList() }
+    }
 
     companion object {
         private val TAG = PackageInfoManagerImpl::class.java.name

@@ -3,12 +3,16 @@ package fr.geonature.sync.sync.worker
 import android.content.Context
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import fr.geonature.sync.MainApplication
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.sync.sync.IPackageInfoManager
 import fr.geonature.sync.sync.PackageInfo
 import fr.geonature.sync.sync.SyncInput
 import kotlinx.coroutines.Dispatchers
@@ -22,9 +26,12 @@ import java.io.File
  *
  * @author S. Grimault
  */
-class InputsSyncWorker(
-    appContext: Context,
-    workerParams: WorkerParameters
+@HiltWorker
+class InputsSyncWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val geoNatureAPIClient: IGeoNatureAPIClient,
+    private val packageInfoManager: IPackageInfoManager
 ) : CoroutineWorker(
     appContext,
     workerParams
@@ -36,12 +43,8 @@ class InputsSyncWorker(
             return Result.failure()
         }
 
-        val packageInfoManager = (applicationContext as MainApplication).sl.packageInfoManager
-
         val packageInfo: PackageInfo = packageInfoManager.getPackageInfo(packageName)
             ?: return Result.failure()
-
-        val geoNatureAPIClient = (applicationContext as MainApplication).sl.geoNatureAPIClient
 
         NotificationManagerCompat
             .from(applicationContext)
@@ -93,9 +96,9 @@ class InputsSyncWorker(
                         syncInput.module,
                         syncInput.payload
                     )
-                    ?.awaitResponse()
+                    .awaitResponse()
 
-                if (response?.isSuccessful == false) {
+                if (response.isSuccessful) {
                     setProgress(
                         workData(
                             packageInfo.packageName,

@@ -20,9 +20,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.await
-import fr.geonature.sync.settings.AppSettings
+import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.sync.sync.worker.DataSyncWorker
-import fr.geonature.sync.util.parseAsDuration
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
@@ -51,7 +50,8 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             _isSyncRunning.postValue(field != null)
         }
 
-    val lastSynchronizedDate: LiveData<Pair<DataSyncManager.SyncState, Date?>> = dataSyncManager.lastSynchronizedDate
+    val lastSynchronizedDate: LiveData<Pair<DataSyncManager.SyncState, Date?>> =
+        dataSyncManager.lastSynchronizedDate
 
     private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)
     val isSyncRunning: LiveData<Boolean> = _isSyncRunning
@@ -103,7 +103,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun startSync(appSettings: AppSettings) {
+    fun startSync(dataSyncSettings: DataSyncSettings) {
         Log.i(
             TAG,
             "starting local data synchronization..."
@@ -118,7 +118,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                     .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
             )
-            .setInputData(DataSyncWorker.inputData(appSettings))
+            .setInputData(DataSyncWorker.inputData(dataSyncSettings))
             .build()
 
         currentSyncWorkerId = dataSyncWorkRequest.id
@@ -130,7 +130,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-    fun configurePeriodicSync(appSettings: AppSettings) {
+    fun configurePeriodicSync(appSettings: DataSyncSettings) {
         viewModelScope.launch {
             val alreadyRunning = workManager
                 .getWorkInfosByTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
@@ -158,11 +158,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 .await()
 
             val essentialDataSyncPeriodicity = appSettings.essentialDataSyncPeriodicity
-                ?.parseAsDuration()
-                ?.coerceAtLeast(DEFAULT_MIN_DURATION)
             val dataSyncPeriodicity = appSettings.dataSyncPeriodicity
-                ?.parseAsDuration()
-                ?.coerceAtLeast(DEFAULT_MIN_DURATION)
 
             // no periodic synchronization is correctly configured: abort
             if (essentialDataSyncPeriodicity == null && dataSyncPeriodicity == null) {
@@ -176,15 +172,6 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
 
             // all periodic synchronizations are correctly configured
             if (essentialDataSyncPeriodicity != null && dataSyncPeriodicity != null) {
-                if (essentialDataSyncPeriodicity >= dataSyncPeriodicity) {
-                    configurePeriodicSync(
-                        appSettings,
-                        dataSyncPeriodicity
-                    )
-
-                    return@launch
-                }
-
                 configurePeriodicSync(
                     appSettings,
                     dataSyncPeriodicity
@@ -221,7 +208,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun configurePeriodicSync(
-        appSettings: AppSettings,
+        dataSyncSettings: DataSyncSettings,
         repeatInterval: Duration,
         withAdditionalData: Boolean = true
     ) {
@@ -252,7 +239,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             )
             .setInputData(
                 DataSyncWorker.inputData(
-                    appSettings,
+                    dataSyncSettings,
                     withAdditionalData
                 )
             )

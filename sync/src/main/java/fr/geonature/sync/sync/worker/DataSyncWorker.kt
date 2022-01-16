@@ -37,10 +37,13 @@ import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
 import fr.geonature.commons.data.entity.Taxonomy
+import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.datasync.api.model.User
+import fr.geonature.datasync.auth.IAuthManager
+import fr.geonature.datasync.settings.DataSyncSettings
+import fr.geonature.datasync.ui.login.LoginActivity
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.api.IGeoNatureAPIClient
-import fr.geonature.sync.api.model.User
 import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.DataSyncManager
 import fr.geonature.sync.sync.DataSyncStatus
@@ -48,7 +51,6 @@ import fr.geonature.sync.sync.ServerStatus
 import fr.geonature.sync.sync.io.DatasetJsonReader
 import fr.geonature.sync.sync.io.TaxonomyJsonReader
 import fr.geonature.sync.ui.home.HomeActivity
-import fr.geonature.sync.ui.login.LoginActivity
 import org.json.JSONObject
 import retrofit2.Response
 import retrofit2.awaitResponse
@@ -66,6 +68,8 @@ import java.util.Locale
 class DataSyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
+    private val authManager: IAuthManager,
+    private val geoNatureAPIClient: IGeoNatureAPIClient,
     private val datasetDao: DatasetDao,
     private val inputObserverDao: InputObserverDao,
     private val taxonomyDao: TaxonomyDao,
@@ -83,8 +87,6 @@ class DataSyncWorker @AssistedInject constructor(
     private val workManager = WorkManager.getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
-        val authManager = (applicationContext as MainApplication).sl.authManager
-
         val startTime = Date()
 
         // not connected: abort
@@ -114,8 +116,6 @@ class DataSyncWorker @AssistedInject constructor(
             )
         }
 
-        val geoNatureAPIClient = (applicationContext as MainApplication).sl.geoNatureAPIClient
-
         val alreadyRunning = workManager
             .getWorkInfosByTag(DATA_SYNC_WORKER_TAG)
             .await()
@@ -130,15 +130,16 @@ class DataSyncWorker @AssistedInject constructor(
             return Result.retry()
         }
 
-        Log.i(
-            TAG,
-            "starting local data synchronization from '${geoNatureAPIClient.geoNatureBaseUrl}' (with additional data: ${
-                inputData.getBoolean(
-                    INPUT_WITH_ADDITIONAL_DATA,
-                    true
-                )
-            })..."
-        )
+        val checkServerUrlsResult = checkServerUrls(geoNatureAPIClient)
+
+        if (checkServerUrlsResult is Result.Failure) {
+            Log.i(
+                TAG,
+                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
+            )
+
+            return checkServerUrlsResult
+        }
 
         setProgress(workData(applicationContext.getString(R.string.sync_start_synchronization)))
         setForeground(createForegroundInfo(createNotification(applicationContext.getString(R.string.sync_start_synchronization))))
@@ -233,21 +234,47 @@ class DataSyncWorker @AssistedInject constructor(
         return syncTaxaResult
     }
 
-    private suspend fun syncDataset(geoNatureServiceClient: IGeoNatureAPIClient): Result {
+    private fun checkServerUrls(geoNatureAPIClient: IGeoNatureAPIClient): Result {
+        return runCatching { geoNatureAPIClient.getBaseUrls() }.fold(
+            onSuccess = {
+                Log.i(
+                    TAG,
+                    "starting local data synchronization from '${it.geoNatureBaseUrl}' (with additional data: ${
+                        inputData.getBoolean(
+                            INPUT_WITH_ADDITIONAL_DATA,
+                            true
+                        )
+                    })..."
+                )
+
+                Result.success()
+            },
+            onFailure = {
+                Result.failure(
+                    workData(
+                        applicationContext.getString(R.string.sync_error_server_url_configuration),
+                        ServerStatus.INTERNAL_SERVER_ERROR
+                    )
+                )
+            },
+        )
+    }
+
+    private suspend fun syncDataset(geoNatureAPIClient: IGeoNatureAPIClient): Result {
         Log.i(
             TAG,
             "synchronize dataset..."
         )
 
         val result = runCatching {
-            geoNatureServiceClient
+            geoNatureAPIClient
                 .getMetaDatasets()
-                ?.awaitResponse()
+                .awaitResponse()
         }
             .map {
                 checkResponse(it).run {
                     if (this.state == WorkInfo.State.FAILED) this else it
-                        ?.body()
+                        .body()
                         ?.byteStream()
                         ?: DataSyncStatus(
                             WorkInfo.State.FAILED,
@@ -318,7 +345,7 @@ class DataSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncInputObservers(
-        geoNatureServiceClient: IGeoNatureAPIClient,
+        geoNatureAPIClient: IGeoNatureAPIClient,
         menuId: Int
     ): Result {
         Log.i(
@@ -327,13 +354,13 @@ class DataSyncWorker @AssistedInject constructor(
         )
 
         val result = runCatching {
-            geoNatureServiceClient
+            geoNatureAPIClient
                 .getUsers(menuId)
-                ?.awaitResponse()
+                .awaitResponse()
         }
             .map {
                 checkResponse(it).run {
-                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it?.body() }.getOrNull()
+                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it.body() }.getOrNull()
                         ?: emptyList<List<User>>()
                 }
             }
@@ -405,21 +432,21 @@ class DataSyncWorker @AssistedInject constructor(
         return Result.success()
     }
 
-    private suspend fun syncTaxonomyRanks(geoNatureServiceClient: IGeoNatureAPIClient): Result {
+    private suspend fun syncTaxonomyRanks(geoNatureAPIClient: IGeoNatureAPIClient): Result {
         Log.i(
             TAG,
             "synchronize taxonomy ranks..."
         )
 
         val result = runCatching {
-            geoNatureServiceClient
+            geoNatureAPIClient
                 .getTaxonomyRanks()
-                ?.awaitResponse()
+                .awaitResponse()
         }
             .map {
                 checkResponse(it).run {
                     if (this.state == WorkInfo.State.FAILED) this else it
-                        ?.body()
+                        .body()
                         ?.byteStream()
                         ?: DataSyncStatus(
                             WorkInfo.State.FAILED,
@@ -489,21 +516,21 @@ class DataSyncWorker @AssistedInject constructor(
         return Result.success()
     }
 
-    private suspend fun syncNomenclature(geoNatureServiceClient: IGeoNatureAPIClient): Result {
+    private suspend fun syncNomenclature(geoNatureAPIClient: IGeoNatureAPIClient): Result {
         Log.i(
             TAG,
             "synchronize nomenclature types..."
         )
 
         val nomenclaturesResult = runCatching {
-            geoNatureServiceClient
+            geoNatureAPIClient
                 .getNomenclatures()
-                ?.awaitResponse()
+                .awaitResponse()
         }
             .map {
                 checkResponse(it).run {
-                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it?.body() }.getOrNull()
-                        ?: emptyList<fr.geonature.sync.api.model.NomenclatureType>()
+                    if (this.state == WorkInfo.State.FAILED) this else runCatching { it.body() }.getOrNull()
+                        ?: emptyList<fr.geonature.datasync.api.model.NomenclatureType>()
                 }
             }
             .getOrElse {
@@ -527,7 +554,7 @@ class DataSyncWorker @AssistedInject constructor(
         val validNomenclatureTypesToUpdate = (nomenclaturesResult as List<*>)
             .asSequence()
             .filterNotNull()
-            .map { it as fr.geonature.sync.api.model.NomenclatureType }
+            .map { it as fr.geonature.datasync.api.model.NomenclatureType }
             .filter { it.id > 0 }
             .filter { it.nomenclatures.isNotEmpty() }
 
@@ -595,7 +622,7 @@ class DataSyncWorker @AssistedInject constructor(
             .filter { it.id > 0 }
             .map { nomenclature ->
                 (if (nomenclature.taxref.isEmpty()) arrayOf(
-                    fr.geonature.sync.api.model.NomenclatureTaxonomy(
+                    fr.geonature.datasync.api.model.NomenclatureTaxonomy(
                         Taxonomy.ANY,
                         Taxonomy.ANY
                     )
@@ -657,14 +684,14 @@ class DataSyncWorker @AssistedInject constructor(
 
         // TODO: fetch available GeoNature modules
         val defaultNomenclatureResult = runCatching {
-            geoNatureServiceClient
+            geoNatureAPIClient
                 .getDefaultNomenclaturesValues("occtax")
-                ?.awaitResponse()
+                .awaitResponse()
         }
             .map {
                 checkResponse(it).run {
                     if (this.state == WorkInfo.State.FAILED) this else it
-                        ?.body()
+                        .body()
                         ?.byteStream()
                         ?: DataSyncStatus(
                             WorkInfo.State.FAILED,
@@ -756,7 +783,7 @@ class DataSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncTaxa(
-        geoNatureServiceClient: IGeoNatureAPIClient,
+        geoNatureAPIClient: IGeoNatureAPIClient,
         listId: Int,
         codeAreaType: String?,
         pageSize: Int,
@@ -775,13 +802,13 @@ class DataSyncWorker @AssistedInject constructor(
         // fetch all taxa from paginated list
         do {
             val taxrefResponse = runCatching {
-                geoNatureServiceClient
+                geoNatureAPIClient
                     .getTaxref(
                         listId,
                         pageSize,
                         offset
                     )
-                    ?.awaitResponse()
+                    .awaitResponse()
             }.getOrNull()
 
 
@@ -894,13 +921,13 @@ class DataSyncWorker @AssistedInject constructor(
             // fetch all taxa metadata from paginated list
             do {
                 val taxrefAreasResponse = runCatching {
-                    geoNatureServiceClient
+                    geoNatureAPIClient
                         .getTaxrefAreas(
                             codeAreaType,
                             pageSize,
                             offset
                         )
-                        ?.awaitResponse()
+                        .awaitResponse()
                 }.getOrNull()
 
                 if (taxrefAreasResponse == null || checkResponse(taxrefAreasResponse).state == WorkInfo.State.FAILED) {
@@ -908,7 +935,8 @@ class DataSyncWorker @AssistedInject constructor(
                     continue
                 }
 
-                val taxrefAreas = runCatching { taxrefAreasResponse.body() }.getOrDefault(emptyList())
+                val taxrefAreas =
+                    runCatching { taxrefAreasResponse.body() }.getOrDefault(emptyList())
 
                 if (taxrefAreas?.isEmpty() != false) {
                     hasNext = false
@@ -1083,7 +1111,7 @@ class DataSyncWorker @AssistedInject constructor(
          * Configure input data to this [DataSyncWorker] from given [AppSettings].
          */
         fun inputData(
-            appSettings: AppSettings,
+            dataSyncSettings: DataSyncSettings,
             withAdditionalData: Boolean = true
         ): Data {
             return Data
@@ -1092,19 +1120,19 @@ class DataSyncWorker @AssistedInject constructor(
                     mapOf(
                         Pair(
                             INPUT_USERS_MENU_ID,
-                            appSettings.usersListId
+                            dataSyncSettings.usersListId
                         ),
                         Pair(
                             INPUT_TAXREF_LIST_ID,
-                            appSettings.taxrefListId
+                            dataSyncSettings.taxrefListId
                         ),
                         Pair(
                             INPUT_CODE_AREA_TYPE,
-                            appSettings.codeAreaType
+                            dataSyncSettings.codeAreaType
                         ),
                         Pair(
                             INPUT_PAGE_SIZE,
-                            appSettings.pageSize
+                            dataSyncSettings.pageSize
                         ),
                         Pair(
                             INPUT_WITH_ADDITIONAL_DATA,
