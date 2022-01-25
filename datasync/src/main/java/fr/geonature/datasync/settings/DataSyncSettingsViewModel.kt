@@ -2,12 +2,13 @@ package fr.geonature.datasync.settings
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Failure
+import fr.geonature.commons.fp.getOrElse
 import fr.geonature.datasync.api.IGeoNatureAPIClient
-import kotlinx.coroutines.launch
+import fr.geonature.datasync.error.DataSyncSettingsNotFoundFailure
 import javax.inject.Inject
 
 /**
@@ -21,16 +22,35 @@ class DataSyncSettingsViewModel @Inject constructor(
     private val geoNatureAPIClient: IGeoNatureAPIClient
 ) : ViewModel() {
 
-    val dataSyncSettings: LiveData<Either<Failure, DataSyncSettings>> =
-        dataSyncSettingsRepository.dataSyncSettings
+    fun getDataSyncSettings(): LiveData<Either<Failure, DataSyncSettings>> = liveData {
+        val dataSyncSettingsResponse = dataSyncSettingsRepository.getDataSyncSettings()
 
-    init {
-        viewModelScope.launch {
-            dataSyncSettingsRepository.getDataSyncSettings()
+        if (dataSyncSettingsResponse.isLeft) {
+            emit(dataSyncSettingsResponse)
+            return@liveData
         }
+
+        val dataSyncSettings = dataSyncSettingsResponse.getOrElse(null)
+
+        if (dataSyncSettings == null) {
+            emit(Either.Left(DataSyncSettingsNotFoundFailure()))
+
+            return@liveData
+        }
+
+        geoNatureAPIClient.setBaseUrls(
+            geoNatureBaseUrl = dataSyncSettings.geoNatureServerUrl,
+            taxHubBaseUrl = dataSyncSettings.taxHubServerUrl
+        )
+
+        emit(Either.Right(dataSyncSettings))
     }
 
-    fun setServerUrls(
+    fun getServerBaseUrls(): Either<Failure, IGeoNatureAPIClient.ServerUrls> {
+        return dataSyncSettingsRepository.getServerBaseUrls()
+    }
+
+    fun setServerBaseUrls(
         geoNatureServerUrl: String,
         taxHubServerUrl: String
     ) {
@@ -38,7 +58,7 @@ class DataSyncSettingsViewModel @Inject constructor(
             geoNatureBaseUrl = geoNatureServerUrl,
             taxHubBaseUrl = taxHubServerUrl
         )
-        dataSyncSettingsRepository.setServerUrls(
+        dataSyncSettingsRepository.setServerBaseUrls(
             geoNatureServerUrl = geoNatureServerUrl,
             taxHubServerUrl = taxHubServerUrl
         )

@@ -56,7 +56,7 @@ class DataSyncSettingsViewModelTest {
     }
 
     @Test
-    fun `should return loaded DataSyncSettings at startup`() = runTest {
+    fun `should load DataSyncSettings`() = runTest {
         // given an existing DataSyncSettings instance from data source
         val expectedDataSyncSettings = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature",
@@ -74,7 +74,9 @@ class DataSyncSettingsViewModelTest {
             dataSyncSettingsRepository,
             geoNatureAPIClient
         )
-        dataSyncSettingsViewModel.dataSyncSettings.observeForever(dataSyncSettingsObserver)
+        dataSyncSettingsViewModel
+            .getDataSyncSettings()
+            .observeForever(dataSyncSettingsObserver)
 
         // then
         verify(atLeast = 1) { dataSyncSettingsObserver.onChanged(Either.Right(expectedDataSyncSettings)) }
@@ -99,11 +101,13 @@ class DataSyncSettingsViewModelTest {
             dataSyncSettingsRepository,
             geoNatureAPIClient
         )
-        dataSyncSettingsViewModel.dataSyncSettings.observeForever(dataSyncSettingsObserver)
-        dataSyncSettingsViewModel.setServerUrls(
+        dataSyncSettingsViewModel.setServerBaseUrls(
             geoNatureServerUrl = "https://demo.geonature2.fr/geonature",
             taxHubServerUrl = "https://demo.geonature2.fr/taxhub"
         )
+        dataSyncSettingsViewModel
+            .getDataSyncSettings()
+            .observeForever(dataSyncSettingsObserver)
 
         // then
         verify(atLeast = 1) {

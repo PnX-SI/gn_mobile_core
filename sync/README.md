@@ -26,15 +26,13 @@ Example:
 
 ```json
 {
-  "sync": {
-    "geonature_url": "https://demo.geonature/geonature",
-    "taxhub_url": "https://demo.geonature/taxhub",
-    "uh_application_id": 3,
-    "observers_list_id": 1,
-    "taxa_list_id": 100,
-    "code_area_type": "M1",
-    "page_size": 10000
-  }
+  "geonature_url": "https://demo.geonature/geonature",
+  "taxhub_url": "https://demo.geonature/taxhub",
+  "uh_application_id": 3,
+  "observers_list_id": 1,
+  "taxa_list_id": 100,
+  "code_area_type": "M1",
+  "page_size": 10000
 }
 ```
 

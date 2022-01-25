@@ -102,6 +102,56 @@ class DataSyncSettingsRepositoryTest {
     }
 
     @Test
+    fun `should return updated DataSyncSettings from preferences`() = runTest {
+        // given an existing DataSyncSettings instance from data source
+        val expectedDataSyncSettings = DataSyncSettings(
+            geoNatureServerUrl = "https://demo.geonature.fr/geonature",
+            taxHubServerUrl = "https://demo.geonature.fr/taxhub",
+            applicationId = 3,
+            usersListId = 1,
+            taxrefListId = 100,
+            codeAreaType = "M10"
+        )
+        coEvery { dataSyncSettingsDataSource.load() } returns expectedDataSyncSettings
+
+        // and server base URLs from preferences
+        dataSyncSettingsRepository.setServerBaseUrls(
+            geoNatureServerUrl = "https://demo.geonature.fr/geonature2",
+            taxHubServerUrl = "https://demo.geonature.fr/taxhub2"
+        )
+
+        // when
+        val dataSyncSettingsResponse = dataSyncSettingsRepository.getDataSyncSettings()
+
+        // then
+        assertEquals(
+            DataSyncSettings
+                .Builder()
+                .from(expectedDataSyncSettings)
+                .serverUrls(
+                    geoNatureServerUrl = "https://demo.geonature.fr/geonature2",
+                    taxHubServerUrl = "https://demo.geonature.fr/taxhub2"
+                )
+                .build(),
+            dataSyncSettingsResponse.getOrElse(null)
+        )
+        verify(atLeast = 1) {
+            dataSyncSettingsObserver.onChanged(
+                Right(
+                    DataSyncSettings
+                        .Builder()
+                        .from(expectedDataSyncSettings)
+                        .serverUrls(
+                            geoNatureServerUrl = "https://demo.geonature.fr/geonature2",
+                            taxHubServerUrl = "https://demo.geonature.fr/taxhub2"
+                        )
+                        .build()
+                )
+            )
+        }
+    }
+
+    @Test
     fun `should update server base URLs to existing loaded DataSyncSettings`() = runTest {
         // given an existing DataSyncSettings instance from data source
         val expectedDataSyncSettings = DataSyncSettings(
@@ -117,7 +167,7 @@ class DataSyncSettingsRepositoryTest {
         dataSyncSettingsRepository.getDataSyncSettings()
 
         // when updating server base URLs
-        dataSyncSettingsRepository.setServerUrls(
+        dataSyncSettingsRepository.setServerBaseUrls(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature2",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub2"
         )

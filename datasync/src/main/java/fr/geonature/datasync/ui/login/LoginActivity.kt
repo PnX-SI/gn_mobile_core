@@ -50,42 +50,44 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         authLoginViewModel.apply {
-            loginFormState.observe(this@LoginActivity,
-                {
-                    val loginState = it
-                        ?: return@observe
+            loginFormState.observe(
+                this@LoginActivity
+            ) {
+                val loginState = it
+                    ?: return@observe
 
-                    // disable login button unless both username / password is valid
-                    buttonLogin?.isEnabled = loginState.isValid && dataSyncSettings != null
+                // disable login button unless both username / password is valid
+                buttonLogin?.isEnabled = loginState.isValid && dataSyncSettings != null
 
-                    editTextUsername?.error =
-                        if (loginState.usernameError == null) null else getString(loginState.usernameError)
-                    editTextPassword?.error =
-                        if (loginState.passwordError == null) null else getString(loginState.passwordError)
-                })
+                editTextUsername?.error =
+                    if (loginState.usernameError == null) null else getString(loginState.usernameError)
+                editTextPassword?.error =
+                    if (loginState.passwordError == null) null else getString(loginState.passwordError)
+            }
 
-            loginResult.observe(this@LoginActivity,
-                {
-                    val loginResult = it
-                        ?: return@observe
+            loginResult.observe(
+                this@LoginActivity
+            ) {
+                val loginResult = it
+                    ?: return@observe
 
-                    progress?.visibility = View.GONE
+                progress?.visibility = View.GONE
 
-                    if (loginResult.hasError()) {
-                        showToast(
-                            loginResult.error
-                                ?: R.string.login_failed
-                        )
+                if (loginResult.hasError()) {
+                    showToast(
+                        loginResult.error
+                            ?: R.string.login_failed
+                    )
 
-                        return@observe
-                    }
+                    return@observe
+                }
 
-                    showToast(R.string.login_success)
+                showToast(R.string.login_success)
 
-                    // Complete and destroy login activity once successful
-                    setResult(RESULT_OK)
-                    finish()
-                })
+                // Complete and destroy login activity once successful
+                setResult(RESULT_OK)
+                finish()
+            }
         }
 
         content = findViewById(R.id.content)
@@ -149,39 +151,41 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loadAppSettings() {
-        dataSyncSettingsViewModel.dataSyncSettings.observeOnce(this) {
-            it?.fold({ failure ->
-                makeSnackbar(
-                    if (failure is DataSyncSettingsNotFoundFailure && !failure.source.isNullOrBlank()) getString(
-                        R.string.snackbar_settings_not_found,
-                        failure.source
-                    ) else getString(
-                        R.string.snackbar_settings_undefined,
+        dataSyncSettingsViewModel
+            .getDataSyncSettings()
+            .observeOnce(this) {
+                it?.fold({ failure ->
+                    makeSnackbar(
+                        if (failure is DataSyncSettingsNotFoundFailure && !failure.source.isNullOrBlank()) getString(
+                            R.string.snackbar_settings_not_found,
+                            failure.source
+                        ) else getString(
+                            R.string.snackbar_settings_undefined,
+                        )
                     )
-                )
-                    ?.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                        override fun onDismissed(
-                            transientBottomBar: Snackbar?,
-                            event: Int
-                        ) {
-                            super.onDismissed(
-                                transientBottomBar,
-                                event
-                            )
+                        ?.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                            override fun onDismissed(
+                                transientBottomBar: Snackbar?,
+                                event: Int
+                            ) {
+                                super.onDismissed(
+                                    transientBottomBar,
+                                    event
+                                )
 
-                            setResult(RESULT_CANCELED)
-                            finish()
-                        }
+                                setResult(RESULT_CANCELED)
+                                finish()
+                            }
+                        })
+                        ?.show()
+
+                    failure
+                },
+                    { dataSyncSettingsLoaded ->
+                        dataSyncSettings = dataSyncSettingsLoaded
+                        dataSyncSettingsLoaded
                     })
-                    ?.show()
-
-                failure
-            },
-                { dataSyncSettingsLoaded ->
-                    dataSyncSettings = dataSyncSettingsLoaded
-                    dataSyncSettingsLoaded
-                })
-        }
+            }
     }
 
     private fun performLogin(

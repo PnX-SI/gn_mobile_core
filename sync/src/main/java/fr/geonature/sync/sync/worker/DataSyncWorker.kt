@@ -44,7 +44,6 @@ import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.ui.login.LoginActivity
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.settings.AppSettings
 import fr.geonature.sync.sync.DataSyncManager
 import fr.geonature.sync.sync.DataSyncStatus
 import fr.geonature.sync.sync.ServerStatus
@@ -203,7 +202,7 @@ class DataSyncWorker @AssistedInject constructor(
             inputData.getString(INPUT_CODE_AREA_TYPE),
             inputData.getInt(
                 INPUT_PAGE_SIZE,
-                AppSettings.DEFAULT_PAGE_SIZE
+                DataSyncSettings.Builder.DEFAULT_PAGE_SIZE
             ),
             inputData.getBoolean(
                 INPUT_WITH_ADDITIONAL_DATA,
@@ -1108,7 +1107,7 @@ class DataSyncWorker @AssistedInject constructor(
         private const val INPUT_WITH_ADDITIONAL_DATA = "withAdditionalData"
 
         /**
-         * Configure input data to this [DataSyncWorker] from given [AppSettings].
+         * Configure input data to this [DataSyncWorker] from given [DataSyncSettings].
          */
         fun inputData(
             dataSyncSettings: DataSyncSettings,

@@ -1,5 +1,7 @@
 package fr.geonature.datasync.api
 
+import android.os.Parcel
+import android.os.Parcelable
 import fr.geonature.datasync.api.model.AppPackage
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
@@ -21,7 +23,37 @@ interface IGeoNatureAPIClient {
     data class ServerUrls(
         val geoNatureBaseUrl: String,
         val taxHubBaseUrl: String
-    )
+    ) : Parcelable {
+
+        private constructor(parcel: Parcel) : this(
+            parcel.readString()!!,
+            parcel.readString()!!
+        )
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        override fun writeToParcel(
+            dest: Parcel?,
+            flags: Int
+        ) {
+            dest?.apply {
+                writeString(geoNatureBaseUrl)
+                writeString(taxHubBaseUrl)
+            }
+        }
+
+        companion object CREATOR : Parcelable.Creator<ServerUrls> {
+            override fun createFromParcel(parcel: Parcel): ServerUrls {
+                return ServerUrls(parcel)
+            }
+
+            override fun newArray(size: Int): Array<ServerUrls?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
 
     /**
      * Returns the current base URLs.

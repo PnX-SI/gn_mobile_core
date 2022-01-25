@@ -13,7 +13,6 @@ import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
 import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.mountpoint.util.MountPointUtils
-import fr.geonature.sync.di.ServiceLocator
 import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -88,9 +87,6 @@ class MainApplication : Application(), Configuration.Provider {
 
         return null
     }
-
-    @Deprecated("use instead Hilt as default dependency injection")
-    val sl = ServiceLocator(this)
 
     override fun onCreate() {
         super.onCreate()

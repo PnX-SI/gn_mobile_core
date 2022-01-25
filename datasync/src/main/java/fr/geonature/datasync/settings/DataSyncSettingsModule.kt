@@ -6,10 +6,18 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import fr.geonature.commons.data.helper.Provider
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.mountpoint.util.FileUtils.getRootFolder
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+@Qualifier
+annotation class FileDataSource
+
+@Qualifier
+annotation class UriDataSource
 
 /**
  * Data synchronization settings module.
@@ -22,8 +30,9 @@ object DataSyncSettingsModule {
 
     @Singleton
     @Provides
-    fun provideDataSyncSettingsDataSource(@ApplicationContext appContext: Context): IDataSyncSettingsDataSource {
-        return DataSyncSettingsJsonDataSource(
+    @FileDataSource
+    fun provideDataSyncSettingsFileDataSource(@ApplicationContext appContext: Context): IDataSyncSettingsDataSource {
+        return DataSyncSettingsFileDataSource(
             getFile(
                 getRootFolder(
                     appContext,
@@ -36,9 +45,22 @@ object DataSyncSettingsModule {
 
     @Singleton
     @Provides
+    @UriDataSource
+    fun provideDataSyncSettingsUriDataSource(@ApplicationContext appContext: Context): IDataSyncSettingsDataSource {
+        return DataSyncSettingsUriDataSource(
+            appContext,
+            Provider.buildUri(
+                "settings",
+                "settings_${appContext.packageName.substring(appContext.packageName.lastIndexOf('.') + 1)}.json"
+            )
+        )
+    }
+
+    @Singleton
+    @Provides
     fun provideDataSyncSettingsRepository(
         @ApplicationContext appContext: Context,
-        dataSyncSettingsDataSource: IDataSyncSettingsDataSource
+        @FileDataSource dataSyncSettingsDataSource: IDataSyncSettingsDataSource
     ): IDataSyncSettingsRepository {
         return DataSyncSettingsRepositoryImpl(
             appContext,

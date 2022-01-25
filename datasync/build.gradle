@@ -5,7 +5,7 @@ plugins {
     id 'kotlin-kapt'
 }
 
-version = "0.0.1"
+version = "0.0.2"
 
 android {
     compileSdk 31
@@ -53,6 +53,8 @@ dependencies {
     implementation project(':commons')
 
     implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
     implementation 'androidx.preference:preference-ktx:1.1.1'
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
     implementation 'com.google.android.material:material:1.4.0'
@@ -65,8 +67,8 @@ dependencies {
 
     // Networking dependencies
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
-    implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
-    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    api "com.squareup.retrofit2:converter-gson:$retrofit_version"
+    api "com.squareup.retrofit2:retrofit:$retrofit_version"
 
     testImplementation 'androidx.arch.core:core-testing:2.1.0'
     testImplementation 'androidx.test:core:1.4.0'

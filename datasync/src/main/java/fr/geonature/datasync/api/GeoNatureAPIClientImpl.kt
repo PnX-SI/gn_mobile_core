@@ -52,6 +52,11 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         this.geoNatureBaseUrl = geoNatureBaseUrl
         this.taxHubBaseUrl = taxHubBaseUrl
 
+        if (geoNatureBaseUrl.isBlank() || taxHubBaseUrl.isBlank()) {
+            isReady = false
+            return
+        }
+
         geoNatureService = createServiceClient(
             geoNatureBaseUrl,
             IGeoNatureService::class.java
