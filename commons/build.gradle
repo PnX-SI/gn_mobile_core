@@ -22,7 +22,7 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode updateVersionCode(module.name)
+        versionCode updateVersionCode(project.name)
         versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

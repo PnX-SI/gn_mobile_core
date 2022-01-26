@@ -23,16 +23,16 @@ android {
         applicationId "fr.geonature.sync"
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode updateVersionCode(module.name)
+        versionCode updateVersionCode(project.name)
         versionName version
         buildConfigField "String", "BUILD_DATE", "\"" + new Date().getTime() + "\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        archivesBaseName = module.name + "-" + versionName
+        archivesBaseName = project.name + "-" + versionName
     }
 
     signingConfigs {
         release {
-            readKeystoreProperties(module.name)
+            readKeystoreProperties(project.name)
         }
     }
 
