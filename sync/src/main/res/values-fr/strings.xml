@@ -36,16 +36,11 @@
     <string name="channel_description_check_inputs_to_synchronize">Relevés à synchroniser</string>
     <string name="channel_name_data_synchronization">Synchronisation des données</string>
     <string name="channel_description_data_synchronization">Données locales à synchroniser</string>
-    <string name="notification_inputs_to_synchronize_title">Relevés à synchroniser</string>
-    <plurals name="notification_inputs_to_synchronize_description">
-        <item quantity="one" tools:ignore="ImpliedQuantity">Un relevé est prêt à être synchronisé</item>
-        <item quantity="other">%d relevés sont prêts à être synchronisés</item>
-    </plurals>
 
     <string name="home_installed_apps">Applications</string>
     <string name="home_no_available_app">Aucune application compatible trouvée</string>
     <string name="home_app_version_full">%1$s (%2$s)</string>
-    <plurals name="home_app_inputs">
+    <plurals name="home_app_inputs" tools:ignore="MissingQuantity">
         <item quantity="one">Relevé à synchroniser : %d</item>
         <item quantity="other">Relevés à synchroniser : %d</item>
     </plurals>

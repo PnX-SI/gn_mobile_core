@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync.worker
+package fr.geonature.datasync.packageinfo.worker
 
 import android.content.Context
 import android.util.Log
@@ -12,9 +12,9 @@ import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.sync.sync.IPackageInfoManager
-import fr.geonature.sync.sync.PackageInfo
-import fr.geonature.sync.sync.SyncInput
+import fr.geonature.datasync.packageinfo.IPackageInfoRepository
+import fr.geonature.datasync.packageinfo.PackageInfo
+import fr.geonature.datasync.packageinfo.SyncInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -31,7 +31,7 @@ class InputsSyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
-    private val packageInfoManager: IPackageInfoManager
+    private val packageInfoRepository: IPackageInfoRepository
 ) : CoroutineWorker(
     appContext,
     workerParams
@@ -43,7 +43,7 @@ class InputsSyncWorker @AssistedInject constructor(
             return Result.failure()
         }
 
-        val packageInfo: PackageInfo = packageInfoManager.getPackageInfo(packageName)
+        val packageInfo: PackageInfo = packageInfoRepository.getPackageInfo(packageName)
             ?: return Result.failure()
 
         NotificationManagerCompat
@@ -57,7 +57,7 @@ class InputsSyncWorker @AssistedInject constructor(
             )
         )
 
-        val inputsToSynchronize = packageInfoManager.getInputsToSynchronize(packageInfo)
+        val inputsToSynchronize = packageInfoRepository.getInputsToSynchronize(packageInfo)
         val inputsSynchronized = mutableListOf<SyncInput>()
 
         if (inputsToSynchronize.isEmpty()) {

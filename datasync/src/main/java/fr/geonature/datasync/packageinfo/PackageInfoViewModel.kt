@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.packageinfo
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -6,8 +6,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations.map
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
 import androidx.work.Data
@@ -16,21 +14,23 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import fr.geonature.sync.BuildConfig
-import fr.geonature.sync.sync.worker.DownloadPackageWorker
-import fr.geonature.sync.sync.worker.InputsSyncWorker
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.geonature.datasync.packageinfo.worker.DownloadPackageInfoWorker
+import fr.geonature.datasync.packageinfo.worker.InputsSyncWorker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * [PackageInfo] view model.
  *
  * @author S. Grimault
  */
-class PackageInfoViewModel(
+@HiltViewModel
+class PackageInfoViewModel @Inject constructor(
     application: Application,
-    private val packageInfoManager: IPackageInfoManager
+    private val packageInfoRepository: IPackageInfoRepository
 ) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
@@ -74,7 +74,7 @@ class PackageInfoViewModel(
     val packageInfos: LiveData<List<PackageInfo>> = MediatorLiveData<List<PackageInfo>>().apply {
         postValue(emptyList())
         addSource(_allPackageInfos) { packageInfos ->
-            value = packageInfos.filter { it.packageName != BuildConfig.APPLICATION_ID }
+            value = packageInfos.filter { it.packageName != application.packageName }
         }
         addSource(_synchronizeInputsFromPackageInfo) { inputsStatus ->
             value = value?.map { packageInfo ->
@@ -113,10 +113,10 @@ class PackageInfoViewModel(
         addSource(_allPackageInfos) { packageInfos: List<PackageInfo> ->
             viewModelScope.launch {
                 packageInfos
-                    .find { it.packageName == BuildConfig.APPLICATION_ID }
+                    .find { it.packageName == application.packageName }
                     ?.also {
                         if (it.settings != null) {
-                            packageInfoManager.updateAppSettings(it)
+                            packageInfoRepository.updateAppSettings(it)
                             delay(250)
                             _appSettingsUpdated.postValue(true)
                         }
@@ -136,7 +136,7 @@ class PackageInfoViewModel(
      */
     fun getAllApplications() {
         viewModelScope.launch {
-            packageInfoManager
+            packageInfoRepository
                 .getAllApplications()
                 .collect {
                     _allPackageInfos.postValue(it)
@@ -151,9 +151,9 @@ class PackageInfoViewModel(
         viewModelScope.launch {
             _allPackageInfos.value
                 ?.asSequence()
-                ?.filter { it.packageName != BuildConfig.APPLICATION_ID }
+                ?.filter { it.packageName != getApplication<Application>().packageName }
                 ?.forEach {
-                    packageInfoManager.updateAppSettings(it)
+                    packageInfoRepository.updateAppSettings(it)
                     startSyncInputs(it)
                 }
         }
@@ -166,14 +166,14 @@ class PackageInfoViewModel(
             .build()
 
         val inputsSyncWorkerRequest = OneTimeWorkRequest
-            .Builder(DownloadPackageWorker::class.java)
-            .addTag(DownloadPackageWorker.DOWNLOAD_PACKAGE_WORKER_TAG)
+            .Builder(DownloadPackageInfoWorker::class.java)
+            .addTag(DownloadPackageInfoWorker.DOWNLOAD_PACKAGE_WORKER_TAG)
             .setConstraints(constraints)
             .setInputData(
                 Data
                     .Builder()
                     .putString(
-                        DownloadPackageWorker.KEY_PACKAGE_NAME,
+                        DownloadPackageInfoWorker.KEY_PACKAGE_NAME,
                         packageName
                     )
                     .build()
@@ -181,7 +181,7 @@ class PackageInfoViewModel(
             .build()
 
         val continuation = workManager.beginUniqueWork(
-            DownloadPackageWorker.workName(packageName),
+            DownloadPackageInfoWorker.workName(packageName),
             ExistingWorkPolicy.REPLACE,
             inputsSyncWorkerRequest
         )
@@ -191,23 +191,24 @@ class PackageInfoViewModel(
                 return@map null
             }
 
-            val packageNameToUpgrade = it.progress.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
-                ?: it.outputData.getString(DownloadPackageWorker.KEY_PACKAGE_NAME)
-                ?: return@map null
+            val packageNameToUpgrade =
+                it.progress.getString(DownloadPackageInfoWorker.KEY_PACKAGE_NAME)
+                    ?: it.outputData.getString(DownloadPackageInfoWorker.KEY_PACKAGE_NAME)
+                    ?: return@map null
 
             val downloadStatus = AppPackageDownloadStatus(packageNameToUpgrade,
                 it.state,
                 it.outputData
                     .getInt(
-                        DownloadPackageWorker.KEY_PROGRESS,
+                        DownloadPackageInfoWorker.KEY_PROGRESS,
                         -1
                     )
                     .takeIf { progress -> progress > 0 }
                     ?: it.progress.getInt(
-                        DownloadPackageWorker.KEY_PROGRESS,
+                        DownloadPackageInfoWorker.KEY_PROGRESS,
                         -1
                     ),
-                it.outputData.getString(DownloadPackageWorker.KEY_APK_FILE_PATH))
+                it.outputData.getString(DownloadPackageInfoWorker.KEY_APK_FILE_PATH))
 
             _downloadPackageInfo.postValue(downloadStatus)
 
@@ -251,16 +252,5 @@ class PackageInfoViewModel(
 
         // start the work
         continuation.enqueue()
-    }
-
-    /**
-     * Default Factory to use for [PackageInfoViewModel].
-     *
-     * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
-     */
-    class Factory(val creator: () -> PackageInfoViewModel) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            @Suppress("UNCHECKED_CAST") return creator() as T
-        }
     }
 }

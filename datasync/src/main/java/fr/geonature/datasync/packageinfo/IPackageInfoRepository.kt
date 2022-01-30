@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.packageinfo
 
 import kotlinx.coroutines.flow.Flow
 
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
  *
  * @author S. Grimault
  */
-interface IPackageInfoManager {
+interface IPackageInfoRepository {
 
     /**
      * Gets all available applications.
@@ -30,6 +30,7 @@ interface IPackageInfoManager {
     /**
      * Fetch all available inputs to synchronize from given [PackageInfo].
      */
+    @Deprecated("use directly getInputsToSynchronize() from PackageInfo")
     suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput>
 
     /**

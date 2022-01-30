@@ -40,14 +40,14 @@ import fr.geonature.commons.util.observeUntil
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.auth.AuthLoginViewModel
 import fr.geonature.datasync.error.DataSyncSettingsNotFoundFailure
+import fr.geonature.datasync.packageinfo.IPackageInfoRepository
+import fr.geonature.datasync.packageinfo.PackageInfo
+import fr.geonature.datasync.packageinfo.PackageInfoViewModel
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.settings.DataSyncSettingsViewModel
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.R
 import fr.geonature.sync.sync.DataSyncViewModel
-import fr.geonature.sync.sync.IPackageInfoManager
-import fr.geonature.sync.sync.PackageInfo
-import fr.geonature.sync.sync.PackageInfoViewModel
 import fr.geonature.sync.sync.ServerStatus.UNAUTHORIZED
 import fr.geonature.sync.ui.settings.PreferencesActivity
 import kotlinx.coroutines.CoroutineScope
@@ -67,15 +67,15 @@ class HomeActivity : AppCompatActivity() {
 
     private val authLoginViewModel: AuthLoginViewModel by viewModels()
     private val dataSyncSettingsViewModel: DataSyncSettingsViewModel by viewModels()
+    private val packageInfoViewModel: PackageInfoViewModel by viewModels()
 
     @Inject
     lateinit var geoNatureAPIClient: IGeoNatureAPIClient
 
     @Inject
-    lateinit var packageInfoManager: IPackageInfoManager
+    lateinit var packageInfoRepository: IPackageInfoRepository
 
     private lateinit var dataSyncViewModel: DataSyncViewModel
-    private lateinit var packageInfoViewModel: PackageInfoViewModel
     private lateinit var adapter: PackageInfoRecyclerViewAdapter
 
     private var homeContent: ConstraintLayout? = null
@@ -103,7 +103,7 @@ class HomeActivity : AppCompatActivity() {
         dataSyncView = findViewById(R.id.dataSyncView)
 
         configureAuthLoginViewModel()
-        packageInfoViewModel = configurePackageInfoViewModel()
+        configurePackageInfoViewModel()
         dataSyncViewModel = configureDataSyncViewModel()
 
         adapter = PackageInfoRecyclerViewAdapter(object :
@@ -284,14 +284,8 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun configurePackageInfoViewModel(): PackageInfoViewModel {
-        return ViewModelProvider(this,
-            PackageInfoViewModel.Factory {
-                PackageInfoViewModel(
-                    application,
-                    packageInfoManager
-                )
-            })[PackageInfoViewModel::class.java].also { vm ->
+    private fun configurePackageInfoViewModel() {
+        packageInfoViewModel.also { vm ->
             vm.updateAvailable.observeOnce(this@HomeActivity) { appPackage ->
                 appPackage?.run { confirmBeforeUpgrade(this.packageName) }
             }

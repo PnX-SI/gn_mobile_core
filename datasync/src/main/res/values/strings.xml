@@ -16,6 +16,11 @@
     <string name="login_success">Successfully authenticated</string>
 
     <string name="notification_data_synchronization_title">Synchronize data…</string>
+    <string name="notification_inputs_to_synchronize_title">Inputs to synchronize</string>
+    <plurals name="notification_inputs_to_synchronize_description">
+        <item quantity="one">One input is ready to synchronize</item>
+        <item quantity="other">%d inputs are ready to synchronize</item>
+    </plurals>
 
     <string name="snackbar_network_lost">You are not connected to the Internet</string>
     <string name="snackbar_settings_undefined">Unable to load settings</string>

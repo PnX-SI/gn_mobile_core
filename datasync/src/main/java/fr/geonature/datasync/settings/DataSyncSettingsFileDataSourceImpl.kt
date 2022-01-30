@@ -14,7 +14,7 @@ import java.io.FileReader
  *
  * @author S. Grimault
  */
-class DataSyncSettingsFileDataSource(
+class DataSyncSettingsFileDataSourceImpl(
     private val jsonFile: File,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : IDataSyncSettingsDataSource {
@@ -37,6 +37,6 @@ class DataSyncSettingsFileDataSource(
     }
 
     companion object {
-        private val TAG = DataSyncSettingsFileDataSource::class.java.name
+        private val TAG = DataSyncSettingsFileDataSourceImpl::class.java.name
     }
 }

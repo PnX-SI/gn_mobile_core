@@ -32,7 +32,7 @@ object DataSyncSettingsModule {
     @Provides
     @FileDataSource
     fun provideDataSyncSettingsFileDataSource(@ApplicationContext appContext: Context): IDataSyncSettingsDataSource {
-        return DataSyncSettingsFileDataSource(
+        return DataSyncSettingsFileDataSourceImpl(
             getFile(
                 getRootFolder(
                     appContext,
@@ -47,7 +47,7 @@ object DataSyncSettingsModule {
     @Provides
     @UriDataSource
     fun provideDataSyncSettingsUriDataSource(@ApplicationContext appContext: Context): IDataSyncSettingsDataSource {
-        return DataSyncSettingsUriDataSource(
+        return DataSyncSettingsUriDataSourceImpl(
             appContext,
             Provider.buildUri(
                 "settings",

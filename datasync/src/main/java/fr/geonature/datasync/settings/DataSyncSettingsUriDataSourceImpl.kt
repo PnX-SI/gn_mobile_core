@@ -15,7 +15,7 @@ import java.io.FileReader
  *
  * @author S. Grimault
  */
-class DataSyncSettingsUriDataSource(
+class DataSyncSettingsUriDataSourceImpl(
     private val applicationContext: Context,
     private val resource: Uri,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -46,6 +46,6 @@ class DataSyncSettingsUriDataSource(
     }
 
     companion object {
-        private val TAG = DataSyncSettingsUriDataSource::class.java.name
+        private val TAG = DataSyncSettingsUriDataSourceImpl::class.java.name
     }
 }

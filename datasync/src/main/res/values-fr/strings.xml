@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="sync_error_server_not_connected">Non connecté</string>
 
@@ -16,6 +16,11 @@
     <string name="login_success">Authentification réussie</string>
 
     <string name="notification_data_synchronization_title">Synchronisation des données…</string>
+    <string name="notification_inputs_to_synchronize_title">Relevés à synchroniser</string>
+    <plurals name="notification_inputs_to_synchronize_description" tools:ignore="MissingQuantity">
+        <item quantity="one" tools:ignore="ImpliedQuantity">Un relevé est prêt à être synchronisé</item>
+        <item quantity="many">%d relevés sont prêts à être synchronisés</item>
+    </plurals>
 
     <string name="snackbar_network_lost">Vous n\'êtes pas connecté à Internet</string>
     <string name="snackbar_settings_undefined">Erreur lors du chargement des paramètres</string>

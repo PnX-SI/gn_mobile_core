@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync.worker
+package fr.geonature.datasync.packageinfo.worker
 
 import android.content.Context
 import android.util.Log
@@ -10,8 +10,8 @@ import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.sync.sync.IPackageInfoManager
-import fr.geonature.sync.sync.PackageInfo
+import fr.geonature.datasync.packageinfo.IPackageInfoRepository
+import fr.geonature.datasync.packageinfo.PackageInfo
 import okhttp3.ResponseBody
 import okhttp3.internal.closeQuietly
 import okio.Buffer
@@ -26,11 +26,11 @@ import java.io.File
  * @author S. Grimault
  */
 @HiltWorker
-class DownloadPackageWorker @AssistedInject constructor(
+class DownloadPackageInfoWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
-    private val packageInfoManager: IPackageInfoManager
+    private val packageInfoRepository: IPackageInfoRepository
 ) : CoroutineWorker(
     appContext,
     workerParams
@@ -42,7 +42,7 @@ class DownloadPackageWorker @AssistedInject constructor(
             return Result.failure()
         }
 
-        val packageInfoToUpdate = packageInfoManager.getPackageInfo(packageName)
+        val packageInfoToUpdate = packageInfoRepository.getPackageInfo(packageName)
             ?: return Result.failure()
         val apkUrl = packageInfoToUpdate.apkUrl
             ?: return Result.failure()
@@ -59,7 +59,7 @@ class DownloadPackageWorker @AssistedInject constructor(
                 .downloadPackage(apkUrl)
                 .awaitResponse()
 
-            if (response.isSuccessful) {
+            if (!response.isSuccessful) {
                 return Result.failure(
                     workData(
                         packageInfoToUpdate.packageName,
@@ -171,7 +171,7 @@ class DownloadPackageWorker @AssistedInject constructor(
     }
 
     companion object {
-        private val TAG = DownloadPackageWorker::class.java.name
+        private val TAG = DownloadPackageInfoWorker::class.java.name
 
         const val DOWNLOAD_PACKAGE_WORKER_TAG = "download_package_worker_tag"
         const val KEY_PACKAGE_NAME = "KEY_PACKAGE_NAME"

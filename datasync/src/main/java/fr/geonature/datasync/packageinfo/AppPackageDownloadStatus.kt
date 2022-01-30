@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.packageinfo
 
 import androidx.work.WorkInfo
 import fr.geonature.datasync.api.model.AppPackage

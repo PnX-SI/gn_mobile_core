@@ -1,14 +1,13 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.packageinfo
 
 import org.json.JSONObject
 
 /**
  * Describes an input to synchronize.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 data class SyncInput(
-    val packageInfo: PackageInfo,
     val filePath: String,
     val module: String,
     val payload: JSONObject

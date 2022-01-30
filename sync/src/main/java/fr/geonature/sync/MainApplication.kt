@@ -7,14 +7,11 @@ import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
 import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
+import fr.geonature.datasync.packageinfo.worker.CheckInputsToSynchronizeWorker
 import fr.geonature.mountpoint.util.MountPointUtils
-import fr.geonature.sync.sync.worker.CheckInputsToSynchronizeWorker
-import java.util.concurrent.TimeUnit
+import fr.geonature.sync.ui.home.HomeActivity
 import javax.inject.Inject
 
 /**
@@ -33,19 +30,9 @@ class MainApplication : Application(), Configuration.Provider {
     }
 
     private fun checkInputsToSynchronize() {
-        val workManager: WorkManager = WorkManager.getInstance(this)
-
-        val request = PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(
-            15,
-            TimeUnit.MINUTES
-        )
-            .addTag(CheckInputsToSynchronizeWorker.CHECK_INPUTS_TO_SYNC_WORKER_TAG)
-            .build()
-
-        workManager.enqueueUniquePeriodicWork(
-            CheckInputsToSynchronizeWorker.CHECK_INPUTS_TO_SYNC_WORKER,
-            ExistingPeriodicWorkPolicy.REPLACE,
-            request
+        CheckInputsToSynchronizeWorker.enqueueUniquePeriodicWork(
+            this,
+            HomeActivity::class.java.name
         )
     }
 

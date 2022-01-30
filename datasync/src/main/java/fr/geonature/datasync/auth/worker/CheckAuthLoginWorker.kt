@@ -82,7 +82,7 @@ class CheckAuthLoginWorker @AssistedInject constructor(
         const val NOTIFICATION_ID = 4
 
         private const val KEY_NOTIFICATION_CHANNEL_ID = "notification_channel_id"
-        private const val DEFAULT_CHANNEL_DATA_SYNCHRONIZATION = "channel_data_synchronization"
+        const val DEFAULT_CHANNEL_DATA_SYNCHRONIZATION = "channel_data_synchronization"
 
         /**
          * Convenience method for enqueuing periodic work to this worker.
