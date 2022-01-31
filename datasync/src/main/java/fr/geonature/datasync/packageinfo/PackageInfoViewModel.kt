@@ -19,6 +19,7 @@ import fr.geonature.datasync.packageinfo.worker.DownloadPackageInfoWorker
 import fr.geonature.datasync.packageinfo.worker.InputsSyncWorker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,7 +36,7 @@ class PackageInfoViewModel @Inject constructor(
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
     private val _appSettingsUpdated: MutableLiveData<Boolean> = MutableLiveData()
-    private val _allPackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData()
+    private val _allPackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData(emptyList())
 
     private val _synchronizeInputsFromPackageInfo =
         map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
@@ -149,12 +150,24 @@ class PackageInfoViewModel @Inject constructor(
      */
     fun synchronizeInstalledApplications() {
         viewModelScope.launch {
-            _allPackageInfos.value
-                ?.asSequence()
-                ?.filter { it.packageName != getApplication<Application>().packageName }
-                ?.forEach {
-                    packageInfoRepository.updateAppSettings(it)
-                    startSyncInputs(it)
+            packageInfoRepository
+                .getInstalledApplications()
+                .firstOrNull()
+                ?.also {
+                    if (it.isEmpty()) {
+                        return@also
+                    }
+
+                    _allPackageInfos.postValue(it + (_allPackageInfos.value?.filter { loadedPackageInfo -> it.none { installedPackageInfo -> installedPackageInfo.packageName == loadedPackageInfo.packageName } }
+                        ?: emptyList()))
+
+                    it
+                        .asSequence()
+                        .filter { packageInfo -> packageInfo.packageName != getApplication<Application>().packageName }
+                        .forEach { packageInfo ->
+                            packageInfoRepository.updateAppSettings(packageInfo)
+                            startSyncInputs(packageInfo)
+                        }
                 }
         }
     }
