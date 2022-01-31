@@ -1,5 +1,7 @@
 # DataSync module
 
+Authenticate GeoNature user.
+
 Synchronize local database through GeoNature APIs:
 
 - Users (i.e. Observers)
@@ -8,6 +10,25 @@ Synchronize local database through GeoNature APIs:
 - Nomenclature
 
 Synchronize observers inputs from synchronized apps (e.g. "Occtax").
+
+Manage available applications registered from GeoNature and installed ones.
+
+## GeoNature APIs
+
+See [IGeoNatureService](./src/main/java/fr/geonature/datasync/api/IGeoNatureService.kt) and [ITaxHubService](./src/main/java/fr/geonature/datasync/api/ITaxHubService.kt) interfaces definition about GeoNature and TaxHub APIs endpoints consumed:
+
+| Route                                       | Method | Description                                                      |
+| ------------------------------------------- | ------ | ---------------------------------------------------------------- |
+| `/api/auth/login`                           | `POST` | Performs authentication.                                         |
+| `/api/{module}/releve`                      | `POST` | Send observer's input to given GeoNature module (e.g. `occtax`). |
+| `/api/meta/datasets`                        | `GET`  | Fetch datasets.                                                  |
+| `/api/users/menu/{id}`                      | `GET`  | Fetch observers.                                                 |
+| `/api/synthese/color_taxon`                 | `GET`  | Fetch additional data for taxa.                                  |
+| `/api/nomenclatures/nomenclatures/taxonomy` | `GET`  | Fetch the nomenclature.                                          |
+| `/api/{module}/defaultNomenclatures`        | `GET`  | Fetch default nomenclature values.                               |
+| `/api/gn_commons/t_mobile_apps`             | `GET`  | Fetch available applications.                                    |
+| `/api/taxref/regnewithgroupe2`              | `GET`  | Fetch taxonomic ranks.                                           |
+| `/api/taxref/allnamebylist/{id}`            | `GET`  | Fetch taxa.                                                      |
 
 ## Settings
 
