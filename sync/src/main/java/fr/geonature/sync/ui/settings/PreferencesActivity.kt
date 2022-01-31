@@ -39,7 +39,7 @@ class PreferencesActivity : AppCompatActivity() {
             .beginTransaction()
             .replace(
                 android.R.id.content,
-                PreferencesFragment.newInstance()
+                PreferencesFragment.newInstance(serverUrls)
             )
             .commit()
     }

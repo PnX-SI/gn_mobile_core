@@ -117,21 +117,21 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
          */
         fun enqueueUniquePeriodicWork(
             context: Context,
-            intentClassName: String,
+            notificationComponentClassIntent: Class<*>,
             notificationChannelId: String = CheckAuthLoginWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
-            duration: Duration = 15.toDuration(DurationUnit.MINUTES)
+            repeatInterval: Duration = 15.toDuration(DurationUnit.MINUTES)
         ) {
             getInstance(context).enqueueUniquePeriodicWork(
                 CHECK_INPUTS_TO_SYNC_WORKER,
                 ExistingPeriodicWorkPolicy.REPLACE,
-                PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(duration.toJavaDuration())
+                PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(repeatInterval.toJavaDuration())
                     .addTag(CHECK_INPUTS_TO_SYNC_WORKER_TAG)
                     .setInputData(
                         Data
                             .Builder()
                             .putString(
                                 KEY_INTENT_CLASS_NAME,
-                                intentClassName
+                                notificationComponentClassIntent.name
                             )
                             .putString(
                                 KEY_NOTIFICATION_CHANNEL_ID,

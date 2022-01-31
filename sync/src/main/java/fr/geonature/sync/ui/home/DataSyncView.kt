@@ -10,8 +10,8 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.work.WorkInfo
+import fr.geonature.datasync.sync.DataSyncManagerImpl
 import fr.geonature.sync.R
-import fr.geonature.sync.sync.DataSyncManager
 import java.util.Date
 
 /**
@@ -123,14 +123,14 @@ class DataSyncView : ConstraintLayout {
         textViewMessage.text = text
     }
 
-    fun setLastSynchronizedDate(lastSynchronized: Pair<DataSyncManager.SyncState, Date?>) {
+    fun setLastSynchronizedDate(lastSynchronized: Pair<DataSyncManagerImpl.SyncState, Date?>) {
         val formatLastSynchronizedDate = if (lastSynchronized.second == null) context.getString(R.string.sync_last_synchronization_never)
         else DateFormat.format(
             context.getString(R.string.sync_last_synchronization_date),
             lastSynchronized.second
         )
 
-        textViewLastSynchronizedDateTitle.text = context.getText(if (lastSynchronized.first == DataSyncManager.SyncState.FULL) R.string.sync_last_synchronization_full else R.string.sync_last_synchronization)
+        textViewLastSynchronizedDateTitle.text = context.getText(if (lastSynchronized.first == DataSyncManagerImpl.SyncState.FULL) R.string.sync_last_synchronization_full else R.string.sync_last_synchronization)
         textViewLastSynchronizedDate.text = formatLastSynchronizedDate
     }
 

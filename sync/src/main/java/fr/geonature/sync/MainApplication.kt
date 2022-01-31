@@ -32,7 +32,7 @@ class MainApplication : Application(), Configuration.Provider {
     private fun checkInputsToSynchronize() {
         CheckInputsToSynchronizeWorker.enqueueUniquePeriodicWork(
             this,
-            HomeActivity::class.java.name
+            HomeActivity::class.java
         )
     }
 

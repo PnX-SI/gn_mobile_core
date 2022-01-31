@@ -1,8 +1,8 @@
-package fr.geonature.sync.sync.io
+package fr.geonature.datasync.sync.io
 
 import android.app.Application
 import fr.geonature.commons.data.entity.Dataset
-import fr.geonature.sync.FixtureHelper.getFixture
+import fr.geonature.datasync.FixtureHelper.getFixture
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue

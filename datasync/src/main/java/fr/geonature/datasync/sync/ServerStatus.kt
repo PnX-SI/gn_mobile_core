@@ -1,9 +1,9 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.sync
 
 /**
  * Server status.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 enum class ServerStatus(val httpStatus: Int) {
     OK(200),

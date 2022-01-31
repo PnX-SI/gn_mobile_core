@@ -16,24 +16,8 @@
     <string name="sync_last_synchronization_full">Last full synchronization</string>
     <string name="sync_last_synchronization_date">EEE dd MMM yyyy, kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Never</string>
-    <string name="sync_start_synchronization">Starting local data synchronization…</string>
-    <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
-    <string name="sync_error_server_error">GeoNature server error</string>
+
     <string name="sync_data">Data synchronization</string>
-    <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
-    <string name="sync_data_dataset_error">Synchronize dataset: failure</string>
-    <string name="sync_data_observers">Synchronize observers: %1$d</string>
-    <string name="sync_data_observers_error">Synchronize observers: failure</string>
-    <string name="sync_data_taxonomy_ranks">Synchronize taxonomy ranks: %1$d</string>
-    <string name="sync_data_taxonomy_ranks_error">Synchronize taxonomy ranks: failure</string>
-    <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
-    <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
-    <string name="sync_data_nomenclature_type">Synchronize nomenclature type: %1$d</string>
-    <string name="sync_data_nomenclature_type_error">Synchronize nomenclature type: failure</string>
-    <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
-    <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>
-    <string name="sync_data_nomenclature_default_error">Synchronize nomenclature default values: failure</string>
-    <string name="sync_data_succeeded">Done.</string>
 
     <string name="channel_name_check_inputs_to_synchronize">New inputs</string>
     <string name="channel_description_check_inputs_to_synchronize">Inputs to synchronize</string>

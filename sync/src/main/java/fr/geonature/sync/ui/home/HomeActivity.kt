@@ -26,7 +26,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -40,15 +39,15 @@ import fr.geonature.commons.util.observeUntil
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.auth.AuthLoginViewModel
 import fr.geonature.datasync.error.DataSyncSettingsNotFoundFailure
-import fr.geonature.datasync.packageinfo.IPackageInfoRepository
 import fr.geonature.datasync.packageinfo.PackageInfo
 import fr.geonature.datasync.packageinfo.PackageInfoViewModel
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.settings.DataSyncSettingsViewModel
+import fr.geonature.datasync.sync.DataSyncViewModel
+import fr.geonature.datasync.sync.ServerStatus.UNAUTHORIZED
 import fr.geonature.sync.BuildConfig
+import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.sync.DataSyncViewModel
-import fr.geonature.sync.sync.ServerStatus.UNAUTHORIZED
 import fr.geonature.sync.ui.settings.PreferencesActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
@@ -68,14 +67,11 @@ class HomeActivity : AppCompatActivity() {
     private val authLoginViewModel: AuthLoginViewModel by viewModels()
     private val dataSyncSettingsViewModel: DataSyncSettingsViewModel by viewModels()
     private val packageInfoViewModel: PackageInfoViewModel by viewModels()
+    private val dataSyncViewModel: DataSyncViewModel by viewModels()
 
     @Inject
     lateinit var geoNatureAPIClient: IGeoNatureAPIClient
 
-    @Inject
-    lateinit var packageInfoRepository: IPackageInfoRepository
-
-    private lateinit var dataSyncViewModel: DataSyncViewModel
     private lateinit var adapter: PackageInfoRecyclerViewAdapter
 
     private var homeContent: ConstraintLayout? = null
@@ -104,7 +100,7 @@ class HomeActivity : AppCompatActivity() {
 
         configureAuthLoginViewModel()
         configurePackageInfoViewModel()
-        dataSyncViewModel = configureDataSyncViewModel()
+        configureDataSyncViewModel()
 
         adapter = PackageInfoRecyclerViewAdapter(object :
             PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
@@ -171,7 +167,11 @@ class HomeActivity : AppCompatActivity() {
                         if (dataSyncSettings == null) {
                             packageInfoViewModel.getAllApplications()
                         } else {
-                            dataSyncViewModel.startSync(dataSyncSettings)
+                            dataSyncViewModel.startSync(
+                                dataSyncSettings,
+                                HomeActivity::class.java,
+                                MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+                            )
                             synchronizeInstalledApplications()
                         }
                     }
@@ -233,7 +233,11 @@ class HomeActivity : AppCompatActivity() {
             }
             R.id.menu_sync_data_refresh -> {
                 dataSyncSettings?.run {
-                    dataSyncViewModel.startSync(this)
+                    dataSyncViewModel.startSync(
+                        this,
+                        HomeActivity::class.java,
+                        MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+                    )
                 }
                 true
             }
@@ -313,9 +317,8 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun configureDataSyncViewModel(): DataSyncViewModel {
-        return ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) })[DataSyncViewModel::class.java].also { vm ->
+    private fun configureDataSyncViewModel() {
+        dataSyncViewModel.also { vm ->
             vm.lastSynchronizedDate.observe(
                 this@HomeActivity
             ) {
@@ -415,7 +418,11 @@ class HomeActivity : AppCompatActivity() {
                         )
                         dataSyncSettings = dataSyncSettingsLoaded
                         invalidateOptionsMenu()
-                        dataSyncViewModel.configurePeriodicSync(dataSyncSettingsLoaded)
+                        dataSyncViewModel.configurePeriodicSync(
+                            dataSyncSettingsLoaded,
+                            HomeActivity::class.java,
+                            MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+                        )
                         appSettingsLoaded?.invoke(dataSyncSettingsLoaded)
 
                         dataSyncSettingsLoaded
@@ -429,7 +436,11 @@ class HomeActivity : AppCompatActivity() {
 
     private fun startFirstSync(dataSyncSettings: DataSyncSettings) {
         if (dataSyncViewModel.lastSynchronizedDate.value?.second == null && dataSyncViewModel.isSyncRunning.value != true) {
-            dataSyncViewModel.startSync(dataSyncSettings)
+            dataSyncViewModel.startSync(
+                dataSyncSettings,
+                HomeActivity::class.java,
+                MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+            )
         }
     }
 

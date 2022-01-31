@@ -15,6 +15,24 @@
     <string name="login_failed_server_url_configuration">Missing GeoNature server configuration</string>
     <string name="login_success">Successfully authenticated</string>
 
+    <string name="sync_start_synchronization">Starting local data synchronization…</string>
+    <string name="sync_error_server_error">GeoNature server error</string>
+    <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
+    <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
+    <string name="sync_data_dataset_error">Synchronize dataset: failure</string>
+    <string name="sync_data_observers">Synchronize observers: %1$d</string>
+    <string name="sync_data_observers_error">Synchronize observers: failure</string>
+    <string name="sync_data_taxonomy_ranks">Synchronize taxonomy ranks: %1$d</string>
+    <string name="sync_data_taxonomy_ranks_error">Synchronize taxonomy ranks: failure</string>
+    <string name="sync_data_nomenclature_type">Synchronize nomenclature type: %1$d</string>
+    <string name="sync_data_nomenclature_type_error">Synchronize nomenclature type: failure</string>
+    <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
+    <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>
+    <string name="sync_data_nomenclature_default_error">Synchronize nomenclature default values: failure</string>
+    <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
+    <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
+    <string name="sync_data_succeeded">Done.</string>
+
     <string name="notification_data_synchronization_title">Synchronize data…</string>
     <string name="notification_inputs_to_synchronize_title">Inputs to synchronize</string>
     <plurals name="notification_inputs_to_synchronize_description">

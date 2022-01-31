@@ -1,6 +1,5 @@
-package fr.geonature.sync.sync.worker
+package fr.geonature.datasync.sync.worker
 
-import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -10,11 +9,18 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
+import androidx.work.WorkManager.getInstance
 import androidx.work.WorkerParameters
 import androidx.work.await
 import androidx.work.workDataOf
@@ -37,19 +43,19 @@ import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
 import fr.geonature.commons.data.entity.Taxonomy
+import fr.geonature.datasync.R
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.User
 import fr.geonature.datasync.auth.IAuthManager
+import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
+import fr.geonature.datasync.packageinfo.worker.CheckInputsToSynchronizeWorker
 import fr.geonature.datasync.settings.DataSyncSettings
+import fr.geonature.datasync.sync.DataSyncStatus
+import fr.geonature.datasync.sync.IDataSyncManager
+import fr.geonature.datasync.sync.ServerStatus
+import fr.geonature.datasync.sync.io.DatasetJsonReader
+import fr.geonature.datasync.sync.io.TaxonomyJsonReader
 import fr.geonature.datasync.ui.login.LoginActivity
-import fr.geonature.sync.MainApplication
-import fr.geonature.sync.R
-import fr.geonature.sync.sync.DataSyncManager
-import fr.geonature.sync.sync.DataSyncStatus
-import fr.geonature.sync.sync.ServerStatus
-import fr.geonature.sync.sync.io.DatasetJsonReader
-import fr.geonature.sync.sync.io.TaxonomyJsonReader
-import fr.geonature.sync.ui.home.HomeActivity
 import org.json.JSONObject
 import retrofit2.Response
 import retrofit2.awaitResponse
@@ -57,6 +63,12 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
+import kotlin.time.toJavaDuration
 
 /**
  * Local data synchronization worker.
@@ -68,6 +80,7 @@ class DataSyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val authManager: IAuthManager,
+    private val dataSyncManager: IDataSyncManager,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
     private val datasetDao: DatasetDao,
     private val inputObserverDao: InputObserverDao,
@@ -82,8 +95,7 @@ class DataSyncWorker @AssistedInject constructor(
     appContext,
     workerParams
 ) {
-    private val dataSyncManager = DataSyncManager.getInstance(applicationContext)
-    private val workManager = WorkManager.getInstance(applicationContext)
+    private val workManager = getInstance(applicationContext)
 
     override suspend fun doWork(): Result {
         val startTime = Date()
@@ -95,15 +107,11 @@ class DataSyncWorker @AssistedInject constructor(
                 "not connected: abort"
             )
 
-            setForeground(
-                createForegroundInfo(
-                    createNotification(
-                        DataSyncStatus(
-                            WorkInfo.State.FAILED,
-                            applicationContext.getString(R.string.sync_error_server_not_connected),
-                            ServerStatus.UNAUTHORIZED
-                        )
-                    )
+            sendNotification(
+                DataSyncStatus(
+                    WorkInfo.State.FAILED,
+                    applicationContext.getString(R.string.sync_error_server_not_connected),
+                    ServerStatus.UNAUTHORIZED
                 )
             )
 
@@ -141,7 +149,7 @@ class DataSyncWorker @AssistedInject constructor(
         }
 
         setProgress(workData(applicationContext.getString(R.string.sync_start_synchronization)))
-        setForeground(createForegroundInfo(createNotification(applicationContext.getString(R.string.sync_start_synchronization))))
+        sendNotification(applicationContext.getString(R.string.sync_start_synchronization))
 
         val syncDatasetResult = syncDataset(geoNatureAPIClient)
 
@@ -289,7 +297,7 @@ class DataSyncWorker @AssistedInject constructor(
             }
 
         if (result is DataSyncStatus && result.state == WorkInfo.State.FAILED) {
-            setForeground(createForegroundInfo(createNotification(result)))
+            sendNotification(result)
 
             return Result.failure(
                 workData(
@@ -324,14 +332,10 @@ class DataSyncWorker @AssistedInject constructor(
                 )
             )
         )
-        setForeground(
-            createForegroundInfo(
-                createNotification(
-                    applicationContext.getString(
-                        R.string.sync_data_dataset,
-                        dataset.size
-                    )
-                )
+        sendNotification(
+            applicationContext.getString(
+                R.string.sync_data_dataset,
+                dataset.size
             )
         )
 
@@ -371,7 +375,7 @@ class DataSyncWorker @AssistedInject constructor(
             }
 
         if (result is DataSyncStatus && result.state == WorkInfo.State.FAILED) {
-            setForeground(createForegroundInfo(createNotification(result)))
+            sendNotification(result)
 
             return Result.failure(
                 workData(
@@ -412,14 +416,10 @@ class DataSyncWorker @AssistedInject constructor(
                 )
             )
         )
-        setForeground(
-            createForegroundInfo(
-                createNotification(
-                    applicationContext.getString(
-                        R.string.sync_data_observers,
-                        inputObservers.size
-                    )
-                )
+        sendNotification(
+            applicationContext.getString(
+                R.string.sync_data_observers,
+                inputObservers.size
             )
         )
 
@@ -461,7 +461,7 @@ class DataSyncWorker @AssistedInject constructor(
             }
 
         if (result is DataSyncStatus && result.state == WorkInfo.State.FAILED) {
-            setForeground(createForegroundInfo(createNotification(result)))
+            sendNotification(result)
 
             return Result.failure(
                 workData(
@@ -496,14 +496,10 @@ class DataSyncWorker @AssistedInject constructor(
                 )
             )
         )
-        setForeground(
-            createForegroundInfo(
-                createNotification(
-                    applicationContext.getString(
-                        R.string.sync_data_taxonomy_ranks,
-                        taxonomyRanks.size
-                    )
-                )
+        sendNotification(
+            applicationContext.getString(
+                R.string.sync_data_taxonomy_ranks,
+                taxonomyRanks.size
             )
         )
 
@@ -540,7 +536,7 @@ class DataSyncWorker @AssistedInject constructor(
             }
 
         if (nomenclaturesResult is DataSyncStatus && nomenclaturesResult.state == WorkInfo.State.FAILED) {
-            setForeground(createForegroundInfo(createNotification(nomenclaturesResult)))
+            sendNotification(nomenclaturesResult)
 
             return Result.failure(
                 workData(
@@ -585,14 +581,10 @@ class DataSyncWorker @AssistedInject constructor(
                 )
             )
         )
-        setForeground(
-            createForegroundInfo(
-                createNotification(
-                    applicationContext.getString(
-                        R.string.sync_data_nomenclature_type,
-                        nomenclatureTypesToUpdate.size
-                    )
-                )
+        sendNotification(
+            applicationContext.getString(
+                R.string.sync_data_nomenclature_type,
+                nomenclatureTypesToUpdate.size
             )
         )
 
@@ -665,14 +657,10 @@ class DataSyncWorker @AssistedInject constructor(
                 )
             )
         )
-        setForeground(
-            createForegroundInfo(
-                createNotification(
-                    applicationContext.getString(
-                        R.string.sync_data_nomenclature,
-                        nomenclaturesToUpdate.size
-                    )
-                )
+        sendNotification(
+            applicationContext.getString(
+                R.string.sync_data_nomenclature,
+                nomenclaturesToUpdate.size
             )
         )
 
@@ -706,7 +694,7 @@ class DataSyncWorker @AssistedInject constructor(
             }
 
         if (defaultNomenclatureResult is DataSyncStatus && defaultNomenclatureResult.state == WorkInfo.State.FAILED) {
-            setForeground(createForegroundInfo(createNotification(defaultNomenclatureResult)))
+            sendNotification(defaultNomenclatureResult)
 
             return Result.failure(
                 workData(
@@ -753,14 +741,10 @@ class DataSyncWorker @AssistedInject constructor(
                 )
             )
         )
-        setForeground(
-            createForegroundInfo(
-                createNotification(
-                    applicationContext.getString(
-                        R.string.sync_data_nomenclature_default,
-                        defaultNomenclaturesToUpdate.size
-                    )
-                )
+        sendNotification(
+            applicationContext.getString(
+                R.string.sync_data_nomenclature_default,
+                defaultNomenclaturesToUpdate.size
             )
         )
 
@@ -861,14 +845,10 @@ class DataSyncWorker @AssistedInject constructor(
                     )
                 )
             )
-            setForeground(
-                createForegroundInfo(
-                    createNotification(
-                        applicationContext.getString(
-                            R.string.sync_data_taxa,
-                            (offset + taxa.size)
-                        )
-                    )
+            sendNotification(
+                applicationContext.getString(
+                    R.string.sync_data_taxa,
+                    (offset + taxa.size)
                 )
             )
 
@@ -955,14 +935,10 @@ class DataSyncWorker @AssistedInject constructor(
                         )
                     )
                 )
-                setForeground(
-                    createForegroundInfo(
-                        createNotification(
-                            applicationContext.getString(
-                                R.string.sync_data_taxa_areas,
-                                (offset + taxrefAreas.size)
-                            )
-                        )
+                sendNotification(
+                    applicationContext.getString(
+                        R.string.sync_data_taxa_areas,
+                        (offset + taxrefAreas.size)
                     )
                 )
 
@@ -997,61 +973,77 @@ class DataSyncWorker @AssistedInject constructor(
         return Result.success()
     }
 
-    private fun createForegroundInfo(notification: Notification): ForegroundInfo {
-        return ForegroundInfo(
-            SYNC_NOTIFICATION_ID,
-            notification
+    private suspend fun sendNotification(
+        dataSyncStatus: DataSyncStatus,
+        componentClassIntent: Class<*>? = null
+    ) {
+        sendNotification(
+            if (dataSyncStatus.serverStatus == ServerStatus.UNAUTHORIZED) applicationContext.getString(R.string.sync_error_server_not_connected)
+            else dataSyncStatus.syncMessage,
+            componentClassIntent
         )
     }
 
-    private fun createNotification(
+    private suspend fun sendNotification(
         contentText: CharSequence?,
-        componentClassIntent: Class<*> = HomeActivity::class.java
-    ): Notification {
-        return NotificationCompat
-            .Builder(
-                applicationContext,
-                MainApplication.CHANNEL_DATA_SYNCHRONIZATION
-            )
-            .setAutoCancel(true)
-            .setContentTitle(applicationContext.getText(R.string.notification_data_synchronization_title))
-            .setContentText(contentText)
-            .setContentIntent(
-                PendingIntent.getActivity(
-                    applicationContext,
-                    0,
-                    Intent(
-                        applicationContext,
-                        componentClassIntent
-                    ).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    },
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
-                )
-            )
-            .setSmallIcon(R.drawable.ic_sync)
-            .build()
-    }
+        componentClassIntent: Class<*>? = null
+    ) {
+        val notificationChannelId = inputData.getString(INPUT_NOTIFICATION_CHANNEL_ID)
+        val intentClassName = inputData.getString(INPUT_INTENT_CLASS_NAME)
 
-    private fun createNotification(dataSyncStatus: DataSyncStatus): Notification {
-        return createNotification(
-            if (dataSyncStatus.serverStatus == ServerStatus.UNAUTHORIZED) applicationContext.getString(R.string.sync_error_server_not_connected)
-            else dataSyncStatus.syncMessage,
-            if (dataSyncStatus.serverStatus == ServerStatus.UNAUTHORIZED) LoginActivity::class.java
-            else HomeActivity::class.java
+        if (notificationChannelId.isNullOrBlank() || intentClassName.isNullOrBlank()) {
+            return
+        }
+
+        val componentClassIntentOrDefault =
+            runCatching { Class.forName(intentClassName) }.getOrElse { componentClassIntent }
+
+        if (componentClassIntentOrDefault == null) {
+            Log.w(
+                TAG,
+                "no notification will be sent as intent class name '$intentClassName' was not found"
+            )
+
+            return
+        }
+
+        setForeground(
+            ForegroundInfo(
+                SYNC_NOTIFICATION_ID,
+                NotificationCompat
+                    .Builder(
+                        applicationContext,
+                        notificationChannelId
+                    )
+                    .setAutoCancel(true)
+                    .setContentTitle(applicationContext.getText(R.string.notification_data_synchronization_title))
+                    .setContentText(contentText)
+                    .setContentIntent(
+                        PendingIntent.getActivity(
+                            applicationContext,
+                            0,
+                            Intent(
+                                applicationContext,
+                                componentClassIntentOrDefault
+                            ).apply {
+                                flags =
+                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            },
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                        )
+                    )
+                    .setSmallIcon(R.drawable.ic_sync)
+                    .build()
+            )
         )
     }
 
     private suspend fun checkResponse(response: Response<*>?): DataSyncStatus {
         // not connected
         if (response?.code() == ServerStatus.UNAUTHORIZED.httpStatus) {
-            setForeground(
-                createForegroundInfo(
-                    createNotification(
-                        applicationContext.getString(R.string.sync_error_server_not_connected),
-                        LoginActivity::class.java
-                    )
-                )
+            sendNotification(
+                applicationContext.getString(R.string.sync_error_server_not_connected),
+                LoginActivity::class.java
             )
 
             return DataSyncStatus(
@@ -1093,7 +1085,7 @@ class DataSyncWorker @AssistedInject constructor(
         const val KEY_SERVER_STATUS = "KEY_SERVER_STATUS"
 
         // the name of the synchronization work
-        const val DATA_SYNC_WORKER = "data_sync_worker"
+        private const val DATA_SYNC_WORKER = "data_sync_worker"
         const val DATA_SYNC_WORKER_PERIODIC = "data_sync_worker_periodic"
         const val DATA_SYNC_WORKER_PERIODIC_ESSENTIAL = "data_sync_worker_periodic_essential"
         const val DATA_SYNC_WORKER_TAG = "data_sync_worker_tag"
@@ -1105,39 +1097,127 @@ class DataSyncWorker @AssistedInject constructor(
         private const val INPUT_CODE_AREA_TYPE = "codeAreaType"
         private const val INPUT_PAGE_SIZE = "pageSize"
         private const val INPUT_WITH_ADDITIONAL_DATA = "withAdditionalData"
+        private const val INPUT_INTENT_CLASS_NAME = "intent_class_name"
+        private const val INPUT_NOTIFICATION_CHANNEL_ID = "notification_channel_id"
 
         /**
-         * Configure input data to this [DataSyncWorker] from given [DataSyncSettings].
+         * Convenience method for enqueuing unique work to this worker.
          */
-        fun inputData(
+        fun enqueueUniqueWork(
+            context: Context,
             dataSyncSettings: DataSyncSettings,
-            withAdditionalData: Boolean = true
+            notificationComponentClassIntent: Class<*>,
+            notificationChannelId: String
+        ): UUID {
+            val dataSyncWorkRequest = OneTimeWorkRequest
+                .Builder(DataSyncWorker::class.java)
+                .addTag(DATA_SYNC_WORKER_TAG)
+                .setConstraints(
+                    Constraints
+                        .Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .setInputData(
+                    inputData(
+                        dataSyncSettings,
+                        true,
+                        notificationComponentClassIntent,
+                        notificationChannelId
+                    )
+                )
+                .build()
+
+            return dataSyncWorkRequest.id.also {
+                getInstance(context).enqueueUniqueWork(
+                    DATA_SYNC_WORKER,
+                    ExistingWorkPolicy.REPLACE,
+                    dataSyncWorkRequest
+                )
+            }
+        }
+
+        /**
+         * Convenience method for enqueuing periodic work to this worker.
+         */
+        fun enqueueUniquePeriodicWork(
+            context: Context,
+            dataSyncSettings: DataSyncSettings,
+            withAdditionalData: Boolean = true,
+            notificationComponentClassIntent: Class<*>,
+            notificationChannelId: String = CheckAuthLoginWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
+            repeatInterval: Duration = 15.toDuration(DurationUnit.MINUTES)
+        ) {
+            getInstance(context).enqueueUniquePeriodicWork(
+                if (withAdditionalData) DATA_SYNC_WORKER_PERIODIC else DATA_SYNC_WORKER_PERIODIC_ESSENTIAL,
+                ExistingPeriodicWorkPolicy.REPLACE,
+                PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(repeatInterval.toJavaDuration())
+                    .addTag(DATA_SYNC_WORKER_TAG)
+                    .setConstraints(
+                        Constraints
+                            .Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .setInitialDelay(
+                        (if (withAdditionalData) 15.toDuration(DurationUnit.MINUTES) else (repeatInterval / 2).coerceAtLeast(30.toDuration(DurationUnit.MINUTES))).inWholeSeconds,
+                        TimeUnit.SECONDS
+                    )
+                    .setBackoffCriteria(
+                        BackoffPolicy.LINEAR,
+                        (if (withAdditionalData) 1 else 2).toDuration(DurationUnit.MINUTES).inWholeSeconds,
+                        TimeUnit.SECONDS
+                    )
+                    .setInputData(
+                        inputData(
+                            dataSyncSettings,
+                            withAdditionalData,
+                            notificationComponentClassIntent,
+                            notificationChannelId
+                        )
+                    )
+                    .build()
+            )
+        }
+
+        /**
+         * Configure input data to this worker from given [DataSyncSettings].
+         */
+        private fun inputData(
+            dataSyncSettings: DataSyncSettings,
+            withAdditionalData: Boolean = true,
+            notificationComponentClassIntent: Class<*>,
+            notificationChannelId: String
         ): Data {
             return Data
                 .Builder()
-                .putAll(
-                    mapOf(
-                        Pair(
-                            INPUT_USERS_MENU_ID,
-                            dataSyncSettings.usersListId
-                        ),
-                        Pair(
-                            INPUT_TAXREF_LIST_ID,
-                            dataSyncSettings.taxrefListId
-                        ),
-                        Pair(
-                            INPUT_CODE_AREA_TYPE,
-                            dataSyncSettings.codeAreaType
-                        ),
-                        Pair(
-                            INPUT_PAGE_SIZE,
-                            dataSyncSettings.pageSize
-                        ),
-                        Pair(
-                            INPUT_WITH_ADDITIONAL_DATA,
-                            withAdditionalData
-                        )
-                    )
+                .putInt(
+                    INPUT_USERS_MENU_ID,
+                    dataSyncSettings.usersListId
+                )
+                .putInt(
+                    INPUT_TAXREF_LIST_ID,
+                    dataSyncSettings.taxrefListId
+                )
+                .putString(
+                    INPUT_CODE_AREA_TYPE,
+                    dataSyncSettings.codeAreaType
+                )
+                .putInt(
+                    INPUT_PAGE_SIZE,
+                    dataSyncSettings.pageSize
+                )
+                .putBoolean(
+                    INPUT_WITH_ADDITIONAL_DATA,
+                    withAdditionalData
+                )
+                .putString(
+                    INPUT_INTENT_CLASS_NAME,
+                    notificationComponentClassIntent.name
+                )
+                .putString(
+                    INPUT_NOTIFICATION_CHANNEL_ID,
+                    notificationChannelId
                 )
                 .build()
         }

@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.sync
 
 import android.app.Application
 import android.util.Log
@@ -7,42 +7,35 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations.map
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.await
+import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.datasync.settings.DataSyncSettings
-import fr.geonature.sync.sync.worker.DataSyncWorker
+import fr.geonature.datasync.sync.worker.DataSyncWorker
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 /**
  * Keeps track of data sync operations from GeoNature.
  *
  * @author S. Grimault
  */
-class DataSyncViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class DataSyncViewModel @Inject constructor(
+    application: Application,
+    dataSyncManager: IDataSyncManager
+) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
-    private val dataSyncManager = DataSyncManager
-        .getInstance(getApplication())
-        .also {
-            it.getLastSynchronizedDate()
-        }
+
+    init {
+        dataSyncManager.getLastSynchronizedDate()
+    }
 
     private var currentSyncWorkerId: UUID? = null
         set(value) {
@@ -50,7 +43,7 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             _isSyncRunning.postValue(field != null)
         }
 
-    val lastSynchronizedDate: LiveData<Pair<DataSyncManager.SyncState, Date?>> =
+    val lastSynchronizedDate: LiveData<Pair<DataSyncManagerImpl.SyncState, Date?>> =
         dataSyncManager.lastSynchronizedDate
 
     private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -103,34 +96,29 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun startSync(dataSyncSettings: DataSyncSettings) {
+    fun startSync(
+        dataSyncSettings: DataSyncSettings,
+        notificationComponentClassIntent: Class<*>,
+        notificationChannelId: String
+    ) {
         Log.i(
             TAG,
             "starting local data synchronization..."
         )
 
-        val dataSyncWorkRequest = OneTimeWorkRequest
-            .Builder(DataSyncWorker::class.java)
-            .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
-            .setConstraints(
-                Constraints
-                    .Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .setInputData(DataSyncWorker.inputData(dataSyncSettings))
-            .build()
-
-        currentSyncWorkerId = dataSyncWorkRequest.id
-
-        workManager.enqueueUniqueWork(
-            DataSyncWorker.DATA_SYNC_WORKER,
-            ExistingWorkPolicy.REPLACE,
-            dataSyncWorkRequest
+        currentSyncWorkerId = DataSyncWorker.enqueueUniqueWork(
+            getApplication(),
+            dataSyncSettings,
+            notificationComponentClassIntent,
+            notificationChannelId
         )
     }
 
-    fun configurePeriodicSync(appSettings: DataSyncSettings) {
+    fun configurePeriodicSync(
+        appSettings: DataSyncSettings,
+        notificationComponentClassIntent: Class<*>,
+        notificationChannelId: String
+    ) {
         viewModelScope.launch {
             val alreadyRunning = workManager
                 .getWorkInfosByTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
@@ -174,12 +162,17 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
             if (essentialDataSyncPeriodicity != null && dataSyncPeriodicity != null) {
                 configurePeriodicSync(
                     appSettings,
-                    dataSyncPeriodicity
+                    dataSyncPeriodicity,
+                    withAdditionalData = true,
+                    notificationComponentClassIntent,
+                    notificationChannelId
                 )
                 configurePeriodicSync(
                     appSettings,
                     essentialDataSyncPeriodicity,
-                    withAdditionalData = false
+                    withAdditionalData = false,
+                    notificationComponentClassIntent,
+                    notificationChannelId
                 )
 
                 return@launch
@@ -194,7 +187,10 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
                 ?.also {
                     configurePeriodicSync(
                         appSettings,
-                        it
+                        it,
+                        withAdditionalData = true,
+                        notificationComponentClassIntent,
+                        notificationChannelId
                     )
                 }
         }
@@ -210,62 +206,26 @@ class DataSyncViewModel(application: Application) : AndroidViewModel(application
     private fun configurePeriodicSync(
         dataSyncSettings: DataSyncSettings,
         repeatInterval: Duration,
-        withAdditionalData: Boolean = true
+        withAdditionalData: Boolean = true,
+        notificationComponentClassIntent: Class<*>,
+        notificationChannelId: String
     ) {
         Log.i(
             TAG,
             "configure data sync periodic worker (repeat interval: $repeatInterval, with additional data: $withAdditionalData)..."
         )
 
-        val request = PeriodicWorkRequestBuilder<DataSyncWorker>(
-            repeatInterval.inWholeSeconds,
-            TimeUnit.SECONDS
+        DataSyncWorker.enqueueUniquePeriodicWork(
+            getApplication(),
+            dataSyncSettings,
+            withAdditionalData,
+            notificationComponentClassIntent,
+            notificationChannelId,
+            repeatInterval
         )
-            .addTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
-            .setConstraints(
-                Constraints
-                    .Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .setInitialDelay(
-                (if (withAdditionalData) DEFAULT_MIN_DURATION else (repeatInterval / 2).coerceAtLeast(30.toDuration(DurationUnit.MINUTES))).inWholeSeconds,
-                TimeUnit.SECONDS
-            )
-            .setBackoffCriteria(
-                BackoffPolicy.LINEAR,
-                (if (withAdditionalData) 1 else 2).toDuration(DurationUnit.MINUTES).inWholeSeconds,
-                TimeUnit.SECONDS
-            )
-            .setInputData(
-                DataSyncWorker.inputData(
-                    dataSyncSettings,
-                    withAdditionalData
-                )
-            )
-            .build()
-
-        workManager.enqueueUniquePeriodicWork(
-            if (withAdditionalData) DataSyncWorker.DATA_SYNC_WORKER_PERIODIC else DataSyncWorker.DATA_SYNC_WORKER_PERIODIC_ESSENTIAL,
-            ExistingPeriodicWorkPolicy.REPLACE,
-            request
-        )
-    }
-
-    /**
-     * Default Factory to use for [DataSyncViewModel].
-     *
-     * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
-     */
-    class Factory(val creator: () -> DataSyncViewModel) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            @Suppress("UNCHECKED_CAST") return creator() as T
-        }
     }
 
     companion object {
         private val TAG = DataSyncViewModel::class.java.name
-
-        private val DEFAULT_MIN_DURATION = 15.toDuration(DurationUnit.MINUTES)
     }
 }

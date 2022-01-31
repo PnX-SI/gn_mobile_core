@@ -1,8 +1,8 @@
-package fr.geonature.sync.sync.io
+package fr.geonature.datasync.sync.io
 
 import android.app.Application
 import fr.geonature.commons.data.entity.Taxonomy
-import fr.geonature.sync.FixtureHelper.getFixture
+import fr.geonature.datasync.FixtureHelper.getFixture
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -76,14 +76,21 @@ class TaxonomyJsonReaderTest {
                 "Plantae",
                 "Protozoa"
             ),
-            taxonomy.map { it.kingdom }.distinct().toTypedArray()
+            taxonomy
+                .map { it.kingdom }
+                .distinct()
+                .toTypedArray()
         )
-        assertArrayEquals(
-            arrayOf(
-                Taxonomy.ANY,
-                "Lichens"
-            ),
-            taxonomy.asSequence().filter { it.kingdom == "Fungi" }.map { it.group }.toList().toTypedArray()
+        assertArrayEquals(arrayOf(
+            Taxonomy.ANY,
+            "Lichens"
+        ),
+            taxonomy
+                .asSequence()
+                .filter { it.kingdom == "Fungi" }
+                .map { it.group }
+                .toList()
+                .toTypedArray()
         )
     }
 }

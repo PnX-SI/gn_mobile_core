@@ -1,11 +1,11 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.sync
 
 import androidx.work.WorkInfo
 
 /**
  * Describes a data synchronization status message.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 data class DataSyncStatus(
     val state: WorkInfo.State,

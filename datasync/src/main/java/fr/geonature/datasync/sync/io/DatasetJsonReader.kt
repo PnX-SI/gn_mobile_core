@@ -1,4 +1,4 @@
-package fr.geonature.sync.sync.io
+package fr.geonature.datasync.sync.io
 
 import android.util.JsonReader
 import android.util.Log

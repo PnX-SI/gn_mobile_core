@@ -15,6 +15,24 @@
     <string name="login_failed_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
     <string name="login_success">Authentification réussie</string>
 
+    <string name="sync_start_synchronization">Synchronisation en cours…</string>
+    <string name="sync_error_server_error">Erreur serveur</string>
+    <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
+    <string name="sync_data_dataset">Synchronisation des jeux de données : %1$d</string>
+    <string name="sync_data_dataset_error">Synchronisation des jeux de données : échec</string>
+    <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
+    <string name="sync_data_observers_error">Synchronisation des observateurs : échec</string>
+    <string name="sync_data_taxonomy_ranks">Synchronisation des rangs taxonomiques : %1$d</string>
+    <string name="sync_data_taxonomy_ranks_error">Synchronisation des rangs taxonomiques : échec</string>
+    <string name="sync_data_nomenclature_type">Synchronisation des types de nomenclature : %1$d</string>
+    <string name="sync_data_nomenclature_type_error">Synchronisation des types de nomenclature : échec</string>
+    <string name="sync_data_nomenclature">Synchronisation de la nomenclature : %1$d</string>
+    <string name="sync_data_nomenclature_default">Synchronisation des valeurs par défaut de la nomenclature : %1$d</string>
+    <string name="sync_data_nomenclature_default_error">Synchronisation des valeurs par défaut de la nomenclature : échec</string>
+    <string name="sync_data_taxa">Synchronisation des taxons : %1$d</string>
+    <string name="sync_data_taxa_areas">Synchronisation des unités géographiques : %1$d</string>
+    <string name="sync_data_succeeded">Terminée.</string>
+
     <string name="notification_data_synchronization_title">Synchronisation des données…</string>
     <string name="notification_inputs_to_synchronize_title">Relevés à synchroniser</string>
     <plurals name="notification_inputs_to_synchronize_description" tools:ignore="MissingQuantity">

@@ -1,6 +1,5 @@
-package fr.geonature.sync.sync
+package fr.geonature.datasync.sync
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import fr.geonature.commons.data.dao.AppSyncDao
@@ -11,9 +10,7 @@ import java.util.Date
  *
  * @author S. Grimault
  */
-class DataSyncManager private constructor(applicationContext: Context) {
-
-    private val appSyncDao = AppSyncDao(applicationContext)
+class DataSyncManagerImpl constructor(private val appSyncDao: AppSyncDao) : IDataSyncManager {
 
     private val _lastSynchronizedDate: MutableLiveData<Pair<SyncState, Date?>> = MutableLiveData(
         Pair(
@@ -21,9 +18,9 @@ class DataSyncManager private constructor(applicationContext: Context) {
             null
         )
     )
-    val lastSynchronizedDate: LiveData<Pair<SyncState, Date?>> = _lastSynchronizedDate
+    override val lastSynchronizedDate: LiveData<Pair<SyncState, Date?>> = _lastSynchronizedDate
 
-    fun updateLastSynchronizedDate(complete: Boolean = true) {
+    override fun updateLastSynchronizedDate(complete: Boolean) {
         _lastSynchronizedDate.postValue(
             Pair(
                 if (complete) SyncState.FULL else SyncState.ESSENTIAL,
@@ -32,7 +29,7 @@ class DataSyncManager private constructor(applicationContext: Context) {
         )
     }
 
-    fun getLastSynchronizedDate(): Pair<SyncState, Date?> {
+    override fun getLastSynchronizedDate(): Pair<SyncState, Date?> {
         val lastSynchronizedDate = appSyncDao.getLastSynchronizedDate()
         val lastEssentialSynchronizedDate = appSyncDao.getLastEssentialSynchronizedDate()
 
@@ -80,25 +77,5 @@ class DataSyncManager private constructor(applicationContext: Context) {
     enum class SyncState {
         FULL,
         ESSENTIAL
-    }
-
-    companion object {
-
-        @Volatile
-        private var INSTANCE: DataSyncManager? = null
-
-        /**
-         * Gets the singleton instance of [DataSyncManager].
-         *
-         * @param applicationContext The main application context.
-         *
-         * @return The singleton instance of [DataSyncManager].
-         */
-        fun getInstance(applicationContext: Context): DataSyncManager =
-            INSTANCE
-                ?: synchronized(this) {
-                    INSTANCE
-                        ?: DataSyncManager(applicationContext).also { INSTANCE = it }
-                }
     }
 }
