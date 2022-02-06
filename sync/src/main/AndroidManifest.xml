@@ -30,7 +30,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.login.LoginActivity"
+            android:name="fr.geonature.datasync.ui.login.LoginActivity"
             android:label="@string/activity_login_title"
             android:theme="@style/Theme.Sync.Login"
             android:windowSoftInputMode="adjustResize" />

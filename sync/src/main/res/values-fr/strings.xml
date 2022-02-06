@@ -13,41 +13,18 @@
     <string name="sync_last_synchronization_full">Dernière synchronisation complète</string>
     <string name="sync_last_synchronization_date">le EEE dd MMM yyyy à kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Jamais</string>
-    <string name="sync_start_synchronization">Synchronisation en cours…</string>
-    <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
-    <string name="sync_error_server_error">Erreur serveur</string>
-    <string name="sync_error_server_not_connected">Non connecté</string>
+
     <string name="sync_data">Synchronisation des données</string>
-    <string name="sync_data_dataset">Synchronisation des jeux de données : %1$d</string>
-    <string name="sync_data_dataset_error">Synchronisation des jeux de données : échec</string>
-    <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
-    <string name="sync_data_observers_error">Synchronisation des observateurs : échec</string>
-    <string name="sync_data_taxonomy_ranks">Synchronisation des rangs taxonomiques : %1$d</string>
-    <string name="sync_data_taxonomy_ranks_error">Synchronisation des rangs taxonomiques : échec</string>
-    <string name="sync_data_taxa">Synchronisation des taxons : %1$d</string>
-    <string name="sync_data_taxa_areas">Synchronisation des unités géographiques : %1$d</string>
-    <string name="sync_data_nomenclature_type">Synchronisation des types de nomenclature : %1$d</string>
-    <string name="sync_data_nomenclature_type_error">Synchronisation des types de nomenclature : échec</string>
-    <string name="sync_data_nomenclature">Synchronisation de la nomenclature : %1$d</string>
-    <string name="sync_data_nomenclature_default">Synchronisation des valeurs par défaut de la nomenclature : %1$d</string>
-    <string name="sync_data_nomenclature_default_error">Synchronisation des valeurs par défaut de la nomenclature : échec</string>
-    <string name="sync_data_succeeded">Terminée.</string>
 
     <string name="channel_name_check_inputs_to_synchronize">Nouveaux relevés</string>
     <string name="channel_description_check_inputs_to_synchronize">Relevés à synchroniser</string>
     <string name="channel_name_data_synchronization">Synchronisation des données</string>
     <string name="channel_description_data_synchronization">Données locales à synchroniser</string>
-    <string name="notification_inputs_to_synchronize_title">Relevés à synchroniser</string>
-    <plurals name="notification_inputs_to_synchronize_description">
-        <item quantity="one" tools:ignore="ImpliedQuantity">Un relevé est prêt à être synchronisé</item>
-        <item quantity="other">%d relevés sont prêts à être synchronisés</item>
-    </plurals>
-    <string name="notification_data_synchronization_title">Synchronisation des données…</string>
 
     <string name="home_installed_apps">Applications</string>
     <string name="home_no_available_app">Aucune application compatible trouvée</string>
     <string name="home_app_version_full">%1$s (%2$s)</string>
-    <plurals name="home_app_inputs">
+    <plurals name="home_app_inputs" tools:ignore="MissingQuantity">
         <item quantity="one">Relevé à synchroniser : %d</item>
         <item quantity="other">Relevés à synchroniser : %d</item>
     </plurals>
@@ -61,24 +38,11 @@
     <string name="alert_new_app_version_action_ok">Mettre à jour</string>
     <string name="alert_new_app_version_action_later">Plus tard</string>
 
-    <string name="login_login_hint">Identifiant</string>
-    <string name="login_password_hint">Mot de passe</string>
-    <string name="login_action_sign_in">Se connecter</string>
-    <string name="login_form_username_invalid">Identifiant invalide</string>
-    <string name="login_form_password_invalid">Mot de passe invalide</string>
-    <string name="login_success">Authentification réussie</string>
-    <string name="login_failed">Echec lors de l\'authentification</string>
-    <string name="login_failed_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
-    <string name="login_failed_login">Utilisateur inconnu</string>
-    <string name="login_failed_password">Mot de passe invalide</string>
-
     <string name="toast_not_connected">Non connecté</string>
     <string name="toast_logout_success">Déconnexion réussie</string>
 
-    <string name="snackbar_network_lost">Vous n\'êtes pas connecté à Internet</string>
     <string name="snackbar_network_lost_sync">Vous n\'êtes pas connecté à Internet.\nLa synchronisation reprendra automatiquement dès qu\'elle sera rétablie.</string>
-    <string name="snackbar_settings_not_found">Erreur lors du chargement des paramètres \'%1$s\'</string>
-    <string name="snackbar_settings_updated">Paramètres \'%1$s\' à jour</string>
+    <string name="snackbar_settings_updated">Paramètres à jour</string>
     <string name="snackbar_upgrading_app">Téléchargement de la mise à jour…</string>
     <string name="snackbar_permissions_not_granted">Les permissions n\'ont pas été accordées</string>
     <string name="snackbar_permission_external_storage_rationale">L\'application requiert la permission d\'accéder au contenu de la mémoire de stockage</string>

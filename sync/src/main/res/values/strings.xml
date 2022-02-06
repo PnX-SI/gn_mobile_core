@@ -16,36 +16,13 @@
     <string name="sync_last_synchronization_full">Last full synchronization</string>
     <string name="sync_last_synchronization_date">EEE dd MMM yyyy, kk:mm:ss</string>
     <string name="sync_last_synchronization_never">Never</string>
-    <string name="sync_start_synchronization">Starting local data synchronization…</string>
-    <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
-    <string name="sync_error_server_error">GeoNature server error</string>
-    <string name="sync_error_server_not_connected">Not connected</string>
+
     <string name="sync_data">Data synchronization</string>
-    <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
-    <string name="sync_data_dataset_error">Synchronize dataset: failure</string>
-    <string name="sync_data_observers">Synchronize observers: %1$d</string>
-    <string name="sync_data_observers_error">Synchronize observers: failure</string>
-    <string name="sync_data_taxonomy_ranks">Synchronize taxonomy ranks: %1$d</string>
-    <string name="sync_data_taxonomy_ranks_error">Synchronize taxonomy ranks: failure</string>
-    <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
-    <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
-    <string name="sync_data_nomenclature_type">Synchronize nomenclature type: %1$d</string>
-    <string name="sync_data_nomenclature_type_error">Synchronize nomenclature type: failure</string>
-    <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
-    <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>
-    <string name="sync_data_nomenclature_default_error">Synchronize nomenclature default values: failure</string>
-    <string name="sync_data_succeeded">Done.</string>
 
     <string name="channel_name_check_inputs_to_synchronize">New inputs</string>
     <string name="channel_description_check_inputs_to_synchronize">Inputs to synchronize</string>
     <string name="channel_name_data_synchronization">Data synchronization</string>
     <string name="channel_description_data_synchronization">Data to synchronize</string>
-    <string name="notification_inputs_to_synchronize_title">Inputs to synchronize</string>
-    <plurals name="notification_inputs_to_synchronize_description">
-        <item quantity="one">One input is ready to synchronize</item>
-        <item quantity="other">%d inputs are ready to synchronize</item>
-    </plurals>
-    <string name="notification_data_synchronization_title">Synchronize data…</string>
 
     <string name="home_installed_apps">Available apps</string>
     <string name="home_no_available_app">No compatible app installed</string>
@@ -64,24 +41,11 @@
     <string name="alert_new_app_version_action_ok">Yes</string>
     <string name="alert_new_app_version_action_later">Later</string>
 
-    <string name="login_login_hint">Login</string>
-    <string name="login_password_hint">Password</string>
-    <string name="login_action_sign_in">Sign in</string>
-    <string name="login_form_username_invalid">Username must not be empty</string>
-    <string name="login_form_password_invalid">Password must not be empty</string>
-    <string name="login_success">Successfully authenticated</string>
-    <string name="login_failed">Login failed</string>
-    <string name="login_failed_server_url_configuration">Missing GeoNature server configuration</string>
-    <string name="login_failed_login">Invalid login</string>
-    <string name="login_failed_password">Invalid password</string>
-
     <string name="toast_not_connected">Not connected</string>
     <string name="toast_logout_success">Successfully disconnected</string>
 
-    <string name="snackbar_network_lost">You are not connected to the Internet</string>
     <string name="snackbar_network_lost_sync">You are not connected to the Internet.\nSynchronization will resume automatically.</string>
-    <string name="snackbar_settings_not_found">Unable to load settings \'%1$s\'</string>
-    <string name="snackbar_settings_updated">Settings \'%1$s\' updated</string>
+    <string name="snackbar_settings_updated">Settings updated</string>
     <string name="snackbar_upgrading_app">Upgrading…</string>
     <string name="snackbar_permissions_not_granted">Permissions were not granted</string>
     <string name="snackbar_permission_external_storage_rationale">External storage permission is needed</string>

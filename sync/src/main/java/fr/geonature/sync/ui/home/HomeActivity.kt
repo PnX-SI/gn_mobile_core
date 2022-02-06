@@ -19,13 +19,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,41 +33,45 @@ import androidx.work.WorkInfo
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import fr.geonature.commons.util.observeOnce
 import fr.geonature.commons.util.observeUntil
+import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.datasync.auth.AuthLoginViewModel
+import fr.geonature.datasync.error.DataSyncSettingsNotFoundFailure
+import fr.geonature.datasync.packageinfo.PackageInfo
+import fr.geonature.datasync.packageinfo.PackageInfoViewModel
+import fr.geonature.datasync.settings.DataSyncSettings
+import fr.geonature.datasync.settings.DataSyncSettingsViewModel
+import fr.geonature.datasync.sync.DataSyncViewModel
+import fr.geonature.datasync.sync.ServerStatus.UNAUTHORIZED
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
-import fr.geonature.sync.auth.AuthLoginViewModel
-import fr.geonature.sync.settings.AppSettings
-import fr.geonature.sync.settings.AppSettingsViewModel
-import fr.geonature.sync.sync.DataSyncViewModel
-import fr.geonature.sync.sync.PackageInfo
-import fr.geonature.sync.sync.PackageInfoViewModel
-import fr.geonature.sync.sync.ServerStatus.UNAUTHORIZED
-import fr.geonature.sync.ui.login.LoginActivity
 import fr.geonature.sync.ui.settings.PreferencesActivity
-import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
-import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
-import fr.geonature.sync.util.SettingsUtils.setGeoNatureServerUrl
-import fr.geonature.sync.util.SettingsUtils.setTaxHubServerUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
 /**
  * Home screen Activity.
  *
  * @author S. Grimault
  */
+@AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
 
-    private lateinit var appSettingsViewModel: AppSettingsViewModel
-    private lateinit var authLoginViewModel: AuthLoginViewModel
-    private lateinit var dataSyncViewModel: DataSyncViewModel
-    private lateinit var packageInfoViewModel: PackageInfoViewModel
+    private val authLoginViewModel: AuthLoginViewModel by viewModels()
+    private val dataSyncSettingsViewModel: DataSyncSettingsViewModel by viewModels()
+    private val packageInfoViewModel: PackageInfoViewModel by viewModels()
+    private val dataSyncViewModel: DataSyncViewModel by viewModels()
+
+    @Inject
+    lateinit var geoNatureAPIClient: IGeoNatureAPIClient
+
     private lateinit var adapter: PackageInfoRecyclerViewAdapter
 
     private var homeContent: ConstraintLayout? = null
@@ -78,7 +82,7 @@ class HomeActivity : AppCompatActivity() {
 
     private var progressSnackbar: Pair<Snackbar, CircularProgressIndicator>? = null
 
-    private var appSettings: AppSettings? = null
+    private var dataSyncSettings: DataSyncSettings? = null
     private var isLoggedIn: Boolean = false
 
     private lateinit var startSyncResultLauncher: ActivityResultLauncher<Intent>
@@ -94,10 +98,9 @@ class HomeActivity : AppCompatActivity() {
         progressBar = findViewById(android.R.id.progress)
         dataSyncView = findViewById(R.id.dataSyncView)
 
-        appSettingsViewModel = configureAppSettingsViewModel()
-        authLoginViewModel = configureAuthLoginViewModel()
-        packageInfoViewModel = configurePackageInfoViewModel()
-        dataSyncViewModel = configureDataSyncViewModel()
+        configureAuthLoginViewModel()
+        configurePackageInfoViewModel()
+        configureDataSyncViewModel()
 
         adapter = PackageInfoRecyclerViewAdapter(object :
             PackageInfoRecyclerViewAdapter.OnPackageInfoRecyclerViewAdapterListener {
@@ -155,20 +158,25 @@ class HomeActivity : AppCompatActivity() {
             addItemDecoration(dividerItemDecoration)
         }
 
-        startSyncResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            when (result.resultCode) {
-                RESULT_OK -> {
-                    val appSettings = appSettings
+        startSyncResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                when (result.resultCode) {
+                    RESULT_OK -> {
+                        val dataSyncSettings = dataSyncSettings
 
-                    if (appSettings == null) {
-                        packageInfoViewModel.getAllApplications()
-                    } else {
-                        dataSyncViewModel.startSync(appSettings)
-                        synchronizeInstalledApplications()
+                        if (dataSyncSettings == null) {
+                            packageInfoViewModel.getAllApplications()
+                        } else {
+                            dataSyncViewModel.startSync(
+                                dataSyncSettings,
+                                HomeActivity::class.java,
+                                MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+                            )
+                            synchronizeInstalledApplications()
+                        }
                     }
                 }
             }
-        }
 
         checkNetwork()
         loadAppSettings {
@@ -179,7 +187,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (appSettings != null) {
+        if (dataSyncSettings != null) {
             synchronizeInstalledApplications()
         }
     }
@@ -201,14 +209,15 @@ class HomeActivity : AppCompatActivity() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.run {
             findItem(R.id.menu_sync_data_refresh)?.also {
-                it.isEnabled = isLoggedIn && appSettings != null && dataSyncViewModel.isSyncRunning.value != true
+                it.isEnabled =
+                    isLoggedIn && dataSyncSettings != null && dataSyncViewModel.isSyncRunning.value != true
             }
             findItem(R.id.menu_login)?.also {
-                it.isEnabled = appSettings != null
+                it.isEnabled = dataSyncSettings != null
                 it.isVisible = !isLoggedIn
             }
             findItem(R.id.menu_logout)?.also {
-                it.isEnabled = appSettings != null
+                it.isEnabled = dataSyncSettings != null
                 it.isVisible = isLoggedIn
             }
         }
@@ -223,50 +232,41 @@ class HomeActivity : AppCompatActivity() {
                 true
             }
             R.id.menu_sync_data_refresh -> {
-                appSettings?.run {
-                    dataSyncViewModel.startSync(this)
+                dataSyncSettings?.run {
+                    dataSyncViewModel.startSync(
+                        this,
+                        HomeActivity::class.java,
+                        MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+                    )
                 }
                 true
             }
             R.id.menu_login -> {
-                startSyncResultLauncher.launch(LoginActivity.newIntent(this))
+                startSyncResultLauncher.launch(fr.geonature.datasync.ui.login.LoginActivity.newIntent(this))
                 true
             }
             R.id.menu_logout -> {
                 authLoginViewModel
                     .logout()
-                    .observe(this,
-                        {
-                            Toast
-                                .makeText(
-                                    this,
-                                    R.string.toast_logout_success,
-                                    Toast.LENGTH_SHORT
-                                )
-                                .show()
-                        })
+                    .observe(
+                        this
+                    ) {
+                        Toast
+                            .makeText(
+                                this,
+                                R.string.toast_logout_success,
+                                Toast.LENGTH_SHORT
+                            )
+                            .show()
+                    }
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun configureAppSettingsViewModel(): AppSettingsViewModel {
-        return ViewModelProvider(this,
-            fr.geonature.commons.settings.AppSettingsViewModel.Factory {
-                AppSettingsViewModel((application as MainApplication).sl.appSettingsManager)
-            })[AppSettingsViewModel::class.java]
-    }
-
-    private fun configureAuthLoginViewModel(): AuthLoginViewModel {
-        return ViewModelProvider(this,
-            AuthLoginViewModel.Factory {
-                AuthLoginViewModel(
-                    application,
-                    (application as MainApplication).sl.authManager,
-                    (application as MainApplication).sl.geoNatureAPIClient
-                )
-            })[AuthLoginViewModel::class.java].also { vm ->
+    private fun configureAuthLoginViewModel() {
+        authLoginViewModel.also { vm ->
             vm
                 .checkAuthLogin()
                 .observeOnce(this@HomeActivity) {
@@ -276,25 +276,20 @@ class HomeActivity : AppCompatActivity() {
                             "not connected, redirect to LoginActivity"
                         )
 
-                        startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
+                        startSyncResultLauncher.launch(fr.geonature.datasync.ui.login.LoginActivity.newIntent(this@HomeActivity))
                     }
                 }
-            vm.isLoggedIn.observe(this@HomeActivity,
-                {
-                    this@HomeActivity.isLoggedIn = it
-                    invalidateOptionsMenu()
-                })
+            vm.isLoggedIn.observe(
+                this@HomeActivity
+            ) {
+                this@HomeActivity.isLoggedIn = it
+                invalidateOptionsMenu()
+            }
         }
     }
 
-    private fun configurePackageInfoViewModel(): PackageInfoViewModel {
-        return ViewModelProvider(this,
-            PackageInfoViewModel.Factory {
-                PackageInfoViewModel(
-                    application,
-                    (application as MainApplication).sl.packageInfoManager
-                )
-            })[PackageInfoViewModel::class.java].also { vm ->
+    private fun configurePackageInfoViewModel() {
+        packageInfoViewModel.also { vm ->
             vm.updateAvailable.observeOnce(this@HomeActivity) { appPackage ->
                 appPackage?.run { confirmBeforeUpgrade(this.packageName) }
             }
@@ -306,74 +301,73 @@ class HomeActivity : AppCompatActivity() {
                 )
 
                 loadAppSettings {
-                    makeSnackbar(
-                        getString(
-                            R.string.snackbar_settings_updated,
-                            appSettingsViewModel.getAppSettingsFilename()
-                        )
-                    )?.show()
+                    makeSnackbar(getString(R.string.snackbar_settings_updated))?.show()
 
                     startFirstSync(it)
                     synchronizeInstalledApplications()
                 }
             }
 
-            vm.packageInfos.observe(this@HomeActivity,
-                {
-                    progressBar?.visibility = View.GONE
-                    adapter.setItems(it)
-                })
+            vm.packageInfos.observe(
+                this@HomeActivity
+            ) {
+                progressBar?.visibility = View.GONE
+                adapter.setItems(it)
+            }
         }
     }
 
-    private fun configureDataSyncViewModel(): DataSyncViewModel {
-        return ViewModelProvider(this,
-            DataSyncViewModel.Factory { DataSyncViewModel(application) })[DataSyncViewModel::class.java].also { vm ->
-            vm.lastSynchronizedDate.observe(this@HomeActivity,
-                {
-                    dataSyncView?.setLastSynchronizedDate(it)
-                })
-            vm.isSyncRunning.observe(this@HomeActivity,
-                {
-                    invalidateOptionsMenu()
-                })
+    private fun configureDataSyncViewModel() {
+        dataSyncViewModel.also { vm ->
+            vm.lastSynchronizedDate.observe(
+                this@HomeActivity
+            ) {
+                dataSyncView?.setLastSynchronizedDate(it)
+            }
+            vm.isSyncRunning.observe(
+                this@HomeActivity
+            ) {
+                invalidateOptionsMenu()
+            }
             vm
                 .observeDataSyncStatus()
-                .observe(this@HomeActivity,
-                    {
-                        if (it == null) {
-                            dataSyncView?.setState(WorkInfo.State.ENQUEUED)
-                            dataSyncView?.setMessage(null)
-                        }
+                .observe(
+                    this@HomeActivity
+                ) {
+                    if (it == null) {
+                        dataSyncView?.setState(WorkInfo.State.ENQUEUED)
+                        dataSyncView?.setMessage(null)
+                    }
 
-                        it?.run {
-                            dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
-                            dataSyncView?.setMessage(it.syncMessage)
+                    it?.run {
+                        dataSyncView?.setState(if (it.syncMessage.isNullOrBlank()) WorkInfo.State.ENQUEUED else it.state)
+                        dataSyncView?.setMessage(it.syncMessage)
 
-                            if (it.serverStatus == UNAUTHORIZED) {
-                                Log.i(
-                                    TAG,
-                                    "not connected (HTTP error code: 401), redirect to LoginActivity"
+                        if (it.serverStatus == UNAUTHORIZED) {
+                            Log.i(
+                                TAG,
+                                "not connected (HTTP error code: 401), redirect to LoginActivity"
+                            )
+
+                            Toast
+                                .makeText(
+                                    this@HomeActivity,
+                                    R.string.toast_not_connected,
+                                    Toast.LENGTH_SHORT
                                 )
+                                .show()
 
-                                Toast
-                                    .makeText(
-                                        this@HomeActivity,
-                                        R.string.toast_not_connected,
-                                        Toast.LENGTH_SHORT
-                                    )
-                                    .show()
-
-                                startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
-                            }
+                            startSyncResultLauncher.launch(fr.geonature.datasync.ui.login.LoginActivity.newIntent(this@HomeActivity))
                         }
-                    })
+                    }
+                }
         }
     }
 
     @RequiresPermission(Manifest.permission.CHANGE_NETWORK_STATE)
     private fun checkNetwork() {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         connectivityManager.requestNetwork(NetworkRequest
             .Builder()
@@ -390,15 +384,22 @@ class HomeActivity : AppCompatActivity() {
             })
     }
 
-    private fun loadAppSettings(appSettingsLoaded: ((appSettings: AppSettings) -> Unit)? = null) {
-        appSettingsViewModel
-            .loadAppSettings()
+    private fun loadAppSettings(appSettingsLoaded: ((appSettings: DataSyncSettings) -> Unit)? = null) {
+        dataSyncSettingsViewModel
+            .getDataSyncSettings()
             .observeOnce(this@HomeActivity) {
-                if (it == null) {
+                it?.fold({ failure ->
+                    Log.w(
+                        TAG,
+                        "failed to load settings $failure"
+                    )
+
                     makeSnackbar(
-                        getString(
+                        if (failure is DataSyncSettingsNotFoundFailure && !failure.source.isNullOrBlank()) getString(
                             R.string.snackbar_settings_not_found,
-                            appSettingsViewModel.getAppSettingsFilename()
+                            failure.source
+                        ) else getString(
+                            R.string.snackbar_settings_undefined,
                         )
                     )?.show()
 
@@ -408,31 +409,38 @@ class HomeActivity : AppCompatActivity() {
                         startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
                     }
 
-                    return@observeOnce
-                }
+                    failure
+                },
+                    { dataSyncSettingsLoaded ->
+                        Log.i(
+                            TAG,
+                            "app settings successfully loaded"
+                        )
+                        dataSyncSettings = dataSyncSettingsLoaded
+                        invalidateOptionsMenu()
+                        dataSyncViewModel.configurePeriodicSync(
+                            dataSyncSettingsLoaded,
+                            HomeActivity::class.java,
+                            MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+                        )
+                        appSettingsLoaded?.invoke(dataSyncSettingsLoaded)
 
-                appSettings = it
-                mergeAppSettingsWithSharedPreferences(it)
-                invalidateOptionsMenu()
-
-                if (!checkGeoNatureSettings()) {
-                    startSyncResultLauncher.launch(PreferencesActivity.newIntent(this))
-
-                    return@observeOnce
-                }
-
-                dataSyncViewModel.configurePeriodicSync(it)
-                appSettingsLoaded?.invoke(it)
+                        dataSyncSettingsLoaded
+                    })
             }
     }
 
     private fun checkGeoNatureSettings(): Boolean {
-        return (application as MainApplication).sl.geoNatureAPIClient.checkSettings()
+        return geoNatureAPIClient.checkSettings()
     }
 
-    private fun startFirstSync(appSettings: AppSettings) {
+    private fun startFirstSync(dataSyncSettings: DataSyncSettings) {
         if (dataSyncViewModel.lastSynchronizedDate.value?.second == null && dataSyncViewModel.isSyncRunning.value != true) {
-            dataSyncViewModel.startSync(appSettings)
+            dataSyncViewModel.startSync(
+                dataSyncSettings,
+                HomeActivity::class.java,
+                MainApplication.CHANNEL_DATA_SYNCHRONIZATION
+            )
         }
     }
 
@@ -491,25 +499,6 @@ class HomeActivity : AppCompatActivity() {
             }
     }
 
-    private fun mergeAppSettingsWithSharedPreferences(appSettings: AppSettings) {
-        val geoNatureServerUrl = appSettings.geoNatureServerUrl
-        val taxHubServerUrl = appSettings.taxHubServerUrl
-
-        if (!geoNatureServerUrl.isNullOrBlank() && getGeoNatureServerUrl(this).isNullOrBlank()) {
-            setGeoNatureServerUrl(
-                this,
-                geoNatureServerUrl
-            )
-        }
-
-        if (!taxHubServerUrl.isNullOrBlank() && getTaxHubServerUrl(this).isNullOrBlank()) {
-            setTaxHubServerUrl(
-                this,
-                taxHubServerUrl
-            )
-        }
-    }
-
     private fun confirmBeforeUpgrade(packageName: String) {
         AlertDialog
             .Builder(this)
@@ -532,7 +521,8 @@ class HomeActivity : AppCompatActivity() {
 
     private fun downloadApk(packageName: String) {
         if (packageName == BuildConfig.APPLICATION_ID) {
-            progressSnackbar = makeProgressSnackbar(getString(R.string.snackbar_upgrading_app))?.also { it.first.show() }
+            progressSnackbar =
+                makeProgressSnackbar(getString(R.string.snackbar_upgrading_app))?.also { it.first.show() }
         }
 
         packageInfoViewModel

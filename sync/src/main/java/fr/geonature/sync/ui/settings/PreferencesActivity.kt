@@ -4,9 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import fr.geonature.sync.util.SettingsUtils.getGeoNatureServerUrl
-import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
+import dagger.hilt.android.AndroidEntryPoint
+import fr.geonature.commons.fp.getOrElse
+import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.datasync.settings.DataSyncSettingsViewModel
 
 /**
  * Global settings.
@@ -15,16 +18,19 @@ import fr.geonature.sync.util.SettingsUtils.getTaxHubServerUrl
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
+@AndroidEntryPoint
 class PreferencesActivity : AppCompatActivity() {
 
-    private var geonatureServerUrl: String? = null
-    private var taxhubServerUrl: String? = null
+    private val dataSyncSettingsViewModel: DataSyncSettingsViewModel by viewModels()
+
+    private var serverUrls: IGeoNatureAPIClient.ServerUrls? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        geonatureServerUrl = getGeoNatureServerUrl(this)
-        taxhubServerUrl = getTaxHubServerUrl(this)
+        serverUrls = dataSyncSettingsViewModel
+            .getServerBaseUrls()
+            .getOrElse(null)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -33,14 +39,25 @@ class PreferencesActivity : AppCompatActivity() {
             .beginTransaction()
             .replace(
                 android.R.id.content,
-                PreferencesFragment.newInstance()
+                PreferencesFragment.newInstance(serverUrls)
             )
             .commit()
     }
 
     override fun finish() {
+        val currentServerUrls = dataSyncSettingsViewModel
+            .getServerBaseUrls()
+            .getOrElse(null)
+
+        if (currentServerUrls != null) {
+            dataSyncSettingsViewModel.setServerBaseUrls(
+                geoNatureServerUrl = currentServerUrls.geoNatureBaseUrl,
+                taxHubServerUrl = currentServerUrls.taxHubBaseUrl
+            )
+        }
+
         setResult(
-            if (geonatureServerUrl != getGeoNatureServerUrl(this) || taxhubServerUrl != getTaxHubServerUrl(this)) RESULT_OK
+            if (serverUrls != currentServerUrls) RESULT_OK
             else RESULT_CANCELED
         )
 

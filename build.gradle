@@ -4,6 +4,7 @@ buildscript {
     ext.kotlin_version = '1.6.10'
     ext.androidx_hilt_version = '1.0.0'
     ext.hilt_version = '2.40.5'
+    ext.retrofit_version = '2.9.0'
 
     repositories {
         google()
@@ -14,7 +15,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.4'
+        classpath 'com.android.tools.build:gradle:7.1.1'
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'org.jlleitschuh.gradle:ktlint-gradle:9.4.1'

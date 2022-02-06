@@ -12,9 +12,9 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import fr.geonature.commons.ui.adapter.AbstractListItemRecyclerViewAdapter
 import fr.geonature.commons.util.ThemeUtils
 import fr.geonature.sync.R
-import fr.geonature.sync.sync.AppPackageDownloadStatus
-import fr.geonature.sync.sync.AppPackageInputsStatus
-import fr.geonature.sync.sync.PackageInfo
+import fr.geonature.datasync.packageinfo.AppPackageDownloadStatus
+import fr.geonature.datasync.packageinfo.AppPackageInputsStatus
+import fr.geonature.datasync.packageinfo.PackageInfo
 
 /**
  * Default RecyclerView Adapter for [PackageInfo] used by [HomeActivity].

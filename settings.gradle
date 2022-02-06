@@ -1,3 +1,1 @@
-include ':viewpager', ':commons', ':sync', ':mountpoint'
-
-
+include ':commons', ':datasync', ':mountpoint', ':sync', ':viewpager'

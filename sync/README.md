@@ -1,13 +1,6 @@
 # Sync
 
-Synchronize local database through GeoNature API:
-
-- Users (i.e. Observers)
-- Taxa (with additional data like "color" by areas and taxonomy)
-- Dataset
-- Nomenclature
-
-Synchronize observers inputs from synchronized apps (e.g. "Occtax").
+Synchronize local database through GeoNature API and observers inputs from synchronized apps (e.g. "Occtax"), through [datasync module](../datasync/README.md).
 
 ## Launcher icons
 
@@ -38,41 +31,11 @@ Example:
 
 ### Parameters description
 
-| Parameter                         | UI      | Description                                          | Default value |
-| --------------------------------- | ------- | ---------------------------------------------------- | ------------- |
-| `geonature_url`                   | &#9745; | GeoNature URL                                        |               |
-| `taxhub_url`                      | &#9745; | TaxHub URL                                           |               |
-| `uh_application_id`               | &#9744; | GeoNature application ID in UsersHub                 |               |
-| `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub      |               |
-| `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                      |               |
-| `code_area_type`                  | &#9744; | GeoNature selected area type                         |               |
-| `page_size`                       | &#9744; | Default page size while fetching paginated values    | 10000         |
-| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity |               |
-| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity       |               |
+See: [parameters description from datasync module](../datasync/README.md#Settings).
 
 ### Data synchronization periodicity
 
-By default, data synchronization is done manually through app interface.
-If one of these parameters are set (`sync_periodicity_data_essential` or `sync_periodicity_data`), data synchronization is also made automatically according to these parameters.
-
-The expected format describing a periodic synchronization must following the pattern `DdHhMmSs` where `d`, `h`, `m`, `s` represents the time unit of the duration.
-Each part (duration value and its time unit) of the duration is optional. A time unit represents time durations at a given unit of granularity:
-
-- `d`: time unit representing 24 hours (i.e. one day)
-- `h`: time unit representing 60 minutes (i.e. one hour)
-- `m`: time unit representing 60 seconds (i.e. one minute)
-- `s`: time unit representing one second
-
-Examples of valid durations:
-
-- `1d12h`: 36 hours (i.e. 1.5 days)
-- `1d`: 24 hours (i.e. one day)
-- `4h30m`: 4.5 hours
-- `15m`: 15 minutes
-
-A valid synchronization periodicity should not be less than 15 minutes: Such a configuration will be ignored.
-If only one of these parameters is set, data synchronization involves all data.
-If both of these parameters are set, `sync_periodicity_data` parameter should be greater than `sync_periodicity_data_essential` parameter.
+See: [data synchronization periodicity from datasync module](../datasync/README.md#Data-synchronization-periodicity).
 
 ## Content Provider
 
