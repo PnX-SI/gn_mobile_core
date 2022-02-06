@@ -50,14 +50,14 @@ dependencies {
 
     api project(':mountpoint')
 
-    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
-    implementation 'androidx.preference:preference-ktx:1.1.1'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
 
     // Room
-    api 'androidx.room:room-runtime:2.4.0'
-    kapt 'androidx.room:room-compiler:2.4.0'
+    api 'androidx.room:room-runtime:2.4.1'
+    kapt 'androidx.room:room-compiler:2.4.1'
 
     // Hilt dependencies
     implementation "com.google.dagger:hilt-android:$hilt_version"
