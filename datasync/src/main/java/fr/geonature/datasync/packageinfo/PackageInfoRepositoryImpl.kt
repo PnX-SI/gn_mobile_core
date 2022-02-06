@@ -60,8 +60,23 @@ class PackageInfoRepositoryImpl(
     }
 
     @SuppressLint("QueryPermissionsNeeded")
-    override fun getInstalledApplications(): Flow<List<PackageInfo>> {
-        return installedPackageInfoDataSource.getAll()
+    override fun getInstalledApplications(): Flow<List<PackageInfo>> = flow {
+        val installedApplications = installedPackageInfoDataSource
+            .getAll()
+            .firstOrNull()
+            ?: emptyList()
+
+        if (installedApplications.isEmpty()) {
+            emit(installedApplications)
+
+            return@flow
+        }
+
+        emit(installedApplications.map { packageInfo ->
+            packageInfo.apply {
+                settings = allPackageInfos[packageInfo.packageName]?.settings
+            }
+        })
     }
 
     override suspend fun getPackageInfo(packageName: String): PackageInfo? {
@@ -73,6 +88,11 @@ class PackageInfoRepositoryImpl(
     }
 
     override suspend fun updateAppSettings(packageInfo: PackageInfo) = withContext(IO) {
+        Log.i(
+            TAG,
+            "updating settings for '${packageInfo.packageName}'..."
+        )
+        
         val result = runCatching { AppSettingsJsonWriter(applicationContext).write(packageInfo) }
 
         if (result.isFailure) {
