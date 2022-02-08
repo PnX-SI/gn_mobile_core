@@ -1,7 +1,7 @@
 package fr.geonature.commons.settings
 
 import android.annotation.SuppressLint
-import android.app.Application
+import android.content.Context
 import android.util.Log
 import fr.geonature.commons.data.helper.Provider
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
@@ -20,14 +20,14 @@ import java.io.FileReader
  * @author S. Grimault
  */
 class AppSettingsManagerImpl<AS : IAppSettings>(
-    internal val application: Application,
+    private val applicationContext: Context,
     onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : IAppSettingsManager<AS> {
     private val appSettingsJsonReader: AppSettingsJsonReader<AS> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     override fun getAppSettingsFilename(): String {
-        val packageName = application.packageName
+        val packageName = applicationContext.packageName
 
         return "settings_${packageName.substring(packageName.lastIndexOf('.') + 1)}.json"
     }
@@ -50,7 +50,7 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
     internal fun getAppSettingsAsFile(): File {
         return getFile(
             getRootFolder(
-                application,
+                applicationContext,
                 INTERNAL
             ),
             getAppSettingsFilename()
@@ -70,7 +70,7 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
         )
 
         return runCatching {
-            application.contentResolver
+            applicationContext.contentResolver
                 .acquireContentProviderClient(appSettingsUri)
                 ?.let {
                     val appSettings = it
