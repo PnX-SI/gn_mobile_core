@@ -43,7 +43,7 @@ class DataSyncViewModel @Inject constructor(
             _isSyncRunning.postValue(field != null)
         }
 
-    val lastSynchronizedDate: LiveData<Pair<DataSyncManagerImpl.SyncState, Date?>> =
+    val lastSynchronizedDate: LiveData<Pair<IDataSyncManager.SyncState, Date?>> =
         dataSyncManager.lastSynchronizedDate
 
     private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)

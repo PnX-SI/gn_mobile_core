@@ -10,14 +10,14 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.work.WorkInfo
-import fr.geonature.datasync.sync.DataSyncManagerImpl
+import fr.geonature.datasync.sync.IDataSyncManager
 import fr.geonature.sync.R
 import java.util.Date
 
 /**
  * Custom [View] about data synchronization status.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DataSyncView : ConstraintLayout {
 
@@ -37,10 +37,7 @@ class DataSyncView : ConstraintLayout {
     }
 
     constructor(context: Context) : super(context) {
-        init(
-            null,
-            0
-        )
+        init()
     }
 
     constructor(
@@ -50,10 +47,7 @@ class DataSyncView : ConstraintLayout {
         context,
         attrs
     ) {
-        init(
-            attrs,
-            0
-        )
+        init()
     }
 
     constructor(
@@ -65,10 +59,7 @@ class DataSyncView : ConstraintLayout {
         attrs,
         defStyleAttr
     ) {
-        init(
-            attrs,
-            defStyleAttr
-        )
+        init()
     }
 
     fun setState(state: WorkInfo.State) {
@@ -123,21 +114,18 @@ class DataSyncView : ConstraintLayout {
         textViewMessage.text = text
     }
 
-    fun setLastSynchronizedDate(lastSynchronized: Pair<DataSyncManagerImpl.SyncState, Date?>) {
+    fun setLastSynchronizedDate(lastSynchronized: Pair<IDataSyncManager.SyncState, Date?>) {
         val formatLastSynchronizedDate = if (lastSynchronized.second == null) context.getString(R.string.sync_last_synchronization_never)
         else DateFormat.format(
             context.getString(R.string.sync_last_synchronization_date),
             lastSynchronized.second
         )
 
-        textViewLastSynchronizedDateTitle.text = context.getText(if (lastSynchronized.first == DataSyncManagerImpl.SyncState.FULL) R.string.sync_last_synchronization_full else R.string.sync_last_synchronization)
+        textViewLastSynchronizedDateTitle.text = context.getText(if (lastSynchronized.first == IDataSyncManager.SyncState.FULL) R.string.sync_last_synchronization_full else R.string.sync_last_synchronization)
         textViewLastSynchronizedDate.text = formatLastSynchronizedDate
     }
 
-    private fun init(
-        attrs: AttributeSet?,
-        defStyle: Int
-    ) {
+    private fun init() {
         View.inflate(
             context,
             R.layout.view_sync_data,

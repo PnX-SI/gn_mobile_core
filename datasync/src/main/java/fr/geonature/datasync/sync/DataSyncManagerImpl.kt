@@ -12,37 +12,39 @@ import java.util.Date
  */
 class DataSyncManagerImpl constructor(private val appSyncDao: AppSyncDao) : IDataSyncManager {
 
-    private val _lastSynchronizedDate: MutableLiveData<Pair<SyncState, Date?>> = MutableLiveData(
-        Pair(
-            SyncState.FULL,
-            null
+    private val _lastSynchronizedDate: MutableLiveData<Pair<IDataSyncManager.SyncState, Date?>> =
+        MutableLiveData(
+            Pair(
+                IDataSyncManager.SyncState.FULL,
+                null
+            )
         )
-    )
-    override val lastSynchronizedDate: LiveData<Pair<SyncState, Date?>> = _lastSynchronizedDate
+    override val lastSynchronizedDate: LiveData<Pair<IDataSyncManager.SyncState, Date?>> =
+        _lastSynchronizedDate
 
     override fun updateLastSynchronizedDate(complete: Boolean) {
         _lastSynchronizedDate.postValue(
             Pair(
-                if (complete) SyncState.FULL else SyncState.ESSENTIAL,
+                if (complete) IDataSyncManager.SyncState.FULL else IDataSyncManager.SyncState.ESSENTIAL,
                 appSyncDao.updateLastSynchronizedDate(complete)
             )
         )
     }
 
-    override fun getLastSynchronizedDate(): Pair<SyncState, Date?> {
+    override fun getLastSynchronizedDate(): Pair<IDataSyncManager.SyncState, Date?> {
         val lastSynchronizedDate = appSyncDao.getLastSynchronizedDate()
         val lastEssentialSynchronizedDate = appSyncDao.getLastEssentialSynchronizedDate()
 
         if (lastEssentialSynchronizedDate == null) {
             _lastSynchronizedDate.postValue(
                 Pair(
-                    SyncState.FULL,
+                    IDataSyncManager.SyncState.FULL,
                     lastSynchronizedDate
                 )
             )
 
             return Pair(
-                SyncState.FULL,
+                IDataSyncManager.SyncState.FULL,
                 lastSynchronizedDate
             )
         }
@@ -50,32 +52,27 @@ class DataSyncManagerImpl constructor(private val appSyncDao: AppSyncDao) : IDat
         if (lastSynchronizedDate == null) {
             _lastSynchronizedDate.postValue(
                 Pair(
-                    SyncState.FULL,
+                    IDataSyncManager.SyncState.FULL,
                     null
                 )
             )
 
             return Pair(
-                SyncState.FULL,
+                IDataSyncManager.SyncState.FULL,
                 null
             )
         }
 
         _lastSynchronizedDate.postValue(
             Pair(
-                if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) SyncState.FULL else SyncState.ESSENTIAL,
+                if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) IDataSyncManager.SyncState.FULL else IDataSyncManager.SyncState.ESSENTIAL,
                 if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) lastSynchronizedDate else lastEssentialSynchronizedDate
             )
         )
 
         return Pair(
-            if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) SyncState.FULL else SyncState.ESSENTIAL,
+            if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) IDataSyncManager.SyncState.FULL else IDataSyncManager.SyncState.ESSENTIAL,
             if (lastSynchronizedDate.after(lastEssentialSynchronizedDate)) lastSynchronizedDate else lastEssentialSynchronizedDate
         )
-    }
-
-    enum class SyncState {
-        FULL,
-        ESSENTIAL
     }
 }

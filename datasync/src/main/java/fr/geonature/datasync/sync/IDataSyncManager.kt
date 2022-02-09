@@ -13,9 +13,14 @@ interface IDataSyncManager {
     /**
      * The last data synchronization date (or `null` if never done).
      */
-    val lastSynchronizedDate: LiveData<Pair<DataSyncManagerImpl.SyncState, Date?>>
+    val lastSynchronizedDate: LiveData<Pair<SyncState, Date?>>
 
     fun updateLastSynchronizedDate(complete: Boolean = true)
 
-    fun getLastSynchronizedDate(): Pair<DataSyncManagerImpl.SyncState, Date?>
+    fun getLastSynchronizedDate(): Pair<SyncState, Date?>
+
+    enum class SyncState {
+        FULL,
+        ESSENTIAL
+    }
 }
