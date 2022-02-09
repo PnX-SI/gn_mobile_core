@@ -98,7 +98,7 @@ class InputsSyncWorker @AssistedInject constructor(
                     )
                     .awaitResponse()
 
-                if (response.isSuccessful) {
+                if (!response.isSuccessful) {
                     setProgress(
                         workData(
                             packageInfo.packageName,
