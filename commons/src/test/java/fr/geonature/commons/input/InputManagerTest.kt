@@ -8,7 +8,6 @@ import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import fr.geonature.commons.data.DummyContentProvider
-import fr.geonature.commons.data.helper.Provider
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import kotlinx.coroutines.runBlocking
@@ -73,7 +72,7 @@ class InputManagerTest {
         val application = getApplicationContext<Application>()
 
         val info = ProviderInfo()
-        info.authority = Provider.AUTHORITY
+        info.authority = "fr.geonature.sync.provider"
         info.grantUriPermissions = true
         Robolectric
             .buildContentProvider(DummyContentProvider::class.java)
@@ -81,6 +80,7 @@ class InputManagerTest {
 
         inputManager = InputManagerImpl(
             application,
+            info.authority,
             onInputJsonReaderListener,
             onInputJsonWriterListener
         )

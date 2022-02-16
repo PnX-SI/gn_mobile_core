@@ -1,45 +1,53 @@
 package fr.geonature.commons.data.helper
 
-import fr.geonature.commons.data.helper.Provider.buildUri
+import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Unit tests about [Provider].
+ * Unit tests about [ProviderHelper].
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
 @RunWith(RobolectricTestRunner::class)
-class ProviderTest {
+class ProviderHelperTest {
 
     @Test
     fun testBuildUri() {
+        val authority = "fr.geonature.sync.provider"
+
         assertEquals(
-            "content://${Provider.AUTHORITY}/taxa",
-            buildUri("taxa").toString()
+            "content://$authority/taxa",
+            buildUri(
+                authority,
+                "taxa"
+            ).toString()
         )
 
         assertEquals(
-            "content://${Provider.AUTHORITY}/taxa/123",
+            "content://$authority/taxa/123",
             buildUri(
+                authority,
                 "taxa",
                 123.toString()
             ).toString()
         )
 
         assertEquals(
-            "content://${Provider.AUTHORITY}/taxa/area/123",
+            "content://$authority/taxa/area/123",
             buildUri(
+                authority,
                 "taxa",
                 "area/123"
             ).toString()
         )
 
         assertEquals(
-            "content://${Provider.AUTHORITY}/taxa/area/123",
+            "content://$authority/taxa/area/123",
             buildUri(
+                authority,
                 "taxa",
                 "area",
                 123.toString()
@@ -47,8 +55,9 @@ class ProviderTest {
         )
 
         assertEquals(
-            "content://${Provider.AUTHORITY}/taxa/area/123",
+            "content://$authority/taxa/area/123",
             buildUri(
+                authority,
                 "taxa",
                 "area",
                 "",
@@ -57,8 +66,9 @@ class ProviderTest {
         )
 
         assertEquals(
-            "content://${Provider.AUTHORITY}/taxa/area/123",
+            "content://$authority/taxa/area/123",
             buildUri(
+                authority,
                 "taxa",
                 "area",
                 "  ",

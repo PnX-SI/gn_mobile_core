@@ -8,7 +8,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
-import fr.geonature.commons.data.helper.Provider
+import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import kotlinx.coroutines.Dispatchers.Default
@@ -21,11 +21,13 @@ import kotlinx.coroutines.withContext
  */
 class InputManagerImpl<I : AbstractInput>(
     private val context: Context,
+    private val providerAuthority: String,
     inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
     inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>
 ) : IInputManager<I> {
 
-    private val preferenceManager: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val preferenceManager: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(context)
     private val inputJsonReader: InputJsonReader<I> = InputJsonReader(inputJsonReaderListener)
     private val inputJsonWriter: InputJsonWriter<I> = InputJsonWriter(inputJsonWriterListener)
 
@@ -35,36 +37,34 @@ class InputManagerImpl<I : AbstractInput>(
     private val _input: MutableLiveData<I?> = MutableLiveData()
     override val input: LiveData<I?> = _input
 
-    override suspend fun readInputs(): List<I> =
-        withContext(Default) {
-            preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }.values
-                .mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
-                .sortedBy { it.id }
-                .also { _inputs.postValue(it) }
+    override suspend fun readInputs(): List<I> = withContext(Default) {
+        preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }.values
+            .mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
+            .sortedBy { it.id }
+            .also { _inputs.postValue(it) }
+    }
+
+    override suspend fun readInput(id: Long?): I? = withContext(Default) {
+        val inputPreferenceKey = buildInputPreferenceKey(
+            id
+                ?: preferenceManager.getLong(
+                    KEY_PREFERENCE_CURRENT_INPUT,
+                    0
+                )
+        )
+        val inputAsJson = preferenceManager.getString(
+            inputPreferenceKey,
+            null
+        )
+
+        if (inputAsJson.isNullOrBlank()) {
+            return@withContext null
         }
 
-    override suspend fun readInput(id: Long?): I? =
-        withContext(Default) {
-            val inputPreferenceKey = buildInputPreferenceKey(
-                id
-                    ?: preferenceManager.getLong(
-                        KEY_PREFERENCE_CURRENT_INPUT,
-                        0
-                    )
-            )
-            val inputAsJson = preferenceManager.getString(
-                inputPreferenceKey,
-                null
-            )
-
-            if (inputAsJson.isNullOrBlank()) {
-                return@withContext null
-            }
-
-            inputJsonReader
-                .read(inputAsJson)
-                .also { _input.postValue(it) }
-        }
+        inputJsonReader
+            .read(inputAsJson)
+            .also { _input.postValue(it) }
+    }
 
     override suspend fun readCurrentInput(): I? {
         return readInput()
@@ -132,13 +132,13 @@ class InputManagerImpl<I : AbstractInput>(
     override suspend fun exportInput(input: I): Boolean {
         input.status = AbstractInput.Status.TO_SYNC
 
-        val inputExportUri = Provider.buildUri(
+        val inputExportUri = buildUri(
+            providerAuthority,
             "inputs",
             "export"
         )
 
-        val inputUri = kotlin
-            .runCatching {
+        val inputUri = runCatching {
                 context.contentResolver
                     .acquireContentProviderClient(inputExportUri)
                     ?.let {

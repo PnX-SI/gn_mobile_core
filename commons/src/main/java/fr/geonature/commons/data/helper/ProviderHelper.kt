@@ -4,26 +4,22 @@ import android.net.Uri
 import android.net.Uri.withAppendedPath
 
 /**
- * Base content provider.
+ * Helper about content provider.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-object Provider {
-
-    /**
-     * The default authority used by content provider.
-     */
-    const val AUTHORITY = "fr.geonature.sync.provider"
+object ProviderHelper {
 
     /**
      * Build resource [Uri].
      */
     fun buildUri(
+        authority: String,
         resource: String,
         vararg path: String
     ): Uri {
 
-        val baseUri = Uri.parse("content://$AUTHORITY/$resource")
+        val baseUri = Uri.parse("content://$authority/$resource")
 
         return if (path.isEmpty()) baseUri
         else withAppendedPath(baseUri,

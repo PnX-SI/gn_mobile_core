@@ -45,29 +45,30 @@ class AppSettingsManagerTest {
 
     @Before
     fun setUp() {
-        onAppSettingsJsonJsonReaderListener = spyk(object :
-            AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings> {
-            override fun createAppSettings(): DummyAppSettings {
-                return DummyAppSettings()
-            }
-
-            override fun readAdditionalAppSettingsData(
-                reader: JsonReader,
-                keyName: String,
-                appSettings: DummyAppSettings
-            ) {
-                when (keyName) {
-                    "attribute" -> appSettings.attribute = reader.nextString()
-                    else -> reader.skipValue()
+        onAppSettingsJsonJsonReaderListener =
+            spyk(object : AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings> {
+                override fun createAppSettings(): DummyAppSettings {
+                    return DummyAppSettings()
                 }
-            }
-        })
+
+                override fun readAdditionalAppSettingsData(
+                    reader: JsonReader,
+                    keyName: String,
+                    appSettings: DummyAppSettings
+                ) {
+                    when (keyName) {
+                        "attribute" -> appSettings.attribute = reader.nextString()
+                        else -> reader.skipValue()
+                    }
+                }
+            })
 
         val application = getApplicationContext<Application>()
 
         appSettingsManager = spyk(
             AppSettingsManagerImpl(
                 application,
+                "fr.geonature.sync.provider",
                 onAppSettingsJsonJsonReaderListener,
                 coroutineTestRule.testDispatcher
             )
@@ -93,56 +94,54 @@ class AppSettingsManagerTest {
     }
 
     @Test
-    fun `should return undefined app settings`() =
-        runTest {
-            // when reading undefined AppSettings
-            var noSuchAppSettings = appSettingsManager.loadAppSettings()
+    fun `should return undefined app settings`() = runTest {
+        // when reading undefined AppSettings
+        var noSuchAppSettings = appSettingsManager.loadAppSettings()
 
-            // then
-            assertNull(noSuchAppSettings)
+        // then
+        assertNull(noSuchAppSettings)
 
-            // given non existing app settings JSON file
-            every {
-                appSettingsManager.getAppSettingsAsFile()
-            } returns File(
-                "/mnt/sdcard",
-                "no_such_file.json"
-            )
+        // given non existing app settings JSON file
+        every {
+            appSettingsManager.getAppSettingsAsFile()
+        } returns File(
+            "/mnt/sdcard",
+            "no_such_file.json"
+        )
 
-            // when reading this file
-            noSuchAppSettings = appSettingsManager.loadAppSettings()
+        // when reading this file
+        noSuchAppSettings = appSettingsManager.loadAppSettings()
 
-            // then
-            assertNull(noSuchAppSettings)
-        }
+        // then
+        assertNull(noSuchAppSettings)
+    }
 
     @Test
-    fun `should read app settings from JSON file`() =
-        runTest {
-            // given app settings to read
-            every {
-                appSettingsManager.getAppSettingsAsFile()
-            } returns runCatching { getFixtureAsFile("settings_dummy.json") }.getOrThrow()
+    fun `should read app settings from JSON file`() = runTest {
+        // given app settings to read
+        every {
+            appSettingsManager.getAppSettingsAsFile()
+        } returns runCatching { getFixtureAsFile("settings_dummy.json") }.getOrThrow()
 
-            // when reading this file
-            val appSettings = appSettingsManager.loadAppSettings()
+        // when reading this file
+        val appSettings = appSettingsManager.loadAppSettings()
 
-            // then
-            verify { onAppSettingsJsonJsonReaderListener.createAppSettings() }
-            verify {
-                onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(
-                    any(),
-                    "attribute",
-                    any()
-                )
-            }
-
-            confirmVerified(onAppSettingsJsonJsonReaderListener)
-
-            assertNotNull(appSettings)
-            assertEquals(
-                DummyAppSettings("value"),
-                appSettings
+        // then
+        verify { onAppSettingsJsonJsonReaderListener.createAppSettings() }
+        verify {
+            onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(
+                any(),
+                "attribute",
+                any()
             )
         }
+
+        confirmVerified(onAppSettingsJsonJsonReaderListener)
+
+        assertNotNull(appSettings)
+        assertEquals(
+            DummyAppSettings("value"),
+            appSettings
+        )
+    }
 }

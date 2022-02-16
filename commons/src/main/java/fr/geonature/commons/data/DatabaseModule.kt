@@ -32,7 +32,15 @@ import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.util.getDatabaseFolder
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+/**
+ * Content Provider authority name.
+ */
+@MustBeDocumented
+@Qualifier
+annotation class ContentProviderAuthority
 
 /**
  * Database module.

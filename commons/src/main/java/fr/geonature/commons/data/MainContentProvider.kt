@@ -27,7 +27,6 @@ import fr.geonature.commons.data.entity.Nomenclature
 import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.Taxonomy
-import fr.geonature.commons.data.helper.Provider.AUTHORITY
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
 import java.io.File
@@ -52,24 +51,146 @@ class MainContentProvider : ContentProvider() {
         fun nomenclatureDao(): NomenclatureDao
     }
 
+    /**
+     * Authority defined for this content provider.
+     */
+    private lateinit var authority: String
+
+    /**
+     * The URI matcher.
+     */
+    private lateinit var uriMatcher: UriMatcher
+
     override fun onCreate(): Boolean {
+        val context = context
+            ?: return false
+
+        authority = "${context.packageName}.provider"
+        uriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply {
+            addURI(
+                authority,
+                "${AppSync.TABLE_NAME}/*",
+                APP_SYNC_ID
+            )
+            addURI(
+                authority,
+                "${Dataset.TABLE_NAME}/*",
+                DATASET
+            )
+            addURI(
+                authority,
+                "${Dataset.TABLE_NAME}/*/active",
+                DATASET_ACTIVE
+            )
+            addURI(
+                authority,
+                "${Dataset.TABLE_NAME}/*/#",
+                DATASET_ID
+            )
+            addURI(
+                authority,
+                InputObserver.TABLE_NAME,
+                INPUT_OBSERVERS
+            )
+            addURI(
+                authority,
+                "${InputObserver.TABLE_NAME}/*",
+                INPUT_OBSERVERS_IDS
+            )
+            addURI(
+                authority,
+                "${InputObserver.TABLE_NAME}/#",
+                INPUT_OBSERVER_ID
+            )
+            addURI(
+                authority,
+                Taxonomy.TABLE_NAME,
+                TAXONOMY
+            )
+            addURI(
+                authority,
+                "${Taxonomy.TABLE_NAME}/*",
+                TAXONOMY_KINGDOM
+            )
+            addURI(
+                authority,
+                "${Taxonomy.TABLE_NAME}/*/*",
+                TAXONOMY_KINGDOM_GROUP
+            )
+            addURI(
+                authority,
+                Taxon.TABLE_NAME,
+                TAXA
+            )
+            addURI(
+                authority,
+                "${Taxon.TABLE_NAME}/area/#",
+                TAXA_AREA
+            )
+            addURI(
+                authority,
+                "${Taxon.TABLE_NAME}/#",
+                TAXON_ID
+            )
+            addURI(
+                authority,
+                "${Taxon.TABLE_NAME}/#/area/#",
+                TAXON_AREA_ID
+            )
+            addURI(
+                authority,
+                NomenclatureType.TABLE_NAME,
+                NOMENCLATURE_TYPES
+            )
+            addURI(
+                authority,
+                "${NomenclatureType.TABLE_NAME}/*/default",
+                NOMENCLATURE_TYPES_DEFAULT
+            )
+            addURI(
+                authority,
+                "${NomenclatureType.TABLE_NAME}/*/items/*",
+                NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM
+            )
+            addURI(
+                authority,
+                "${NomenclatureType.TABLE_NAME}/*/items/*/*",
+                NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP
+            )
+            addURI(
+                authority,
+                "settings/*",
+                SETTINGS
+            )
+            addURI(
+                authority,
+                "inputs/export",
+                INPUTS_EXPORT
+            )
+            addURI(
+                authority,
+                "inputs/*/#",
+                INPUT_ID
+            )
+        }
+
         return true
     }
 
     override fun getType(uri: Uri): String {
-        return when (MATCHER.match(uri)) {
-            APP_SYNC_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${AppSync.TABLE_NAME}"
-            DATASET, DATASET_ACTIVE -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Dataset.TABLE_NAME}"
-            DATASET_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Dataset.TABLE_NAME}"
-            INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
-            INPUT_OBSERVER_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${InputObserver.TABLE_NAME}"
-            TAXA, TAXA_AREA -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
-            TAXON_ID, TAXON_AREA_ID -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxon.TABLE_NAME}"
-            TAXONOMY, TAXONOMY_KINGDOM -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
-            TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_ITEM_PREFIX/$AUTHORITY.${Taxonomy.TABLE_NAME}"
-            NOMENCLATURE_TYPES -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${NomenclatureType.TABLE_NAME}"
-            NOMENCLATURE_TYPES_DEFAULT -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${DefaultNomenclature.TABLE_NAME}"
-            NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_DIR_PREFIX/$AUTHORITY.${Nomenclature.TABLE_NAME}"
+        return when (uriMatcher.match(uri)) {
+            APP_SYNC_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${AppSync.TABLE_NAME}"
+            DATASET, DATASET_ACTIVE -> "$VND_TYPE_DIR_PREFIX/$authority.${Dataset.TABLE_NAME}"
+            DATASET_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${Dataset.TABLE_NAME}"
+            INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$authority.${InputObserver.TABLE_NAME}"
+            INPUT_OBSERVER_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${InputObserver.TABLE_NAME}"
+            TAXA, TAXA_AREA -> "$VND_TYPE_DIR_PREFIX/$authority.${Taxon.TABLE_NAME}"
+            TAXON_ID, TAXON_AREA_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${Taxon.TABLE_NAME}"
+            TAXONOMY, TAXONOMY_KINGDOM -> "$VND_TYPE_DIR_PREFIX/$authority.${Taxonomy.TABLE_NAME}"
+            TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_ITEM_PREFIX/$authority.${Taxonomy.TABLE_NAME}"
+            NOMENCLATURE_TYPES -> "$VND_TYPE_DIR_PREFIX/$authority.${NomenclatureType.TABLE_NAME}"
+            NOMENCLATURE_TYPES_DEFAULT -> "$VND_TYPE_DIR_PREFIX/$authority.${DefaultNomenclature.TABLE_NAME}"
+            NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_DIR_PREFIX/$authority.${Nomenclature.TABLE_NAME}"
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -84,7 +205,7 @@ class MainContentProvider : ContentProvider() {
         val appContext = context?.applicationContext
             ?: throw IllegalStateException()
 
-        return when (MATCHER.match(uri)) {
+        return when (uriMatcher.match(uri)) {
             APP_SYNC_ID -> appSyncByPackageIdQuery(
                 appContext,
                 uri
@@ -155,7 +276,7 @@ class MainContentProvider : ContentProvider() {
         val context = context
             ?: return null
 
-        return when (MATCHER.match(uri)) {
+        return when (uriMatcher.match(uri)) {
             SETTINGS -> {
                 val filename = uri.lastPathSegment
 
@@ -181,9 +302,10 @@ class MainContentProvider : ContentProvider() {
                 )
             }
             INPUT_ID -> {
-                val packageId =
-                    uri.pathSegments.drop(uri.pathSegments.indexOf("inputs") + 1).take(1)
-                        .firstOrNull()
+                val packageId = uri.pathSegments
+                    .drop(uri.pathSegments.indexOf("inputs") + 1)
+                    .take(1)
+                    .firstOrNull()
 
                 if (packageId.isNullOrEmpty()) {
                     throw IllegalArgumentException("Missing package ID from URI '$uri'")
@@ -217,13 +339,16 @@ class MainContentProvider : ContentProvider() {
         val context = context
             ?: return null
 
-        return when (MATCHER.match(uri)) {
+        return when (uriMatcher.match(uri)) {
             INPUTS_EXPORT -> {
                 if (values == null) {
                     throw IllegalArgumentException("Missing ContentValues")
                 }
 
-                InputDao(context).exportInput(values)
+                InputDao(context).exportInput(
+                    authority,
+                    values
+                )
             }
             else -> throw IllegalArgumentException("Unknown URI (insert): $uri")
         }
@@ -257,27 +382,40 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments.drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1).take(1)
-            .firstOrNull()?.substringAfterLast(".")
+        val module = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+            ?.substringAfterLast(".")
 
         val onlyActive = uri.lastPathSegment == "active"
 
-        return getDatasetDao(context).QB().whereModule(module).also {
-            if (onlyActive) {
-                it.whereActive()
+        return getDatasetDao(context)
+            .QB()
+            .whereModule(module)
+            .also {
+                if (onlyActive) {
+                    it.whereActive()
+                }
             }
-        }.cursor()
+            .cursor()
     }
 
     private fun datasetByIdQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments.drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1).take(1)
-            .firstOrNull()?.substringAfterLast(".")
+        val module = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+            ?.substringAfterLast(".")
 
-        return getDatasetDao(context).QB().whereModule(module)
-            .whereId(uri.lastPathSegment?.toLongOrNull()).cursor()
+        return getDatasetDao(context)
+            .QB()
+            .whereModule(module)
+            .whereId(uri.lastPathSegment?.toLongOrNull())
+            .cursor()
     }
 
     private fun inputObserversQuery(
@@ -285,23 +423,28 @@ class MainContentProvider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<String>?
     ): Cursor {
-        return getInputObserverDao(context).QB().whereSelection(
-            selection,
-            arrayOf(
-                *selectionArgs
-                    ?: emptyArray()
+        return getInputObserverDao(context)
+            .QB()
+            .whereSelection(
+                selection,
+                arrayOf(
+                    *selectionArgs
+                        ?: emptyArray()
+                )
             )
-        ).cursor()
+            .cursor()
     }
 
     private fun inputObserversByIdsQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        val selectedObserverIds =
-            uri.lastPathSegment?.split(",")?.mapNotNull { it.toLongOrNull() }?.distinct()
-                ?.toLongArray()
-                ?: longArrayOf()
+        val selectedObserverIds = uri.lastPathSegment
+            ?.split(",")
+            ?.mapNotNull { it.toLongOrNull() }
+            ?.distinct()
+            ?.toLongArray()
+            ?: longArrayOf()
 
         if (selectedObserverIds.size == 1) {
             return inputObserverByIdQuery(
@@ -310,14 +453,19 @@ class MainContentProvider : ContentProvider() {
             )
         }
 
-        return getInputObserverDao(context).QB().whereIdsIn(*selectedObserverIds).cursor()
+        return getInputObserverDao(context)
+            .QB()
+            .whereIdsIn(*selectedObserverIds)
+            .cursor()
     }
 
     private fun inputObserverByIdQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        return getInputObserverDao(context).QB().whereId(uri.lastPathSegment?.toLongOrNull())
+        return getInputObserverDao(context)
+            .QB()
+            .whereId(uri.lastPathSegment?.toLongOrNull())
             .cursor()
     }
 
@@ -325,19 +473,23 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val lastPathSegments =
-            uri.pathSegments.drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1).take(2)
+        val lastPathSegments = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(Taxonomy.TABLE_NAME) + 1)
+            .take(2)
 
-        return getTaxonomyDao(context).QB().also {
-            when (lastPathSegments.size) {
-                1 -> it.whereKingdom(lastPathSegments[0])
-                2 -> it.whereKingdomAndGroup(
-                    lastPathSegments[0],
-                    lastPathSegments[1]
-                )
-                else -> return@also
+        return getTaxonomyDao(context)
+            .QB()
+            .also {
+                when (lastPathSegments.size) {
+                    1 -> it.whereKingdom(lastPathSegments[0])
+                    2 -> it.whereKingdomAndGroup(
+                        lastPathSegments[0],
+                        lastPathSegments[1]
+                    )
+                    else -> return@also
+                }
             }
-        }.cursor()
+            .cursor()
     }
 
     private fun taxaQuery(
@@ -346,26 +498,33 @@ class MainContentProvider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor {
-        return getTaxonDao(context).QB().whereSelection(
-            selection,
-            arrayOf(
-                *selectionArgs
-                    ?: emptyArray()
+        return getTaxonDao(context)
+            .QB()
+            .whereSelection(
+                selection,
+                arrayOf(
+                    *selectionArgs
+                        ?: emptyArray()
+                )
             )
-        ).also {
-            if (sortOrder.isNullOrEmpty()) {
-                return@also
-            }
+            .also {
+                if (sortOrder.isNullOrEmpty()) {
+                    return@also
+                }
 
-            (it as TaxonDao.QB).orderBy(sortOrder)
-        }.cursor()
+                (it as TaxonDao.QB).orderBy(sortOrder)
+            }
+            .cursor()
     }
 
     private fun taxonByIdQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        return getTaxonDao(context).QB().whereId(uri.lastPathSegment?.toLongOrNull()).cursor()
+        return getTaxonDao(context)
+            .QB()
+            .whereId(uri.lastPathSegment?.toLongOrNull())
+            .cursor()
     }
 
     private fun taxaWithAreaQuery(
@@ -377,19 +536,24 @@ class MainContentProvider : ContentProvider() {
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
 
-        return getTaxonDao(context).QB().withArea(filterOnArea).whereSelection(
+        return getTaxonDao(context)
+            .QB()
+            .withArea(filterOnArea)
+            .whereSelection(
                 selection,
                 arrayOf(
                     *selectionArgs
                         ?: emptyArray()
                 )
-            ).also {
+            )
+            .also {
                 if (sortOrder.isNullOrEmpty()) {
                     return@also
                 }
 
                 (it as TaxonDao.QB).orderBy(sortOrder)
-            }.cursor()
+            }
+            .cursor()
     }
 
     private fun taxonWithAreaByIdQuery(
@@ -397,41 +561,62 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
-        val taxonId =
-            uri.pathSegments.asSequence().map { it.toLongOrNull() }.filterNotNull().firstOrNull()
+        val taxonId = uri.pathSegments
+            .asSequence()
+            .map { it.toLongOrNull() }
+            .filterNotNull()
+            .firstOrNull()
 
-        return getTaxonDao(context).QB().withArea(filterOnArea).whereId(taxonId).cursor()
+        return getTaxonDao(context)
+            .QB()
+            .withArea(filterOnArea)
+            .whereId(taxonId)
+            .cursor()
     }
 
     private fun nomenclatureTypesQuery(context: Context): Cursor {
-        return getNomenclatureTypeDao(context).QB().cursor()
+        return getNomenclatureTypeDao(context)
+            .QB()
+            .cursor()
     }
 
     private fun defaultNomenclaturesByModule(
         context: Context,
         uri: Uri
     ): Cursor {
-        val module =
-            uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1).take(1)
-                .firstOrNull()?.substringAfterLast(".")
+        val module = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+            ?.substringAfterLast(".")
 
-        return getNomenclatureDao(context).QB().withNomenclatureType()
-            .withDefaultNomenclature(module).cursor()
+        return getNomenclatureDao(context)
+            .QB()
+            .withNomenclatureType()
+            .withDefaultNomenclature(module)
+            .cursor()
     }
 
     private fun nomenclaturesWithTaxonomyQuery(
         context: Context,
         uri: Uri
     ): Cursor {
-        val mnemonic =
-            uri.pathSegments.drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1).take(1)
-                .firstOrNull()
-        val lastPathSegments = uri.pathSegments.drop(uri.pathSegments.indexOf("items") + 1).take(2)
+        val mnemonic = uri.pathSegments
+            .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
+            .take(1)
+            .firstOrNull()
+        val lastPathSegments = uri.pathSegments
+            .drop(uri.pathSegments.indexOf("items") + 1)
+            .take(2)
 
-        return getNomenclatureDao(context).QB().withNomenclatureType(mnemonic).withTaxonomy(
+        return getNomenclatureDao(context)
+            .QB()
+            .withNomenclatureType(mnemonic)
+            .withTaxonomy(
                 lastPathSegments.getOrNull(0),
                 lastPathSegments.getOrNull(1)
-            ).cursor()
+            )
+            .cursor()
     }
 
     /**
@@ -531,117 +716,5 @@ class MainContentProvider : ContentProvider() {
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"
-
-        /**
-         * The URI matcher.
-         */
-        @JvmStatic
-        private val MATCHER = UriMatcher(UriMatcher.NO_MATCH).apply {
-            addURI(
-                AUTHORITY,
-                "${AppSync.TABLE_NAME}/*",
-                APP_SYNC_ID
-            )
-            addURI(
-                AUTHORITY,
-                "${Dataset.TABLE_NAME}/*",
-                DATASET
-            )
-            addURI(
-                AUTHORITY,
-                "${Dataset.TABLE_NAME}/*/active",
-                DATASET_ACTIVE
-            )
-            addURI(
-                AUTHORITY,
-                "${Dataset.TABLE_NAME}/*/#",
-                DATASET_ID
-            )
-            addURI(
-                AUTHORITY,
-                InputObserver.TABLE_NAME,
-                INPUT_OBSERVERS
-            )
-            addURI(
-                AUTHORITY,
-                "${InputObserver.TABLE_NAME}/*",
-                INPUT_OBSERVERS_IDS
-            )
-            addURI(
-                AUTHORITY,
-                "${InputObserver.TABLE_NAME}/#",
-                INPUT_OBSERVER_ID
-            )
-            addURI(
-                AUTHORITY,
-                Taxonomy.TABLE_NAME,
-                TAXONOMY
-            )
-            addURI(
-                AUTHORITY,
-                "${Taxonomy.TABLE_NAME}/*",
-                TAXONOMY_KINGDOM
-            )
-            addURI(
-                AUTHORITY,
-                "${Taxonomy.TABLE_NAME}/*/*",
-                TAXONOMY_KINGDOM_GROUP
-            )
-            addURI(
-                AUTHORITY,
-                Taxon.TABLE_NAME,
-                TAXA
-            )
-            addURI(
-                AUTHORITY,
-                "${Taxon.TABLE_NAME}/area/#",
-                TAXA_AREA
-            )
-            addURI(
-                AUTHORITY,
-                "${Taxon.TABLE_NAME}/#",
-                TAXON_ID
-            )
-            addURI(
-                AUTHORITY,
-                "${Taxon.TABLE_NAME}/#/area/#",
-                TAXON_AREA_ID
-            )
-            addURI(
-                AUTHORITY,
-                NomenclatureType.TABLE_NAME,
-                NOMENCLATURE_TYPES
-            )
-            addURI(
-                AUTHORITY,
-                "${NomenclatureType.TABLE_NAME}/*/default",
-                NOMENCLATURE_TYPES_DEFAULT
-            )
-            addURI(
-                AUTHORITY,
-                "${NomenclatureType.TABLE_NAME}/*/items/*",
-                NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM
-            )
-            addURI(
-                AUTHORITY,
-                "${NomenclatureType.TABLE_NAME}/*/items/*/*",
-                NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP
-            )
-            addURI(
-                AUTHORITY,
-                "settings/*",
-                SETTINGS
-            )
-            addURI(
-                AUTHORITY,
-                "inputs/export",
-                INPUTS_EXPORT
-            )
-            addURI(
-                AUTHORITY,
-                "inputs/*/#",
-                INPUT_ID
-            )
-        }
     }
 }

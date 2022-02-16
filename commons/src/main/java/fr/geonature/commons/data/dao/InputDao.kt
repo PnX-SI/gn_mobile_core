@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import fr.geonature.commons.data.helper.Provider.buildUri
+import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import fr.geonature.commons.input.AbstractInput
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
@@ -23,19 +23,21 @@ class InputDao(private val context: Context) {
     /**
      * Exports `ContentValues` as [AbstractInput] to `JSON` file.
      *
+     * @param authority content provider authority on which to export input
      * @param values a set of column_name/value pairs as [AbstractInput] to save
      *
      * @return The URI to the `JSON` file
      */
-    fun exportInput(values: ContentValues): Uri {
+    fun exportInput(
+        authority: String,
+        values: ContentValues
+    ): Uri {
         val file = getExportedInput(
             values.getAsString("packageName"),
             values.getAsLong("id")
         )
 
-        val asJson = kotlin
-            .runCatching { JSONObject(values.getAsString("data")) }
-            .getOrNull()
+        val asJson = runCatching { JSONObject(values.getAsString("data")) }.getOrNull()
             ?: throw IllegalArgumentException("Invalid ContentValues $values")
 
         BufferedWriter(FileWriter(file)).run {
@@ -45,6 +47,7 @@ class InputDao(private val context: Context) {
         }
 
         val exportedInputUri = buildUri(
+            authority,
             "inputs",
             values.getAsString("packageName"),
             values
@@ -65,7 +68,9 @@ class InputDao(private val context: Context) {
         inputId: Long
     ): File {
         return File(
-            FileUtils.getInputsFolder(context).also { it.mkdirs() },
+            FileUtils
+                .getInputsFolder(context)
+                .also { it.mkdirs() },
             "input_${packageId.substringAfterLast(".")}_${inputId}.json"
         )
     }

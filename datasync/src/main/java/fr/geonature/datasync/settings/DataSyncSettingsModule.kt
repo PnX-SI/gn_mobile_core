@@ -6,7 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import fr.geonature.commons.data.helper.Provider
+import fr.geonature.commons.data.ContentProviderAuthority
+import fr.geonature.commons.data.helper.ProviderHelper
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.mountpoint.util.FileUtils.getRootFolder
@@ -46,10 +47,14 @@ object DataSyncSettingsModule {
     @Singleton
     @Provides
     @UriDataSource
-    fun provideDataSyncSettingsUriDataSource(@ApplicationContext appContext: Context): IDataSyncSettingsDataSource {
+    fun provideDataSyncSettingsUriDataSource(
+        @ApplicationContext appContext: Context,
+        @ContentProviderAuthority providerAuthority: String
+    ): IDataSyncSettingsDataSource {
         return DataSyncSettingsUriDataSourceImpl(
             appContext,
-            Provider.buildUri(
+            ProviderHelper.buildUri(
+                providerAuthority,
                 "settings",
                 "settings_${appContext.packageName.substring(appContext.packageName.lastIndexOf('.') + 1)}.json"
             )

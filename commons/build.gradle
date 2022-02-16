@@ -5,7 +5,7 @@ plugins {
     id 'kotlin-kapt'
 }
 
-version = "0.9.3"
+version = "0.9.4"
 
 android {
     compileSdkVersion 31
@@ -51,8 +51,8 @@ dependencies {
     api project(':mountpoint')
 
     implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
     implementation 'androidx.preference:preference-ktx:1.2.0'
 
     // Room

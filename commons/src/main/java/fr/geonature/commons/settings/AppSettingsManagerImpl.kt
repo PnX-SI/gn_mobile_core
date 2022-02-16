@@ -3,7 +3,7 @@ package fr.geonature.commons.settings
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import fr.geonature.commons.data.helper.Provider
+import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import fr.geonature.mountpoint.model.MountPoint.StorageType.INTERNAL
 import fr.geonature.mountpoint.util.FileUtils.getFile
@@ -21,10 +21,12 @@ import java.io.FileReader
  */
 class AppSettingsManagerImpl<AS : IAppSettings>(
     private val applicationContext: Context,
+    private val providerAuthority: String,
     onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : IAppSettingsManager<AS> {
-    private val appSettingsJsonReader: AppSettingsJsonReader<AS> = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
+    private val appSettingsJsonReader: AppSettingsJsonReader<AS> =
+        AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     override fun getAppSettingsFilename(): String {
         val packageName = applicationContext.packageName
@@ -32,20 +34,19 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
         return "settings_${packageName.substring(packageName.lastIndexOf('.') + 1)}.json"
     }
 
-    override suspend fun loadAppSettings(): AS? =
-        withContext(dispatcher) {
-            val appSettings = loadAppSettingsFromUri()
-                ?: loadAppSettingsFromFile()
+    override suspend fun loadAppSettings(): AS? = withContext(dispatcher) {
+        val appSettings = loadAppSettingsFromUri()
+            ?: loadAppSettingsFromFile()
 
-            if (appSettings == null) {
-                Log.w(
-                    TAG,
-                    "Failed to load '${getAppSettingsFilename()}'"
-                )
-            }
-
-            appSettings
+        if (appSettings == null) {
+            Log.w(
+                TAG,
+                "Failed to load '${getAppSettingsFilename()}'"
+            )
         }
+
+        appSettings
+    }
 
     internal fun getAppSettingsAsFile(): File {
         return getFile(
@@ -59,7 +60,8 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
 
     @SuppressLint("Recycle")
     private fun loadAppSettingsFromUri(): AS? {
-        val appSettingsUri = Provider.buildUri(
+        val appSettingsUri = buildUri(
+            providerAuthority,
             "settings",
             getAppSettingsFilename()
         )
@@ -79,7 +81,8 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
                             "r"
                         )
                         ?.let { pfd ->
-                            val appSettings = runCatching { appSettingsJsonReader.read(FileReader(pfd.fileDescriptor)) }.getOrNull()
+                            val appSettings =
+                                runCatching { appSettingsJsonReader.read(FileReader(pfd.fileDescriptor)) }.getOrNull()
 
                             if (appSettings == null) {
                                 Log.w(
