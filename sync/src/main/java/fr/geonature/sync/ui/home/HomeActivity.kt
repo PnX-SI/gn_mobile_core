@@ -312,7 +312,7 @@ class HomeActivity : AppCompatActivity() {
                 this@HomeActivity
             ) {
                 progressBar?.visibility = View.GONE
-                adapter.setItems(it)
+                adapter.setItems(it.filter { packageInfo -> packageInfo.packageName != BuildConfig.APPLICATION_ID })
             }
         }
     }

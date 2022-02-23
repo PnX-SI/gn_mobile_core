@@ -75,7 +75,7 @@ class PackageInfoViewModel @Inject constructor(
     val packageInfos: LiveData<List<PackageInfo>> = MediatorLiveData<List<PackageInfo>>().apply {
         postValue(emptyList())
         addSource(_allPackageInfos) { packageInfos ->
-            value = packageInfos.filter { it.packageName != application.packageName }
+            value = packageInfos
         }
         addSource(_synchronizeInputsFromPackageInfo) { inputsStatus ->
             value = value?.map { packageInfo ->
@@ -163,7 +163,6 @@ class PackageInfoViewModel @Inject constructor(
 
                     it
                         .asSequence()
-                        .filter { packageInfo -> packageInfo.packageName != getApplication<Application>().packageName }
                         .forEach { packageInfo ->
                             packageInfoRepository.updateAppSettings(packageInfo)
                             startSyncInputs(packageInfo)
