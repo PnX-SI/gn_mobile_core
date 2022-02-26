@@ -8,7 +8,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkRequest
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -45,6 +44,7 @@ import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.settings.DataSyncSettingsViewModel
 import fr.geonature.datasync.sync.DataSyncViewModel
 import fr.geonature.datasync.sync.ServerStatus.UNAUTHORIZED
+import fr.geonature.datasync.ui.login.LoginActivity
 import fr.geonature.sync.BuildConfig
 import fr.geonature.sync.MainApplication
 import fr.geonature.sync.R
@@ -53,6 +53,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.tinylog.Logger
 import java.io.File
 import javax.inject.Inject
 
@@ -242,7 +243,7 @@ class HomeActivity : AppCompatActivity() {
                 true
             }
             R.id.menu_login -> {
-                startSyncResultLauncher.launch(fr.geonature.datasync.ui.login.LoginActivity.newIntent(this))
+                startSyncResultLauncher.launch(LoginActivity.newIntent(this))
                 true
             }
             R.id.menu_logout -> {
@@ -271,12 +272,9 @@ class HomeActivity : AppCompatActivity() {
                 .checkAuthLogin()
                 .observeOnce(this@HomeActivity) {
                     if (checkGeoNatureSettings() && it == null) {
-                        Log.i(
-                            TAG,
-                            "not connected, redirect to LoginActivity"
-                        )
+                        Logger.info { "not connected, redirect to LoginActivity" }
 
-                        startSyncResultLauncher.launch(fr.geonature.datasync.ui.login.LoginActivity.newIntent(this@HomeActivity))
+                        startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
                     }
                 }
             vm.isLoggedIn.observe(
@@ -295,10 +293,7 @@ class HomeActivity : AppCompatActivity() {
             }
 
             vm.appSettingsUpdated.observeOnce(this@HomeActivity) {
-                Log.d(
-                    TAG,
-                    "reloading settings after update..."
-                )
+                Logger.info { "reloading settings after update..." }
 
                 loadAppSettings {
                     makeSnackbar(getString(R.string.snackbar_settings_updated))?.show()
@@ -344,10 +339,7 @@ class HomeActivity : AppCompatActivity() {
                         dataSyncView?.setMessage(it.syncMessage)
 
                         if (it.serverStatus == UNAUTHORIZED) {
-                            Log.i(
-                                TAG,
-                                "not connected (HTTP error code: 401), redirect to LoginActivity"
-                            )
+                            Logger.info { "not connected (HTTP error code: 401), redirect to ${LoginActivity::class.java.simpleName}" }
 
                             Toast
                                 .makeText(
@@ -357,7 +349,7 @@ class HomeActivity : AppCompatActivity() {
                                 )
                                 .show()
 
-                            startSyncResultLauncher.launch(fr.geonature.datasync.ui.login.LoginActivity.newIntent(this@HomeActivity))
+                            startSyncResultLauncher.launch(LoginActivity.newIntent(this@HomeActivity))
                         }
                     }
                 }
@@ -389,10 +381,7 @@ class HomeActivity : AppCompatActivity() {
             .getDataSyncSettings()
             .observeOnce(this@HomeActivity) {
                 it?.fold({ failure ->
-                    Log.w(
-                        TAG,
-                        "failed to load settings $failure"
-                    )
+                    Logger.warn { "failed to load settings $failure" }
 
                     makeSnackbar(
                         if (failure is DataSyncSettingsNotFoundFailure && !failure.source.isNullOrBlank()) getString(
@@ -412,10 +401,8 @@ class HomeActivity : AppCompatActivity() {
                     failure
                 },
                     { dataSyncSettingsLoaded ->
-                        Log.i(
-                            TAG,
-                            "app settings successfully loaded"
-                        )
+                        Logger.info { "app settings successfully loaded" }
+
                         dataSyncSettings = dataSyncSettingsLoaded
                         invalidateOptionsMenu()
                         dataSyncViewModel.configurePeriodicSync(
@@ -576,9 +563,5 @@ class HomeActivity : AppCompatActivity() {
         }
 
         startActivity(install)
-    }
-
-    companion object {
-        private val TAG = HomeActivity::class.java.name
     }
 }

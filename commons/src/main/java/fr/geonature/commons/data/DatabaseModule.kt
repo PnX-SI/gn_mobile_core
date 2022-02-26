@@ -1,14 +1,12 @@
 package fr.geonature.commons.data
 
 import android.content.Context
-import android.util.Log
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import fr.geonature.commons.BuildConfig
 import fr.geonature.commons.data.dao.AppSyncDao
 import fr.geonature.commons.data.dao.DatasetDao
 import fr.geonature.commons.data.dao.DefaultNomenclatureDao
@@ -32,6 +30,7 @@ import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.util.getDatabaseFolder
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
+import org.tinylog.Logger
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -51,8 +50,6 @@ annotation class ContentProviderAuthority
 @Module
 object DatabaseModule {
 
-    private val TAG = DatabaseModule::class.java.name
-
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext appContext: Context): LocalDatabase {
@@ -64,12 +61,7 @@ object DatabaseModule {
             "data.db"
         )
 
-        if (BuildConfig.DEBUG) {
-            Log.d(
-                TAG,
-                "loading local database '${localDatabase.absolutePath}'..."
-            )
-        }
+        Logger.info { "loading local database '${localDatabase.absolutePath}'..." }
 
         return Room
             .databaseBuilder(

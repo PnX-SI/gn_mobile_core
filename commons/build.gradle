@@ -5,7 +5,7 @@ plugins {
     id 'kotlin-kapt'
 }
 
-version = "0.9.4"
+version = "0.9.5"
 
 android {
     compileSdkVersion 31
@@ -28,11 +28,7 @@ android {
     }
 
     buildTypes {
-        debug {
-            versionNameSuffix ".${defaultConfig.versionCode}-DEV"
-        }
         release {
-            versionNameSuffix ".${defaultConfig.versionCode}"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -56,12 +52,16 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.0'
 
     // Room
-    api 'androidx.room:room-runtime:2.4.1'
-    kapt 'androidx.room:room-compiler:2.4.1'
+    api 'androidx.room:room-runtime:2.4.2'
+    kapt 'androidx.room:room-compiler:2.4.2'
 
     // Hilt dependencies
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
+
+    // Logging
+    implementation "org.tinylog:tinylog-api-kotlin:$tinylog_version"
+    runtimeOnly "org.tinylog:tinylog-impl:$tinylog_version"
 
     // Testing dependencies
     testImplementation 'androidx.arch.core:core-testing:2.1.0'

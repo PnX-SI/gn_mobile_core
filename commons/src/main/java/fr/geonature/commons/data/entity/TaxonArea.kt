@@ -3,7 +3,6 @@ package fr.geonature.commons.data.entity
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -11,6 +10,7 @@ import androidx.room.TypeConverters
 import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import org.tinylog.Logger
 import java.util.Date
 
 /**
@@ -78,8 +78,6 @@ data class TaxonArea(
     }
 
     companion object {
-
-        private val TAG = TaxonArea::class.java.name
 
         /**
          * The name of the 'taxa_area' table.
@@ -191,10 +189,7 @@ data class TaxonArea(
                 )
             } catch (e: Exception) {
                 e.message?.run {
-                    Log.w(
-                        TAG,
-                        this
-                    )
+                    Logger.warn { this }
                 }
 
                 null

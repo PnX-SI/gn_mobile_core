@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
@@ -13,6 +12,7 @@ import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.withContext
+import org.tinylog.Logger
 
 /**
  * Default implementation of [IInputManager].
@@ -110,10 +110,7 @@ class InputManagerImpl<I : AbstractInput>(
                 .commit()
         }
 
-        Log.i(
-            TAG,
-            "input '$id' deleted: $deleted"
-        )
+        Logger.info { "input '$id' deleted: $deleted" }
 
         _input.postValue(null)
         readInputs()
@@ -139,35 +136,28 @@ class InputManagerImpl<I : AbstractInput>(
         )
 
         val inputUri = runCatching {
-                context.contentResolver
-                    .acquireContentProviderClient(inputExportUri)
-                    ?.let {
-                        val uri = it.insert(
-                            inputExportUri,
-                            toContentValues(input)
-                        )
+            context.contentResolver
+                .acquireContentProviderClient(inputExportUri)
+                ?.let {
+                    val uri = it.insert(
+                        inputExportUri,
+                        toContentValues(input)
+                    )
 
-                        it.close()
-                        uri
-                    }
-            }
-            .getOrNull()
+                    it.close()
+                    uri
+                }
+        }.getOrNull()
 
         if (inputUri == null) {
             input.status = AbstractInput.Status.DRAFT
 
-            Log.w(
-                TAG,
-                "failed to export input '${input.id}'"
-            )
+            Logger.warn { "failed to export input '${input.id}'" }
 
             return false
         }
 
-        Log.i(
-            TAG,
-            "input '${input.id}' exported (URI: $inputUri)"
-        )
+        Logger.info { "input '${input.id}' exported (URI: $inputUri)" }
 
         return deleteInput(input.id)
     }
@@ -194,8 +184,6 @@ class InputManagerImpl<I : AbstractInput>(
     }
 
     companion object {
-        private val TAG = InputManagerImpl::class.java.name
-
         private const val KEY_PREFERENCE_INPUT = "key_preference_input"
         private const val KEY_PREFERENCE_CURRENT_INPUT = "key_preference_current_input"
     }

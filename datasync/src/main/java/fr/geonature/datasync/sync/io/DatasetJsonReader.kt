@@ -1,9 +1,9 @@
 package fr.geonature.datasync.sync.io
 
 import android.util.JsonReader
-import android.util.Log
 import android.util.MalformedJsonException
 import fr.geonature.commons.data.entity.Dataset
+import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -35,10 +35,7 @@ class DatasetJsonReader {
         try {
             return read(StringReader(json))
         } catch (e: Exception) {
-            Log.w(
-                TAG,
-                e
-            )
+            Logger.warn(e)
         }
 
         return emptyList()
@@ -183,9 +180,5 @@ class DatasetJsonReader {
         } catch (pe: ParseException) {
             null
         }
-    }
-
-    companion object {
-        private val TAG = DatasetJsonReader::class.java.name
     }
 }

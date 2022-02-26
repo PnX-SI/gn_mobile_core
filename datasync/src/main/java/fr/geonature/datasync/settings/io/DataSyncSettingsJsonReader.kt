@@ -2,11 +2,11 @@ package fr.geonature.datasync.settings.io
 
 import android.util.JsonReader
 import android.util.JsonToken.BEGIN_OBJECT
-import android.util.Log
 import fr.geonature.commons.util.nextStringOrNull
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.settings.error.DataSyncSettingsException
 import fr.geonature.datasync.settings.error.DataSyncSettingsJsonParseException
+import org.tinylog.Logger
 import java.io.Reader
 import java.io.StringReader
 
@@ -65,10 +65,7 @@ class DataSyncSettingsJsonReader {
 
         return runCatching { read(StringReader(json)) }
             .onFailure { exception ->
-                Log.w(
-                    TAG,
-                    exception
-                )
+                Logger.warn(exception)
             }
             .getOrElse { null }
     }
@@ -153,10 +150,7 @@ class DataSyncSettingsJsonReader {
         builder.build()
     }
         .onFailure { exception ->
-            Log.w(
-                TAG,
-                exception
-            )
+            Logger.warn(exception)
 
             throw DataSyncSettingsJsonParseException(
                 message = exception.message,
@@ -164,8 +158,4 @@ class DataSyncSettingsJsonReader {
             )
         }
         .getOrThrow()
-
-    companion object {
-        private val TAG = DataSyncSettingsJsonReader::class.java.name
-    }
 }

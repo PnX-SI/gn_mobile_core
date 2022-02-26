@@ -2,7 +2,6 @@ package fr.geonature.commons.settings
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import fr.geonature.commons.settings.io.AppSettingsJsonReader
 import fr.geonature.mountpoint.model.MountPoint.StorageType.INTERNAL
@@ -11,6 +10,7 @@ import fr.geonature.mountpoint.util.FileUtils.getRootFolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.tinylog.Logger
 import java.io.File
 import java.io.FileReader
 
@@ -39,10 +39,7 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
             ?: loadAppSettingsFromFile()
 
         if (appSettings == null) {
-            Log.w(
-                TAG,
-                "Failed to load '${getAppSettingsFilename()}'"
-            )
+            Logger.warn { "failed to load '${getAppSettingsFilename()}'" }
         }
 
         appSettings
@@ -66,10 +63,7 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
             getAppSettingsFilename()
         )
 
-        Log.i(
-            TAG,
-            "Loading settings from URI '${appSettingsUri}'..."
-        )
+        Logger.info { "loading settings from URI '${appSettingsUri}'..." }
 
         return runCatching {
             applicationContext.contentResolver
@@ -85,10 +79,7 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
                                 runCatching { appSettingsJsonReader.read(FileReader(pfd.fileDescriptor)) }.getOrNull()
 
                             if (appSettings == null) {
-                                Log.w(
-                                    TAG,
-                                    "failed to load settings from URI '${appSettingsUri}'"
-                                )
+                                Logger.warn { "failed to load settings from URI '${appSettingsUri}'" }
                             }
 
                             pfd.close()
@@ -106,24 +97,14 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
     private fun loadAppSettingsFromFile(): AS? {
         val appSettingsJsonFile = getAppSettingsAsFile()
 
-        Log.i(
-            TAG,
-            "Loading settings from '${appSettingsJsonFile.absolutePath}'..."
-        )
+        Logger.info { "loading settings from '${appSettingsJsonFile.absolutePath}'..." }
 
         if (!appSettingsJsonFile.exists()) {
-            Log.w(
-                TAG,
-                "'${appSettingsJsonFile.absolutePath}' not found"
-            )
+            Logger.warn { "'${appSettingsJsonFile.absolutePath}' not found" }
 
             return null
         }
 
         return runCatching { appSettingsJsonReader.read(FileReader(appSettingsJsonFile)) }.getOrNull()
-    }
-
-    companion object {
-        private val TAG = AppSettingsManagerImpl::class.java.name
     }
 }

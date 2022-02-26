@@ -1,11 +1,11 @@
 package fr.geonature.datasync.settings
 
-import android.util.Log
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundException
 import fr.geonature.datasync.settings.io.DataSyncSettingsJsonReader
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.tinylog.Logger
 import java.io.File
 import java.io.FileReader
 
@@ -19,24 +19,14 @@ class DataSyncSettingsFileDataSourceImpl(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : IDataSyncSettingsDataSource {
     override suspend fun load(): DataSyncSettings = withContext(dispatcher) {
-        Log.i(
-            TAG,
-            "loading data sync settings from '${jsonFile.absolutePath}'..."
-        )
+        Logger.info { "loading data sync settings from '${jsonFile.absolutePath}'..." }
 
         if (!jsonFile.exists()) {
-            Log.w(
-                TAG,
-                "'${jsonFile.absolutePath}' not found"
-            )
+            Logger.warn { "'${jsonFile.absolutePath}' not found" }
 
             throw DataSyncSettingsNotFoundException(source = jsonFile.absolutePath)
         }
 
         runCatching { DataSyncSettingsJsonReader().read(FileReader(jsonFile)) }.getOrThrow()
-    }
-
-    companion object {
-        private val TAG = DataSyncSettingsFileDataSourceImpl::class.java.name
     }
 }

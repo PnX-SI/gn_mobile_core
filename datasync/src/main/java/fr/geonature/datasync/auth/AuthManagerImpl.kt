@@ -2,7 +2,6 @@ package fr.geonature.datasync.auth
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -25,6 +24,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
+import org.tinylog.Logger
 import retrofit2.Response
 import java.util.Calendar
 
@@ -77,20 +77,22 @@ class AuthManagerImpl(
             return@withContext null
         }
 
-        authLoginJsonReader.read(authLoginAsJson).let {
-            if (it == null) {
-                this@AuthManagerImpl.authLogin = null
-                return@let it
-            }
+        authLoginJsonReader
+            .read(authLoginAsJson)
+            .let {
+                if (it == null) {
+                    this@AuthManagerImpl.authLogin = null
+                    return@let it
+                }
 
-            if (!checkSessionValidity(it)) {
-                this@AuthManagerImpl.authLogin = null
-                return@let null
-            }
+                if (!checkSessionValidity(it)) {
+                    this@AuthManagerImpl.authLogin = null
+                    return@let null
+                }
 
-            this@AuthManagerImpl.authLogin = it
-            it
-        }
+                this@AuthManagerImpl.authLogin = it
+                it
+            }
     }
 
     override suspend fun login(
@@ -105,15 +107,19 @@ class AuthManagerImpl(
         // perform login from backend
         val authLoginResponse = withContext(IO) {
             val authLoginResponse = runCatching {
-                geoNatureAPIClient.authLogin(
-                    AuthCredentials(
-                        username,
-                        password,
-                        applicationId
+                geoNatureAPIClient
+                    .authLogin(
+                        AuthCredentials(
+                            username,
+                            password,
+                            applicationId
+                        )
                     )
-                ).execute()
+                    .execute()
             }.fold(onSuccess = { response: Response<AuthLogin> ->
-                (if (response.isSuccessful) response.body()?.let { Either.Right(it) }
+                (if (response.isSuccessful) response
+                    .body()
+                    ?.let { Either.Right(it) }
                 else buildAuthLoginErrorResponse(response)?.let { authLoginError ->
                     Either.Left(
                         AuthFailure(authLoginError)
@@ -138,45 +144,45 @@ class AuthManagerImpl(
             return Either.Left<Failure>(Failure.ServerFailure)
         }
 
-        Log.i(
-            TAG,
-            "successfully authenticated, login expiration date: ${authLogin.expires}"
-        )
+        Logger.info { "successfully authenticated, login expiration date: ${authLogin.expires}" }
 
         this.authLogin = authLogin
 
         notificationManager.cancel(CheckAuthLoginWorker.NOTIFICATION_ID)
 
         return withContext(Dispatchers.Default) {
-            preferenceManager.edit().putString(
-                KEY_PREFERENCE_AUTH_LOGIN,
-                authLoginAsJson
-            ).commit().let {
-                authLoginResponse
-            }
+            preferenceManager
+                .edit()
+                .putString(
+                    KEY_PREFERENCE_AUTH_LOGIN,
+                    authLoginAsJson
+                )
+                .commit()
+                .let {
+                    authLoginResponse
+                }
         }
     }
 
     override suspend fun logout() = withContext(dispatcher) {
         geoNatureAPIClient.logout()
-        preferenceManager.edit().remove(KEY_PREFERENCE_AUTH_LOGIN).commit().also {
-            if (it) {
-                authLogin = null
+        preferenceManager
+            .edit()
+            .remove(KEY_PREFERENCE_AUTH_LOGIN)
+            .commit()
+            .also {
+                if (it) {
+                    authLogin = null
+                }
             }
-        }
     }
 
     private suspend fun checkSessionValidity(authLogin: AuthLogin): Boolean =
         withContext(dispatcher) {
             if (authLogin.expires.before(Calendar.getInstance().time)) {
-                Log.i(
-                    TAG,
-                    "auth login expiry date ${authLogin.expires} reached: perform logout"
-                )
-
+                Logger.info { "auth login expiry date ${authLogin.expires} reached: perform logout" }
 
                 logout()
-
 
                 return@withContext false
             }
@@ -199,8 +205,6 @@ class AuthManagerImpl(
     }
 
     companion object {
-        private val TAG = AuthManagerImpl::class.java.name
-
         private const val KEY_PREFERENCE_AUTH_LOGIN = "key_preference_auth_login"
     }
 }

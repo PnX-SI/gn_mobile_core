@@ -4,13 +4,13 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.TypeConverters
 import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import org.tinylog.Logger
 import java.util.Date
 
 /**
@@ -90,8 +90,6 @@ data class Dataset(
     }
 
     companion object {
-
-        private val TAG = Dataset::class.java.name
 
         /**
          * The name of the 'observers' table.
@@ -218,10 +216,9 @@ data class Dataset(
                     )
                 )
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                e.message?.run {
+                    Logger.warn { this }
+                }
 
                 null
             }

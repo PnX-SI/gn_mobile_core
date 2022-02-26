@@ -2,13 +2,13 @@ package fr.geonature.datasync.packageinfo
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import fr.geonature.datasync.packageinfo.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import org.tinylog.Logger
 
 /**
  * Default implementation of [IPackageInfoRepository].
@@ -88,22 +88,12 @@ class PackageInfoRepositoryImpl(
     }
 
     override suspend fun updateAppSettings(packageInfo: PackageInfo) = withContext(IO) {
-        Log.i(
-            TAG,
-            "updating settings for '${packageInfo.packageName}'..."
-        )
-        
+        Logger.info { "updating settings for '${packageInfo.packageName}'..." }
+
         val result = runCatching { AppSettingsJsonWriter(applicationContext).write(packageInfo) }
 
         if (result.isFailure) {
-            Log.w(
-                TAG,
-                "failed to update settings for '${packageInfo.packageName}'"
-            )
+            Logger.warn { "failed to update settings for '${packageInfo.packageName}'" }
         }
-    }
-
-    companion object {
-        private val TAG = PackageInfoRepositoryImpl::class.java.name
     }
 }

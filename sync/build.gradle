@@ -85,6 +85,11 @@ dependencies {
     kapt "androidx.hilt:hilt-compiler:$androidx_hilt_version"
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
 
+    // Logging
+    implementation "org.tinylog:tinylog-api-kotlin:$tinylog_version"
+    runtimeOnly "org.tinylog:tinylog-impl:$tinylog_version"
+
+    // Testing dependencies
     testImplementation 'androidx.arch.core:core-testing:2.1.0'
     testImplementation 'androidx.test:core:1.4.0'
     testImplementation 'junit:junit:4.13.2'

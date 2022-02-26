@@ -3,11 +3,11 @@ package fr.geonature.commons.data.entity
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import org.tinylog.Logger
 import java.util.Locale
 
 /**
@@ -80,8 +80,6 @@ class Taxonomy : Parcelable {
     }
 
     companion object {
-
-        private val TAG = Taxonomy::class.java.name
 
         /**
          * The name of the 'taxonomy' table.
@@ -173,10 +171,9 @@ class Taxonomy : Parcelable {
                     )
                 )
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                e.message?.run {
+                    Logger.warn { this }
+                }
 
                 null
             }

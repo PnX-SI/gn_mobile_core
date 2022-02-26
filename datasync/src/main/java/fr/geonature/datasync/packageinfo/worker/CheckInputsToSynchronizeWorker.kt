@@ -4,7 +4,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
@@ -20,6 +19,7 @@ import fr.geonature.datasync.R
 import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
 import kotlinx.coroutines.flow.firstOrNull
+import org.tinylog.Logger
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -49,10 +49,7 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
 
         val inputsToSynchronize = availableInputs.size
 
-        Log.i(
-            TAG,
-            "available inputs to synchronize: $inputsToSynchronize"
-        )
+        Logger.info { "available inputs to synchronize: $inputsToSynchronize" }
 
         with(NotificationManagerCompat.from(applicationContext)) {
             cancel(SYNC_NOTIFICATION_ID)
@@ -103,7 +100,6 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
     }
 
     companion object {
-        private val TAG = CheckInputsToSynchronizeWorker::class.java.name
 
         private const val CHECK_INPUTS_TO_SYNC_WORKER = "check_inputs_to_sync_worker"
         private const val CHECK_INPUTS_TO_SYNC_WORKER_TAG = "check_inputs_to_sync_worker_tag"

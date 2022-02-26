@@ -1,10 +1,10 @@
 package fr.geonature.datasync.auth.io
 
 import android.util.JsonWriter
-import android.util.Log
 import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.AuthUser
+import org.tinylog.Logger
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
@@ -55,10 +55,7 @@ class AuthLoginJsonWriter {
                 authLogin
             )
         } catch (ioe: IOException) {
-            Log.w(
-                TAG,
-                ioe
-            )
+            Logger.warn(ioe)
 
             return null
         }
@@ -127,9 +124,5 @@ class AuthLoginJsonWriter {
             .value(authUser.login)
 
         writer.endObject()
-    }
-
-    companion object {
-        private val TAG = AuthLoginJsonWriter::class.java.name
     }
 }

@@ -1,8 +1,8 @@
 package fr.geonature.commons.input.io
 
 import android.util.JsonWriter
-import android.util.Log
 import fr.geonature.commons.input.AbstractInput
+import org.tinylog.Logger
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
@@ -52,10 +52,7 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
                 input
             )
         } catch (ioe: IOException) {
-            Log.w(
-                TAG,
-                ioe
-            )
+            Logger.warn(ioe)
 
             return null
         }
@@ -92,9 +89,11 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
     ) {
         writer.beginObject()
 
-        writer.name("id")
+        writer
+            .name("id")
             .value(input.id)
-        writer.name("module")
+        writer
+            .name("module")
             .value(input.module)
 
         onInputJsonWriterListener.writeAdditionalInputData(
@@ -124,9 +123,5 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
             writer: JsonWriter,
             input: T
         )
-    }
-
-    companion object {
-        private val TAG = InputJsonWriter::class.java.name
     }
 }

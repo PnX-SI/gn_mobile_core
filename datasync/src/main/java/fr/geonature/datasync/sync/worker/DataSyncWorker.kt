@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.text.TextUtils
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
@@ -57,6 +56,7 @@ import fr.geonature.datasync.sync.io.DatasetJsonReader
 import fr.geonature.datasync.sync.io.TaxonomyJsonReader
 import fr.geonature.datasync.ui.login.LoginActivity
 import org.json.JSONObject
+import org.tinylog.Logger
 import retrofit2.Response
 import retrofit2.awaitResponse
 import java.io.BufferedReader
@@ -102,10 +102,7 @@ class DataSyncWorker @AssistedInject constructor(
 
         // not connected: abort
         if (authManager.getAuthLogin() == null) {
-            Log.w(
-                TAG,
-                "not connected: abort"
-            )
+            Logger.warn { "not connected: abort" }
 
             sendNotification(
                 DataSyncStatus(
@@ -129,10 +126,7 @@ class DataSyncWorker @AssistedInject constructor(
             .any { it.id != id && it.state == WorkInfo.State.RUNNING }
 
         if (alreadyRunning) {
-            Log.i(
-                TAG,
-                "already running: abort"
-            )
+            Logger.warn { "already running: abort" }
 
             return Result.retry()
         }
@@ -140,10 +134,7 @@ class DataSyncWorker @AssistedInject constructor(
         val checkServerUrlsResult = checkServerUrls(geoNatureAPIClient)
 
         if (checkServerUrlsResult is Result.Failure) {
-            Log.i(
-                TAG,
-                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
-            )
+            Logger.info { "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms" }
 
             return checkServerUrlsResult
         }
@@ -154,10 +145,7 @@ class DataSyncWorker @AssistedInject constructor(
         val syncDatasetResult = syncDataset(geoNatureAPIClient)
 
         if (syncDatasetResult is Result.Failure) {
-            Log.i(
-                TAG,
-                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
-            )
+            Logger.info { "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms" }
 
             return syncDatasetResult
         }
@@ -171,10 +159,7 @@ class DataSyncWorker @AssistedInject constructor(
         )
 
         if (syncInputObserversResult is Result.Failure) {
-            Log.i(
-                TAG,
-                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
-            )
+            Logger.info { "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms" }
 
             return syncInputObserversResult
         }
@@ -182,10 +167,7 @@ class DataSyncWorker @AssistedInject constructor(
         val syncTaxonomyRanksResult = syncTaxonomyRanks(geoNatureAPIClient)
 
         if (syncTaxonomyRanksResult is Result.Failure) {
-            Log.i(
-                TAG,
-                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
-            )
+            Logger.info { "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms" }
 
             return syncTaxonomyRanksResult
         }
@@ -193,10 +175,7 @@ class DataSyncWorker @AssistedInject constructor(
         val syncNomenclatureResult = syncNomenclature(geoNatureAPIClient)
 
         if (syncNomenclatureResult is Result.Failure) {
-            Log.i(
-                TAG,
-                "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms"
-            )
+            Logger.info { "local data synchronization finished with failed tasks in ${Date().time - startTime.time}ms" }
 
             return syncTaxonomyRanksResult
         }
@@ -218,10 +197,7 @@ class DataSyncWorker @AssistedInject constructor(
             )
         )
 
-        Log.i(
-            TAG,
-            "local data synchronization ${if (syncTaxaResult is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms"
-        )
+        Logger.info { "local data synchronization ${if (syncTaxaResult is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms" }
 
         if (syncTaxaResult is Result.Success) {
             NotificationManagerCompat
@@ -244,15 +220,14 @@ class DataSyncWorker @AssistedInject constructor(
     private fun checkServerUrls(geoNatureAPIClient: IGeoNatureAPIClient): Result {
         return runCatching { geoNatureAPIClient.getBaseUrls() }.fold(
             onSuccess = {
-                Log.i(
-                    TAG,
+                Logger.info {
                     "starting local data synchronization from '${it.geoNatureBaseUrl}' (with additional data: ${
                         inputData.getBoolean(
                             INPUT_WITH_ADDITIONAL_DATA,
                             true
                         )
                     })..."
-                )
+                }
 
                 Result.success()
             },
@@ -268,10 +243,7 @@ class DataSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncDataset(geoNatureAPIClient: IGeoNatureAPIClient): Result {
-        Log.i(
-            TAG,
-            "synchronize dataset..."
-        )
+        Logger.info { "synchronize dataset..." }
 
         val result = runCatching {
             geoNatureAPIClient
@@ -315,10 +287,7 @@ class DataSyncWorker @AssistedInject constructor(
             )
         }.getOrElse { emptyList() }
 
-        Log.i(
-            TAG,
-            "dataset to update: ${dataset.size}"
-        )
+        Logger.info { "dataset to update: ${dataset.size}" }
 
         if (dataset.isEmpty()) {
             return Result.success()
@@ -351,10 +320,7 @@ class DataSyncWorker @AssistedInject constructor(
         geoNatureAPIClient: IGeoNatureAPIClient,
         menuId: Int
     ): Result {
-        Log.i(
-            TAG,
-            "synchronize users..."
-        )
+        Logger.info { "synchronize users..." }
 
         val result = runCatching {
             geoNatureAPIClient
@@ -399,10 +365,7 @@ class DataSyncWorker @AssistedInject constructor(
             .toList()
             .toTypedArray()
 
-        Log.i(
-            TAG,
-            "users to update: ${inputObservers.size}"
-        )
+        Logger.info { "users to update: ${inputObservers.size}" }
 
         if (inputObservers.isEmpty()) {
             return Result.success()
@@ -432,10 +395,7 @@ class DataSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncTaxonomyRanks(geoNatureAPIClient: IGeoNatureAPIClient): Result {
-        Log.i(
-            TAG,
-            "synchronize taxonomy ranks..."
-        )
+        Logger.info { "synchronize taxonomy ranks..." }
 
         val result = runCatching {
             geoNatureAPIClient
@@ -479,10 +439,7 @@ class DataSyncWorker @AssistedInject constructor(
             )
         }.getOrElse { emptyList() }
 
-        Log.i(
-            TAG,
-            "taxonomy ranks to update: ${taxonomyRanks.size}"
-        )
+        Logger.info { "taxonomy ranks to update: ${taxonomyRanks.size}" }
 
         if (taxonomyRanks.isEmpty()) {
             return Result.success()
@@ -512,10 +469,7 @@ class DataSyncWorker @AssistedInject constructor(
     }
 
     private suspend fun syncNomenclature(geoNatureAPIClient: IGeoNatureAPIClient): Result {
-        Log.i(
-            TAG,
-            "synchronize nomenclature types..."
-        )
+        Logger.info { "synchronize nomenclature types..." }
 
         val nomenclaturesResult = runCatching {
             geoNatureAPIClient
@@ -564,10 +518,7 @@ class DataSyncWorker @AssistedInject constructor(
             .toList()
             .toTypedArray()
 
-        Log.i(
-            TAG,
-            "nomenclature types to update: ${nomenclatureTypesToUpdate.size}"
-        )
+        Logger.info { "nomenclature types to update: ${nomenclatureTypesToUpdate.size}" }
 
         if (nomenclatureTypesToUpdate.isEmpty()) {
             return Result.success()
@@ -638,10 +589,7 @@ class DataSyncWorker @AssistedInject constructor(
             .toList()
             .toTypedArray()
 
-        Log.i(
-            TAG,
-            "nomenclature to update: ${nomenclaturesToUpdate.size}"
-        )
+        Logger.info { "nomenclature to update: ${nomenclaturesToUpdate.size}" }
 
         val taxonomyToUpdate = nomenclaturesTaxonomyToUpdate
             .asSequence()
@@ -664,10 +612,7 @@ class DataSyncWorker @AssistedInject constructor(
             )
         )
 
-        Log.i(
-            TAG,
-            "synchronize nomenclature default values..."
-        )
+        Logger.info { "synchronize nomenclature default values..." }
 
         // TODO: fetch available GeoNature modules
         val defaultNomenclatureResult = runCatching {
@@ -728,10 +673,7 @@ class DataSyncWorker @AssistedInject constructor(
             .toList()
             .toTypedArray()
 
-        Log.i(
-            TAG,
-            "nomenclature default values to update: ${defaultNomenclaturesToUpdate.size}"
-        )
+        Logger.info { "nomenclature default values to update: ${defaultNomenclaturesToUpdate.size}" }
 
         setProgress(
             workData(
@@ -772,10 +714,7 @@ class DataSyncWorker @AssistedInject constructor(
         pageSize: Int,
         withAdditionalData: Boolean = true
     ): Result {
-        Log.i(
-            TAG,
-            "synchronize taxa..."
-        )
+        Logger.info { "synchronize taxa..." }
 
         var hasNext: Boolean
         var offset = 0
@@ -832,10 +771,7 @@ class DataSyncWorker @AssistedInject constructor(
 
             taxonDao.insert(*taxa)
 
-            Log.i(
-                TAG,
-                "taxa to update: ${offset + taxa.size}"
-            )
+            Logger.info { "taxa to update: ${offset + taxa.size}" }
 
             setProgress(
                 workData(
@@ -861,10 +797,7 @@ class DataSyncWorker @AssistedInject constructor(
             .QB()
             .cursor()
             .run {
-                Log.i(
-                    TAG,
-                    "deleting orphaned taxa..."
-                )
+                Logger.info { "deleting orphaned taxa..." }
 
                 val orphanedTaxaIds = mutableSetOf<Long>()
 
@@ -883,17 +816,11 @@ class DataSyncWorker @AssistedInject constructor(
                     moveToNext()
                 }
 
-                Log.i(
-                    TAG,
-                    "orphaned taxa deleted: ${orphanedTaxaIds.size}"
-                )
+                Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
             }
 
         if (withAdditionalData) {
-            Log.i(
-                TAG,
-                "synchronize taxa additional data..."
-            )
+            Logger.info { "synchronize taxa additional data..." }
 
             offset = 0
 
@@ -922,10 +849,7 @@ class DataSyncWorker @AssistedInject constructor(
                     continue
                 }
 
-                Log.i(
-                    TAG,
-                    "found ${taxrefAreas.size} taxa with areas from offset $offset"
-                )
+                Logger.info { "found ${taxrefAreas.size} taxa with areas from offset $offset" }
 
                 setProgress(
                     workData(
@@ -960,10 +884,7 @@ class DataSyncWorker @AssistedInject constructor(
 
                 taxonAreaDao.insert(*taxonAreas)
 
-                Log.i(
-                    TAG,
-                    "updating ${taxonAreas.size} taxa with areas from offset $offset"
-                )
+                Logger.info { "updating ${taxonAreas.size} taxa with areas from offset $offset" }
 
                 offset += pageSize
                 hasNext = taxrefAreas.size == pageSize
@@ -999,10 +920,7 @@ class DataSyncWorker @AssistedInject constructor(
             runCatching { Class.forName(intentClassName) }.getOrElse { componentClassIntent }
 
         if (componentClassIntentOrDefault == null) {
-            Log.w(
-                TAG,
-                "no notification will be sent as intent class name '$intentClassName' was not found"
-            )
+            Logger.warn { "no notification will be sent as intent class name '$intentClassName' was not found" }
 
             return
         }
@@ -1079,7 +997,6 @@ class DataSyncWorker @AssistedInject constructor(
     }
 
     companion object {
-        private val TAG = DataSyncWorker::class.java.name
 
         const val KEY_SYNC_MESSAGE = "KEY_SYNC_MESSAGE"
         const val KEY_SERVER_STATUS = "KEY_SERVER_STATUS"

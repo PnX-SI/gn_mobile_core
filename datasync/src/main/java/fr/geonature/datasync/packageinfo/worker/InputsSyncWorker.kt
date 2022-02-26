@@ -1,7 +1,6 @@
 package fr.geonature.datasync.packageinfo.worker
 
 import android.content.Context
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -18,6 +17,7 @@ import fr.geonature.datasync.packageinfo.SyncInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import org.tinylog.Logger
 import retrofit2.awaitResponse
 import java.io.File
 
@@ -68,18 +68,12 @@ class InputsSyncWorker @AssistedInject constructor(
                 )
             )
 
-            Log.i(
-                TAG,
-                "no inputs to synchronize for '$packageName'"
-            )
+            Logger.info {"no inputs to synchronize for '$packageName'"  }
 
             return Result.success()
         }
 
-        Log.i(
-            TAG,
-            "${inputsToSynchronize.size} input(s) to synchronize for '$packageName'..."
-        )
+        Logger.info { "${inputsToSynchronize.size} input(s) to synchronize for '$packageName'..." }
 
         setProgress(
             workData(
@@ -124,10 +118,7 @@ class InputsSyncWorker @AssistedInject constructor(
                         )
                     }
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                Logger.warn(e)
 
                 setProgress(
                     workData(
@@ -140,10 +131,7 @@ class InputsSyncWorker @AssistedInject constructor(
             }
         }
 
-        Log.i(
-            TAG,
-            "inputs synchronization ${if (inputsSynchronized.size == inputsToSynchronize.size) "successfully finished" else "finished with errors"} for '$packageName'"
-        )
+        Logger.info { "inputs synchronization ${if (inputsSynchronized.size == inputsToSynchronize.size) "successfully finished" else "finished with errors"} for '$packageName'" }
 
         return if (inputsSynchronized.size == inputsToSynchronize.size) {
             Result.success(
@@ -186,7 +174,6 @@ class InputsSyncWorker @AssistedInject constructor(
     }
 
     companion object {
-        private val TAG = InputsSyncWorker::class.java.name
 
         const val KEY_PACKAGE_NAME = "KEY_PACKAGE_NAME"
         const val KEY_PACKAGE_STATUS = "KEY_PACKAGE_STATUS"

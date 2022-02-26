@@ -1,7 +1,6 @@
 package fr.geonature.commons.data.entity
 
 import android.database.Cursor
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -9,6 +8,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import org.tinylog.Logger
 
 /**
  * Describes a nomenclature item with taxonomy as join table.
@@ -19,25 +19,21 @@ import fr.geonature.commons.data.helper.get
     tableName = NomenclatureTaxonomy.TABLE_NAME,
     primaryKeys = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID, Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
     indices = [Index(value = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP])],
-    foreignKeys = [
-        ForeignKey(
-            entity = Nomenclature::class,
-            parentColumns = [Nomenclature.COLUMN_ID],
-            childColumns = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID],
-            onDelete = ForeignKey.CASCADE
-        ), ForeignKey(
-            entity = Taxonomy::class,
-            parentColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
-            childColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
+    foreignKeys = [ForeignKey(
+        entity = Nomenclature::class,
+        parentColumns = [Nomenclature.COLUMN_ID],
+        childColumns = [NomenclatureTaxonomy.COLUMN_NOMENCLATURE_ID],
+        onDelete = ForeignKey.CASCADE
+    ), ForeignKey(
+        entity = Taxonomy::class,
+        parentColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
+        childColumns = [Taxonomy.COLUMN_KINGDOM, Taxonomy.COLUMN_GROUP],
+        onDelete = ForeignKey.CASCADE
+    )]
 )
 class NomenclatureTaxonomy(
-    @ColumnInfo(name = COLUMN_NOMENCLATURE_ID)
-    var nomenclatureId: Long,
-    @Embedded
-    var taxonomy: Taxonomy
+    @ColumnInfo(name = COLUMN_NOMENCLATURE_ID) var nomenclatureId: Long,
+    @Embedded var taxonomy: Taxonomy
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -58,8 +54,6 @@ class NomenclatureTaxonomy(
     }
 
     companion object {
-
-        private val TAG = Nomenclature::class.java.name
 
         /**
          * The name of the 'nomenclatures_taxonomy' table.
@@ -135,10 +129,9 @@ class NomenclatureTaxonomy(
                     taxonomy
                 )
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                e.message?.run {
+                    Logger.warn { e.message }
+                }
 
                 null
             }

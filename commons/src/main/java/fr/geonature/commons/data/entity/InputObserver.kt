@@ -4,12 +4,12 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import org.tinylog.Logger
 
 /**
  * Describes an input observer.
@@ -22,21 +22,17 @@ data class InputObserver(
     /**
      * The unique ID of the input observer.
      */
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = COLUMN_ID)
-    var id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = COLUMN_ID) var id: Long,
 
     /**
      * The last name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_LASTNAME)
-    var lastname: String?,
+    @ColumnInfo(name = COLUMN_LASTNAME) var lastname: String?,
 
     /**
      * The first name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_FIRSTNAME)
-    var firstname: String?
+    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?
 ) : Parcelable {
 
     private constructor(source: Parcel) : this(
@@ -61,8 +57,6 @@ data class InputObserver(
     }
 
     companion object {
-
-        private val TAG = InputObserver::class.java.name
 
         /**
          * The name of the 'observers' table.
@@ -176,10 +170,9 @@ data class InputObserver(
                     )
                 )
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                e.message?.run {
+                   Logger.warn { this }
+                }
 
                 null
             }

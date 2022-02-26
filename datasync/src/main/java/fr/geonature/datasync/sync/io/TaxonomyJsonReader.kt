@@ -4,9 +4,9 @@ import android.text.TextUtils
 import android.util.JsonReader
 import android.util.JsonToken.BEGIN_ARRAY
 import android.util.JsonToken.NAME
-import android.util.Log
 import android.util.MalformedJsonException
 import fr.geonature.commons.data.entity.Taxonomy
+import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -33,10 +33,7 @@ class TaxonomyJsonReader {
         try {
             return read(StringReader(json))
         } catch (e: Exception) {
-            Log.w(
-                TAG,
-                e
-            )
+            Logger.warn(e)
         }
 
         return emptyList()
@@ -103,10 +100,7 @@ class TaxonomyJsonReader {
                 }
                 else -> {
                     reader.skipValue()
-                    Log.w(
-                        TAG,
-                        "Invalid object properties JSON token $jsonToken while reading taxonomy"
-                    )
+                    Logger.warn { "invalid object properties JSON token $jsonToken while reading taxonomy" }
                 }
             }
         }
@@ -154,9 +148,5 @@ class TaxonomyJsonReader {
                 }
             }
             .toList()
-    }
-
-    companion object {
-        private val TAG = TaxonomyJsonReader::class.java.name
     }
 }

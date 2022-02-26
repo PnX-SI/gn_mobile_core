@@ -1,7 +1,6 @@
 package fr.geonature.datasync.sync
 
 import android.app.Application
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -15,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.worker.DataSyncWorker
 import kotlinx.coroutines.launch
+import org.tinylog.Logger
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
@@ -101,10 +101,7 @@ class DataSyncViewModel @Inject constructor(
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
-        Log.i(
-            TAG,
-            "starting local data synchronization..."
-        )
+        Logger.info { "starting local data synchronization..." }
 
         currentSyncWorkerId = DataSyncWorker.enqueueUniqueWork(
             getApplication(),
@@ -126,10 +123,7 @@ class DataSyncViewModel @Inject constructor(
                 .any { it.state == WorkInfo.State.RUNNING }
 
             if (alreadyRunning) {
-                Log.i(
-                    TAG,
-                    "a data synchronization worker is still running: abort the periodic synchronization configuration..."
-                )
+                Logger.info { "a data synchronization worker is still running: abort the periodic synchronization configuration..." }
 
                 return@launch
             }
@@ -150,10 +144,7 @@ class DataSyncViewModel @Inject constructor(
 
             // no periodic synchronization is correctly configured: abort
             if (essentialDataSyncPeriodicity == null && dataSyncPeriodicity == null) {
-                Log.i(
-                    TAG,
-                    "no periodic synchronization configured: abort"
-                )
+                Logger.info { "no periodic synchronization configured: abort" }
 
                 return@launch
             }
@@ -210,10 +201,7 @@ class DataSyncViewModel @Inject constructor(
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
-        Log.i(
-            TAG,
-            "configure data sync periodic worker (repeat interval: $repeatInterval, with additional data: $withAdditionalData)..."
-        )
+        Logger.info { "configure data sync periodic worker (repeat interval: $repeatInterval, with additional data: $withAdditionalData)..." }
 
         DataSyncWorker.enqueueUniquePeriodicWork(
             getApplication(),
@@ -223,9 +211,5 @@ class DataSyncViewModel @Inject constructor(
             notificationChannelId,
             repeatInterval
         )
-    }
-
-    companion object {
-        private val TAG = DataSyncViewModel::class.java.name
     }
 }

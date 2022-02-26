@@ -3,16 +3,20 @@ package fr.geonature.sync
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
 import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.datasync.packageinfo.worker.CheckInputsToSynchronizeWorker
+import fr.geonature.mountpoint.model.MountPoint
+import fr.geonature.mountpoint.util.FileUtils
 import fr.geonature.mountpoint.util.MountPointUtils
 import fr.geonature.sync.ui.home.HomeActivity
+import org.tinylog.Logger
+import java.io.File
 import javax.inject.Inject
+import kotlin.system.exitProcess
 
 /**
  * Base class to maintain global application state.
@@ -24,6 +28,51 @@ class MainApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    override fun onCreate() {
+        super.onCreate()
+
+        configureLogger()
+
+        Logger.info { "internal storage: " + MountPointUtils.getInternalStorage(this) }
+        Logger.info { "external storage: " + MountPointUtils.getExternalStorage(this) }
+
+        val notificationManager = NotificationManagerCompat.from(this)
+        configureCheckInputsToSynchronizeChannel(notificationManager)
+        configureSynchronizeDataChannel(notificationManager)
+
+        checkAuthLogin()
+        checkInputsToSynchronize()
+    }
+
+    override fun getWorkManagerConfiguration(): Configuration {
+        return Configuration
+            .Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+    }
+
+    private fun configureLogger() {
+        val directoryForLogs: File = FileUtils
+            .getFile(
+                FileUtils.getRootFolder(
+                    this,
+                    MountPoint.StorageType.INTERNAL,
+                ),
+                "logs"
+            )
+            .also { it.mkdirs() }
+
+        System.setProperty(
+            "tinylog.directory",
+            directoryForLogs.absolutePath
+        )
+
+        Thread.setDefaultUncaughtExceptionHandler(TinylogUncaughtExceptionHandler())
+
+        Logger.info { "starting ${BuildConfig.APPLICATION_ID}..." }
+        Logger.info { "logs directory: '$directoryForLogs'" }
+    }
 
     private fun checkAuthLogin() {
         CheckAuthLoginWorker.enqueueUniquePeriodicWork(this)
@@ -75,36 +124,17 @@ class MainApplication : Application(), Configuration.Provider {
         return null
     }
 
-    override fun onCreate() {
-        super.onCreate()
-
-        Log.i(
-            TAG,
-            "internal storage: " + MountPointUtils.getInternalStorage(this)
-        )
-        Log.i(
-            TAG,
-            "external storage: " + MountPointUtils.getExternalStorage(this)
-        )
-
-        val notificationManager = NotificationManagerCompat.from(this)
-        configureCheckInputsToSynchronizeChannel(notificationManager)
-        configureSynchronizeDataChannel(notificationManager)
-
-        checkAuthLogin()
-        checkInputsToSynchronize()
-    }
-
-    override fun getWorkManagerConfiguration(): Configuration {
-        return Configuration
-            .Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
+    private class TinylogUncaughtExceptionHandler : Thread.UncaughtExceptionHandler {
+        override fun uncaughtException(
+            thread: Thread?,
+            ex: Throwable?
+        ) {
+            Logger.error(ex)
+            exitProcess(1)
+        }
     }
 
     companion object {
-        private val TAG = MainApplication::class.java.name
-
         const val CHANNEL_CHECK_INPUTS_TO_SYNCHRONIZE = "channel_check_inputs_to_synchronize"
         const val CHANNEL_DATA_SYNCHRONIZATION = "channel_data_synchronization"
     }

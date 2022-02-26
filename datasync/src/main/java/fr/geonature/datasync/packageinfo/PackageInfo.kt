@@ -3,13 +3,13 @@ package fr.geonature.datasync.packageinfo
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
-import android.util.Log
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.tinylog.Logger
 
 /**
  * Describes the contents of an application package.
@@ -60,10 +60,7 @@ data class PackageInfo(
                 val toJson = runCatching { JSONObject(it.readText()) }.getOrNull()
 
                 if (toJson == null) {
-                    Log.w(
-                        TAG,
-                        "invalid input file found '${it.name}'"
-                    )
+                    Logger.warn { "invalid input file found '${it.name}'" }
 
                     it.delete()
 
@@ -73,10 +70,7 @@ data class PackageInfo(
                 val module = runCatching { toJson.getString("module") }.getOrNull()
 
                 if (module.isNullOrBlank()) {
-                    Log.w(
-                        TAG,
-                        "invalid input file found '${it.name}': missing 'module' attribute"
-                    )
+                    Logger.warn { "invalid input file found '${it.name}': missing 'module' attribute" }
 
                     return@map null
                 }
@@ -89,9 +83,5 @@ data class PackageInfo(
             }
             .filterNotNull()
             .toList()
-    }
-
-    companion object {
-        private val TAG = PackageInfo::class.java.name
     }
 }

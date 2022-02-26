@@ -1,10 +1,10 @@
 package fr.geonature.datasync.auth.io
 
 import android.util.JsonReader
-import android.util.Log
 import fr.geonature.commons.util.toDate
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.AuthUser
+import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -34,10 +34,7 @@ class AuthLoginJsonReader {
         try {
             return read(StringReader(json))
         } catch (ioe: IOException) {
-            Log.w(
-                TAG,
-                ioe
-            )
+            Logger.warn(ioe)
         }
 
         return null
@@ -123,9 +120,5 @@ class AuthLoginJsonReader {
             organismId,
             login
         )
-    }
-
-    companion object {
-        private val TAG = AuthLoginJsonReader::class.java.name
     }
 }

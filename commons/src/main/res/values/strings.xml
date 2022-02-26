@@ -3,7 +3,6 @@
 
     <string name="app_name" translatable="false">commons</string>
 
-    <string name="sharedUserId" translatable="false">fr.geonature</string>
     <string name="permission_read" translatable="false">fr.geonature.sync.permission.READ</string>
     <string name="permission_write" translatable="false">fr.geonature.sync.permission.WRITE</string>
 

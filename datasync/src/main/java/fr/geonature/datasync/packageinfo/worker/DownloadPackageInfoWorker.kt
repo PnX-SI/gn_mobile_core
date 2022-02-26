@@ -1,7 +1,6 @@
 package fr.geonature.datasync.packageinfo.worker
 
 import android.content.Context
-import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
@@ -17,6 +16,7 @@ import okhttp3.internal.closeQuietly
 import okio.Buffer
 import okio.buffer
 import okio.sink
+import org.tinylog.Logger
 import retrofit2.awaitResponse
 import java.io.File
 
@@ -47,10 +47,7 @@ class DownloadPackageInfoWorker @AssistedInject constructor(
         val apkUrl = packageInfoToUpdate.apkUrl
             ?: return Result.failure()
 
-        Log.i(
-            TAG,
-            "updating '$packageName'..."
-        )
+        Logger.info { "updating '$packageName'..." }
 
         setProgress(workData(packageInfoToUpdate.packageName))
 
@@ -81,10 +78,7 @@ class DownloadPackageInfoWorker @AssistedInject constructor(
                 packageInfoToUpdate
             )
         } catch (e: Exception) {
-            Log.w(
-                TAG,
-                e
-            )
+            Logger.warn(e)
 
             Result.failure(
                 workData(
@@ -171,7 +165,6 @@ class DownloadPackageInfoWorker @AssistedInject constructor(
     }
 
     companion object {
-        private val TAG = DownloadPackageInfoWorker::class.java.name
 
         const val DOWNLOAD_PACKAGE_WORKER_TAG = "download_package_worker_tag"
         const val KEY_PACKAGE_NAME = "KEY_PACKAGE_NAME"

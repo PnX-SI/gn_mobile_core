@@ -4,13 +4,13 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import org.tinylog.Logger
 
 /**
  * Describes a nomenclature type.
@@ -64,8 +64,6 @@ data class NomenclatureType(
     }
 
     companion object {
-
-        private val TAG = NomenclatureType::class.java.name
 
         /**
          * The name of the 'nomenclature_types' table.
@@ -156,10 +154,9 @@ data class NomenclatureType(
                     )
                 )
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                e.message?.run {
+                    Logger.warn { this }
+                }
 
                 null
             }

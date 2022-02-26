@@ -1,8 +1,8 @@
 package fr.geonature.commons.data.helper
 
-import android.util.Log
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
+import org.tinylog.Logger
 
 /**
  * Simple query builder to create SQL SELECT queries.
@@ -103,7 +103,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.joinClauses.add(
             Pair(
                 "${joinOperator.operator.let { if (it.isBlank()) "" else "$it " }}JOIN $tableName${if (alias.isNullOrBlank()) "" else " AS $alias"} ON $joinConstraint",
-                bindArgs.toList()
+                bindArgs
+                    .toList()
                     .toTypedArray()
             )
         )
@@ -165,7 +166,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
             add(
                 Pair(
                     whereClause,
-                    bindArgs.asList()
+                    bindArgs
+                        .asList()
                         .toTypedArray()
                 )
             )
@@ -186,7 +188,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.wheres.add(
             Pair(
                 "${if (this.wheres.isEmpty()) "" else " AND "}($whereClause)",
-                bindArgs.toList()
+                bindArgs
+                    .toList()
                     .toTypedArray()
             )
         )
@@ -206,7 +209,8 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         this.wheres.add(
             Pair(
                 "${if (this.wheres.isEmpty()) "" else " OR "}($whereClause)",
-                bindArgs.toList()
+                bindArgs
+                    .toList()
                     .toTypedArray()
             )
         )
@@ -300,31 +304,34 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
         }
 
         val bindArgs = mutableListOf<Any?>()
-        val selectedColumns =
-            this.columns.joinToString(", ") { pair -> "${pair.first}${if (pair.second.isNullOrBlank()) "" else " AS ${pair.second}"}" }
-                .ifBlank { "*" }
+        val selectedColumns = this.columns
+            .joinToString(", ") { pair -> "${pair.first}${if (pair.second.isNullOrBlank()) "" else " AS ${pair.second}"}" }
+            .ifBlank { "*" }
         val tables =
             this.tables.joinToString(", ") { pair -> "${pair.first}${if (pair.second.isNullOrBlank()) "" else " ${pair.second}"}" }
         val joinClauses = this.joinClauses.joinToString("\n") { pair ->
-            pair.second?.toList()
+            pair.second
+                ?.toList()
                 ?.also { bindArgs.addAll(it) }
             pair.first
         }
-        val whereClauses = this.wheres.joinToString("\n ") { pair ->
-            pair.second?.toList()
-                ?.also { bindArgs.addAll(it) }
-            pair.first
-        }
+        val whereClauses = this.wheres
+            .joinToString("\n ") { pair ->
+                pair.second
+                    ?.toList()
+                    ?.also { bindArgs.addAll(it) }
+                pair.first
+            }
             .let { if (it.isEmpty()) it else "WHERE $it" }
-        val groupByClauses = this.groupBy.joinToString(", ")
+        val groupByClauses = this.groupBy
+            .joinToString(", ")
             .let { if (it.isEmpty()) it else "GROUP BY $it" }
         val havingClause = if (this.having.isNullOrBlank()) "" else "HAVING ${this.having}"
-        val orderByClauses =
-            this.orderBy.joinToString(", ")
-                .let { if (it.isEmpty()) it else "ORDER BY $it" }
+        val orderByClauses = this.orderBy
+            .joinToString(", ")
+            .let { if (it.isEmpty()) it else "ORDER BY $it" }
 
-        val sql =
-            """
+        val sql = """
                 |SELECT ${if (this.columns.isNotEmpty() && this.distinct) "DISTINCT " else ""}$selectedColumns
                 |FROM $tables
                 |$joinClauses
@@ -333,17 +340,15 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 |$havingClause
                 |$orderByClauses
                 |${this.limit}
-            """.trimMargin()
-                .trim()
-                .replace(
-                    "\n{2,}".toRegex(RegexOption.MULTILINE),
-                    "\n"
-                )
+            """
+            .trimMargin()
+            .trim()
+            .replace(
+                "\n{2,}".toRegex(RegexOption.MULTILINE),
+                "\n"
+            )
 
-        Log.d(
-            TAG,
-            "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}"
-        )
+        Logger.debug { "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}" }
 
         return SimpleSQLiteQuery(
             sql,
@@ -364,8 +369,6 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
     }
 
     companion object {
-
-        private val TAG = SQLiteSelectQueryBuilder::class.java.name
 
         /**
          * Creates a query for the given table name.

@@ -3,9 +3,9 @@ package fr.geonature.commons.data.entity
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import org.tinylog.Logger
 import java.util.Date
 
 /**
@@ -44,8 +44,6 @@ data class AppSync(
     }
 
     companion object {
-
-        private val TAG = AppSync::class.java.name
 
         const val TABLE_NAME = "app_sync"
         const val COLUMN_ID = "package_id"
@@ -138,10 +136,9 @@ data class AppSync(
                     )
                 )
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    e
-                )
+                e.message?.run {
+                    Logger.warn { this }
+                }
 
                 null
             }

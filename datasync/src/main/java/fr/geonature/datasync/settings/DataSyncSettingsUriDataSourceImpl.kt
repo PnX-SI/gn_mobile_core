@@ -2,12 +2,12 @@ package fr.geonature.datasync.settings
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundException
 import fr.geonature.datasync.settings.io.DataSyncSettingsJsonReader
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.tinylog.Logger
 import java.io.FileReader
 
 /**
@@ -21,10 +21,7 @@ class DataSyncSettingsUriDataSourceImpl(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : IDataSyncSettingsDataSource {
     override suspend fun load(): DataSyncSettings = withContext(dispatcher) {
-        Log.i(
-            TAG,
-            "loading data sync settings from URI '${resource}'..."
-        )
+        Logger.info { "loading data sync settings from URI '${resource}'..." }
 
         (applicationContext.contentResolver.acquireContentProviderClient(resource)
             ?: throw DataSyncSettingsNotFoundException(source = resource.toString())).use {
@@ -43,9 +40,5 @@ class DataSyncSettingsUriDataSourceImpl(
 
             dataSyncSettings
         }
-    }
-
-    companion object {
-        private val TAG = DataSyncSettingsUriDataSourceImpl::class.java.name
     }
 }

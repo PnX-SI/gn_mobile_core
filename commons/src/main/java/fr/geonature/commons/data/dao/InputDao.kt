@@ -3,12 +3,12 @@ package fr.geonature.commons.data.dao
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import fr.geonature.commons.input.AbstractInput
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import org.json.JSONObject
+import org.tinylog.Logger
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -55,10 +55,7 @@ class InputDao(private val context: Context) {
                 .toString()
         )
 
-        Log.i(
-            TAG,
-            "input '${values.getAsLong("id")}' exported (URI: $exportedInputUri)"
-        )
+        Logger.info { "input '${values.getAsLong("id")}' exported (URI: $exportedInputUri)" }
 
         return exportedInputUri
     }
@@ -84,9 +81,5 @@ class InputDao(private val context: Context) {
             .filter { it.nameWithoutExtension.contains(packageId.substringAfterLast(".")) }
             .filter { it.canRead() }
             .count()
-    }
-
-    companion object {
-        private val TAG = InputDao::class.java.name
     }
 }
