@@ -28,6 +28,7 @@ end
 
 group Check for update
   datasync -> datasync : update //settings_<module>.json//
+  datasync -> datasync : check if ""version_code"" from ""AppPackage""\nis greater than app version code
 
   alt A new version is available
     datasync -> datasync : notify if we want to upgrade
