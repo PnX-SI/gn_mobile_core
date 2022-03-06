@@ -1,0 +1,33 @@
+@startuml
+
+!theme bluegray
+
+skinparam componentStyle uml2
+skinparam backgroundColor transparent
+
+title **Inputs synchronization workflow**
+
+participant "datasync" as datasync << module >>
+participant "GeoNature" as gn
+
+activate datasync
+
+datasync -> datasync : read exported inputs
+
+loop for each input
+    datasync -> datasync : get module name from input
+    datasync -> gn ++ : **POST** ""api/:module/releve""
+    note left
+        **""SyncInput"":**
+        {
+            "packageInfo": <PackageInfo>,
+            "filePath": <Path>,
+            "module": <String>,
+            "payload": <Object>,
+        }
+    end note
+    gn -> datasync -- : **200**
+    datasync -> datasync : delete input file
+end
+
+@enduml
