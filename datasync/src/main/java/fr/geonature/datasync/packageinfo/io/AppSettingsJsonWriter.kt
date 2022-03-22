@@ -15,7 +15,10 @@ import java.io.IOException
  *
  * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
  */
-class AppSettingsJsonWriter(private val context: Context) {
+class AppSettingsJsonWriter(
+    private val context: Context,
+    private val appSettingsFilename: String
+) {
 
     @Throws(IOException::class)
     fun write(packageInfo: PackageInfo) {
@@ -32,7 +35,7 @@ class AppSettingsJsonWriter(private val context: Context) {
 
         val appSettingsFile = getFile(
             appRootFolder,
-            "settings_${packageInfo.packageName.substring(packageInfo.packageName.lastIndexOf('.') + 1)}.json"
+            appSettingsFilename
         )
         val writer = FileWriter(appSettingsFile)
 

@@ -42,6 +42,13 @@ import javax.inject.Singleton
 annotation class ContentProviderAuthority
 
 /**
+ * GeoNature module name.
+ */
+@MustBeDocumented
+@Qualifier
+annotation class GeoNatureModuleName
+
+/**
  * Database module.
  *
  * @author S. Grimault

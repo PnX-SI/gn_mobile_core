@@ -25,6 +25,7 @@ import androidx.work.await
 import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import fr.geonature.commons.data.GeoNatureModuleName
 import fr.geonature.commons.data.dao.DatasetDao
 import fr.geonature.commons.data.dao.DefaultNomenclatureDao
 import fr.geonature.commons.data.dao.InputObserverDao
@@ -82,6 +83,7 @@ class DataSyncWorker @AssistedInject constructor(
     private val authManager: IAuthManager,
     private val dataSyncManager: IDataSyncManager,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
+    @GeoNatureModuleName private val moduleName: String,
     private val datasetDao: DatasetDao,
     private val inputObserverDao: InputObserverDao,
     private val taxonomyDao: TaxonomyDao,
@@ -614,10 +616,9 @@ class DataSyncWorker @AssistedInject constructor(
 
         Logger.info { "synchronize nomenclature default values..." }
 
-        // TODO: fetch available GeoNature modules
         val defaultNomenclatureResult = runCatching {
             geoNatureAPIClient
-                .getDefaultNomenclaturesValues("occtax")
+                .getDefaultNomenclaturesValues(moduleName)
                 .awaitResponse()
         }
             .map {
@@ -666,7 +667,7 @@ class DataSyncWorker @AssistedInject constructor(
             }
             .map {
                 DefaultNomenclature(
-                    "occtax",
+                    moduleName,
                     defaultNomenclatureAsJson.getLong(it)
                 )
             }

@@ -50,11 +50,13 @@ data class PackageInfo(
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): List<SyncInput> = withContext(dispatcher) {
         FileUtils
-            .getInputsFolder(applicationContext)
+            .getInputsFolder(
+                applicationContext,
+                packageName
+            )
             .walkTopDown()
             .filter { it.isFile && it.extension == "json" }
             .filter { it.nameWithoutExtension.startsWith("input") }
-            .filter { it.nameWithoutExtension.contains(packageName.substringAfterLast(".")) }
             .filter { it.canRead() }
             .map {
                 val toJson = runCatching { JSONObject(it.readText()) }.getOrNull()

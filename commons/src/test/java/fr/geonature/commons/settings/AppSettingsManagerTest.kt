@@ -69,6 +69,7 @@ class AppSettingsManagerTest {
             AppSettingsManagerImpl(
                 application,
                 "fr.geonature.sync.provider",
+                "settings_test.json",
                 onAppSettingsJsonJsonReaderListener,
                 coroutineTestRule.testDispatcher
             )

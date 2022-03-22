@@ -22,6 +22,7 @@ import java.io.FileReader
 class AppSettingsManagerImpl<AS : IAppSettings>(
     private val applicationContext: Context,
     private val providerAuthority: String,
+    private val appSettingsFilename: String,
     onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<AS>,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : IAppSettingsManager<AS> {
@@ -29,9 +30,7 @@ class AppSettingsManagerImpl<AS : IAppSettings>(
         AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
 
     override fun getAppSettingsFilename(): String {
-        val packageName = applicationContext.packageName
-
-        return "settings_${packageName.substring(packageName.lastIndexOf('.') + 1)}.json"
+        return appSettingsFilename
     }
 
     override suspend fun loadAppSettings(): AS? = withContext(dispatcher) {

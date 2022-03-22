@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.datasync.settings.AppSettingsFilename
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -44,12 +45,14 @@ object PackageInfoModule {
     fun providePackageInfoRepository(
         @ApplicationContext appContext: Context,
         @AvailablePackageInfoDataSource availablePackageInfoDataSource: IPackageInfoDataSource,
-        @InstalledPackageInfoDataSource installedPackageInfoDataSource: IPackageInfoDataSource
+        @InstalledPackageInfoDataSource installedPackageInfoDataSource: IPackageInfoDataSource,
+        @AppSettingsFilename appSettingsFilename: String
     ): IPackageInfoRepository {
         return PackageInfoRepositoryImpl(
             appContext,
             availablePackageInfoDataSource = availablePackageInfoDataSource,
-            installedPackageInfoDataSource = installedPackageInfoDataSource
+            installedPackageInfoDataSource = installedPackageInfoDataSource,
+            appSettingsFilename
         )
     }
 }

@@ -18,7 +18,8 @@ import org.tinylog.Logger
 class PackageInfoRepositoryImpl(
     private val applicationContext: Context,
     private val availablePackageInfoDataSource: IPackageInfoDataSource,
-    private val installedPackageInfoDataSource: IPackageInfoDataSource
+    private val installedPackageInfoDataSource: IPackageInfoDataSource,
+    private val appSettingsFilename: String
 ) : IPackageInfoRepository {
 
     private val allPackageInfos = mutableMapOf<String, PackageInfo>()
@@ -90,7 +91,12 @@ class PackageInfoRepositoryImpl(
     override suspend fun updateAppSettings(packageInfo: PackageInfo) = withContext(IO) {
         Logger.info { "updating settings for '${packageInfo.packageName}'..." }
 
-        val result = runCatching { AppSettingsJsonWriter(applicationContext).write(packageInfo) }
+        val result = runCatching {
+            AppSettingsJsonWriter(
+                applicationContext,
+                appSettingsFilename
+            ).write(packageInfo)
+        }
 
         if (result.isFailure) {
             Logger.warn { "failed to update settings for '${packageInfo.packageName}'" }

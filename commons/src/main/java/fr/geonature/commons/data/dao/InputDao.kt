@@ -66,19 +66,24 @@ class InputDao(private val context: Context) {
     ): File {
         return File(
             FileUtils
-                .getInputsFolder(context)
+                .getInputsFolder(
+                    context,
+                    packageId
+                )
                 .also { it.mkdirs() },
-            "input_${packageId.substringAfterLast(".")}_${inputId}.json"
+            "input_${inputId}.json"
         )
     }
 
     fun countInputsToSynchronize(packageId: String): Number {
         return FileUtils
-            .getInputsFolder(context)
+            .getInputsFolder(
+                context,
+                packageId
+            )
             .walkTopDown()
             .filter { it.isFile && it.extension == "json" }
             .filter { it.nameWithoutExtension.startsWith("input") }
-            .filter { it.nameWithoutExtension.contains(packageId.substringAfterLast(".")) }
             .filter { it.canRead() }
             .count()
     }

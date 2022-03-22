@@ -386,7 +386,6 @@ class MainContentProvider : ContentProvider() {
             .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
             .take(1)
             .firstOrNull()
-            ?.substringAfterLast(".")
 
         val onlyActive = uri.lastPathSegment == "active"
 
@@ -409,7 +408,6 @@ class MainContentProvider : ContentProvider() {
             .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
             .take(1)
             .firstOrNull()
-            ?.substringAfterLast(".")
 
         return getDatasetDao(context)
             .QB()
@@ -588,7 +586,6 @@ class MainContentProvider : ContentProvider() {
             .drop(uri.pathSegments.indexOf(NomenclatureType.TABLE_NAME) + 1)
             .take(1)
             .firstOrNull()
-            ?.substringAfterLast(".")
 
         return getNomenclatureDao(context)
             .QB()
