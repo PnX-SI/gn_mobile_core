@@ -1,6 +1,9 @@
 package fr.geonature.datasync.api
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializer
+import com.google.gson.reflect.TypeToken
 import fr.geonature.datasync.api.model.AppPackage
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
@@ -18,6 +21,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
+import org.tinylog.Logger
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -211,7 +215,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
                         120,
                         TimeUnit.SECONDS
                     )
-                    .addInterceptor(HttpLoggingInterceptor().apply {
+                    .addInterceptor(HttpLoggingInterceptor { Logger.info { it } }.apply {
                         level = HttpLoggingInterceptor.Level.BASIC
                         redactHeader("Authorization")
                         redactHeader("Cookie")
@@ -221,6 +225,20 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
             .addConverterFactory(
                 GsonConverterFactory.create(
                     GsonBuilder()
+                        // FIXME: see: https://github.com/PnX-SI/gn_mobile_occtax/issues/130
+                        .registerTypeAdapter(object : TypeToken<List<AppPackage>>() {}.type,
+                            JsonDeserializer<List<AppPackage>> { json, typeOfT, _ ->
+                                val gson = Gson()
+                                if (json.isJsonArray) gson.fromJson(
+                                    json.asJsonArray,
+                                    typeOfT
+                                ) else listOf(
+                                    gson.fromJson(
+                                        json,
+                                        AppPackage::class.java
+                                    )
+                                )
+                            })
                         .setDateFormat("yyyy-MM-dd HH:mm:ss")
                         .create()
                 )
