@@ -1,0 +1,66 @@
+[
+  {
+    "id_mobile_app": 3,
+    "app_code": "OCCTAX2",
+    "url_apk": "https://demo.geonature.fr/geonature/api/static/mobile/occtax/occtax-2.0.1-generic-release.apk",
+    "package": "fr.geonature.occtax2",
+    "version_code": "2575",
+    "settings": {
+      "area_observation_duration": 365,
+      "sync": {
+        "geonature_url": "https://demo.geonature.fr/geonature",
+        "taxhub_url": "https://demo.geonature.fr/taxhub",
+        "uh_application_id": 1,
+        "observers_list_id": 1,
+        "taxa_list_id": 100,
+        "code_area_type": "M1",
+        "page_size": 1000
+      },
+      "map": {
+        "show_scale": true,
+        "show_compass": true,
+        "max_bounds": [
+          [
+            52,
+            -6
+          ],
+          [
+            40,
+            9
+          ]
+        ],
+        "center": [
+          46,
+          2
+        ],
+        "start_zoom": 10.0,
+        "min_zoom": 8.0,
+        "max_zoom": 19.0,
+        "min_zoom_editing": 12.0,
+        "layers": [
+          {
+            "label": "OSM",
+            "source": "https://a.tile.openstreetmap.org"
+          },
+          {
+            "label": "Nantes",
+            "source": "nantes.mbtiles"
+          },
+          {
+            "label": "Mailles 5km",
+            "source": "mailles5pne.geojson",
+            "style": {
+              "stroke": true,
+              "color": "#FF0000",
+              "weight": 4,
+              "opacity": 0.9,
+              "fill": true,
+              "fillColor": "#FF8000",
+              "fillOpacity": 0.2
+            }
+          }
+        ]
+      }
+    }
+  }
+]

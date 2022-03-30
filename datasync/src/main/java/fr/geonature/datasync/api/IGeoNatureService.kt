@@ -1,6 +1,5 @@
 package fr.geonature.datasync.api
 
-import fr.geonature.datasync.api.model.AppPackage
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.NomenclatureType
@@ -74,7 +73,7 @@ interface IGeoNatureService {
 
     @Headers("Accept: application/json")
     @GET("api/gn_commons/t_mobile_apps")
-    fun getApplications(): Call<List<AppPackage>>
+    fun getApplications(): Call<ResponseBody>
 
     @Streaming
     @GET

@@ -1,10 +1,6 @@
 package fr.geonature.datasync.api
 
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializer
-import com.google.gson.reflect.TypeToken
-import fr.geonature.datasync.api.model.AppPackage
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.NomenclatureType
@@ -154,7 +150,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         return geoNatureService.getDefaultNomenclaturesValues(module)
     }
 
-    override fun getApplications(): Call<List<AppPackage>> {
+    override fun getApplications(): Call<ResponseBody> {
         assertBaseUrlsAreDefined()
 
         return geoNatureService.getApplications()
@@ -225,20 +221,6 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
             .addConverterFactory(
                 GsonConverterFactory.create(
                     GsonBuilder()
-                        // FIXME: see: https://github.com/PnX-SI/gn_mobile_occtax/issues/130
-                        .registerTypeAdapter(object : TypeToken<List<AppPackage>>() {}.type,
-                            JsonDeserializer<List<AppPackage>> { json, typeOfT, _ ->
-                                val gson = Gson()
-                                if (json.isJsonArray) gson.fromJson(
-                                    json.asJsonArray,
-                                    typeOfT
-                                ) else listOf(
-                                    gson.fromJson(
-                                        json,
-                                        AppPackage::class.java
-                                    )
-                                )
-                            })
                         .setDateFormat("yyyy-MM-dd HH:mm:ss")
                         .create()
                 )

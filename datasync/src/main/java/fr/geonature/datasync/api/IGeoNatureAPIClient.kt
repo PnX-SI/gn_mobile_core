@@ -2,7 +2,6 @@ package fr.geonature.datasync.api
 
 import android.os.Parcel
 import android.os.Parcelable
-import fr.geonature.datasync.api.model.AppPackage
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.NomenclatureType
@@ -108,7 +107,7 @@ interface IGeoNatureAPIClient {
     /**
      * Gets all available applications from GeoNature.
      */
-    fun getApplications(): Call<List<AppPackage>>
+    fun getApplications(): Call<ResponseBody>
 
     /**
      * Downloads application package (APK) from GeoNature.

@@ -1,6 +1,7 @@
 package fr.geonature.datasync.packageinfo
 
 import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.datasync.packageinfo.io.AppPackageJsonReader
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.awaitResponse
@@ -19,8 +20,14 @@ class AvailablePackageInfoDataSourceImpl(private val geoNatureAPIClient: IGeoNat
                 .awaitResponse()
         }
             .map {
-                if (it.isSuccessful) it.body()
-                    ?: emptyList() else emptyList()
+                if (it.isSuccessful) AppPackageJsonReader().read(
+                    it
+                        .body()
+                        ?.byteStream()
+                        ?.bufferedReader()
+                        ?.readText()
+                )
+                else emptyList()
             }
             .map { appPackages ->
                 appPackages
