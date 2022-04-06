@@ -9,7 +9,7 @@
     "sync": {
       "geonature_url": "https://demo.geonature.fr/geonature",
       "taxhub_url": "https://demo.geonature.fr/taxhub",
-      "uh_application_id": 1,
+      "gn_application_id": 1,
       "observers_list_id": 1,
       "taxa_list_id": 100,
       "code_area_type": "M1",

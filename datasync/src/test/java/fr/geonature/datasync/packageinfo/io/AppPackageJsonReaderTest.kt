@@ -41,7 +41,7 @@ class AppPackageJsonReaderTest {
                         "sync" to mapOf(
                             "geonature_url" to "https://demo.geonature.fr/geonature",
                             "taxhub_url" to "https://demo.geonature.fr/taxhub",
-                            "uh_application_id" to 1.0,
+                            "gn_application_id" to 1.0,
                             "observers_list_id" to 1.0,
                             "taxa_list_id" to 100.0,
                             "code_area_type" to "M1",
@@ -121,7 +121,7 @@ class AppPackageJsonReaderTest {
                         "sync" to mapOf(
                             "geonature_url" to "https://demo.geonature.fr/geonature",
                             "taxhub_url" to "https://demo.geonature.fr/taxhub",
-                            "uh_application_id" to 1.0,
+                            "gn_application_id" to 1.0,
                             "observers_list_id" to 1.0,
                             "taxa_list_id" to 100.0,
                             "code_area_type" to "M1",

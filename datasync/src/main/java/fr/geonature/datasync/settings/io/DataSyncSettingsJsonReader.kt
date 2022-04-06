@@ -18,7 +18,7 @@ import java.io.StringReader
  * {
  *   "geonature_url": "https://demo.geonature/geonature",
  *   "taxhub_url": "https://demo.geonature/taxhub",
- *   "uh_application_id": 3,
+ *   "gn_application_id": 3,
  *   "observers_list_id": 1,
  *   "taxa_list_id": 100,
  *   "code_area_type": "M1",
@@ -34,7 +34,7 @@ import java.io.StringReader
  *   "sync": {
  *     "geonature_url": "https://demo.geonature/geonature",
  *     "taxhub_url": "https://demo.geonature/taxhub",
- *     "uh_application_id": 3,
+ *     "gn_application_id": 3,
  *     "observers_list_id": 1,
  *     "taxa_list_id": 100,
  *     "code_area_type": "M1",
@@ -113,7 +113,11 @@ class DataSyncSettingsJsonReader {
                         "sync" -> builder.from(read(jsonReader))
                         "geonature_url" -> geoNatureServerUrl = jsonReader.nextString()
                         "taxhub_url" -> taxHubServerUrl = jsonReader.nextString()
-                        "uh_application_id" -> builder.applicationId(jsonReader.nextInt())
+                        "uh_application_id" -> {
+                            Logger.warn { "property 'uh_application_id' is deprecated in favor of 'gn_application_id'" }
+                            builder.applicationId(jsonReader.nextInt())
+                        }
+                        "gn_application_id" -> builder.applicationId(jsonReader.nextInt())
                         "observers_list_id" -> builder.usersListId(jsonReader.nextInt())
                         "taxa_list_id" -> builder.taxrefListId(jsonReader.nextInt())
                         "code_area_type" -> builder.codeAreaType(jsonReader.nextStringOrNull())
