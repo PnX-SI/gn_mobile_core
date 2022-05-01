@@ -1,6 +1,6 @@
 package fr.geonature.datasync.auth
 
-import fr.geonature.commons.fp.Failure
+import fr.geonature.commons.error.Failure
 import fr.geonature.datasync.api.model.AuthLoginError
 
 /**

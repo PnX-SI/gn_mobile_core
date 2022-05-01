@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="preference_category_server">Serveurs GeoNature</string>
+    <string name="preference_category_server">Serveur GeoNature</string>
     <string name="preference_category_server_geonature_url">URL de GeoNature</string>
-    <string name="preference_category_server_geonature_url_hint">https://demo.geonature.fr/geonature</string>
-    <string name="preference_category_server_taxhub_url">URL de TaxHub</string>
-    <string name="preference_category_server_taxhub_url_hint">https://demo.geonature.fr/taxhub</string>
+    <string name="preference_category_server_geonature_url_not_set">Non défini</string>
 
 </resources>

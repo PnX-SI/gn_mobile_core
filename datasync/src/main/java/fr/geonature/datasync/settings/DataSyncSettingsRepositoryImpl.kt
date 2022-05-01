@@ -6,17 +6,17 @@ import androidx.core.content.edit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
+import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
 import fr.geonature.commons.fp.Either.Right
-import fr.geonature.commons.fp.Failure
-import fr.geonature.commons.fp.getOrElse
+import fr.geonature.commons.fp.orNull
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
 import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.datasync.error.DataSyncSettingsJsonParseFailure
-import fr.geonature.datasync.error.DataSyncSettingsNotFoundFailure
+import fr.geonature.datasync.settings.error.DataSyncSettingsJsonParseFailure
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundException
+import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
 
 /**
  * Default implementation of [IDataSyncSettingsRepository].
@@ -25,7 +25,7 @@ import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundException
  */
 class DataSyncSettingsRepositoryImpl(
     private val applicationContext: Context,
-    private val dataSyncSettingsDataSource: IDataSyncSettingsDataSource
+    private val dataSyncSettingsDataSource: IDataSyncSettingsDataSource,
 ) : IDataSyncSettingsRepository {
 
     private val preferenceManager: SharedPreferences =
@@ -45,6 +45,11 @@ class DataSyncSettingsRepositoryImpl(
         _dataSyncSettingsLiveData
 
     override suspend fun getDataSyncSettings(): Either<Failure, DataSyncSettings> {
+        val currentGeoNatureBaseUrl = preferenceManager.getString(
+            applicationContext.getString(R.string.preference_category_server_geonature_url_key),
+            null,
+        )
+
         // load settings from data source
         val dataSyncSettingsLoadedResponse =
             runCatching { dataSyncSettingsDataSource.load() }.fold(onSuccess = { value: DataSyncSettings ->
@@ -52,7 +57,10 @@ class DataSyncSettingsRepositoryImpl(
             },
                 onFailure = { exception: Throwable ->
                     Left(
-                        if (exception is DataSyncSettingsNotFoundException) DataSyncSettingsNotFoundFailure(exception.source)
+                        if (exception is DataSyncSettingsNotFoundException) DataSyncSettingsNotFoundFailure(
+                            exception.source,
+                            geoNatureBaseUrl = currentGeoNatureBaseUrl,
+                        )
                         else DataSyncSettingsJsonParseFailure
                     )
                 })
@@ -63,67 +71,47 @@ class DataSyncSettingsRepositoryImpl(
             }
         }
 
-        val dataSyncSettingsLoaded = dataSyncSettingsLoadedResponse.getOrElse(null)
-            ?: return Left(DataSyncSettingsNotFoundFailure()).also {
+        val dataSyncSettingsLoaded = dataSyncSettingsLoadedResponse.orNull()
+            ?: return Left(DataSyncSettingsNotFoundFailure(geoNatureBaseUrl = currentGeoNatureBaseUrl)).also {
                 _dataSyncSettings = it
             }
 
-        val currentGeoNatureBaseUrl = preferenceManager.getString(
-            applicationContext.getString(R.string.preference_category_server_geonature_url_key),
-            null
-        )
-        val currentTaxHubBaseUrl = preferenceManager.getString(
-            applicationContext.getString(R.string.preference_category_server_taxhub_url_key),
-            null
-        )
-
-        _dataSyncSettings =
-            Right(if (currentGeoNatureBaseUrl.isNullOrBlank() || currentTaxHubBaseUrl.isNullOrBlank()) {
-                // update preferences from loaded settings
-                setServerBaseUrls(
-                    geoNatureServerUrl = dataSyncSettingsLoaded.geoNatureServerUrl,
-                    taxHubServerUrl = dataSyncSettingsLoaded.taxHubServerUrl
-                )
-
-                dataSyncSettingsLoaded
-            } else {
-                runCatching {
-                    // update loaded settings from preferences
-                    DataSyncSettings
-                        .Builder()
-                        .from(dataSyncSettingsLoaded)
-                        .serverUrls(
-                            geoNatureServerUrl = currentGeoNatureBaseUrl,
-                            taxHubServerUrl = currentTaxHubBaseUrl
-                        )
-                        .build()
+        _dataSyncSettings = Right(if (currentGeoNatureBaseUrl.isNullOrBlank()) {
+            // update preferences from loaded settings
+            setServerBaseUrl(dataSyncSettingsLoaded.geoNatureServerUrl)
+            dataSyncSettingsLoaded
+        } else {
+            runCatching {
+                // update loaded settings from preferences
+                DataSyncSettings
+                    .Builder()
+                    .from(dataSyncSettingsLoaded)
+                    .serverUrls(
+                        geoNatureServerUrl = currentGeoNatureBaseUrl,
+                        taxHubServerUrl = dataSyncSettingsLoaded.taxHubServerUrl
+                    )
+                    .build()
+            }
+                .onFailure {
+                    setServerBaseUrl("")
                 }
-                    .onFailure {
-                        setServerBaseUrls(
-                            "",
-                            ""
-                        )
-                    }
-                    .getOrDefault(dataSyncSettingsLoaded)
-            })
+                .getOrDefault(dataSyncSettingsLoaded)
+        })
 
         return _dataSyncSettings
-            ?: Left(DataSyncSettingsNotFoundFailure())
+            ?: Left(DataSyncSettingsNotFoundFailure(geoNatureBaseUrl = currentGeoNatureBaseUrl))
     }
 
     override fun getServerBaseUrls(): Either<Failure, IGeoNatureAPIClient.ServerUrls> {
-        val currentDataSyncSettings = _dataSyncSettings?.getOrElse(null)
+        val currentDataSyncSettings = _dataSyncSettings?.orNull()
 
         val geoNatureBaseUrl = preferenceManager.getString(
             applicationContext.getString(R.string.preference_category_server_geonature_url_key),
             currentDataSyncSettings?.geoNatureServerUrl
         )
-        val taxHubServerUrl = preferenceManager.getString(
-            applicationContext.getString(R.string.preference_category_server_taxhub_url_key),
-            currentDataSyncSettings?.taxHubServerUrl
-        )
+        val taxHubServerUrl = currentDataSyncSettings?.taxHubServerUrl
 
-        if (geoNatureBaseUrl.isNullOrBlank() || taxHubServerUrl.isNullOrBlank()) {
+        if (geoNatureBaseUrl.isNullOrBlank()) {
             return Left(GeoNatureMissingConfigurationFailure)
         }
 
@@ -135,33 +123,24 @@ class DataSyncSettingsRepositoryImpl(
         )
     }
 
-    override fun setServerBaseUrls(
-        geoNatureServerUrl: String,
-        taxHubServerUrl: String
-    ) {
+    override fun setServerBaseUrl(geoNatureServerUrl: String) {
         preferenceManager.edit {
             if (geoNatureServerUrl.isBlank()) remove(applicationContext.getString(R.string.preference_category_server_geonature_url_key))
             else putString(
                 applicationContext.getString(R.string.preference_category_server_geonature_url_key),
                 geoNatureServerUrl
             )
-
-            if (taxHubServerUrl.isBlank()) remove(applicationContext.getString(R.string.preference_category_server_taxhub_url_key))
-            else putString(
-                applicationContext.getString(R.string.preference_category_server_taxhub_url_key),
-                taxHubServerUrl
-            )
         }
 
-        if (geoNatureServerUrl.isBlank() || taxHubServerUrl.isBlank()) {
+        if (geoNatureServerUrl.isBlank()) {
             return
         }
 
-        val currentDataSyncSettings = _dataSyncSettings?.getOrElse(null)
+        val currentDataSyncSettings = _dataSyncSettings?.orNull()
             ?: return
 
         // do nothing if the current loaded settings remain the same
-        if (currentDataSyncSettings.geoNatureServerUrl == geoNatureServerUrl && currentDataSyncSettings.taxHubServerUrl == taxHubServerUrl) {
+        if (currentDataSyncSettings.geoNatureServerUrl == geoNatureServerUrl) {
             return
         }
 
@@ -171,7 +150,7 @@ class DataSyncSettingsRepositoryImpl(
                 .from(currentDataSyncSettings)
                 .serverUrls(
                     geoNatureServerUrl = geoNatureServerUrl,
-                    taxHubServerUrl = taxHubServerUrl
+                    taxHubServerUrl = currentDataSyncSettings.taxHubServerUrl
                 )
                 .build()
         )

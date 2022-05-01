@@ -4,8 +4,8 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider
+import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import fr.geonature.commons.fp.Failure
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import io.mockk.MockKAnnotations.init
 import io.mockk.coEvery
@@ -56,31 +56,32 @@ class DataSyncSettingsViewModelTest {
     }
 
     @Test
-    fun `should load DataSyncSettings`() = runTest {
-        // given an existing DataSyncSettings instance from data source
-        val expectedDataSyncSettings = DataSyncSettings(
-            geoNatureServerUrl = "https://demo.geonature.fr/geonature",
-            taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-            applicationId = 3,
-            usersListId = 1,
-            taxrefListId = 100,
-            codeAreaType = "M10"
-        )
+    fun `should load DataSyncSettings`() =
+        runTest {
+            // given an existing DataSyncSettings instance from data source
+            val expectedDataSyncSettings = DataSyncSettings(
+                geoNatureServerUrl = "https://demo.geonature.fr/geonature",
+                taxHubServerUrl = "https://demo.geonature.fr/taxhub",
+                applicationId = 3,
+                usersListId = 1,
+                taxrefListId = 100,
+                codeAreaType = "M10"
+            )
 
-        coEvery { dataSyncSettingsDataSource.load() } returns expectedDataSyncSettings
+            coEvery { dataSyncSettingsDataSource.load() } returns expectedDataSyncSettings
 
-        // when
-        val dataSyncSettingsViewModel = DataSyncSettingsViewModel(
-            dataSyncSettingsRepository,
-            geoNatureAPIClient
-        )
-        dataSyncSettingsViewModel
-            .getDataSyncSettings()
-            .observeForever(dataSyncSettingsObserver)
+            // when
+            val dataSyncSettingsViewModel = DataSyncSettingsViewModel(
+                dataSyncSettingsRepository,
+                geoNatureAPIClient
+            )
+            dataSyncSettingsViewModel
+                .getDataSyncSettings()
+                .observeForever(dataSyncSettingsObserver)
 
-        // then
-        verify(atLeast = 1) { dataSyncSettingsObserver.onChanged(Either.Right(expectedDataSyncSettings)) }
-    }
+            // then
+            verify(atLeast = 1) { dataSyncSettingsObserver.onChanged(Either.Right(expectedDataSyncSettings)) }
+        }
 
     @Test
     fun `should update server base Urls`() {
@@ -102,8 +103,10 @@ class DataSyncSettingsViewModelTest {
             geoNatureAPIClient
         )
         dataSyncSettingsViewModel.setServerBaseUrls(
-            geoNatureServerUrl = "https://demo.geonature2.fr/geonature",
-            taxHubServerUrl = "https://demo.geonature2.fr/taxhub"
+            IGeoNatureAPIClient.ServerUrls(
+                geoNatureBaseUrl = "https://demo.geonature2.fr/geonature",
+                taxHubBaseUrl = "https://demo.geonature.fr/taxhub",
+            ),
         )
         dataSyncSettingsViewModel
             .getDataSyncSettings()
@@ -118,7 +121,7 @@ class DataSyncSettingsViewModelTest {
                         .from(expectedDataSyncSettings)
                         .serverUrls(
                             geoNatureServerUrl = "https://demo.geonature2.fr/geonature",
-                            taxHubServerUrl = "https://demo.geonature2.fr/taxhub"
+                            taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                         )
                         .build()
                 )
@@ -126,8 +129,10 @@ class DataSyncSettingsViewModelTest {
         }
         verify(atLeast = 1) {
             geoNatureAPIClient.setBaseUrls(
-                geoNatureBaseUrl = "https://demo.geonature2.fr/geonature",
-                taxHubBaseUrl = "https://demo.geonature2.fr/taxhub"
+                IGeoNatureAPIClient.ServerUrls(
+                    geoNatureBaseUrl = "https://demo.geonature2.fr/geonature",
+                    taxHubBaseUrl = "https://demo.geonature.fr/taxhub",
+                ),
             )
         }
     }

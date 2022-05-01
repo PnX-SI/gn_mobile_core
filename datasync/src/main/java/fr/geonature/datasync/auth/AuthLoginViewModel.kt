@@ -8,7 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.geonature.commons.fp.Failure
+import fr.geonature.commons.error.Failure
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
 import fr.geonature.datasync.api.IGeoNatureAPIClient
@@ -83,14 +83,14 @@ class AuthLoginViewModel @Inject constructor(
                         }
                     }
                     is Failure.NetworkFailure -> {
-                        LoginResult(error = R.string.snackbar_network_lost)
+                        LoginResult(error = R.string.error_network_lost)
                     }
                     else -> LoginResult(error = R.string.login_failed)
                 }
             },
                 {
                     LoginResult(success = it)
-                }) as LoginResult
+                })
         }
     }
 
@@ -141,7 +141,7 @@ class AuthLoginViewModel @Inject constructor(
     /**
      * Data validation state of the login form.
      *
-     * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+     * @author S. Grimault
      */
     data class LoginFormState(
         @StringRes val usernameError: Int? = null,
@@ -152,7 +152,7 @@ class AuthLoginViewModel @Inject constructor(
     /**
      * Authentication result: success (user details) or error message.
      *
-     * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+     * @author S. Grimault
      */
     data class LoginResult(
         val success: AuthLogin? = null,

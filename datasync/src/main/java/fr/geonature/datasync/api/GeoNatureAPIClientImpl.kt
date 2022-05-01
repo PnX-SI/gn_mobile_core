@@ -30,14 +30,16 @@ import java.util.concurrent.TimeUnit
  */
 class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNatureAPIClient {
 
-    private lateinit var geoNatureService: IGeoNatureService
-    private lateinit var taxHubService: ITaxHubService
-    private lateinit var geoNatureBaseUrl: String
-    private lateinit var taxHubBaseUrl: String
-    private var isReady = false
+    private var geoNatureService: IGeoNatureService? = null
+    private var taxHubService: ITaxHubService? = null
+    private var geoNatureBaseUrl: String? = null
+    private var taxHubBaseUrl: String? = null
 
     override fun getBaseUrls(): IGeoNatureAPIClient.ServerUrls {
-        assertBaseUrlsAreDefined()
+        val geoNatureBaseUrl = geoNatureBaseUrl
+            ?: throw IllegalStateException("missing GeoNature base URL")
+        val taxHubBaseUrl = taxHubBaseUrl
+            ?: throw IllegalStateException("missing TaxHub base URL")
 
         return IGeoNatureAPIClient.ServerUrls(
             geoNatureBaseUrl,
@@ -45,31 +47,27 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         )
     }
 
-    override fun setBaseUrls(
-        geoNatureBaseUrl: String,
-        taxHubBaseUrl: String
-    ) {
-        this.geoNatureBaseUrl = geoNatureBaseUrl
-        this.taxHubBaseUrl = taxHubBaseUrl
-
-        if (geoNatureBaseUrl.isBlank() || taxHubBaseUrl.isBlank()) {
-            isReady = false
-            return
+    override fun setBaseUrls(url: IGeoNatureAPIClient.ServerUrls) {
+        if (url.geoNatureBaseUrl.isNotBlank()) {
+            this.geoNatureBaseUrl = url.geoNatureBaseUrl
+            geoNatureService = createServiceClient(
+                url.geoNatureBaseUrl,
+                IGeoNatureService::class.java
+            )
         }
 
-        geoNatureService = createServiceClient(
-            geoNatureBaseUrl,
-            IGeoNatureService::class.java
-        )
-        taxHubService = createServiceClient(
-            taxHubBaseUrl,
-            ITaxHubService::class.java
-        )
-        isReady = true
+        if (url.taxHubBaseUrl?.isNotBlank() == true) {
+            this.taxHubBaseUrl = url.taxHubBaseUrl
+            taxHubService = createServiceClient(
+                url.taxHubBaseUrl,
+                ITaxHubService::class.java
+            )
+        }
     }
 
     override fun authLogin(authCredentials: AuthCredentials): Call<AuthLogin> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.authLogin(authCredentials)
     }
@@ -82,7 +80,8 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         module: String,
         input: JSONObject
     ): Call<ResponseBody> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.sendInput(
             module,
@@ -93,19 +92,22 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
     }
 
     override fun getMetaDatasets(): Call<ResponseBody> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.getMetaDatasets()
     }
 
     override fun getUsers(menuId: Int): Call<List<User>> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.getUsers(menuId)
     }
 
     override fun getTaxonomyRanks(): Call<ResponseBody> {
-        assertBaseUrlsAreDefined()
+        val taxHubService = taxHubService
+            ?: throw IllegalStateException("missing TaxHub base URL")
 
         return taxHubService.getTaxonomyRanks()
     }
@@ -115,7 +117,8 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         limit: Int?,
         offset: Int?
     ): Call<List<Taxref>> {
-        assertBaseUrlsAreDefined()
+        val taxHubService = taxHubService
+            ?: throw IllegalStateException("missing TaxHub base URL")
 
         return taxHubService.getTaxref(
             listId,
@@ -129,7 +132,8 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         limit: Int?,
         offset: Int?
     ): Call<List<TaxrefArea>> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.getTaxrefAreas(
             codeAreaType,
@@ -139,35 +143,35 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
     }
 
     override fun getNomenclatures(): Call<List<NomenclatureType>> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.getNomenclatures()
     }
 
     override fun getDefaultNomenclaturesValues(module: String): Call<ResponseBody> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.getDefaultNomenclaturesValues(module)
     }
 
     override fun getApplications(): Call<ResponseBody> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.getApplications()
     }
 
     override fun downloadPackage(url: String): Call<ResponseBody> {
-        assertBaseUrlsAreDefined()
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
 
         return geoNatureService.downloadPackage(url)
     }
 
     override fun checkSettings(): Boolean {
-        return isReady
-    }
-
-    private fun assertBaseUrlsAreDefined() {
-        if (!isReady) throw IllegalStateException("missing base URLs")
+        return geoNatureService != null && taxHubService != null
     }
 
     private fun <T> createServiceClient(
@@ -211,6 +215,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
                         120,
                         TimeUnit.SECONDS
                     )
+                    .cache(null)
                     .addInterceptor(HttpLoggingInterceptor { Logger.info { it } }.apply {
                         level = HttpLoggingInterceptor.Level.BASIC
                         redactHeader("Authorization")

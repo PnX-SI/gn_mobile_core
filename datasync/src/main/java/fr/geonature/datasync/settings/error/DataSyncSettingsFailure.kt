@@ -1,6 +1,6 @@
-package fr.geonature.datasync.error
+package fr.geonature.datasync.settings.error
 
-import fr.geonature.commons.fp.Failure
+import fr.geonature.commons.error.Failure
 import fr.geonature.datasync.settings.DataSyncSettings
 
 /**
@@ -8,7 +8,10 @@ import fr.geonature.datasync.settings.DataSyncSettings
  *
  * @author S. Grimault
  */
-data class DataSyncSettingsNotFoundFailure(val source: String? = null) : Failure.FeatureFailure()
+data class DataSyncSettingsNotFoundFailure(
+    val source: String? = null,
+    val geoNatureBaseUrl: String? = null,
+) : Failure.FeatureFailure()
 
 /**
  * [DataSyncSettings] `JSON` parse error.

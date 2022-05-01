@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import fr.geonature.commons.fp.Failure
-import fr.geonature.commons.fp.getOrElse
+import fr.geonature.commons.fp.orNull
 import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.datasync.error.DataSyncSettingsNotFoundFailure
+import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
 import javax.inject.Inject
 
 /**
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DataSyncSettingsViewModel @Inject constructor(
     private val dataSyncSettingsRepository: IDataSyncSettingsRepository,
-    private val geoNatureAPIClient: IGeoNatureAPIClient
+    private val geoNatureAPIClient: IGeoNatureAPIClient,
 ) : ViewModel() {
 
     fun getDataSyncSettings(): LiveData<Either<Failure, DataSyncSettings>> = liveData {
@@ -30,7 +30,7 @@ class DataSyncSettingsViewModel @Inject constructor(
             return@liveData
         }
 
-        val dataSyncSettings = dataSyncSettingsResponse.getOrElse(null)
+        val dataSyncSettings = dataSyncSettingsResponse.orNull()
 
         if (dataSyncSettings == null) {
             emit(Either.Left(DataSyncSettingsNotFoundFailure()))
@@ -39,8 +39,10 @@ class DataSyncSettingsViewModel @Inject constructor(
         }
 
         geoNatureAPIClient.setBaseUrls(
-            geoNatureBaseUrl = dataSyncSettings.geoNatureServerUrl,
-            taxHubBaseUrl = dataSyncSettings.taxHubServerUrl
+            IGeoNatureAPIClient.ServerUrls(
+                geoNatureBaseUrl = dataSyncSettings.geoNatureServerUrl,
+                taxHubBaseUrl = dataSyncSettings.taxHubServerUrl,
+            ),
         )
 
         emit(Either.Right(dataSyncSettings))
@@ -50,17 +52,8 @@ class DataSyncSettingsViewModel @Inject constructor(
         return dataSyncSettingsRepository.getServerBaseUrls()
     }
 
-    fun setServerBaseUrls(
-        geoNatureServerUrl: String,
-        taxHubServerUrl: String
-    ) {
-        geoNatureAPIClient.setBaseUrls(
-            geoNatureBaseUrl = geoNatureServerUrl,
-            taxHubBaseUrl = taxHubServerUrl
-        )
-        dataSyncSettingsRepository.setServerBaseUrls(
-            geoNatureServerUrl = geoNatureServerUrl,
-            taxHubServerUrl = taxHubServerUrl
-        )
+    fun setServerBaseUrls(url: IGeoNatureAPIClient.ServerUrls) {
+        geoNatureAPIClient.setBaseUrls(url)
+        dataSyncSettingsRepository.setServerBaseUrl(url.geoNatureBaseUrl)
     }
 }

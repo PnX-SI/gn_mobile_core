@@ -1,6 +1,6 @@
 package fr.geonature.datasync.api
 
-import fr.geonature.commons.fp.Failure
+import fr.geonature.commons.error.Failure
 
 /**
  * Failure about missing configuration about GeoNature services.

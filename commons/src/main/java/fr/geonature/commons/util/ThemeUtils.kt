@@ -8,7 +8,7 @@ import fr.geonature.commons.R
 /**
  * Helper class about application theme.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 object ThemeUtils {
 
@@ -33,6 +33,14 @@ object ThemeUtils {
         return getColor(
             context,
             R.attr.colorAccent
+        )
+    }
+
+    @ColorInt
+    fun getErrorColor(context: Context): Int {
+        return getColor(
+            context,
+            R.attr.colorError
         )
     }
 

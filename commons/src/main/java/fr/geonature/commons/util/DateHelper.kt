@@ -10,7 +10,7 @@ import java.util.TimeZone.getTimeZone
 /**
  * `Date` helpers.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 
 /**

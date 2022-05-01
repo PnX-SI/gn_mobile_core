@@ -29,7 +29,16 @@ import kotlinx.coroutines.withContext
  * @author S. Grimault
  */
 @Database(
-    entities = [Dataset::class, InputObserver::class, Taxonomy::class, Taxon::class, TaxonArea::class, NomenclatureType::class, Nomenclature::class, NomenclatureTaxonomy::class, DefaultNomenclature::class],
+    entities = [
+        Dataset::class,
+        InputObserver::class,
+        Taxonomy::class, Taxon::class,
+        TaxonArea::class,
+        NomenclatureType::class,
+        Nomenclature::class,
+        NomenclatureTaxonomy::class,
+        DefaultNomenclature::class,
+    ],
     version = 19,
     exportSchema = false
 )
@@ -83,15 +92,20 @@ abstract class LocalDatabase : RoomDatabase() {
     /**
      * Deletes all rows from all the tables that are registered to this database.
      */
-    suspend fun clearDatabase() = withContext(IO) {
-        defaultNomenclatureDao().deleteAll()
-        nomenclatureTaxonomyDao().deleteAll()
-        nomenclatureDao().deleteAll()
-        nomenclatureTypeDao().deleteAll()
-        taxonAreaDao().deleteAll()
-        taxonDao().deleteAll()
-        taxonomyDao().deleteAll()
-        inputObserverDao().deleteAll()
-        datasetDao().deleteAll()
-    }
+    @Deprecated(
+        message = "use directly clearAllTables()",
+        replaceWith = ReplaceWith("clearAllTables()"),
+    )
+    suspend fun clearDatabase() =
+        withContext(IO) {
+            defaultNomenclatureDao().deleteAll()
+            nomenclatureTaxonomyDao().deleteAll()
+            nomenclatureDao().deleteAll()
+            nomenclatureTypeDao().deleteAll()
+            taxonAreaDao().deleteAll()
+            taxonDao().deleteAll()
+            taxonomyDao().deleteAll()
+            inputObserverDao().deleteAll()
+            datasetDao().deleteAll()
+        }
 }

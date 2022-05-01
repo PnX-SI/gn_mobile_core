@@ -14,7 +14,6 @@
             <option value="$PROJECT_DIR$/commons" />
             <option value="$PROJECT_DIR$/datasync" />
             <option value="$PROJECT_DIR$/mountpoint" />
-            <option value="$PROJECT_DIR$/sync" />
             <option value="$PROJECT_DIR$/viewpager" />
           </set>
         </option>

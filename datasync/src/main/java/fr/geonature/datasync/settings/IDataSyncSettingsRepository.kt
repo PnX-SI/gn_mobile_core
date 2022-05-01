@@ -1,8 +1,8 @@
 package fr.geonature.datasync.settings
 
 import androidx.lifecycle.LiveData
+import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import fr.geonature.commons.fp.Failure
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 
 /**
@@ -20,7 +20,7 @@ interface IDataSyncSettingsRepository {
     val dataSyncSettings: LiveData<Either<Failure, DataSyncSettings>>
 
     /**
-     * Loads [DataSyncSettings] from data source.
+     * Loads locally [DataSyncSettings].
      *
      * @return [DataSyncSettings] or [Failure] if something goes wrong
      */
@@ -28,14 +28,13 @@ interface IDataSyncSettingsRepository {
 
     /**
      * Returns the current base URLs.
+     *
+     * @return [IGeoNatureAPIClient.ServerUrls] or [Failure] if none was configured.
      */
     fun getServerBaseUrls(): Either<Failure, IGeoNatureAPIClient.ServerUrls>
 
     /**
-     * Sets server base URLs and updates the current [DataSyncSettings].
+     * Sets server base URL and updates the current [DataSyncSettings].
      */
-    fun setServerBaseUrls(
-        geoNatureServerUrl: String,
-        taxHubServerUrl: String
-    )
+    fun setServerBaseUrl(geoNatureServerUrl: String)
 }

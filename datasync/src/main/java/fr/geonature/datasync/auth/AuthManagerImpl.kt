@@ -8,10 +8,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import fr.geonature.commons.fp.Failure
-import fr.geonature.commons.fp.getOrElse
+import fr.geonature.commons.fp.orNull
 import fr.geonature.commons.util.NetworkHandler
+import fr.geonature.datasync.R
 import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.AuthCredentials
@@ -34,10 +35,10 @@ import java.util.Calendar
  * @author S. Grimault
  */
 class AuthManagerImpl(
-    applicationContext: Context,
+    private val applicationContext: Context,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
     private val networkHandler: NetworkHandler,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IAuthManager {
 
     private val preferenceManager: SharedPreferences =
@@ -67,10 +68,8 @@ class AuthManagerImpl(
             return@withContext authLogin
         }
 
-        val authLoginAsJson = preferenceManager.getString(
-            KEY_PREFERENCE_AUTH_LOGIN,
-            null
-        )
+        val authLoginAsJson = preferenceManager.getString(KEY_PREFERENCE_AUTH_LOGIN,
+            null)
 
         if (authLoginAsJson.isNullOrBlank()) {
             this@AuthManagerImpl.authLogin = null
@@ -98,32 +97,26 @@ class AuthManagerImpl(
     override suspend fun login(
         username: String,
         password: String,
-        applicationId: Int
+        applicationId: Int,
     ): Either<Failure, AuthLogin> {
         if (!networkHandler.isNetworkAvailable()) {
-            return Either.Left(Failure.NetworkFailure)
+            return Either.Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_network_lost)))
         }
 
         // perform login from backend
         val authLoginResponse = withContext(IO) {
             val authLoginResponse = runCatching {
                 geoNatureAPIClient
-                    .authLogin(
-                        AuthCredentials(
-                            username,
-                            password,
-                            applicationId
-                        )
-                    )
+                    .authLogin(AuthCredentials(username,
+                        password,
+                        applicationId))
                     .execute()
             }.fold(onSuccess = { response: Response<AuthLogin> ->
                 (if (response.isSuccessful) response
                     .body()
                     ?.let { Either.Right(it) }
                 else buildAuthLoginErrorResponse(response)?.let { authLoginError ->
-                    Either.Left(
-                        AuthFailure(authLoginError)
-                    )
+                    Either.Left(AuthFailure(authLoginError))
                 })
                     ?: Either.Left<Failure>(Failure.ServerFailure)
 
@@ -133,7 +126,7 @@ class AuthManagerImpl(
             authLoginResponse
         }
 
-        val authLogin = authLoginResponse.getOrElse(null)
+        val authLogin = authLoginResponse.orNull()
             ?: return authLoginResponse
 
         val authLoginAsJson =
@@ -153,10 +146,8 @@ class AuthManagerImpl(
         return withContext(Dispatchers.Default) {
             preferenceManager
                 .edit()
-                .putString(
-                    KEY_PREFERENCE_AUTH_LOGIN,
-                    authLoginAsJson
-                )
+                .putString(KEY_PREFERENCE_AUTH_LOGIN,
+                    authLoginAsJson)
                 .commit()
                 .let {
                     authLoginResponse
@@ -197,10 +188,8 @@ class AuthManagerImpl(
         val type = object : TypeToken<AuthLoginError>() {}.type
 
         return runCatching {
-            Gson().fromJson<AuthLoginError>(
-                responseErrorBody.charStream(),
-                type
-            )
+            Gson().fromJson<AuthLoginError>(responseErrorBody.charStream(),
+                type)
         }.getOrNull()
     }
 

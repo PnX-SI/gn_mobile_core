@@ -40,7 +40,7 @@ class AppPackageJsonReader {
                 )
             )
         }).filter {
-            @Suppress("SENSELESS_COMPARISON")
+            @Suppress("SENSELESS_COMPARISON", "SAFE_CALL_WILL_CHANGE_NULLABILITY")
             it.packageName != null && it.packageName.isNotBlank() && it.apkUrl != null && it.apkUrl?.isNotBlank()
         }
     }

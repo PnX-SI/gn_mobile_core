@@ -1,18 +1,20 @@
 package fr.geonature.commons.util
 
-import android.annotation.SuppressLint
 import android.os.Build
+import androidx.annotation.ChecksSdkIntAtLeast
 
 /**
  * Class helper about devices and Android versions used.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 object DeviceUtils {
-    @SuppressLint("ObsoleteSdkInt")
-    val isPostKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
-    val isPostLollipop = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.N)
     val isPostNougat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
     val isPostOreo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.P)
     val isPostPie = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
 }

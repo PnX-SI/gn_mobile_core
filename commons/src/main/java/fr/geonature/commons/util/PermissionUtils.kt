@@ -8,7 +8,7 @@ import androidx.core.app.ActivityCompat
 /**
  * Helper class about Android permissions.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 object PermissionUtils {
 

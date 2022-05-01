@@ -1,13 +1,13 @@
-package fr.geonature.commons.util
+package fr.geonature.commons.lifecycle
 
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 
 /**
- * Helpers for LiveData utilities.
+ * Function helpers for `LiveData`.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 
 /**

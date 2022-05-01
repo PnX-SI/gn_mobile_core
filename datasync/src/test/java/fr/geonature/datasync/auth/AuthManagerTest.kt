@@ -4,8 +4,8 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import fr.geonature.commons.fp.Failure
-import fr.geonature.commons.fp.getOrElse
+import fr.geonature.commons.error.Failure
+import fr.geonature.commons.fp.orNull
 import fr.geonature.commons.util.NetworkHandler
 import fr.geonature.commons.util.add
 import fr.geonature.commons.util.toIsoDateString
@@ -133,7 +133,7 @@ class AuthManagerTest {
         assertTrue(auth.isRight)
         assertEquals(
             authLogin,
-            auth.getOrElse(null)
+            auth.orNull()
         )
         verify(atLeast = 1) { isLoggedInObserver.onChanged(true) }
 
@@ -261,7 +261,7 @@ class AuthManagerTest {
         assertTrue(auth.isRight)
         assertEquals(
             authLogin,
-            auth.getOrElse(null)
+            auth.orNull()
         )
 
         // when perform logout
@@ -311,7 +311,7 @@ class AuthManagerTest {
         assertTrue(auth.isRight)
         assertEquals(
             authLogin,
-            auth.getOrElse(null)
+            auth.orNull()
         )
 
         // when checking AuthLogin from manager

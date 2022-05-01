@@ -7,6 +7,8 @@ import android.os.Build
 
 /**
  * Returns information about the current network connection state.
+ *
+ * @author S. Grimault
  */
 class NetworkHandler(private val applicationContext: Context) {
     fun isNetworkAvailable(): Boolean {

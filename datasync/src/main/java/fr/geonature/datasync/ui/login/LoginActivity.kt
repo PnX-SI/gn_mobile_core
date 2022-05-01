@@ -16,14 +16,14 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
+import fr.geonature.commons.lifecycle.observeOnce
 import fr.geonature.commons.util.KeyboardUtils.hideSoftKeyboard
 import fr.geonature.commons.util.afterTextChanged
-import fr.geonature.commons.util.observeOnce
 import fr.geonature.datasync.R
 import fr.geonature.datasync.auth.AuthLoginViewModel
-import fr.geonature.datasync.error.DataSyncSettingsNotFoundFailure
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.settings.DataSyncSettingsViewModel
+import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
 
 /**
  * Login Activity.
@@ -50,9 +50,7 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         authLoginViewModel.apply {
-            loginFormState.observe(
-                this@LoginActivity
-            ) {
+            loginFormState.observe(this@LoginActivity) {
                 val loginState = it
                     ?: return@observe
 
@@ -65,19 +63,15 @@ class LoginActivity : AppCompatActivity() {
                     if (loginState.passwordError == null) null else getString(loginState.passwordError)
             }
 
-            loginResult.observe(
-                this@LoginActivity
-            ) {
+            loginResult.observe(this@LoginActivity) {
                 val loginResult = it
                     ?: return@observe
 
                 progress?.visibility = View.GONE
 
                 if (loginResult.hasError()) {
-                    showToast(
-                        loginResult.error
-                            ?: R.string.login_failed
-                    )
+                    showToast(loginResult.error
+                        ?: R.string.login_failed)
 
                     return@observe
                 }
@@ -96,17 +90,13 @@ class LoginActivity : AppCompatActivity() {
         editTextUsername = findViewById(R.id.edit_text_username)
         editTextUsername?.apply {
             editText?.afterTextChanged {
-                authLoginViewModel.loginDataChanged(
-                    editTextUsername?.editText?.text.toString(),
-                    editTextPassword?.editText?.text.toString()
-                )
+                authLoginViewModel.loginDataChanged(editTextUsername?.editText?.text.toString(),
+                    editTextPassword?.editText?.text.toString())
             }
             setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    authLoginViewModel.loginDataChanged(
-                        editTextUsername?.editText?.text.toString(),
-                        editTextPassword?.editText?.text.toString()
-                    )
+                    authLoginViewModel.loginDataChanged(editTextUsername?.editText?.text.toString(),
+                        editTextPassword?.editText?.text.toString())
                 }
             }
         }
@@ -114,25 +104,19 @@ class LoginActivity : AppCompatActivity() {
         editTextPassword = findViewById(R.id.edit_text_password)
         editTextPassword?.apply {
             editText?.afterTextChanged {
-                authLoginViewModel.loginDataChanged(
-                    editTextUsername?.editText?.text.toString(),
-                    editTextPassword?.editText?.text.toString()
-                )
+                authLoginViewModel.loginDataChanged(editTextUsername?.editText?.text.toString(),
+                    editTextPassword?.editText?.text.toString())
             }
             setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    authLoginViewModel.loginDataChanged(
-                        editTextUsername?.editText?.text.toString(),
-                        editTextPassword?.editText?.text.toString()
-                    )
+                    authLoginViewModel.loginDataChanged(editTextUsername?.editText?.text.toString(),
+                        editTextPassword?.editText?.text.toString())
                 }
             }
             editText?.setOnEditorActionListener { _, actionId, _ ->
                 when (actionId) {
-                    EditorInfo.IME_ACTION_DONE -> performLogin(
-                        editTextUsername?.editText?.text.toString(),
-                        editTextPassword?.editText?.text.toString()
-                    )
+                    EditorInfo.IME_ACTION_DONE -> performLogin(editTextUsername?.editText?.text.toString(),
+                        editTextPassword?.editText?.text.toString())
                 }
 
                 false
@@ -141,10 +125,8 @@ class LoginActivity : AppCompatActivity() {
 
         buttonLogin = findViewById(R.id.button_login)
         buttonLogin?.setOnClickListener {
-            performLogin(
-                editTextUsername?.editText?.text.toString(),
-                editTextPassword?.editText?.text.toString()
-            )
+            performLogin(editTextUsername?.editText?.text.toString(),
+                editTextPassword?.editText?.text.toString())
         }
 
         loadAppSettings()
@@ -155,42 +137,33 @@ class LoginActivity : AppCompatActivity() {
             .getDataSyncSettings()
             .observeOnce(this) {
                 it?.fold({ failure ->
-                    makeSnackbar(
-                        if (failure is DataSyncSettingsNotFoundFailure && !failure.source.isNullOrBlank()) getString(
-                            R.string.snackbar_settings_not_found,
-                            failure.source
-                        ) else getString(
-                            R.string.snackbar_settings_undefined,
-                        )
-                    )
+                    makeSnackbar(if (failure is DataSyncSettingsNotFoundFailure && !failure.source.isNullOrBlank()) getString(R.string.error_settings_not_found,
+                        failure.source) else getString(
+                        R.string.error_settings_undefined,
+                    ))
                         ?.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                             override fun onDismissed(
                                 transientBottomBar: Snackbar?,
-                                event: Int
+                                event: Int,
                             ) {
-                                super.onDismissed(
-                                    transientBottomBar,
-                                    event
-                                )
+                                super.onDismissed(transientBottomBar,
+                                    event)
 
                                 setResult(RESULT_CANCELED)
                                 finish()
                             }
                         })
                         ?.show()
-
-                    failure
                 },
                     { dataSyncSettingsLoaded ->
                         dataSyncSettings = dataSyncSettingsLoaded
-                        dataSyncSettingsLoaded
                     })
             }
     }
 
     private fun performLogin(
         username: String,
-        password: String
+        password: String,
     ) {
         val dataSyncSettings = dataSyncSettings
             ?: return
@@ -200,22 +173,18 @@ class LoginActivity : AppCompatActivity() {
         }
         progress?.visibility = View.VISIBLE
 
-        authLoginViewModel.login(
-            username,
+        authLoginViewModel.login(username,
             password,
-            dataSyncSettings.applicationId
-        )
+            dataSyncSettings.applicationId)
     }
 
     private fun showToast(
-        @StringRes messageResourceId: Int
+        @StringRes messageResourceId: Int,
     ) {
         Toast
-            .makeText(
-                applicationContext,
+            .makeText(applicationContext,
                 messageResourceId,
-                Toast.LENGTH_LONG
-            )
+                Toast.LENGTH_LONG)
             .show()
     }
 
@@ -223,19 +192,15 @@ class LoginActivity : AppCompatActivity() {
         val view = content
             ?: return null
 
-        return Snackbar.make(
-            view,
+        return Snackbar.make(view,
             text,
-            Snackbar.LENGTH_LONG
-        )
+            Snackbar.LENGTH_LONG)
     }
 
     companion object {
         fun newIntent(context: Context): Intent {
-            return Intent(
-                context,
-                LoginActivity::class.java
-            ).apply {
+            return Intent(context,
+                LoginActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             }
         }

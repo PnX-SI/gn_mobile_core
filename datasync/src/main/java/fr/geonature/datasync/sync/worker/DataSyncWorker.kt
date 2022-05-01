@@ -222,16 +222,25 @@ class DataSyncWorker @AssistedInject constructor(
     private fun checkServerUrls(geoNatureAPIClient: IGeoNatureAPIClient): Result {
         return runCatching { geoNatureAPIClient.getBaseUrls() }.fold(
             onSuccess = {
-                Logger.info {
-                    "starting local data synchronization from '${it.geoNatureBaseUrl}' (with additional data: ${
-                        inputData.getBoolean(
-                            INPUT_WITH_ADDITIONAL_DATA,
-                            true
-                        )
-                    })..."
-                }
+                if (geoNatureAPIClient.checkSettings()) {
+                    Logger.info {
+                        "starting local data synchronization from '${it.geoNatureBaseUrl}' (with additional data: ${
+                            inputData.getBoolean(
+                                INPUT_WITH_ADDITIONAL_DATA,
+                                true
+                            )
+                        })..."
+                    }
 
-                Result.success()
+                    Result.success()
+                } else {
+                    Result.failure(
+                        workData(
+                            applicationContext.getString(R.string.sync_error_server_url_configuration),
+                            ServerStatus.INTERNAL_SERVER_ERROR
+                        )
+                    )
+                }
             },
             onFailure = {
                 Result.failure(
@@ -752,6 +761,7 @@ class DataSyncWorker @AssistedInject constructor(
                 .map { taxRef ->
                     Taxon(taxRef.id,
                         taxRef.name.trim(),
+                        // FIXME: taxRef.kingdom or taxRef.group may be null...
                         Taxonomy(
                             taxRef.kingdom,
                             taxRef.group
@@ -793,15 +803,16 @@ class DataSyncWorker @AssistedInject constructor(
             hasNext = taxref.size == pageSize
         } while (hasNext)
 
+        setProgress(workData(applicationContext.getString(R.string.sync_data_taxa_orphaned_deleting)))
+        sendNotification(applicationContext.getString(R.string.sync_data_taxa_orphaned_deleting))
+
         // delete orphaned taxa
+        val orphanedTaxaIds = mutableSetOf<Long>()
         taxonDao
             .QB()
             .cursor()
             .run {
                 Logger.info { "deleting orphaned taxa..." }
-
-                val orphanedTaxaIds = mutableSetOf<Long>()
-
                 moveToFirst()
 
                 while (!isAfterLast) {
@@ -809,16 +820,35 @@ class DataSyncWorker @AssistedInject constructor(
                         .fromCursor(this)
                         ?.run {
                             if (!validTaxaIds.contains(id)) {
-                                taxonDao.deleteById(id)
                                 orphanedTaxaIds.add(id)
                             }
                         }
 
                     moveToNext()
                 }
-
-                Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
             }
+        orphanedTaxaIds.forEach {
+            taxonDao.deleteById(it)
+        }
+
+        Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
+
+        setProgress(
+            workData(
+                applicationContext.resources.getQuantityString(
+                    R.plurals.sync_data_taxa_orphaned_deleted,
+                    orphanedTaxaIds.size,
+                    orphanedTaxaIds.size
+                )
+            )
+        )
+        sendNotification(
+            applicationContext.resources.getQuantityString(
+                R.plurals.sync_data_taxa_orphaned_deleted,
+                orphanedTaxaIds.size,
+                orphanedTaxaIds.size
+            )
+        )
 
         if (withAdditionalData) {
             Logger.info { "synchronize taxa additional data..." }

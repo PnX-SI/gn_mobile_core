@@ -19,15 +19,16 @@ import retrofit2.Call
  */
 interface IGeoNatureAPIClient {
 
+    /**
+     * GeoNature base URLs.
+     */
     data class ServerUrls(
         val geoNatureBaseUrl: String,
-        val taxHubBaseUrl: String
+        val taxHubBaseUrl: String? = null,
     ) : Parcelable {
 
-        private constructor(parcel: Parcel) : this(
-            parcel.readString()!!,
-            parcel.readString()!!
-        )
+        private constructor(parcel: Parcel) : this(parcel.readString()!!,
+            parcel.readString())
 
         override fun describeContents(): Int {
             return 0
@@ -35,7 +36,7 @@ interface IGeoNatureAPIClient {
 
         override fun writeToParcel(
             dest: Parcel?,
-            flags: Int
+            flags: Int,
         ) {
             dest?.apply {
                 writeString(geoNatureBaseUrl)
@@ -62,13 +63,9 @@ interface IGeoNatureAPIClient {
     /**
      * Sets base URLs for GeoNature and TaxHub.
      *
-     * @param geoNatureBaseUrl base URL for GeoNature
-     * @param taxHubBaseUrl base URL for TaxHub
+     * @param url base URLs
      */
-    fun setBaseUrls(
-        geoNatureBaseUrl: String,
-        taxHubBaseUrl: String
-    )
+    fun setBaseUrls(url: ServerUrls)
 
     fun authLogin(authCredentials: AuthCredentials): Call<AuthLogin>
 
@@ -79,7 +76,7 @@ interface IGeoNatureAPIClient {
 
     fun sendInput(
         module: String,
-        input: JSONObject
+        input: JSONObject,
     ): Call<ResponseBody>
 
     fun getMetaDatasets(): Call<ResponseBody>
@@ -91,13 +88,13 @@ interface IGeoNatureAPIClient {
     fun getTaxref(
         listId: Int,
         limit: Int? = null,
-        offset: Int? = null
+        offset: Int? = null,
     ): Call<List<Taxref>>
 
     fun getTaxrefAreas(
         codeAreaType: String? = null,
         limit: Int? = null,
-        offset: Int? = null
+        offset: Int? = null,
     ): Call<List<TaxrefArea>>
 
     fun getNomenclatures(): Call<List<NomenclatureType>>

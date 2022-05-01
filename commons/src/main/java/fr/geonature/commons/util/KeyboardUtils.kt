@@ -7,7 +7,7 @@ import android.view.inputmethod.InputMethodManager
 /**
  * Utility methods for manipulating the onscreen keyboard.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 object KeyboardUtils {
 
@@ -27,9 +27,14 @@ object KeyboardUtils {
     fun showSoftKeyboard(view: View) {
         (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?)?.also {
             view.requestFocus()
-            it.showSoftInput(
-                view,
-                0
+            view.postDelayed(
+                {
+                    it.showSoftInput(
+                        view,
+                        0
+                    )
+                },
+                100
             )
         }
     }

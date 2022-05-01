@@ -1,7 +1,5 @@
 package fr.geonature.datasync.packageinfo
 
-import kotlinx.coroutines.flow.Flow
-
 /**
  * [PackageInfo] data source.
  *
@@ -12,5 +10,5 @@ interface IPackageInfoDataSource {
     /**
      * Gets all [PackageInfo] from this data source.
      */
-    fun getAll(): Flow<List<PackageInfo>>
+    suspend fun getAll(): List<PackageInfo>
 }

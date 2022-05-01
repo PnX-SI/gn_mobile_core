@@ -1,11 +1,11 @@
-package fr.geonature.commons.fp
+package fr.geonature.commons.error
 
 /**
  * Base class for handling errors/failures/exceptions.
  * Every feature specific failure should extend [FeatureFailure] class.
  */
 sealed class Failure {
-    object NetworkFailure : Failure()
+    data class NetworkFailure(val reason: String) : Failure()
     object ServerFailure : Failure()
 
     abstract class FeatureFailure : Failure()
