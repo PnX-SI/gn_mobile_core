@@ -1,6 +1,7 @@
 package fr.geonature.datasync.features.settings.usecase
 
 import android.app.Application
+import android.net.Uri
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
@@ -31,9 +32,11 @@ class GetAppSettingsFromRemoteUseCase @Inject constructor(
 ) : BaseUseCase<DataSyncSettings, String>() {
 
     override suspend fun run(params: String): Either<Failure, DataSyncSettings> {
-        Logger.info { "loading app configuration from '$params'..." }
+        val serverUrl = "${Uri.parse(params).scheme?.run { "" } ?: "https://"}$params"
 
-        geoNatureAPIClient.setBaseUrls(IGeoNatureAPIClient.ServerUrls(geoNatureBaseUrl = params))
+        Logger.info { "loading app configuration from '$serverUrl'..." }
+
+        geoNatureAPIClient.setBaseUrls(IGeoNatureAPIClient.ServerUrls(geoNatureBaseUrl = serverUrl))
 
         // tries to fetch app settings from GeoNature
         val packageInfoFoundResponse = packageInfoRepository.getAvailableApplications()
@@ -58,7 +61,7 @@ class GetAppSettingsFromRemoteUseCase @Inject constructor(
             .orNull()
 
         if (packageInfoFound == null) {
-            Logger.error { "package info '${application.packageName}' not found from '$params': abort" }
+            Logger.error { "package info '${application.packageName}' not found from '$serverUrl': abort" }
 
             return Left(PackageInfoNotFoundFromRemoteFailure(packageName = application.packageName))
         }
@@ -89,7 +92,7 @@ class GetAppSettingsFromRemoteUseCase @Inject constructor(
             )
         )
 
-        Logger.info { "app configuration successfully loaded from '$params'" }
+        Logger.info { "app configuration successfully loaded from '$serverUrl'" }
 
         // returns loaded app settings
         return Right(dataSyncSettings)

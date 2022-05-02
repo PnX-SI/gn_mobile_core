@@ -48,6 +48,8 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
     }
 
     override fun setBaseUrls(url: IGeoNatureAPIClient.ServerUrls) {
+        Logger.info { "set server base URLs (GeoNature: '${url.geoNatureBaseUrl}'${if (url.taxHubBaseUrl.isNullOrBlank()) "" else ", TaxHub: '${url.taxHubBaseUrl}'"})..." }
+
         if (url.geoNatureBaseUrl.isNotBlank()) {
             this.geoNatureBaseUrl = url.geoNatureBaseUrl
             geoNatureService = createServiceClient(
