@@ -1,5 +1,6 @@
 package fr.geonature.datasync.features.settings.presentation
 
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.core.util.PatternsCompat
 import androidx.lifecycle.LiveData
@@ -30,17 +31,26 @@ class ConfigureServerSettingsViewModel @Inject constructor(private val getAppSet
     private val _dataSyncSettingsLoaded = MutableLiveData<DataSyncSettings>()
     val dataSyncSettingLoaded: LiveData<DataSyncSettings> = _dataSyncSettingsLoaded
 
-    fun validateForm(serverBaseUrl: String) {
-        if (!PatternsCompat.WEB_URL
-                .matcher(serverBaseUrl)
+    fun validateForm(
+        serverBaseUrl: String?,
+        submitted: Boolean = false
+    ) {
+        val serverUrl =
+            serverBaseUrl?.let { "${Uri.parse(serverBaseUrl).scheme?.run { "" } ?: "https://"}$serverBaseUrl" }
+
+        if (serverUrl.isNullOrBlank() || !PatternsCompat.WEB_URL
+                .matcher(serverUrl)
                 .matches()
         ) {
-            _formState.postValue(FormState(error = R.string.settings_server_form_url_invalid))
+            _formState.postValue(FormState.FormStateError(error = R.string.settings_server_form_url_invalid))
 
             return
         }
 
-        _formState.postValue(FormState(isValid = true))
+        _formState.postValue(
+            if (submitted) FormState.FormStateSubmitted(serverBaseUrl = serverUrl)
+            else FormState.FormStateValid(serverBaseUrl = serverUrl)
+        )
     }
 
     fun loadAppSettings(serverBaseUrl: String) {
@@ -64,8 +74,9 @@ class ConfigureServerSettingsViewModel @Inject constructor(private val getAppSet
      *
      * @author S. Grimault
      */
-    data class FormState(
-        val isValid: Boolean = false,
-        @StringRes val error: Int? = null,
-    )
+    sealed class FormState {
+        data class FormStateError(@StringRes val error: Int) : FormState()
+        data class FormStateValid(val serverBaseUrl: String) : FormState()
+        data class FormStateSubmitted(val serverBaseUrl: String) : FormState()
+    }
 }

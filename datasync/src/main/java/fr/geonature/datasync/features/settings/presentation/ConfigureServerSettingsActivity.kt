@@ -2,7 +2,6 @@ package fr.geonature.datasync.features.settings.presentation
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -20,6 +19,7 @@ import fr.geonature.commons.error.Failure
 import fr.geonature.commons.lifecycle.observe
 import fr.geonature.commons.lifecycle.onFailure
 import fr.geonature.commons.util.KeyboardUtils.hideSoftKeyboard
+import fr.geonature.commons.util.KeyboardUtils.showSoftKeyboard
 import fr.geonature.commons.util.ThemeUtils.getErrorColor
 import fr.geonature.commons.util.afterTextChanged
 import fr.geonature.datasync.R
@@ -65,44 +65,59 @@ class ConfigureServerSettingsActivity : AppCompatActivity() {
 
         editTextServerUrl?.apply {
             editText?.afterTextChanged {
-                configureServerSettingsViewModel.validateForm(editTextServerUrl?.editText?.text.toString())
+                configureServerSettingsViewModel.validateForm(editTextServerUrl?.editText?.text?.toString())
             }
             setOnFocusChangeListener { view, hasFocus ->
                 if (view.isDirty && hasFocus) {
-                    configureServerSettingsViewModel.validateForm(editTextServerUrl?.editText?.text.toString())
+                    configureServerSettingsViewModel.validateForm(editTextServerUrl?.editText?.text?.toString())
                 }
             }
             editText?.setOnEditorActionListener { _, actionId, _ ->
                 when (actionId) {
-                    EditorInfo.IME_ACTION_DONE -> loadSettings(editTextServerUrl?.editText?.text.toString())
+                    EditorInfo.IME_ACTION_DONE -> configureServerSettingsViewModel.validateForm(
+                        serverBaseUrl = editTextServerUrl?.editText?.text?.toString(),
+                        submitted = true
+                    )
                 }
 
                 false
             }
+
+            // show automatically the soft keyboard for the EditText
+            editText?.let { view -> showSoftKeyboard(view) }
         }
 
         buttonValidate?.setOnClickListener {
-            loadSettings(editTextServerUrl?.editText?.text.toString())
-        }
-    }
-
-    private fun loadSettings(geoNatureBaseUrl: String) {
-        editTextServerUrl?.also {
             hideSoftKeyboard(it)
+            configureServerSettingsViewModel.validateForm(
+                serverBaseUrl = editTextServerUrl?.editText?.text?.toString(),
+                submitted = true
+            )
         }
-
-        progress?.visibility = View.VISIBLE
-        configureServerSettingsViewModel.loadAppSettings("${
-            Uri.parse(geoNatureBaseUrl).scheme?.run { "" } ?: "https://"
-        }$geoNatureBaseUrl")
     }
 
     private fun handleFormState(formState: ConfigureServerSettingsViewModel.FormState) {
-        // disable validate button unless GeoNature server URL is valid
-        buttonValidate?.isEnabled = formState.isValid
+        when (formState) {
+            is ConfigureServerSettingsViewModel.FormState.FormStateError -> {
+                progress?.visibility = View.GONE
 
-        // show error message
-        editTextServerUrl?.error = if (formState.error == null) null else getString(formState.error)
+                // disable validate button unless GeoNature server URL is valid
+                buttonValidate?.isEnabled = false
+
+                // show error message
+                editTextServerUrl?.error = getString(formState.error)
+            }
+            is ConfigureServerSettingsViewModel.FormState.FormStateValid -> {
+                buttonValidate?.isEnabled = true
+
+                // clear error message
+                editTextServerUrl?.error = null
+            }
+            is ConfigureServerSettingsViewModel.FormState.FormStateSubmitted -> {
+                progress?.visibility = View.VISIBLE
+                configureServerSettingsViewModel.loadAppSettings(formState.serverBaseUrl)
+            }
+        }
     }
 
     private fun dataSyncSettingsLoaded() {
@@ -131,8 +146,12 @@ class ConfigureServerSettingsActivity : AppCompatActivity() {
                     ?.show()
             }
             is DataSyncSettingsNotFoundFailure -> {
-                makeSnackbar(if (failure.source.isNullOrBlank()) getString(R.string.error_settings_undefined) else getString(R.string.error_settings_not_found,
-                    failure.source))
+                makeSnackbar(
+                    if (failure.source.isNullOrBlank()) getString(R.string.error_settings_undefined) else getString(
+                        R.string.error_settings_not_found,
+                        failure.source
+                    )
+                )
                     ?.setBackgroundTint(getErrorColor(this))
                     ?.show()
             }
@@ -148,9 +167,11 @@ class ConfigureServerSettingsActivity : AppCompatActivity() {
         @StringRes messageResourceId: Int,
     ) {
         Toast
-            .makeText(applicationContext,
+            .makeText(
+                applicationContext,
                 messageResourceId,
-                Toast.LENGTH_LONG)
+                Toast.LENGTH_LONG
+            )
             .show()
     }
 
@@ -158,15 +179,19 @@ class ConfigureServerSettingsActivity : AppCompatActivity() {
         val view = content
             ?: return null
 
-        return Snackbar.make(view,
+        return Snackbar.make(
+            view,
             text,
-            Snackbar.LENGTH_LONG)
+            Snackbar.LENGTH_LONG
+        )
     }
 
     companion object {
         fun newIntent(context: Context): Intent {
-            return Intent(context,
-                ConfigureServerSettingsActivity::class.java)
+            return Intent(
+                context,
+                ConfigureServerSettingsActivity::class.java
+            )
         }
     }
 }

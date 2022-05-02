@@ -28,7 +28,6 @@ class ConfigureServerSettingsDialogFragment : DialogFragment() {
 
     private val configureServerSettingsViewModel: ConfigureServerSettingsViewModel by viewModels()
 
-    private var url: String? = null
     private var editTextServerUrl: TextInputLayout? = null
     private var buttonValidate: Button? = null
     private var onConfigureServerSettingsDialogFragmentListener: OnConfigureServerSettingsDialogFragmentListener? =
@@ -57,34 +56,19 @@ class ConfigureServerSettingsDialogFragment : DialogFragment() {
             .findViewById<TextInputLayout>(R.id.edit_text_server_url)
             ?.also { textInputLayout ->
                 textInputLayout.editText?.afterTextChanged {
-                    url = it?.toString()
-                    configureServerSettingsViewModel.validateForm(
-                        url
-                            ?: ""
-                    )
+                    configureServerSettingsViewModel.validateForm(it?.toString())
                 }
                 textInputLayout.setOnFocusChangeListener { view, hasFocus ->
                     if (view.isDirty && hasFocus) {
-                        url = textInputLayout.editText?.text?.toString()
-                        configureServerSettingsViewModel.validateForm(
-                            url
-                                ?: ""
-                        )
+                        configureServerSettingsViewModel.validateForm(textInputLayout.editText?.text?.toString())
                     }
                 }
                 textInputLayout.editText?.setOnEditorActionListener { _, actionId, _ ->
                     when (actionId) {
-                        EditorInfo.IME_ACTION_DONE -> {
-                            if (editTextServerUrl?.error.isNullOrEmpty()) {
-                                dialog?.dismiss()
-
-                                url?.run {
-                                    onConfigureServerSettingsDialogFragmentListener?.onChanged(
-                                        this
-                                    )
-                                }
-                            }
-                        }
+                        EditorInfo.IME_ACTION_DONE -> configureServerSettingsViewModel.validateForm(
+                            textInputLayout.editText?.text?.toString(),
+                            submitted = true
+                        )
                     }
 
                     false
@@ -94,20 +78,18 @@ class ConfigureServerSettingsDialogFragment : DialogFragment() {
         arguments
             ?.getString(KEY_SERVER_URL)
             ?.also {
-                url = it
                 editTextServerUrl?.editText?.text = Editable.Factory
                     .getInstance()
-                    .newEditable(it)
+                    .newEditable(it.removePrefix("https://"))
             }
 
         // restore the previous state if any
         savedInstanceState
             ?.getString(KEY_SERVER_URL)
             ?.also {
-                url = it
                 editTextServerUrl?.editText?.text = Editable.Factory
                     .getInstance()
-                    .newEditable(it)
+                    .newEditable(it.removePrefix("https://"))
             }
 
         val alertDialog = AlertDialog
@@ -116,9 +98,10 @@ class ConfigureServerSettingsDialogFragment : DialogFragment() {
             .setView(view)
             .setPositiveButton(R.string.alert_dialog_ok) { _, _ ->
                 editTextServerUrl?.editText?.let { hideSoftKeyboard(it) }
-                url?.run {
-                    onConfigureServerSettingsDialogFragmentListener?.onChanged(this)
-                }
+                configureServerSettingsViewModel.validateForm(
+                    editTextServerUrl?.editText?.text?.toString(),
+                    submitted = true
+                )
             }
             .setNegativeButton(
                 R.string.alert_dialog_cancel,
@@ -128,10 +111,7 @@ class ConfigureServerSettingsDialogFragment : DialogFragment() {
 
         alertDialog.setOnShowListener {
             buttonValidate = (it as AlertDialog).getButton(DialogInterface.BUTTON_POSITIVE)
-            configureServerSettingsViewModel.validateForm(
-                url
-                    ?: ""
-            )
+            configureServerSettingsViewModel.validateForm(editTextServerUrl?.editText?.text?.toString())
 
             // show automatically the soft keyboard for the EditText
             editTextServerUrl?.editText?.let { view -> showSoftKeyboard(view) }
@@ -143,7 +123,7 @@ class ConfigureServerSettingsDialogFragment : DialogFragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putSerializable(
             KEY_SERVER_URL,
-            url
+            editTextServerUrl?.editText?.text?.toString()
         )
 
         super.onSaveInstanceState(outState)
@@ -157,13 +137,23 @@ class ConfigureServerSettingsDialogFragment : DialogFragment() {
     }
 
     private fun handleFormState(formState: ConfigureServerSettingsViewModel.FormState) {
-        // disable validate button unless GeoNature server URL is valid
-        buttonValidate?.isEnabled = formState.isValid
+        when (formState) {
+            is ConfigureServerSettingsViewModel.FormState.FormStateError -> {
+                // disable validate button unless GeoNature server URL is valid
+                buttonValidate?.isEnabled = false
 
-        // show error message
-        if (editTextServerUrl?.isDirty == true) {
-            editTextServerUrl?.error =
-                if (formState.error == null) null else getString(formState.error)
+                // show error message
+                editTextServerUrl?.error = getString(formState.error)
+            }
+            is ConfigureServerSettingsViewModel.FormState.FormStateValid -> {
+                buttonValidate?.isEnabled = true
+
+                // clear error message
+                editTextServerUrl?.error = null
+            }
+            is ConfigureServerSettingsViewModel.FormState.FormStateSubmitted -> {
+                onConfigureServerSettingsDialogFragmentListener?.onChanged(formState.serverBaseUrl)
+            }
         }
     }
 
