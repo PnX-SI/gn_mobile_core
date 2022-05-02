@@ -42,12 +42,14 @@
     <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>
     <string name="sync_data_nomenclature_default_error">Synchronize nomenclature default values: failure</string>
     <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
-    <string name="sync_data_taxa_orphaned_deleting">Deleting orphaned taxa...</string>
+    <string name="sync_data_taxa_with_errors">Taxa synchronization finished with errors</string>
+    <string name="sync_data_taxa_orphaned_deleting">Deleting orphaned taxa…</string>
     <plurals name="sync_data_taxa_orphaned_deleted">
         <item quantity="one">%d orphaned taxon deleted</item>
         <item quantity="other">%d orphaned taxa deleted</item>
     </plurals>
     <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
+    <string name="sync_data_taxa_areas_with_errors">Taxa by area synchronization finished with errors</string>
     <string name="sync_data_succeeded">Done.</string>
 
     <string name="notification_data_synchronization_title">Synchronize data…</string>

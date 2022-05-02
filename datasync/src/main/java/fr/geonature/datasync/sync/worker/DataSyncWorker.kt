@@ -56,6 +56,7 @@ import fr.geonature.datasync.sync.ServerStatus
 import fr.geonature.datasync.sync.io.DatasetJsonReader
 import fr.geonature.datasync.sync.io.TaxonomyJsonReader
 import fr.geonature.datasync.ui.login.LoginActivity
+import kotlinx.coroutines.delay
 import org.json.JSONObject
 import org.tinylog.Logger
 import retrofit2.Response
@@ -727,6 +728,7 @@ class DataSyncWorker @AssistedInject constructor(
         Logger.info { "synchronize taxa..." }
 
         var hasNext: Boolean
+        var hasError = false
         var offset = 0
 
         val validTaxaIds = mutableSetOf<Long>()
@@ -743,13 +745,15 @@ class DataSyncWorker @AssistedInject constructor(
                     .awaitResponse()
             }.getOrNull()
 
-
             if (taxrefResponse == null || checkResponse(taxrefResponse).state == WorkInfo.State.FAILED) {
                 hasNext = false
+                hasError = true
                 continue
             }
 
-            val taxref = runCatching { taxrefResponse.body() }.getOrDefault(emptyList())
+            val taxref = runCatching { taxrefResponse.body() }
+                .onFailure { hasError = true }
+                .getOrDefault(emptyList())
 
             if (taxref?.isEmpty() != false) {
                 hasNext = false
@@ -759,21 +763,30 @@ class DataSyncWorker @AssistedInject constructor(
             val taxa = taxref
                 .asSequence()
                 .map { taxRef ->
-                    Taxon(taxRef.id,
-                        taxRef.name.trim(),
-                        // FIXME: taxRef.kingdom or taxRef.group may be null...
-                        Taxonomy(
+                    // check if this taxon as a valid taxonomy definition
+                    if (taxRef.kingdom.isNullOrBlank() || taxRef.group.isNullOrBlank()) {
+                        Logger.warn { "invalid taxon with ID '${taxRef.id}' found: no taxonomy defined" }
+
+                        return@map null
+                    }
+
+                    Taxon(
+                        id = taxRef.id,
+                        name = taxRef.name.trim(),
+                        taxonomy = Taxonomy(
                             taxRef.kingdom,
                             taxRef.group
                         ),
-                        taxRef.commonName?.trim(),
-                        taxRef.fullName.trim(),
-                        ".+\\[(\\w+) - \\d+]"
+                        commonName = taxRef.commonName?.trim(),
+                        description = taxRef.fullName.trim(),
+                        rank = ".+\\[(\\w+) - \\d+]"
                             .toRegex()
                             .find(taxRef.description)?.groupValues
                             ?.elementAtOrNull(1)
-                            ?.let { "${it.uppercase(Locale.ROOT)} - ${taxRef.id}" })
+                            ?.let { "${it.uppercase(Locale.ROOT)} - ${taxRef.id}" },
+                    )
                 }
+                .filterNotNull()
                 .onEach {
                     validTaxaIds.add(it.id)
                 }
@@ -803,52 +816,63 @@ class DataSyncWorker @AssistedInject constructor(
             hasNext = taxref.size == pageSize
         } while (hasNext)
 
-        setProgress(workData(applicationContext.getString(R.string.sync_data_taxa_orphaned_deleting)))
-        sendNotification(applicationContext.getString(R.string.sync_data_taxa_orphaned_deleting))
+        if (hasError) {
+            Logger.warn { "taxa synchronization finished with errors" }
 
-        // delete orphaned taxa
-        val orphanedTaxaIds = mutableSetOf<Long>()
-        taxonDao
-            .QB()
-            .cursor()
-            .run {
-                Logger.info { "deleting orphaned taxa..." }
-                moveToFirst()
+            setProgress(workData(applicationContext.getString(R.string.sync_data_taxa_with_errors)))
+            sendNotification(applicationContext.getString(R.string.sync_data_taxa_with_errors))
 
-                while (!isAfterLast) {
-                    Taxon
-                        .fromCursor(this)
-                        ?.run {
-                            if (!validTaxaIds.contains(id)) {
-                                orphanedTaxaIds.add(id)
-                            }
-                        }
-
-                    moveToNext()
-                }
-            }
-        orphanedTaxaIds.forEach {
-            taxonDao.deleteById(it)
+            delay(1000)
         }
 
-        Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
+        // delete all orphaned if all taxa were synchronized successfully
+        if (!hasError) {
+            setProgress(workData(applicationContext.getString(R.string.sync_data_taxa_orphaned_deleting)))
+            sendNotification(applicationContext.getString(R.string.sync_data_taxa_orphaned_deleting))
 
-        setProgress(
-            workData(
+            val orphanedTaxaIds = mutableSetOf<Long>()
+            taxonDao
+                .QB()
+                .cursor()
+                .run {
+                    Logger.info { "deleting orphaned taxa..." }
+                    moveToFirst()
+
+                    while (!isAfterLast) {
+                        Taxon
+                            .fromCursor(this)
+                            ?.run {
+                                if (!validTaxaIds.contains(id)) {
+                                    orphanedTaxaIds.add(id)
+                                }
+                            }
+
+                        moveToNext()
+                    }
+                }
+            orphanedTaxaIds.forEach {
+                taxonDao.deleteById(it)
+            }
+
+            Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
+
+            setProgress(
+                workData(
+                    applicationContext.resources.getQuantityString(
+                        R.plurals.sync_data_taxa_orphaned_deleted,
+                        orphanedTaxaIds.size,
+                        orphanedTaxaIds.size
+                    )
+                )
+            )
+            sendNotification(
                 applicationContext.resources.getQuantityString(
                     R.plurals.sync_data_taxa_orphaned_deleted,
                     orphanedTaxaIds.size,
                     orphanedTaxaIds.size
                 )
             )
-        )
-        sendNotification(
-            applicationContext.resources.getQuantityString(
-                R.plurals.sync_data_taxa_orphaned_deleted,
-                orphanedTaxaIds.size,
-                orphanedTaxaIds.size
-            )
-        )
+        }
 
         if (withAdditionalData) {
             Logger.info { "synchronize taxa additional data..." }
@@ -869,11 +893,13 @@ class DataSyncWorker @AssistedInject constructor(
 
                 if (taxrefAreasResponse == null || checkResponse(taxrefAreasResponse).state == WorkInfo.State.FAILED) {
                     hasNext = false
+                    hasError = true
                     continue
                 }
 
-                val taxrefAreas =
-                    runCatching { taxrefAreasResponse.body() }.getOrDefault(emptyList())
+                val taxrefAreas = runCatching { taxrefAreasResponse.body() }
+                    .onFailure { hasError = true }
+                    .getOrDefault(emptyList())
 
                 if (taxrefAreas?.isEmpty() != false) {
                     hasNext = false
@@ -920,6 +946,15 @@ class DataSyncWorker @AssistedInject constructor(
                 offset += pageSize
                 hasNext = taxrefAreas.size == pageSize
             } while (hasNext)
+        }
+
+        if (hasError) {
+            Logger.warn { "taxa by area synchronization finished with errors" }
+
+            setProgress(workData(applicationContext.getString(R.string.sync_data_taxa_areas_with_errors)))
+            sendNotification(applicationContext.getString(R.string.sync_data_taxa_areas_with_errors))
+
+            delay(1000)
         }
 
         return Result.success()

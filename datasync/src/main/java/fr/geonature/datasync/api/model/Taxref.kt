@@ -27,8 +27,8 @@ data class Taxref(
     val description: String,
 
     @SerializedName("regne")
-    val kingdom: String,
+    val kingdom: String?,
 
     @SerializedName("group2_inpn")
-    val group: String
+    val group: String?
 )
