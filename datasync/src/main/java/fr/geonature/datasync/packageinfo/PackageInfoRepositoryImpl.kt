@@ -9,9 +9,6 @@ import fr.geonature.datasync.R
 import fr.geonature.datasync.packageinfo.error.NoPackageInfoFoundFromRemoteFailure
 import fr.geonature.datasync.packageinfo.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.tinylog.Logger
 import java.io.IOException
@@ -46,15 +43,12 @@ class PackageInfoRepositoryImpl(
         )
     }
 
-    override fun getAllApplications(): Flow<List<PackageInfo>> = flow {
-        val installedApplications = getInstalledApplications().firstOrNull()
-            ?: emptyList()
+    override suspend fun getAllApplications(): List<PackageInfo> {
+        val installedApplications = getInstalledApplications()
         val availableApplications = runCatching {
             availablePackageInfoDataSource.getAll()
         }.getOrNull()
             ?: emptyList()
-
-        emit(installedApplications)
 
         allPackageInfos.clear()
         allPackageInfos.putAll((installedApplications
@@ -68,8 +62,10 @@ class PackageInfoRepositoryImpl(
             .mapValues {
                 when (it.value.size) {
                     2 -> it.value[0]
-                        .copy(versionCode = it.value[1].versionCode,
-                            apkUrl = it.value[1].apkUrl)
+                        .copy(
+                            versionCode = it.value[1].versionCode,
+                            apkUrl = it.value[1].apkUrl
+                        )
                         .apply {
                             settings = it.value[1].settings
                         }
@@ -77,27 +73,25 @@ class PackageInfoRepositoryImpl(
                 }
             })
 
-        emit(allPackageInfos.values.toList())
+        return allPackageInfos.values.toList()
     }
 
     @SuppressLint("QueryPermissionsNeeded")
-    override fun getInstalledApplications(): Flow<List<PackageInfo>> = flow {
+    override suspend fun getInstalledApplications(): List<PackageInfo> {
         val installedApplications = runCatching {
             installedPackageInfoDataSource.getAll()
         }.getOrNull()
             ?: emptyList()
 
         if (installedApplications.isEmpty()) {
-            emit(installedApplications)
-
-            return@flow
+            return installedApplications
         }
 
-        emit(installedApplications.map { packageInfo ->
+        return installedApplications.map { packageInfo ->
             packageInfo.apply {
                 settings = allPackageInfos[packageInfo.packageName]?.settings
             }
-        })
+        }
     }
 
     override suspend fun getPackageInfo(packageName: String): PackageInfo? {
@@ -108,16 +102,19 @@ class PackageInfoRepositoryImpl(
         return packageInfo.getInputsToSynchronize(applicationContext)
     }
 
-    override suspend fun updateAppSettings(packageInfo: PackageInfo) = withContext(IO) {
-        Logger.info { "updating settings for '${packageInfo.packageName}'..." }
+    override suspend fun updateAppSettings(packageInfo: PackageInfo) =
+        withContext(IO) {
+            Logger.info { "updating settings for '${packageInfo.packageName}'..." }
 
-        val result = runCatching {
-            AppSettingsJsonWriter(applicationContext,
-                appSettingsFilename).write(packageInfo)
-        }
+            val result = runCatching {
+                AppSettingsJsonWriter(
+                    applicationContext,
+                    appSettingsFilename
+                ).write(packageInfo)
+            }
 
-        if (result.isFailure) {
-            Logger.warn { "failed to update settings for '${packageInfo.packageName}'" }
+            if (result.isFailure) {
+                Logger.warn { "failed to update settings for '${packageInfo.packageName}'" }
+            }
         }
-    }
 }

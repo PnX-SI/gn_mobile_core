@@ -61,36 +61,37 @@ class PackageInfoRepositoryTest {
     }
 
     @Test
-    fun `should return a list of available applications`() = runTest {
-        // given a list of available applications from remote data source
-        val expectedPackageInfoList = listOf(
-            PackageInfo(
-                packageName = "fr.geonature.occtax",
-                label = "Occtax",
-                versionCode = 2000,
-                versionName = "2.0.0",
-                apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/occtax/occtax-2.0.0-generic-release.apk",
-            ),
-            PackageInfo(
-                packageName = "fr.geonature.datasync.test",
-                label = "Datasync",
-                versionCode = 1000,
-                versionName = "1.0.0",
-                apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/datasync/datasync-1.0.0-generic-release.apk",
-            ),
-        )
+    fun `should return a list of available applications`() =
+        runTest {
+            // given a list of available applications from remote data source
+            val expectedPackageInfoList = listOf(
+                PackageInfo(
+                    packageName = "fr.geonature.occtax",
+                    label = "Occtax",
+                    versionCode = 2000,
+                    versionName = "2.0.0",
+                    apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/occtax/occtax-2.0.0-generic-release.apk",
+                ),
+                PackageInfo(
+                    packageName = "fr.geonature.datasync.test",
+                    label = "Datasync",
+                    versionCode = 1000,
+                    versionName = "1.0.0",
+                    apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/datasync/datasync-1.0.0-generic-release.apk",
+                ),
+            )
 
-        coEvery { availablePackageInfoDataSource.getAll() }.returns(expectedPackageInfoList)
+            coEvery { availablePackageInfoDataSource.getAll() }.returns(expectedPackageInfoList)
 
-        // when fetching available applications from data source
-        val response = packageInfoRepository.getAvailableApplications()
+            // when fetching available applications from data source
+            val response = packageInfoRepository.getAvailableApplications()
 
-        // then
-        assertEquals(
-            expectedPackageInfoList,
-            response.orNull(),
-        )
-    }
+            // then
+            assertEquals(
+                expectedPackageInfoList,
+                response.orNull(),
+            )
+        }
 
     @Test
     fun `should return NetworkFailure if not connected while fetching a list of available applications`() =
@@ -121,5 +122,80 @@ class PackageInfoRepositoryTest {
             // then
             assertTrue(response.isLeft)
             assertTrue(response.fold(::identity) {} is Failure.ServerFailure)
+        }
+
+    @Test
+    fun `should return a list of all applications`() =
+        runTest {
+            // given a list of available applications
+            val expectedAvailablePackageInfoList = listOf(
+                PackageInfo(
+                    packageName = "fr.geonature.occtax",
+                    label = "Occtax",
+                    versionCode = 2000,
+                    versionName = "2.0.0",
+                    apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/occtax/occtax-2.0.0-generic-release.apk",
+                ),
+                PackageInfo(
+                    packageName = "fr.geonature.datasync.test",
+                    label = "Datasync",
+                    versionCode = 1000,
+                    versionName = "1.0.1",
+                    apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/datasync/datasync-1.0.1-generic-release.apk",
+                ).apply {
+                    settings = mapOf<String, Any>(
+                        "sync" to mapOf<String, Any>(
+                            "geoNatureServerUrl" to "https://demo.geonature.fr/geonature2",
+                            "taxHubServerUrl" to "https://demo.geonature.fr/taxhub2",
+                        ),
+                    )
+                },
+            )
+
+            // and a list of installed applications
+            val expectedInstalledPackageInfoList = listOf(
+                PackageInfo(
+                    packageName = "fr.geonature.datasync.test",
+                    label = "Datasync",
+                    versionCode = 0,
+                    localVersionCode = 999,
+                    versionName = "1.0.0"
+                )
+            )
+
+            coEvery { availablePackageInfoDataSource.getAll() }.returns(expectedAvailablePackageInfoList)
+            coEvery { installedPackageInfoDataSource.getAll() }.returns(expectedInstalledPackageInfoList)
+
+            // when fetching all applications
+            val allApplications = packageInfoRepository.getAllApplications()
+
+            // then
+            assertEquals(
+                listOf(
+                    PackageInfo(
+                        packageName = "fr.geonature.datasync.test",
+                        label = "Datasync",
+                        localVersionCode = 999,
+                        versionCode = 1000,
+                        versionName = "1.0.0",
+                        apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/datasync/datasync-1.0.1-generic-release.apk",
+                    ).apply {
+                        settings = mapOf<String, Any>(
+                            "sync" to mapOf<String, Any>(
+                                "geoNatureServerUrl" to "https://demo.geonature.fr/geonature2",
+                                "taxHubServerUrl" to "https://demo.geonature.fr/taxhub2",
+                            ),
+                        )
+                    },
+                    PackageInfo(
+                        packageName = "fr.geonature.occtax",
+                        label = "Occtax",
+                        versionCode = 2000,
+                        versionName = "2.0.0",
+                        apkUrl = "https://demo.geonature.fr/geonature/api/static/mobile/occtax/occtax-2.0.0-generic-release.apk",
+                    )
+                ),
+                allApplications
+            )
         }
 }

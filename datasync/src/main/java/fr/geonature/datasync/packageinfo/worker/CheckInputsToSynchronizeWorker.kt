@@ -18,7 +18,6 @@ import dagger.assisted.AssistedInject
 import fr.geonature.datasync.R
 import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
-import kotlinx.coroutines.flow.firstOrNull
 import org.tinylog.Logger
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -40,10 +39,8 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
     workerParams
 ) {
     override suspend fun doWork(): Result {
-        val availableInputs = (packageInfoRepository
+        val availableInputs = packageInfoRepository
             .getInstalledApplications()
-            .firstOrNull()
-            ?: emptyList())
             .map { packageInfo -> packageInfo.getInputsToSynchronize(applicationContext) }
             .flatten()
 

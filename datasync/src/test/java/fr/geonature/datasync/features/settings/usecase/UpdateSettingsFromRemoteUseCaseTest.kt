@@ -21,7 +21,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -118,7 +117,7 @@ class UpdateSettingsFromRemoteUseCaseTest {
         )
 
         coEvery { dataSyncSettingsRepository.getDataSyncSettings() } returns Either.Right(expectedDataSyncSettings) andThen Either.Right(expectedDataSyncSettingsAfterUpdate)
-        coEvery { packageInfoRepository.getAllApplications() } returns flow { emit(expectedPackageInfoList) }
+        coEvery { packageInfoRepository.getAllApplications() } returns expectedPackageInfoList
 
         // when updating existing app settings
         val response = updateSettingsFromRemoteUseCase.run(BaseUseCase.None())
@@ -182,7 +181,7 @@ class UpdateSettingsFromRemoteUseCaseTest {
             )
 
             coEvery { dataSyncSettingsRepository.getDataSyncSettings() } returns Either.Right(expectedDataSyncSettings)
-            coEvery { packageInfoRepository.getAllApplications() } returns flow { emit(expectedPackageInfoList) }
+            coEvery { packageInfoRepository.getAllApplications() } returns expectedPackageInfoList
 
             // when updating existing app settings
             val response = updateSettingsFromRemoteUseCase.run(BaseUseCase.None())

@@ -18,8 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.datasync.packageinfo.worker.DownloadPackageInfoWorker
 import fr.geonature.datasync.packageinfo.worker.InputsSyncWorker
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -137,11 +135,8 @@ class PackageInfoViewModel @Inject constructor(
      */
     fun getAllApplications() {
         viewModelScope.launch {
-            packageInfoRepository
-                .getAllApplications()
-                .collect {
-                    _allPackageInfos.postValue(it)
-                }
+            val allPackageInfos = packageInfoRepository.getAllApplications()
+            _allPackageInfos.postValue(allPackageInfos)
         }
     }
 
@@ -150,23 +145,20 @@ class PackageInfoViewModel @Inject constructor(
      */
     fun synchronizeInstalledApplications() {
         viewModelScope.launch {
-            packageInfoRepository
-                .getInstalledApplications()
-                .firstOrNull()
-                ?.also {
-                    if (it.isEmpty()) {
-                        return@also
-                    }
+            val installedPackageInfos = packageInfoRepository.getInstalledApplications()
 
-                    _allPackageInfos.postValue(it + (_allPackageInfos.value?.filter { loadedPackageInfo -> it.none { installedPackageInfo -> installedPackageInfo.packageName == loadedPackageInfo.packageName } }
-                        ?: emptyList()))
+            if (installedPackageInfos.isEmpty()) {
+                return@launch
+            }
 
-                    it
-                        .asSequence()
-                        .forEach { packageInfo ->
-                            packageInfoRepository.updateAppSettings(packageInfo)
-                            startSyncInputs(packageInfo)
-                        }
+            _allPackageInfos.postValue(installedPackageInfos + (_allPackageInfos.value?.filter { loadedPackageInfo -> installedPackageInfos.none { installedPackageInfo -> installedPackageInfo.packageName == loadedPackageInfo.packageName } }
+                ?: emptyList()))
+
+            installedPackageInfos
+                .asSequence()
+                .forEach { packageInfo ->
+                    packageInfoRepository.updateAppSettings(packageInfo)
+                    startSyncInputs(packageInfo)
                 }
         }
     }

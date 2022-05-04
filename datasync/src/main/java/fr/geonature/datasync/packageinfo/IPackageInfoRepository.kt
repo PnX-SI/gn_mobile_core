@@ -2,7 +2,6 @@ package fr.geonature.datasync.packageinfo
 
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import kotlinx.coroutines.flow.Flow
 
 /**
  * [PackageInfo] manager.
@@ -22,12 +21,12 @@ interface IPackageInfoRepository {
     /**
      * Gets all applications installed locally and available remotely.
      */
-    fun getAllApplications(): Flow<List<PackageInfo>>
+    suspend fun getAllApplications(): List<PackageInfo>
 
     /**
      * Gets all compatible installed applications.
      */
-    fun getInstalledApplications(): Flow<List<PackageInfo>>
+    suspend fun getInstalledApplications(): List<PackageInfo>
 
     /**
      * Gets related info from package name.

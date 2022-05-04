@@ -14,7 +14,6 @@ import fr.geonature.datasync.packageinfo.PackageInfo
 import fr.geonature.datasync.packageinfo.error.PackageInfoNotFoundFailure
 import fr.geonature.datasync.settings.IDataSyncSettingsRepository
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
-import kotlinx.coroutines.flow.firstOrNull
 import org.tinylog.Logger
 import javax.inject.Inject
 
@@ -52,8 +51,7 @@ class UpdateSettingsFromRemoteUseCase @Inject constructor(
         Logger.info { "updating app configuration from '${dataSyncSettings.geoNatureServerUrl}'..." }
 
         // tries to gets all applications installed locally and available remotely
-        val packageInfoList = packageInfoRepository.getAllApplications().firstOrNull()
-            ?: emptyList()
+        val packageInfoList = packageInfoRepository.getAllApplications()
 
         if (packageInfoList.isEmpty()) {
             return Left(PackageInfoNotFoundFailure(packageName = application.packageName))
@@ -104,6 +102,8 @@ class UpdateSettingsFromRemoteUseCase @Inject constructor(
                 taxHubBaseUrl = dataSyncSettingsUpdated.taxHubServerUrl
             )
         )
+
+        Logger.info { "app configuration successfully updated from '${dataSyncSettingsUpdated.geoNatureServerUrl}'" }
 
         return Right(packageInfoFound)
     }
