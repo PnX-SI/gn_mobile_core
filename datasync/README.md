@@ -67,7 +67,7 @@ or
 | Parameter                         | UI      | Description                                          | Default value |
 | --------------------------------- | ------- | ---------------------------------------------------- | ------------- |
 | `geonature_url`                   | &#9745; | GeoNature URL                                        |               |
-| `taxhub_url`                      | &#9745; | TaxHub URL                                           |               |
+| `taxhub_url`                      | &#9744; | TaxHub URL                                           |               |
 | `gn_application_id`               | &#9744; | GeoNature application ID in UsersHub                 |               |
 | `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub      |               |
 | `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                      |               |
