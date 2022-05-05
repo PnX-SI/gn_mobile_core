@@ -14,12 +14,12 @@ sealed class Either<out L, out R> {
     /**
      * Represents the left side of [Either] class which by convention is a "Failure".
      */
-    data class Left<out L>(val a: L) : Either<L, Nothing>()
+    data class Left<out L>(val value: L) : Either<L, Nothing>()
 
     /**
      * Represents the right side of [Either] class which by convention is a "Success".
      */
-    data class Right<out R>(val b: R) : Either<Nothing, R>()
+    data class Right<out R>(val value: R) : Either<Nothing, R>()
 
     /**
      * Returns true if this is a [Right], false otherwise.
@@ -34,74 +34,100 @@ sealed class Either<out L, out R> {
     val isLeft get() = this is Left<L>
 
     /**
-     * Creates a [Left] type.
+     * Applies `fnL` if this is a [Left] or `fnR` if this is a [Right].
+     *
+     * Example:
+     * ```kotlin
+     * fun main() {
+     *   fun possiblyFailingOperation(): Either.Right<Int> =
+     *     Either.Right(1)
+     *
+     *   val result: Either<Exception, Int> = possiblyFailingOperation()
+     *
+     *   result.fold(
+     *        { println("operation failed with $it") },
+     *        { println("operation succeeded with $it") }
+     *   )
+     * }
+     * ```
+     *
+     * @param fnL the function to apply if this is a [Left]
+     * @param fnR the function to apply if this is a [Right]
+     *
      * @see Left
-     */
-    fun <L> left(a: L) =
-        Left(a)
-
-    /**
-     * Creates a [Right] type.
      * @see Right
      */
-    fun <R> right(b: R) =
-        Right(b)
-
-    /**
-     * Applies fnL if this is a [Left] or fnR if this is a [Right].
-     * @see Left
-     * @see Right
-     */
-    fun fold(
-        fnL: (L) -> Any,
-        fnR: (R) -> Any
-    ): Any =
-        when (this) {
-            is Left -> fnL(a)
-            is Right -> fnR(b)
-        }
+    fun <C> fold(
+        fnL: (L) -> C,
+        fnR: (R) -> C
+    ): C = when (this) {
+        is Left -> fnL(value)
+        is Right -> fnR(value)
+    }
 }
 
 /**
- * Composes 2 functions.
+ * Returns the right value if it exists, otherwise `null`.
  *
- * See [credits to Alex Hart.](https://proandroiddev.com/kotlins-nothing-type-946de7d464fb)
+ * Example:
+ * ```kotlin
+ * val right = Right(12).orNull() // Result: 12
+ * val left = Left(12).orNull()   // Result: null
+ * ```
  */
-fun <A, B, C> ((A) -> B).c(f: (B) -> C): (A) -> C =
-    {
-        f(this(it))
-    }
+fun <L, R> Either<L, R>.orNull(): R? = fold({ null }, { it })
+
+/**
+ * Right-biased map() FP convention which means that [Either.Right] is assumed to be the default case
+ * to operate on.
+ * If it is [Either.Left], operations like map, flatMap, ... return the [Either.Left] value unchanged.
+ *
+ * Example:
+ * ```kotlin
+ * val right = Either.Right(12).map { "flower" } // Result: Right("flower")
+ * val left = Either.Left(12).map { "flower" }   // Result: Left(12)
+ * ```
+ */
+fun <T, L, R> Either<L, R>.map(fn: (R) -> (T)): Either<L, T> = flatMap { Either.Right(fn(it)) }
 
 /**
  * Right-biased flatMap() FP convention which means that [Either.Right] is assumed to be the default
  * case to operate on.
  * If it is [Either.Left], operations like map, flatMap, ... return the [Either.Left] value unchanged.
  */
-fun <T, L, R> Either<L, R>.flatMap(fn: (R) -> Either<L, T>): Either<L, T> =
-    when (this) {
-        is Either.Left -> Either.Left(a)
-        is Either.Right -> fn(b)
-    }
-
-/**
- * Right-biased map() FP convention which means that [Either.Right] is assumed to be the default case
- * to operate on.
- * If it is [Either.Left], operations like map, flatMap, ... return the [Either.Left] value unchanged.
- */
-fun <T, L, R> Either<L, R>.map(fn: (R) -> (T)): Either<L, T> =
-    this.flatMap(fn.c(::right))
+fun <T, L, R> Either<L, R>.flatMap(fn: (R) -> Either<L, T>): Either<L, T> = when (this) {
+    is Either.Left -> Either.Left(value)
+    is Either.Right -> fn(value)
+}
 
 /**
  * Returns the value from this [Either.Right] or the given argument if this is a [Either.Left].
- * Examples:
- * * `Right(12).getOrElse(17)` returns 12
- * * `Left(12).getOrElse(17)` returns 17
+ *
+ * Example:
+ * ```kotlin
+ * val right = Right(12).getOrElse { 17 } // Result: 12
+ * val left = Left(12).getOrElse { 17 }   // Result: 17
+ * ```
  */
-fun <L, R> Either<L, R>.getOrElse(value: R): R =
-    when (this) {
-        is Either.Left -> value
-        is Either.Right -> b
-    }
+fun <L, R> Either<L, R>.getOrElse(default: () -> R): R = fold(
+    { default() },
+    ::identity
+)
+
+/**
+ * Returns the value from this [Either.Right] or allows to transform [Either.Left] to [Either.Right]
+ * while providing access to the value of [Either.Left].
+ *
+ * Example:
+ * ```kotlin
+ * val right = Right(12).getOrHandle { 17 }   // Result: 12
+ * val left = Left(12).getOrHandle { it + 5 } // Result: 17
+ * ```
+ */
+fun <L, R> Either<L, R>.getOrHandle(default: (L) -> R): R = fold(
+    { default(it) },
+    ::identity
+)
 
 /**
  * Left-biased onFailure() FP convention dictates that when this class is [Either.Left], it'll perform
@@ -109,7 +135,7 @@ fun <L, R> Either<L, R>.getOrElse(value: R): R =
  * object so you chain calls.
  */
 fun <L, R> Either<L, R>.onFailure(fn: (failure: L) -> Unit): Either<L, R> =
-    this.apply { if (this is Either.Left) fn(a) }
+    apply { if (this is Either.Left) fn(value) }
 
 /**
  * Right-biased onSuccess() FP convention dictates that when this class is [Either.Right], it'll perform
@@ -117,4 +143,4 @@ fun <L, R> Either<L, R>.onFailure(fn: (failure: L) -> Unit): Either<L, R> =
  * object so you chain calls.
  */
 fun <L, R> Either<L, R>.onSuccess(fn: (success: R) -> Unit): Either<L, R> =
-    this.apply { if (this is Either.Right) fn(b) }
+    apply { if (this is Either.Right) fn(value) }

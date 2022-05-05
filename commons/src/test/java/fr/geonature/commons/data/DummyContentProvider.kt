@@ -4,7 +4,6 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
-import fr.geonature.commons.data.helper.Provider
 
 class DummyContentProvider : ContentProvider() {
     override fun onCreate(): Boolean {
@@ -12,7 +11,7 @@ class DummyContentProvider : ContentProvider() {
     }
 
     override fun getType(uri: Uri): String {
-        return "$VND_TYPE_ITEM_PREFIX/${Provider.AUTHORITY}.DummyTable"
+        return "$VND_TYPE_ITEM_PREFIX/fr.geonature.sync.provider.DummyTable"
     }
 
     override fun query(

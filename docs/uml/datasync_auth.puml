@@ -1,0 +1,34 @@
+@startuml
+
+!theme bluegray
+
+skinparam componentStyle uml2
+skinparam backgroundColor transparent
+
+title **Authentication**
+
+participant "datasync" as datasync << module >>
+participant "GeoNature" as gn
+
+activate datasync
+
+group Check for login
+    datasync -> datasync : Set login and password
+    datasync -> gn ++ : **POST** ""/api/auth/login""
+    gn -> datasync -- : **200**: ""AuthLogin""
+    note left
+        **""AuthLogin"":**
+        {
+            "user": {
+                "id_application": <number>,
+                "id_organisme": <number>,
+                "identifiant": <user login>
+            },
+            "expires": <Date>
+        }
+    end note
+
+    datasync -> datasync : Set cookie
+end
+
+@enduml

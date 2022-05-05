@@ -1,0 +1,35 @@
+= Data synchronization workflow
+:authors: Sebastien Grimault
+:source-highlighter: pygments
+:pygments-style: github
+:icons: font
+:imagesdir: images/
+:sectnums:
+:toc:
+:toclevels: 4
+:gitplant: http://www.plantuml.com/plantuml/proxy?cache=no&fmt=svg&src=https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/docs/uml/
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+This document describe the data synchronization worflow within *_datasync_* module.
+
+== Check for update
+
+image::{gitplant}/datasync_update.puml[Check for update]
+
+== Authentication
+
+image::{gitplant}/datasync_auth.puml[Authentication]
+
+== Update local database
+
+image::{gitplant}/datasync_data.puml[Data synchronization workflow]
+
+== Synchronize local inputs
+
+image::{gitplant}/datasync_inputs.puml[Inputs synchronization workflow]

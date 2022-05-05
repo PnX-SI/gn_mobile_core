@@ -6,9 +6,9 @@ import fr.geonature.mountpoint.util.FileUtils
 import java.io.File
 
 /**
- * Helpers for `File` utilities.
+ * Function helpers for `File`.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 
 /**

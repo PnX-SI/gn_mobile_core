@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="login_login_hint">Login</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_action_sign_in">Sign in</string>
+
+    <string name="login_form_username_invalid">Username must not be empty</string>
+    <string name="login_form_password_invalid">Password must not be empty</string>
+    <string name="login_failed">Login failed</string>
+    <string name="login_failed_login">Invalid login</string>
+    <string name="login_failed_password">Invalid password</string>
+    <string name="login_failed_server_url_configuration">Missing GeoNature server configuration</string>
+    <string name="login_success">Successfully authenticated</string>
+
+    <string name="activity_configure_server_settings_title">Configuration</string>
+    <string name="dialog_edit_server_settings_title">GeoNature server URL</string>
+    <string name="settings_server_configuration">Please enter the GeoNature server URL</string>
+    <string name="settings_server_url_hint">GeoNature server URL</string>
+    <string name="settings_server_url_action_validate">OK</string>
+    <string name="settings_server_form_url_invalid">Invalid URL</string>
+    <string name="settings_server_error">GeoNature server error</string>
+    <string name="settings_server_settings_not_found">Settings not found from server</string>
+    <string name="settings_server_settings_loaded">Settings successfully updated</string>
+
+    <string name="alert_dialog_ok">OK</string>
+    <string name="alert_dialog_cancel">Cancel</string>
+
+    <string name="sync_start_synchronization">Starting local data synchronization…</string>
+    <string name="sync_error_server_error">GeoNature server error</string>
+    <string name="sync_error_server_not_connected">Not connected</string>
+    <string name="sync_error_server_url_configuration">Missing GeoNature server configuration</string>
+    <string name="sync_data_dataset">Synchronize dataset: %1$d</string>
+    <string name="sync_data_dataset_error">Synchronize dataset: failure</string>
+    <string name="sync_data_observers">Synchronize observers: %1$d</string>
+    <string name="sync_data_observers_error">Synchronize observers: failure</string>
+    <string name="sync_data_taxonomy_ranks">Synchronize taxonomy ranks: %1$d</string>
+    <string name="sync_data_taxonomy_ranks_error">Synchronize taxonomy ranks: failure</string>
+    <string name="sync_data_nomenclature_type">Synchronize nomenclature type: %1$d</string>
+    <string name="sync_data_nomenclature_type_error">Synchronize nomenclature type: failure</string>
+    <string name="sync_data_nomenclature">Synchronize nomenclature: %1$d</string>
+    <string name="sync_data_nomenclature_default">Synchronize nomenclature default values: %1$d</string>
+    <string name="sync_data_nomenclature_default_error">Synchronize nomenclature default values: failure</string>
+    <string name="sync_data_taxa">Synchronize taxa: %1$d</string>
+    <string name="sync_data_taxa_with_errors">Taxa synchronization finished with errors</string>
+    <string name="sync_data_taxa_orphaned_deleting">Deleting orphaned taxa…</string>
+    <plurals name="sync_data_taxa_orphaned_deleted">
+        <item quantity="one">%d orphaned taxon deleted</item>
+        <item quantity="other">%d orphaned taxa deleted</item>
+    </plurals>
+    <string name="sync_data_taxa_areas">Synchronize taxa by area: %1$d</string>
+    <string name="sync_data_taxa_areas_with_errors">Taxa by area synchronization finished with errors</string>
+    <string name="sync_data_succeeded">Done.</string>
+
+    <string name="notification_data_synchronization_title">Synchronize data…</string>
+    <string name="notification_inputs_to_synchronize_title">Inputs to synchronize</string>
+    <plurals name="notification_inputs_to_synchronize_description">
+        <item quantity="one">One input is ready to synchronize</item>
+        <item quantity="other">%d inputs are ready to synchronize</item>
+    </plurals>
+
+    <string name="error_network_lost">You are not connected to the Internet</string>
+    <string name="error_server_unreachable">Unable to join GeoNature server</string>
+    <string name="error_settings_undefined">Unable to load settings</string>
+    <string name="error_settings_not_found">Unable to load settings \'%1$s\'</string>
+
+</resources>

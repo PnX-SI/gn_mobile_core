@@ -1,9 +1,9 @@
 package fr.geonature.commons.settings.io
 
 import android.util.JsonReader
-import android.util.Log
 import fr.geonature.commons.input.AbstractInput
 import fr.geonature.commons.settings.IAppSettings
+import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -30,10 +30,7 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
         try {
             return read(StringReader(json))
         } catch (e: Exception) {
-            Log.w(
-                TAG,
-                e
-            )
+            Logger.warn(e)
         }
 
         return null
@@ -126,10 +123,5 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
             keyName: String,
             appSettings: T
         )
-    }
-
-    companion object {
-
-        private val TAG = AppSettingsJsonReader::class.java.name
     }
 }

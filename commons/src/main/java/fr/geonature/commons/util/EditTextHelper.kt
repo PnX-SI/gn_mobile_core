@@ -7,7 +7,7 @@ import android.widget.EditText
 /**
  * Utilities function about EditText.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 
 /**

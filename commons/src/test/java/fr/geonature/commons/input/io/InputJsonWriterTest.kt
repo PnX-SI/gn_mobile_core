@@ -13,7 +13,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.atMost
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -31,7 +31,7 @@ class InputJsonWriterTest {
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         inputJsonWriter = spy(InputJsonWriter(onInputJsonWriterListener))
     }

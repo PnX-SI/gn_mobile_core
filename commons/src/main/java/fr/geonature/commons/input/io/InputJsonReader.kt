@@ -1,8 +1,8 @@
 package fr.geonature.commons.input.io
 
 import android.util.JsonReader
-import android.util.Log
 import fr.geonature.commons.input.AbstractInput
+import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
@@ -31,10 +31,7 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
         try {
             return read(StringReader(json))
         } catch (ioe: IOException) {
-            Log.w(
-                TAG,
-                ioe
-            )
+            Logger.warn(ioe)
         }
 
         return null
@@ -107,9 +104,5 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
             keyName: String,
             input: T
         )
-    }
-
-    companion object {
-        private val TAG = InputJsonReader::class.java.name
     }
 }

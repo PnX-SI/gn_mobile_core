@@ -5,13 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
  * [AbstractInput] view model.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 open class InputViewModel<I : AbstractInput>(private val inputManager: IInputManager<I>) :
     ViewModel() {
@@ -34,7 +33,7 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
      *
      * @param id The [AbstractInput] ID to read. If omitted, read the current saved [AbstractInput].
      */
-    open fun readInput(id: Long? = null): LiveData<I> {
+    open fun readInput(id: Long? = null): LiveData<I?> {
         viewModelScope.launch {
             inputManager.readInput(id)
         }
@@ -45,7 +44,7 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
     /**
      * Reads the current [AbstractInput].
      */
-    fun readCurrentInput(): LiveData<I> {
+    fun readCurrentInput(): LiveData<I?> {
         return readInput()
     }
 
@@ -55,7 +54,7 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
      * @param input the [AbstractInput] to save
      */
     fun saveInput(input: I) {
-        GlobalScope.launch(Main) {
+        viewModelScope.launch(Main) {
             inputManager.saveInput(input)
         }
     }
@@ -95,7 +94,7 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
         id: Long,
         exported: () -> Unit = {}
     ) {
-        GlobalScope.launch(Main) {
+        viewModelScope.launch(Main) {
             inputManager
                 .exportInput(id)
                 .also {
@@ -115,7 +114,7 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
         input: I,
         exported: () -> Unit = {}
     ) {
-        GlobalScope.launch(Main) {
+        viewModelScope.launch(Main) {
             inputManager
                 .exportInput(input)
                 .also {
@@ -133,7 +132,7 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
      */
     class Factory<T : InputViewModel<I>, I : AbstractInput>(val creator: () -> T) :
         ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST") return creator() as T
         }
     }

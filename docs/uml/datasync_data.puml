@@ -1,0 +1,151 @@
+@startuml
+
+!theme bluegray
+
+skinparam componentStyle uml2
+skinparam backgroundColor transparent
+
+title **Data synchronization workflow**
+
+participant "datasync" as datasync << module >>
+participant "GeoNature" as gn
+
+activate datasync
+
+ref over datasync, gn : Check for login
+
+group Fetch GeoNature data
+
+    group Dataset
+        datasync -> gn ++ : **GET** ""/api/meta/datasets""
+        gn -> datasync -- : **200**: ""[Dataset]""
+        note right of datasync
+            **""Dataset"":**
+            {
+                "id_dataset": <dataset ID>,
+                "dataset_name": <name>,
+                "dataset_desc": <description>,
+                "active": <Boolean>,
+                "meta_create_date": <Date>,
+                "modules": {
+                        "module_path": <String>
+                }[]
+            }
+        end note
+        datasync -> datasync : update //dataset// table
+    end
+
+    group Observers
+        datasync -> gn ++ : **GET** ""/api/users/menu/:observers_list_id""
+        note right of datasync
+            ""observers_list_id"" from settings
+        end note
+        gn -> datasync -- : **200**: ""[User]""
+        note right of datasync
+            **""User"":**
+            {
+                "id_role": <user ID>,
+                "nom_role": <lastname>,
+                "prenom_role": <firstnane>
+            }
+        end note
+        datasync -> datasync : update //observers// table
+    end
+
+    group Taxonomy
+        datasync -> gn ++ : **GET** ""/api/taxref/regnewithgroupe2""
+        gn -> datasync -- : **200**: ""[Taxonomy]""
+        note right of datasync
+            **""Taxonomy"":**
+            {
+                <kingdom>: <group>[]
+            }
+        end note
+        datasync -> datasync : update //taxonomy// table
+    end
+
+    group Taxa
+        loop while response is not empty\nand response size matches ""page_size"" from settings
+            datasync -> gn ++ : **GET** ""/api/taxref/allnamebylist/:taxa_list_id""
+            note right of datasync
+                ""taxa_list_id"" from settings
+            end note
+            gn -> datasync -- : **200**: ""[Taxref]""
+            note right of datasync
+                **""Taxref"":**
+                {
+                    "cd_nom": <taxon ID>,
+                    "lb_nom": <name>,
+                    "nom_vern": <common name>,
+                    "nom_valide": <full name>,
+                    "regne": <kingdom>,
+                    "group2_inpn": <group>,
+                    "search_name": <String>
+                }
+            end note
+            datasync -> datasync : update //taxa// table
+        end
+        loop while response is not empty\nand response size matches ""page_size"" from settings
+            datasync -> gn ++ : **GET** ""/api/synthese/color_taxon?:code_area_type""
+            note right of datasync
+                ""code_area_type"" from settings
+            end note
+            gn -> datasync -- : **200**: ""[TaxrefArea]""
+            note right of datasync
+                **""TaxrefArea"":**
+                {
+                    "cd_nom": <taxon ID>,
+                    "id_area": <area ID>,
+                    "color": <String>,
+                    "nb_obs": <number of observers>,
+                    "last_date": <last updated at>
+                }
+            end note
+            datasync -> datasync : update //taxa_area// table
+        end
+    end
+
+    group Nomenclature
+        datasync -> gn ++ : **GET** ""/api/nomenclatures/nomenclatures/taxonomy""
+        gn -> datasync -- : **200**: ""[NomenclatureType]""
+        note right of datasync
+            **""NomenclatureType"":**
+            {
+                "id_type": <nomenclature type ID>,
+                "mnemonique": <mnemonic code>,
+                "label_default": <default name>,
+                "nomenclatures": {
+                    "id_nomenclature": <nomenclature ID>,
+                    "cd_nomenclature": <nomenclature code>,
+                    "hierarchy": <String>,
+                    "label_default": <default name>,
+                    "taxref": {
+                        "regne": <kingdom>,
+                        "group2_inpn": <group>,
+                    }[],
+                }[],
+            }
+        end note
+
+        datasync -> gn ++ : **GET** ""/api/:module/defaultNomenclatures""
+        note right of datasync
+            ""module"" from settings
+        end note
+
+        gn -> datasync -- : **200**: ""[DefaultNomenclature]""
+        note right of datasync
+            **""DefaultNomenclature"":**
+            {
+                <mnemonic code>: <nomenclature ID>
+            }
+        end note
+
+        datasync -> datasync : update //nomenclature_types//  table
+        datasync -> datasync : update //nomenclatures// table
+        datasync -> datasync : update //nomenclatures_taxonomy//  table
+        datasync -> datasync : update //default_nomenclatures//  table
+    end
+
+end
+
+@enduml

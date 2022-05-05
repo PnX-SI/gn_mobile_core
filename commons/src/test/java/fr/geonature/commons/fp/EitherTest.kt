@@ -2,6 +2,7 @@ package fr.geonature.commons.fp
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -43,11 +44,30 @@ class EitherTest {
     }
 
     @Test
+    fun `Either orNull should return value if it is Right type`() {
+        val result = Either
+            .Right("right_value")
+            .orNull()
+        assertEquals(
+            "right_value",
+            result
+        )
+    }
+
+    @Test
+    fun `Either orNull should return null value if it is Left type`() {
+        val result = Either
+            .Left("left_value")
+            .orNull<String, Nothing>()
+        assertNull(result)
+    }
+
+    @Test
     fun `Either getOrElse should ignore default value if it is Right type`() {
         val success = "Success"
         val result = Either
             .Right(success)
-            .getOrElse("Default")
+            .getOrElse { "Default" }
 
         assertEquals(
             success,
@@ -57,15 +77,26 @@ class EitherTest {
 
     @Test
     fun `Either getOrElse should return default value if it is Left type`() {
-        val other = "Default"
-        val result = Either
-            .Left("Failure")
-            .getOrElse(other)
+        assertEquals("default",
+            Either
+                .Left("failure")
+                .getOrElse { "default" })
+        assertNull(
+            Either
+                .Left("failure")
+                .getOrElse { null })
+    }
 
-        assertEquals(
-            other,
-            result
-        )
+    @Test
+    fun `Either getOrHandle should return value`() {
+        assertEquals(12,
+            Either
+                .Right(12)
+                .getOrHandle { 17 })
+        assertEquals(17,
+            Either
+                .Left(12)
+                .getOrHandle { it + 5 })
     }
 
     @Test
@@ -131,10 +162,8 @@ class EitherTest {
             either,
             result
         )
-        assertEquals(
-            success,
-            either.getOrElse("Failure")
-        )
+        assertEquals(success,
+            either.getOrElse { "Failure" })
     }
 
     @Test
@@ -142,11 +171,17 @@ class EitherTest {
         val either = Either.Left(12)
         var onFailureCalled = false
         val result = either.onFailure {
-            assertEquals(12, it)
+            assertEquals(
+                12,
+                it
+            )
             onFailureCalled = true
         }
 
-        assertEquals(either, result)
+        assertEquals(
+            either,
+            result
+        )
         assertTrue(onFailureCalled)
     }
 
@@ -156,20 +191,29 @@ class EitherTest {
         val either = Either.Right(success)
         var onSuccessCalled = false
         val result = either.onSuccess {
-            assertEquals(success, it)
+            assertEquals(
+                success,
+                it
+            )
             onSuccessCalled = true
         }
 
-        assertEquals(either, result)
+        assertEquals(
+            either,
+            result
+        )
         assertTrue(onSuccessCalled)
     }
 
     @Test
     fun `Given onSuccess is called, when Either is Left, doesn't invoke function and returns original Either`() {
         val either = Either.Left(12)
-        val result = either.onSuccess {fail("Shouldn't be executed") }
+        val result = either.onSuccess { fail("Shouldn't be executed") }
 
-        assertEquals(either, result)
+        assertEquals(
+            either,
+            result
+        )
     }
 
     @Test
@@ -178,11 +222,17 @@ class EitherTest {
         val resultValue = "Result"
         val either = Either.Right(success)
         val result = either.map {
-            assertEquals(success, it)
+            assertEquals(
+                success,
+                it
+            )
             resultValue
         }
 
-        assertEquals(Either.Right(resultValue), result)
+        assertEquals(
+            Either.Right(resultValue),
+            result
+        )
     }
 
     @Test
@@ -191,6 +241,9 @@ class EitherTest {
         val result = either.map { Either.Right(20) }
 
         assertTrue(result.isLeft)
-        assertEquals(either, result)
+        assertEquals(
+            either,
+            result
+        )
     }
 }

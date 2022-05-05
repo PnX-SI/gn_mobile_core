@@ -13,13 +13,13 @@ import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [AbstractListItemRecyclerViewAdapter].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class ListItemRecyclerViewAdapterTest {
@@ -31,7 +31,7 @@ class ListItemRecyclerViewAdapterTest {
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         stringListItemRecyclerViewAdapter =
             StringListItemRecyclerViewAdapter(onListItemRecyclerViewAdapterListener)
@@ -225,6 +225,92 @@ class ListItemRecyclerViewAdapterTest {
             arrayOf(
                 "item #2",
                 "item #1",
+                "item #3",
+                "item #4"
+            ),
+            stringListItemRecyclerViewAdapter.items.toTypedArray()
+        )
+    }
+
+    @Test
+    fun testSet() {
+        // when adding item
+        stringListItemRecyclerViewAdapter.set(
+            "item #1",
+            0
+        )
+
+        // then
+        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        assertEquals(
+            1,
+            stringListItemRecyclerViewAdapter.itemCount
+        )
+        assertArrayEquals(
+            arrayOf("item #1"),
+            stringListItemRecyclerViewAdapter.items.toTypedArray()
+        )
+
+        clearInvocations(onListItemRecyclerViewAdapterListener)
+
+        // when updating item at first position
+        stringListItemRecyclerViewAdapter.set(
+            "item #2",
+            0
+        )
+
+        // then
+        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        assertEquals(
+            1,
+            stringListItemRecyclerViewAdapter.itemCount
+        )
+        assertArrayEquals(
+            arrayOf(
+                "item #2",
+            ),
+            stringListItemRecyclerViewAdapter.items.toTypedArray()
+        )
+
+        clearInvocations(onListItemRecyclerViewAdapterListener)
+
+        // when adding item at invalid position
+        stringListItemRecyclerViewAdapter.set(
+            "item #3",
+            100
+        )
+
+        // then
+        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        assertEquals(
+            2,
+            stringListItemRecyclerViewAdapter.itemCount
+        )
+        assertArrayEquals(
+            arrayOf(
+                "item #2",
+                "item #3"
+            ),
+            stringListItemRecyclerViewAdapter.items.toTypedArray()
+        )
+
+        clearInvocations(onListItemRecyclerViewAdapterListener)
+
+        // when adding item at invalid position
+        stringListItemRecyclerViewAdapter.add(
+            "item #4",
+            -2
+        )
+
+        // then
+        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        assertEquals(
+            3,
+            stringListItemRecyclerViewAdapter.itemCount
+        )
+        assertArrayEquals(
+            arrayOf(
+                "item #2",
                 "item #3",
                 "item #4"
             ),

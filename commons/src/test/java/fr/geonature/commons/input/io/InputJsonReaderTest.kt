@@ -18,7 +18,7 @@ import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -36,7 +36,7 @@ class InputJsonReaderTest {
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         doReturn(DummyInput()).`when`(onInputJsonReaderListener)
             .createInput()

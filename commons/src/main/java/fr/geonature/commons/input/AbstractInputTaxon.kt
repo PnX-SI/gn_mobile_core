@@ -2,7 +2,7 @@ package fr.geonature.commons.input
 
 import android.os.Parcel
 import android.os.Parcelable
-import fr.geonature.commons.data.AbstractTaxon
+import fr.geonature.commons.data.entity.AbstractTaxon
 
 /**
  * Describes an input taxon.

@@ -1,0 +1,38 @@
+@startuml
+
+!theme bluegray
+
+skinparam componentStyle uml2
+skinparam backgroundColor transparent
+
+title **Check for update**
+
+participant "datasync" as datasync << module >>
+participant "GeoNature" as gn
+
+activate datasync
+
+group Fetch common configuration data
+    datasync -> gn ++ : **GET** ""/api/gn_commons/t_mobile_apps""
+    gn -> datasync -- : **200**: ""[AppPackage]""
+    note left
+        **""AppPackage"":**
+        {
+            "url_apk": <URL>,
+            "package": <application ID>,
+            "app_code": <application code>,
+            "version_code": <number>
+        }
+    end note
+end
+
+group Check for update
+  datasync -> datasync : update //settings_<module>.json//
+  datasync -> datasync : check if ""version_code"" from ""AppPackage""\nis greater than app version code
+
+  alt A new version is available
+    datasync -> datasync : notify if we want to upgrade
+  end
+end
+
+@enduml

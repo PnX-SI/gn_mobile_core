@@ -8,7 +8,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.spy
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -29,7 +29,7 @@ class InputViewModelTest {
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         inputViewModel = spy(InputViewModel(inputManager))
     }

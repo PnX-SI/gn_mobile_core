@@ -1,19 +1,20 @@
 package fr.geonature.commons.settings
 
-import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
-import androidx.test.core.app.ApplicationProvider
-import fr.geonature.commons.settings.io.AppSettingsJsonReader
+import fr.geonature.commons.observeOnce
+import io.mockk.MockKAnnotations.init
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.spyk
+import io.mockk.unmockkAll
+import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.spy
-import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -27,56 +28,52 @@ class AppSettingsViewModelTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    @Mock
-    private lateinit var onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
+    @MockK
+    private lateinit var appSettingsManager: IAppSettingsManager<DummyAppSettings>
 
-    @Mock
-    private lateinit var observer: Observer<DummyAppSettings?>
-
-    private lateinit var application: Application
     private lateinit var appSettingsViewModel: DummyAppSettingsViewModel
-    private lateinit var appSettingsManager: AppSettingsManager<DummyAppSettings>
 
     @Before
     fun setUp() {
-        initMocks(this)
+        init(this)
+        appSettingsViewModel = spyk(DummyAppSettingsViewModel(appSettingsManager))
+    }
 
-        application = spy(ApplicationProvider.getApplicationContext<Application>())
-        doReturn("fr.geonature.commons").`when`(application)
-            .packageName
-
-        appSettingsViewModel = spy(
-            DummyAppSettingsViewModel(
-                application,
-                onAppSettingsJsonJsonReaderListener
-            )
-        )
-        appSettingsManager = spy(appSettingsViewModel.appSettingsManager)
-        appSettingsViewModel.loadAppSettings().observeForever(observer)
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     @Test
-    fun testCreateFromFactory() {
-        // given Factory
-        val factory = AppSettingsViewModel.Factory {
-            DummyAppSettingsViewModel(
-                application,
-                onAppSettingsJsonJsonReaderListener
-            )
-        }
+    fun `should get app settings filename from Manager`() {
+        // when getting the app settings filename
+        every { appSettingsManager.getAppSettingsFilename() } returns "settings_test.json"
 
-        // when create AppSettingsViewModel instance from this factory
-        val appSettingsViewModelFromFactory = factory.create(DummyAppSettingsViewModel::class.java)
+        val appSettingsFilename = appSettingsViewModel.getAppSettingsFilename()
 
         // then
-        assertNotNull(appSettingsViewModelFromFactory)
+        assertNotNull(appSettingsFilename)
+        assertEquals(
+            "settings_test.json",
+            appSettingsFilename
+        )
     }
 
-    class DummyAppSettingsViewModel(
-        application: Application,
-        onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
-    ) : AppSettingsViewModel<DummyAppSettings>(
-        application,
-        onAppSettingsJsonJsonReaderListener
-    )
+    @Test
+    fun `should read app settings from Manager`() {
+        val expectedAppSettings = DummyAppSettings(attribute = "value")
+        coEvery { appSettingsManager.loadAppSettings() } returns expectedAppSettings
+
+        appSettingsViewModel
+            .loadAppSettings()
+            .observeOnce {
+                assertEquals(
+                    expectedAppSettings,
+                    it
+                )
+            }
+    }
+
+    class DummyAppSettingsViewModel(appSettingsManager: IAppSettingsManager<DummyAppSettings>) :
+        AppSettingsViewModel<DummyAppSettings>(appSettingsManager)
 }

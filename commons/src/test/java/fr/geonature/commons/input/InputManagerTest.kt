@@ -8,7 +8,6 @@ import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import fr.geonature.commons.data.DummyContentProvider
-import fr.geonature.commons.data.helper.Provider
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
 import kotlinx.coroutines.runBlocking
@@ -25,7 +24,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.atMost
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
@@ -51,11 +50,11 @@ class InputManagerTest {
     private lateinit var observerForListOfInputs: Observer<List<DummyInput>>
 
     @Mock
-    private lateinit var observerForInput: Observer<DummyInput>
+    private lateinit var observerForInput: Observer<DummyInput?>
 
     @Before
     fun setUp() {
-        initMocks(this)
+        openMocks(this)
 
         onInputJsonReaderListener = object : InputJsonReader.OnInputJsonReaderListener<DummyInput> {
             override fun createInput(): DummyInput {
@@ -73,7 +72,7 @@ class InputManagerTest {
         val application = getApplicationContext<Application>()
 
         val info = ProviderInfo()
-        info.authority = Provider.AUTHORITY
+        info.authority = "fr.geonature.sync.provider"
         info.grantUriPermissions = true
         Robolectric
             .buildContentProvider(DummyContentProvider::class.java)
@@ -81,6 +80,7 @@ class InputManagerTest {
 
         inputManager = InputManagerImpl(
             application,
+            info.authority,
             onInputJsonReaderListener,
             onInputJsonWriterListener
         )
