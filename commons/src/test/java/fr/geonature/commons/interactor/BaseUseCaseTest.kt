@@ -34,17 +34,18 @@ class BaseUseCaseTest {
     }
 
     @Test
-    fun `should return 'Either' of use case type`() = runTest {
-        val result = useCase.run(DummyParams(name = "test"))
+    fun `should return 'Either' of use case type`() =
+        runTest {
+            val result = useCase.run(DummyParams(name = "test"))
 
-        assertEquals(
-            Either.Right(DummyType("test")),
-            result
-        )
-    }
+            assertEquals(
+                Either.Right(DummyType("test")),
+                result
+            )
+        }
 
     @Test
-    fun `should return correct data when executing use case`() = runTest {
+    fun `should return correct data when executing use case`() = runTest(coroutineTestRule.testDispatcher) {
         var result: Either<Failure, DummyType>? = null
 
         val params = DummyParams(name = "test")
@@ -66,6 +67,7 @@ class BaseUseCaseTest {
     data class DummyParams(val name: String)
 
     private inner class DummyUseCase : BaseUseCase<DummyType, DummyParams>() {
-        override suspend fun run(params: DummyParams) = Either.Right(DummyType(params.name))
+        override suspend fun run(params: DummyParams) =
+            Either.Right(DummyType(params.name))
     }
 }
