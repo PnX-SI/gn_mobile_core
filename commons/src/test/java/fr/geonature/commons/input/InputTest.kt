@@ -4,6 +4,7 @@ import android.os.Parcel
 import fr.geonature.commons.data.entity.InputObserver
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.Taxonomy
+import fr.geonature.commons.util.add
 import fr.geonature.commons.util.toDate
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -41,17 +42,32 @@ class InputTest {
     }
 
     @Test
-    fun testSetDate() {
+    fun testSetStartDate() {
         // given an empty Input
         val input = DummyInput()
 
         // when setting the input date
-        input.setDate("2016-10-28T08:15:00Z")
+        input.setStartDate("2016-10-28T08:15:00Z")
 
         // then
         assertEquals(
             toDate("2016-10-28T08:15:00Z"),
-            input.date
+            input.startDate
+        )
+    }
+
+    @Test
+    fun testSetEndDate() {
+        // given an empty Input
+        val input = DummyInput()
+
+        // when setting the input date
+        input.setEndDate("2016-10-29T09:00:00Z")
+
+        // then
+        assertEquals(
+            toDate("2016-10-29T09:00:00Z"),
+            input.endDate
         )
     }
 
@@ -771,7 +787,11 @@ class InputTest {
         // given an Input
         val input = DummyInput().apply {
             id = 1234
-            date = Calendar.getInstance().time
+            startDate = Calendar.getInstance().time
+            startDate = Calendar.getInstance().time.add(
+                Calendar.DAY_OF_MONTH,
+                1
+            )
             datasetId = 17
             setAllInputObservers(
                 listOf(
