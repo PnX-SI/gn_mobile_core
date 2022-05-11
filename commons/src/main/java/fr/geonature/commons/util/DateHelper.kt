@@ -53,10 +53,25 @@ fun Date.toIsoDateString(): String {
  * Adds calendar field to current date.
  */
 fun Date.add(field: Int, amount: Int): Date {
-    Calendar.getInstance()
+    Calendar.getInstance(getTimeZone("UTC"))
         .apply {
             time = this@add
             add(
+                field,
+                amount
+            )
+            return time
+        }
+}
+
+/**
+ * Sets calendar field to current date.
+ */
+fun Date.set(field: Int, amount: Int): Date {
+    Calendar.getInstance(getTimeZone("UTC"))
+        .apply {
+            time = this@set
+            set(
                 field,
                 amount
             )
