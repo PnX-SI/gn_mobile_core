@@ -16,7 +16,7 @@ import java.util.TimeZone
 class DateHelperTest {
 
     @Test
-    fun testToDate() {
+    fun `should parse date string to Date`() {
         assertNull(toDate(null))
         assertNull(toDate(""))
         assertNull(toDate("no_such_valid_date"))
@@ -43,7 +43,7 @@ class DateHelperTest {
     }
 
     @Test
-    fun testToIsoDateString() {
+    fun `should format date to ISO-8601`() {
         assertEquals(
             "2016-10-28T08:15:00Z",
             toDate("2016-10-28T08:15:00Z")?.toIsoDateString()
@@ -51,16 +51,34 @@ class DateHelperTest {
     }
 
     @Test
-    fun testAddCalendarField() {
+    fun `should add value to date field`() {
         assertEquals(
             "2016-10-28T09:10:00Z",
-            toDate("2016-10-28T08:15:00Z")?.add(
-                Calendar.HOUR,
-                1
-            )
+            toDate("2016-10-28T08:15:00Z")
+                ?.add(
+                    Calendar.HOUR,
+                    1
+                )
                 ?.add(
                     Calendar.MINUTE,
                     -5
+                )
+                ?.toIsoDateString()
+        )
+    }
+
+    @Test
+    fun `should set value to date field`() {
+        assertEquals(
+            "2016-10-28T08:15:00Z",
+            toDate("2016-10-28T09:00:00Z")
+                ?.set(
+                    Calendar.HOUR,
+                    8
+                )
+                ?.set(
+                    Calendar.MINUTE,
+                    15
                 )
                 ?.toIsoDateString()
         )
