@@ -4,14 +4,13 @@ import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.commons.data.entity.InputObserver
 import fr.geonature.commons.util.toDate
-import java.util.ArrayList
 import java.util.Calendar
 import java.util.Date
 
 /**
  * Describes a current input.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 abstract class AbstractInput(
 
@@ -22,7 +21,8 @@ abstract class AbstractInput(
 ) : Parcelable {
 
     var id: Long = generateId()
-    var date: Date = Date()
+    var startDate: Date = Date()
+    var endDate: Date? = null
     var status: Status = Status.DRAFT
     var datasetId: Long? = null
     private val inputObserverIds: MutableSet<Long> = mutableSetOf()
@@ -31,7 +31,8 @@ abstract class AbstractInput(
 
     constructor(source: Parcel) : this(source.readString()!!) {
         this.id = source.readLong()
-        this.date = source.readSerializable() as Date
+        this.startDate = source.readSerializable() as Date
+        this.endDate = source.readSerializable() as Date?
         this.status = source
             .readString()
             .let { statusAsString ->
@@ -70,7 +71,8 @@ abstract class AbstractInput(
         dest?.also {
             it.writeString(module)
             it.writeLong(this.id)
-            it.writeSerializable(this.date)
+            it.writeSerializable(this.startDate)
+            it.writeSerializable(this.endDate)
             it.writeString(this.status.name)
             it.writeLong(
                 this.datasetId
@@ -94,7 +96,8 @@ abstract class AbstractInput(
 
         if (module != other.module) return false
         if (id != other.id) return false
-        if (date != other.date) return false
+        if (startDate != other.startDate) return false
+        if (endDate != other.endDate) return false
         if (status != other.status) return false
         if (datasetId != other.datasetId) return false
         if (inputObserverIds != other.inputObserverIds) return false
@@ -106,7 +109,8 @@ abstract class AbstractInput(
     override fun hashCode(): Int {
         var result = module.hashCode()
         result = 31 * result + id.hashCode()
-        result = 31 * result + date.hashCode()
+        result = 31 * result + startDate.hashCode()
+        result = 31 * result + endDate.hashCode()
         result = 31 * result + status.hashCode()
         result = 31 * result + datasetId.hashCode()
         result = 31 * result + inputObserverIds.hashCode()
@@ -115,9 +119,13 @@ abstract class AbstractInput(
         return result
     }
 
-    fun setDate(isoDate: String?) {
-        this.date = toDate(isoDate)
+    fun setStartDate(isoDate: String?) {
+        this.startDate = toDate(isoDate)
             ?: Date()
+    }
+
+    fun setEndDate(isoDate: String?) {
+        this.endDate = toDate(isoDate)
     }
 
     /**
