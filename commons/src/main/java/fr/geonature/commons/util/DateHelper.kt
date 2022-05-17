@@ -23,14 +23,16 @@ fun toDate(str: String?): Date? {
         SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
             Locale.getDefault()
-        ).apply { timeZone = getTimeZone("UTC") }
+        )
+            .apply { timeZone = getTimeZone("UTC") }
             .parse(str)
     } catch (pe: ParseException) {
         try {
             SimpleDateFormat(
                 "yyyy-MM-dd",
                 Locale.getDefault()
-            ).apply { timeZone = getTimeZone("UTC") }
+            )
+                .apply { timeZone = getTimeZone("UTC") }
                 .parse(str)
         } catch (pe: ParseException) {
             return null
@@ -39,21 +41,33 @@ fun toDate(str: String?): Date? {
 }
 
 /**
+ * Formats current date using the given pattern.
+ */
+fun Date.format(pattern: String): String {
+    return SimpleDateFormat(
+        pattern,
+        Locale.getDefault()
+    )
+        .apply { timeZone = getTimeZone("UTC") }
+        .format(this)
+}
+
+/**
  * Formats current date to ISO-8601.
  */
 fun Date.toIsoDateString(): String {
-    return SimpleDateFormat(
-        "yyyy-MM-dd'T'HH:mm:ss'Z'",
-        Locale.getDefault()
-    ).apply { timeZone = getTimeZone("UTC") }
-        .format(this)
+    return format("yyyy-MM-dd'T'HH:mm:ss'Z'")
 }
 
 /**
  * Adds calendar field to current date.
  */
-fun Date.add(field: Int, amount: Int): Date {
-    Calendar.getInstance(getTimeZone("UTC"))
+fun Date.add(
+    field: Int,
+    amount: Int
+): Date {
+    Calendar
+        .getInstance(getTimeZone("UTC"))
         .apply {
             time = this@add
             add(
@@ -67,8 +81,12 @@ fun Date.add(field: Int, amount: Int): Date {
 /**
  * Sets calendar field to current date.
  */
-fun Date.set(field: Int, amount: Int): Date {
-    Calendar.getInstance(getTimeZone("UTC"))
+fun Date.set(
+    field: Int,
+    amount: Int
+): Date {
+    Calendar
+        .getInstance(getTimeZone("UTC"))
         .apply {
             time = this@set
             set(

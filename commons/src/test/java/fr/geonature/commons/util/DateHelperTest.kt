@@ -11,7 +11,7 @@ import java.util.TimeZone
 /**
  * Unit test for `DateHelper`.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DateHelperTest {
 
@@ -39,6 +39,14 @@ class DateHelperTest {
         assertEquals(
             "2016-10-28",
             sdfDate.format(isoDate!!)
+        )
+    }
+
+    @Test
+    fun `should format date using custom pattern`() {
+        assertEquals(
+            "2016-10-28",
+            toDate("2016-10-28T08:15:00Z")?.format("yyyy-MM-dd")
         )
     }
 
