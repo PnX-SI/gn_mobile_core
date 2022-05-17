@@ -1,6 +1,5 @@
 package fr.geonature.commons.util
 
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -14,30 +13,25 @@ import java.util.TimeZone.getTimeZone
  */
 
 /**
- * Parses given string to [Date].
+ * Tries to parse given string to [Date].
  */
 fun toDate(str: String?): Date? {
     if (str.isNullOrBlank()) return null
 
-    return try {
-        SimpleDateFormat(
-            "yyyy-MM-dd'T'HH:mm:ss'Z'",
-            Locale.getDefault()
-        )
-            .apply { timeZone = getTimeZone("UTC") }
-            .parse(str)
-    } catch (pe: ParseException) {
-        try {
+    val parse: (String) -> Date? = {
+        runCatching {
             SimpleDateFormat(
-                "yyyy-MM-dd",
+                it,
                 Locale.getDefault()
             )
                 .apply { timeZone = getTimeZone("UTC") }
                 .parse(str)
-        } catch (pe: ParseException) {
-            return null
-        }
+        }.getOrNull()
     }
+    
+    return parse("yyyy-MM-dd'T'HH:mm:ss'Z'")
+        ?: parse("yyyy-MM-dd")
+        ?: parse("HH:mm")
 }
 
 /**
@@ -60,21 +54,33 @@ fun Date.toIsoDateString(): String {
 }
 
 /**
+ * Returns the value of the given calendar field.
+ */
+fun Date.get(field: Int): Int {
+    return Calendar
+        .getInstance(getTimeZone("UTC"))
+        .let {
+            it.time = this@get
+            it.get(field)
+        }
+}
+
+/**
  * Adds calendar field to current date.
  */
 fun Date.add(
     field: Int,
     amount: Int
 ): Date {
-    Calendar
+    return Calendar
         .getInstance(getTimeZone("UTC"))
-        .apply {
-            time = this@add
-            add(
+        .let {
+            it.time = this@add
+            it.add(
                 field,
                 amount
             )
-            return time
+            it.time
         }
 }
 
@@ -85,14 +91,14 @@ fun Date.set(
     field: Int,
     amount: Int
 ): Date {
-    Calendar
+    return Calendar
         .getInstance(getTimeZone("UTC"))
-        .apply {
-            time = this@set
-            set(
+        .let {
+            it.time = this@set
+            it.set(
                 field,
                 amount
             )
-            return time
+            it.time
         }
 }
