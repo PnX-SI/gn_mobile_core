@@ -23,23 +23,27 @@ class DateHelperTest {
 
         val isoDateTime = toDate("2016-10-28T08:15:00Z")
         assertNotNull(isoDateTime)
-
-        val sdfDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        sdfDateTime.timeZone = TimeZone.getTimeZone("UTC")
-        assertEquals(
-            "2016-10-28T08:15:00",
-            sdfDateTime.format(isoDateTime!!)
-        )
+        assertEquals("2016-10-28T08:15:00",
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").let {
+                it.timeZone = TimeZone.getTimeZone("UTC")
+                it.format(isoDateTime!!)
+            })
 
         val isoDate = toDate("2016-10-28")
         assertNotNull(isoDate)
+        assertEquals("2016-10-28",
+            SimpleDateFormat("yyyy-MM-dd").let {
+                it.timeZone = TimeZone.getTimeZone("UTC")
+                it.format(isoDate!!)
+            })
 
-        val sdfDate = SimpleDateFormat("yyyy-MM-dd")
-        sdfDate.timeZone = TimeZone.getTimeZone("UTC")
-        assertEquals(
-            "2016-10-28",
-            sdfDate.format(isoDate!!)
-        )
+        val hourOnlyDate = toDate("08:15")
+        assertNotNull(hourOnlyDate)
+        assertEquals("08:15",
+            SimpleDateFormat("HH:mm").let {
+                it.timeZone = TimeZone.getTimeZone("UTC")
+                it.format(hourOnlyDate!!)
+            })
     }
 
     @Test
@@ -48,6 +52,10 @@ class DateHelperTest {
             "2016-10-28",
             toDate("2016-10-28T08:15:00Z")?.format("yyyy-MM-dd")
         )
+        assertEquals(
+            "08:15",
+            toDate("2016-10-28T08:15:00Z")?.format("HH:mm")
+        )
     }
 
     @Test
@@ -55,6 +63,30 @@ class DateHelperTest {
         assertEquals(
             "2016-10-28T08:15:00Z",
             toDate("2016-10-28T08:15:00Z")?.toIsoDateString()
+        )
+    }
+
+    @Test
+    fun `should get calendar field value`() {
+        assertEquals(
+            2016,
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.YEAR)
+        )
+        assertEquals(
+            9,
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.MONTH)
+        )
+        assertEquals(
+            28,
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.DAY_OF_MONTH)
+        )
+        assertEquals(
+            8,
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.HOUR_OF_DAY)
+        )
+        assertEquals(
+            15,
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.MINUTE)
         )
     }
 
