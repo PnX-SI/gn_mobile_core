@@ -3,13 +3,16 @@ package fr.geonature.commons.input
 import android.app.Application
 import android.content.pm.ProviderInfo
 import android.util.JsonReader
+import android.util.JsonWriter
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import fr.geonature.commons.MockitoKotlinHelper
 import fr.geonature.commons.data.DummyContentProvider
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
+import fr.geonature.commons.settings.DummyAppSettings
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -21,8 +24,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.atMost
+import org.mockito.Mockito.isNull
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.Robolectric
@@ -31,7 +37,7 @@ import org.robolectric.RobolectricTestRunner
 /**
  * Unit tests about [InputManagerImpl].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class InputManagerTest {
@@ -39,10 +45,10 @@ class InputManagerTest {
     @get:Rule
     val rule = InstantTaskExecutorRule()
 
-    private lateinit var inputManager: InputManagerImpl<DummyInput>
+    private lateinit var inputManager: InputManagerImpl<DummyInput, DummyAppSettings>
 
     @Mock
-    private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput>
+    private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput, DummyAppSettings>
 
     private lateinit var onInputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<DummyInput>
 
@@ -95,7 +101,8 @@ class InputManagerTest {
     }
 
     @Test
-    fun testReadUndefinedInputs() { // when reading non existing inputs
+    fun `should return an empty list when reading undefined inputs`() {
+        // when reading non existing inputs
         val noSuchInputs = runBlocking { inputManager.readInputs() }
 
         // then
@@ -103,7 +110,8 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndReadInputs() { // given some inputs to save and read
+    fun `should save and read inputs`() {
+        // given some inputs to save and read
         val input1 = DummyInput().apply { id = 1234 }
         val input2 = DummyInput().apply { id = 1235 }
         val input3 = DummyInput().apply { id = 1236 }
@@ -136,7 +144,8 @@ class InputManagerTest {
     }
 
     @Test
-    fun testReadUndefinedInput() { // when reading non existing Input
+    fun `should return null if trying to read undefined input`() {
+        // when reading non existing Input
         val noSuchInput = runBlocking { inputManager.readInput(1234) }
 
         // then
@@ -144,7 +153,8 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndReadInput() { // given an Input to save and read
+    fun `should save and read input`() {
+        // given an Input to save and read
         val input = DummyInput().apply { id = 1234 }
 
         // when saving this Input
@@ -199,10 +209,16 @@ class InputManagerTest {
             observerForInput,
             atMost(2)
         ).onChanged(readInput)
+        verify(onInputJsonWriterListener).writeAdditionalInputData(
+            MockitoKotlinHelper.any(JsonWriter::class.java),
+            MockitoKotlinHelper.any(DummyInput::class.java),
+            isNull()
+        )
     }
 
     @Test
-    fun testSaveAndDeleteInput() { // given an Input to save and delete
+    fun `should save and delete input`() {
+        // given an Input to save and delete
         val input = DummyInput().apply { id = 1234 }
 
         // when saving this Input
@@ -224,10 +240,16 @@ class InputManagerTest {
             observerForInput,
             atMost(2)
         ).onChanged(null)
+        verify(onInputJsonWriterListener).writeAdditionalInputData(
+            MockitoKotlinHelper.any(JsonWriter::class.java),
+            MockitoKotlinHelper.any(DummyInput::class.java),
+            isNull()
+        )
     }
 
     @Test
-    fun testExportUndefinedInput() { // when exporting non existing Input
+    fun `should not export undefined input`() {
+        // when exporting non existing Input
         val exported = runBlocking { inputManager.exportInput(1234) }
 
         // then
@@ -235,11 +257,13 @@ class InputManagerTest {
     }
 
     @Test
-    fun testSaveAndExportExistingInput() { // given an Input to save and export
+    fun `should save and export existing input`() {
+        // given an Input to save and export
         val input = DummyInput().apply { id = 1234 }
 
         // when saving this Input
-        val saved = runBlocking { inputManager.saveInput(input) } // and exporting this Input
+        val saved = runBlocking { inputManager.saveInput(input) }
+        // and exporting this Input
         val exported = runBlocking { inputManager.exportInput(input.id) }
 
         // then
@@ -257,10 +281,19 @@ class InputManagerTest {
             observerForInput,
             atMost(2)
         ).onChanged(null)
+        verify(
+            onInputJsonWriterListener,
+            times(2)
+        ).writeAdditionalInputData(
+            MockitoKotlinHelper.any(JsonWriter::class.java),
+            MockitoKotlinHelper.any(DummyInput::class.java),
+            isNull()
+        )
     }
 
     @Test
-    fun testSaveAndExportInput() { // given an Input to save and export
+    fun `should save and export input`() {
+        // given an Input to save and export
         val input = DummyInput().apply { id = 1234 }
 
         // when exporting this Input
@@ -274,5 +307,40 @@ class InputManagerTest {
 
         verify(observerForListOfInputs).onChanged(emptyList())
         verify(observerForInput).onChanged(null)
+        verify(onInputJsonWriterListener).writeAdditionalInputData(
+            MockitoKotlinHelper.any(JsonWriter::class.java),
+            MockitoKotlinHelper.any(DummyInput::class.java),
+            isNull()
+        )
+    }
+
+    @Test
+    fun `should save and export input with additional settings`() {
+        // given an Input to save and export
+        val input = DummyInput().apply { id = 1234 }
+        // and settings
+        val settings = DummyAppSettings(attribute = "some_attribute")
+
+        // when exporting this Input
+        val exported = runBlocking {
+            inputManager.exportInput(
+                input,
+                settings
+            )
+        }
+
+        // then
+        assertTrue(exported)
+
+        val noSuchInput = runBlocking { inputManager.readInput(input.id) }
+        assertNull(noSuchInput)
+
+        verify(observerForListOfInputs).onChanged(emptyList())
+        verify(observerForInput).onChanged(null)
+        verify(onInputJsonWriterListener).writeAdditionalInputData(
+            MockitoKotlinHelper.any(JsonWriter::class.java),
+            MockitoKotlinHelper.any(DummyInput::class.java),
+            eq(settings)
+        )
     }
 }

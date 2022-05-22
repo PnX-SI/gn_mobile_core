@@ -10,6 +10,7 @@ import androidx.preference.PreferenceManager
 import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import fr.geonature.commons.input.io.InputJsonReader
 import fr.geonature.commons.input.io.InputJsonWriter
+import fr.geonature.commons.settings.IAppSettings
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.withContext
 import org.tinylog.Logger
@@ -19,17 +20,17 @@ import org.tinylog.Logger
  *
  * @author S. Grimault
  */
-class InputManagerImpl<I : AbstractInput>(
+class InputManagerImpl<I : AbstractInput, S : IAppSettings>(
     private val context: Context,
     private val providerAuthority: String,
     inputJsonReaderListener: InputJsonReader.OnInputJsonReaderListener<I>,
-    inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I>
-) : IInputManager<I> {
+    inputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<I, S>
+) : IInputManager<I, S> {
 
     private val preferenceManager: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(context)
     private val inputJsonReader: InputJsonReader<I> = InputJsonReader(inputJsonReaderListener)
-    private val inputJsonWriter: InputJsonWriter<I> = InputJsonWriter(inputJsonWriterListener)
+    private val inputJsonWriter: InputJsonWriter<I, S> = InputJsonWriter(inputJsonWriterListener)
 
     private val _inputs: MutableLiveData<List<I>> = MutableLiveData()
     override val inputs: LiveData<List<I>> = _inputs
@@ -37,34 +38,36 @@ class InputManagerImpl<I : AbstractInput>(
     private val _input: MutableLiveData<I?> = MutableLiveData()
     override val input: LiveData<I?> = _input
 
-    override suspend fun readInputs(): List<I> = withContext(Default) {
-        preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }.values
-            .mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
-            .sortedBy { it.id }
-            .also { _inputs.postValue(it) }
-    }
-
-    override suspend fun readInput(id: Long?): I? = withContext(Default) {
-        val inputPreferenceKey = buildInputPreferenceKey(
-            id
-                ?: preferenceManager.getLong(
-                    KEY_PREFERENCE_CURRENT_INPUT,
-                    0
-                )
-        )
-        val inputAsJson = preferenceManager.getString(
-            inputPreferenceKey,
-            null
-        )
-
-        if (inputAsJson.isNullOrBlank()) {
-            return@withContext null
+    override suspend fun readInputs(): List<I> =
+        withContext(Default) {
+            preferenceManager.all.filterKeys { it.startsWith("${KEY_PREFERENCE_INPUT}_") }.values
+                .mapNotNull { if (it is String && it.isNotBlank()) inputJsonReader.read(it) else null }
+                .sortedBy { it.id }
+                .also { _inputs.postValue(it) }
         }
 
-        inputJsonReader
-            .read(inputAsJson)
-            .also { _input.postValue(it) }
-    }
+    override suspend fun readInput(id: Long?): I? =
+        withContext(Default) {
+            val inputPreferenceKey = buildInputPreferenceKey(
+                id
+                    ?: preferenceManager.getLong(
+                        KEY_PREFERENCE_CURRENT_INPUT,
+                        0
+                    )
+            )
+            val inputAsJson = preferenceManager.getString(
+                inputPreferenceKey,
+                null
+            )
+
+            if (inputAsJson.isNullOrBlank()) {
+                return@withContext null
+            }
+
+            inputJsonReader
+                .read(inputAsJson)
+                .also { _input.postValue(it) }
+        }
 
     override suspend fun readCurrentInput(): I? {
         return readInput()
@@ -118,15 +121,24 @@ class InputManagerImpl<I : AbstractInput>(
         return deleted && !preferenceManager.contains(buildInputPreferenceKey(id))
     }
 
-    override suspend fun exportInput(id: Long): Boolean {
+    override suspend fun exportInput(
+        id: Long,
+        settings: S?
+    ): Boolean {
         val inputToExport = readInput(id)
             ?: return false
 
-        return exportInput(inputToExport)
+        return exportInput(
+            inputToExport,
+            settings
+        )
     }
 
     @SuppressLint("Recycle")
-    override suspend fun exportInput(input: I): Boolean {
+    override suspend fun exportInput(
+        input: I,
+        settings: S?
+    ): Boolean {
         input.status = AbstractInput.Status.TO_SYNC
 
         val inputExportUri = buildUri(
@@ -141,7 +153,10 @@ class InputManagerImpl<I : AbstractInput>(
                 ?.let {
                     val uri = it.insert(
                         inputExportUri,
-                        toContentValues(input)
+                        toContentValues(
+                            input,
+                            settings
+                        )
                     )
 
                     it.close()
@@ -162,7 +177,10 @@ class InputManagerImpl<I : AbstractInput>(
         return deleteInput(input.id)
     }
 
-    private fun toContentValues(input: I): ContentValues {
+    private fun toContentValues(
+        input: I,
+        settings: S?
+    ): ContentValues {
         return ContentValues().apply {
             put(
                 "id",
@@ -174,7 +192,10 @@ class InputManagerImpl<I : AbstractInput>(
             )
             put(
                 "data",
-                inputJsonWriter.write(input)
+                inputJsonWriter.write(
+                    input,
+                    settings
+                )
             )
         }
     }
