@@ -1,6 +1,7 @@
 package fr.geonature.commons.util
 
 import android.util.JsonReader
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -9,12 +10,60 @@ import org.robolectric.RobolectricTestRunner
 import java.io.StringReader
 
 /**
- * Unit test for `JsonReaderHelper`.
+ * Unit test for `JsonHelper`.
  *
  * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
-class JsonReaderHelperTest {
+class JsonHelperTest {
+
+    @Test
+    fun `should returns a map representation from json string`() {
+        assertEquals(
+            mapOf(
+                "key_string" to "value",
+                "key_number" to 8,
+                "key_array" to listOf(
+                    1,
+                    2,
+                    3
+                ),
+                "key_object_empty" to mapOf<String, Any>(),
+                "key_object" to mapOf(
+                    "key_string" to "value",
+                    "key_null" to null,
+                    "key_array" to listOf(
+                        1,
+                        2,
+                        3,
+                        null,
+                        mapOf("key_string" to "value")
+                    )
+                )
+            ),
+            JSONObject(
+                """{
+                "key_string": "value",
+                "key_number": 8,
+                "key_array": [1, 2, 3],
+                "key_object_empty": {},
+                "key_object": {
+                    "key_string": "value",
+                    "key_null": null,
+                    "key_array": [
+                        1,
+                        2,
+                        3,
+                        null,
+                        {
+                             "key_string": "value"
+                        }
+                    ]
+                }
+            }""".trimIndent()
+            ).toMap()
+        )
+    }
 
     @Test
     fun `should read string value from JSON property`() {

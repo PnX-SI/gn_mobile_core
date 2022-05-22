@@ -1,6 +1,7 @@
 package fr.geonature.commons.input
 
 import androidx.lifecycle.LiveData
+import fr.geonature.commons.settings.IAppSettings
 
 /**
  * Manage [AbstractInput]:
@@ -11,7 +12,7 @@ import androidx.lifecycle.LiveData
  *
  * @author S. Grimault
  */
-interface IInputManager<I : AbstractInput> {
+interface IInputManager<I : AbstractInput, S: IAppSettings> {
 
     /***
      * All loaded [AbstractInput]s as `List`.
@@ -68,17 +69,25 @@ interface IInputManager<I : AbstractInput> {
      * Exports [AbstractInput] from given ID as `JSON` file.
      *
      * @param id the [AbstractInput] ID to export
+     * @param settings additional settings
      *
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
-    suspend fun exportInput(id: Long): Boolean
+    suspend fun exportInput(
+        id: Long,
+        settings: S? = null
+    ): Boolean
 
     /**
      * Exports [AbstractInput] as `JSON` file.
      *
      * @param input the [AbstractInput] to save
+     * @param settings additional settings
      *
      * @return `true` if the given [AbstractInput] has been successfully exported, `false` otherwise
      */
-    suspend fun exportInput(input: I): Boolean
+    suspend fun exportInput(
+        input: I,
+        settings: S? = null
+    ): Boolean
 }

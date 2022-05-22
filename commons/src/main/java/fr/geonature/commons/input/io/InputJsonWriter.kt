@@ -2,6 +2,7 @@ package fr.geonature.commons.input.io
 
 import android.util.JsonWriter
 import fr.geonature.commons.input.AbstractInput
+import fr.geonature.commons.settings.IAppSettings
 import org.tinylog.Logger
 import java.io.IOException
 import java.io.StringWriter
@@ -10,10 +11,10 @@ import java.io.Writer
 /**
  * Default `JsonWriter` about writing an [AbstractInput] as `JSON`.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  * @see InputJsonReader
  */
-class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: OnInputJsonWriterListener<I>) {
+class InputJsonWriter<I : AbstractInput, S : IAppSettings>(private val onInputJsonWriterListener: OnInputJsonWriterListener<I, S>) {
 
     private var indent: String = ""
 
@@ -26,7 +27,7 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
      *
      * @return InputJsonWriter fluent interface
      */
-    fun setIndent(indent: String): InputJsonWriter<I> {
+    fun setIndent(indent: String): InputJsonWriter<I, S> {
         this.indent = indent
 
         return this
@@ -36,10 +37,15 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
      * Convert the given [AbstractInput] as `JSON` string.
      *
      * @param input the [AbstractInput] to convert
+     * @param settings additional settings
+     *
      * @return a `JSON` string representation of the given [AbstractInput] or `null` if something goes wrong
      * @see .write
      */
-    fun write(input: I?): String? {
+    fun write(
+        input: I?,
+        settings: S? = null
+    ): String? {
         if (input == null) {
             return null
         }
@@ -49,7 +55,8 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
         try {
             write(
                 writer,
-                input
+                input,
+                settings
             )
         } catch (ioe: IOException) {
             Logger.warn(ioe)
@@ -70,13 +77,15 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
     @Throws(IOException::class)
     fun write(
         out: Writer,
-        input: I
+        input: I,
+        settings: S? = null
     ) {
         val writer = JsonWriter(out)
         writer.setIndent(this.indent)
         writeInput(
             writer,
-            input
+            input,
+            settings
         )
         writer.flush()
         writer.close()
@@ -85,7 +94,8 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
     @Throws(IOException::class)
     private fun writeInput(
         writer: JsonWriter,
-        input: I
+        input: I,
+        settings: S? = null
     ) {
         writer.beginObject()
 
@@ -98,7 +108,8 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
 
         onInputJsonWriterListener.writeAdditionalInputData(
             writer,
-            input
+            input,
+            settings
         )
 
         writer.endObject()
@@ -107,21 +118,24 @@ class InputJsonWriter<I : AbstractInput>(private val onInputJsonWriterListener: 
     /**
      * Callback used by [InputJsonWriter].
      *
-     * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+     * @author S. Grimault
      */
-    interface OnInputJsonWriterListener<T : AbstractInput> {
+    interface OnInputJsonWriterListener<T : AbstractInput, S : IAppSettings> {
 
         /**
          * Adding some additional data to write from the current [AbstractInput].
          *
          * @param writer the current @code JsonWriter} to use
          * @param input the current [AbstractInput] to read
+         * @param settings additional settings
+         *
          * @throws IOException if something goes wrong
          */
         @Throws(IOException::class)
         fun writeAdditionalInputData(
             writer: JsonWriter,
-            input: T
+            input: T,
+            settings: S? = null
         )
     }
 }

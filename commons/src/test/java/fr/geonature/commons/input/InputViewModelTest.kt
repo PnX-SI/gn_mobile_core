@@ -1,6 +1,7 @@
 package fr.geonature.commons.input
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import fr.geonature.commons.settings.DummyAppSettings
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
@@ -14,7 +15,7 @@ import org.robolectric.RobolectricTestRunner
 /**
  * Unit tests about [InputViewModel].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class InputViewModelTest {
@@ -23,9 +24,9 @@ class InputViewModelTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Mock
-    private lateinit var inputManager: IInputManager<DummyInput>
+    private lateinit var inputManager: IInputManager<DummyInput, DummyAppSettings>
 
-    private lateinit var inputViewModel: InputViewModel<DummyInput>
+    private lateinit var inputViewModel: InputViewModel<DummyInput, DummyAppSettings>
 
     @Before
     fun setUp() {
@@ -35,7 +36,8 @@ class InputViewModelTest {
     }
 
     @Test
-    fun testCreateFromFactory() { // given Factory
+    fun testCreateFromFactory() {
+        // given Factory
         val factory = InputViewModel.Factory {
             InputViewModel(inputManager)
         }

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import fr.geonature.commons.settings.IAppSettings
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
  *
  * @author S. Grimault
  */
-open class InputViewModel<I : AbstractInput>(private val inputManager: IInputManager<I>) :
+open class InputViewModel<I : AbstractInput, S : IAppSettings>(private val inputManager: IInputManager<I, S>) :
     ViewModel() {
 
     private var deletedInputToRestore: I? = null
@@ -89,14 +90,19 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
      * Exports [AbstractInput] from given ID as `JSON` file.
      *
      * @param id the [AbstractInput] ID to export
+     * @param settings additional settings
      */
     fun exportInput(
         id: Long,
+        settings: S? = null,
         exported: () -> Unit = {}
     ) {
         viewModelScope.launch(Main) {
             inputManager
-                .exportInput(id)
+                .exportInput(
+                    id,
+                    settings
+                )
                 .also {
                     if (it) {
                         exported()
@@ -109,14 +115,19 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
      * Exports given [AbstractInput] as `JSON` file.
      *
      * @param input the [AbstractInput] to export
+     * @param settings additional settings
      */
     fun exportInput(
         input: I,
+        settings: S? = null,
         exported: () -> Unit = {}
     ) {
         viewModelScope.launch(Main) {
             inputManager
-                .exportInput(input)
+                .exportInput(
+                    input,
+                    settings
+                )
                 .also {
                     if (it) {
                         exported()
@@ -128,9 +139,9 @@ open class InputViewModel<I : AbstractInput>(private val inputManager: IInputMan
     /**
      * Default Factory to use for [InputViewModel].
      *
-     * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+     * @author S. Grimault
      */
-    class Factory<T : InputViewModel<I>, I : AbstractInput>(val creator: () -> T) :
+    class Factory<T : InputViewModel<I, S>, I : AbstractInput, S : IAppSettings>(val creator: () -> T) :
         ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST") return creator() as T
