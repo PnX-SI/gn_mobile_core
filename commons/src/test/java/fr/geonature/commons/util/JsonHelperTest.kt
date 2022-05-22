@@ -3,7 +3,10 @@ package fr.geonature.commons.util
 import android.util.JsonReader
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -120,5 +123,43 @@ class JsonHelperTest {
         jsonReader.endObject()
 
         assertNull(value)
+    }
+
+    @Test
+    fun `should read boolean value from JSON property`() {
+        val jsonReader = JsonReader(StringReader("{\"key\":true}"))
+        var value: Boolean? = null
+
+        jsonReader.beginObject()
+
+        while (jsonReader.hasNext()) {
+            when (jsonReader.nextName()) {
+                "key" -> value = jsonReader.nextBooleanOrElse { false }
+            }
+        }
+
+        jsonReader.endObject()
+
+        assertNotNull(value)
+        assertTrue(value!!)
+    }
+
+    @Test
+    fun `should read non invalid boolean value from JSON property`() {
+        val jsonReader = JsonReader(StringReader("{\"key\":\"no_such_value\"}"))
+        var value: Boolean? = null
+
+        jsonReader.beginObject()
+
+        while (jsonReader.hasNext()) {
+            when (jsonReader.nextName()) {
+                "key" -> value = jsonReader.nextBooleanOrElse { false }
+            }
+        }
+
+        jsonReader.endObject()
+
+        assertNotNull(value)
+        assertFalse(value!!)
     }
 }

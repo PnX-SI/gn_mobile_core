@@ -1,6 +1,7 @@
 package fr.geonature.commons.util
 
 import android.util.JsonReader
+import android.util.JsonToken.BOOLEAN
 import android.util.JsonToken.STRING
 import org.json.JSONArray
 import org.json.JSONObject
@@ -45,6 +46,20 @@ fun JsonReader.nextStringOrNull(): String? {
         else -> {
             skipValue()
             null
+        }
+    }
+}
+
+/**
+ * Returns the string value of the next token and consuming it.
+ * If the next token is not a string returns `null`.
+ */
+fun JsonReader.nextBooleanOrElse(orElse: () -> Boolean): Boolean {
+    return when (peek()) {
+        BOOLEAN -> nextBoolean()
+        else -> {
+            skipValue()
+            orElse()
         }
     }
 }
