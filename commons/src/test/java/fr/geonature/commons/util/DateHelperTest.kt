@@ -53,8 +53,22 @@ class DateHelperTest {
             toDate("2016-10-28T08:15:00Z")?.format("yyyy-MM-dd")
         )
         assertEquals(
+            "2016-10-29",
+            toDate("2016-10-28T23:00:00Z")?.format(
+                "yyyy-MM-dd",
+                TimeZone.getTimeZone("GMT+2")
+            )
+        )
+        assertEquals(
             "08:15",
             toDate("2016-10-28T08:15:00Z")?.format("HH:mm")
+        )
+        assertEquals(
+            "10:15",
+            toDate("2016-10-28T08:15:00Z")?.format(
+                "HH:mm",
+                TimeZone.getTimeZone("GMT+2")
+            )
         )
     }
 

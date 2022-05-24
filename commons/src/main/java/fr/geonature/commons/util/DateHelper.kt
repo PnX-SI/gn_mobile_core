@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import java.util.TimeZone.getTimeZone
 
 /**
@@ -28,7 +29,7 @@ fun toDate(str: String?): Date? {
                 .parse(str)
         }.getOrNull()
     }
-    
+
     return parse("yyyy-MM-dd'T'HH:mm:ss'Z'")
         ?: parse("yyyy-MM-dd")
         ?: parse("HH:mm")
@@ -37,12 +38,15 @@ fun toDate(str: String?): Date? {
 /**
  * Formats current date using the given pattern.
  */
-fun Date.format(pattern: String): String {
+fun Date.format(
+    pattern: String,
+    timeZone: TimeZone = getTimeZone("UTC")
+): String {
     return SimpleDateFormat(
         pattern,
         Locale.getDefault()
     )
-        .apply { timeZone = getTimeZone("UTC") }
+        .apply { this.timeZone = timeZone }
         .format(this)
 }
 
