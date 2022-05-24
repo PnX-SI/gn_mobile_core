@@ -60,9 +60,12 @@ fun Date.toIsoDateString(): String {
 /**
  * Returns the value of the given calendar field.
  */
-fun Date.get(field: Int): Int {
+fun Date.get(
+    field: Int,
+    timeZone: TimeZone = TimeZone.getDefault()
+): Int {
     return Calendar
-        .getInstance(getTimeZone("UTC"))
+        .getInstance(timeZone)
         .let {
             it.time = this@get
             it.get(field)
@@ -74,10 +77,11 @@ fun Date.get(field: Int): Int {
  */
 fun Date.add(
     field: Int,
-    amount: Int
+    amount: Int,
+    timeZone: TimeZone = TimeZone.getDefault()
 ): Date {
     return Calendar
-        .getInstance(getTimeZone("UTC"))
+        .getInstance(timeZone)
         .let {
             it.time = this@add
             it.add(
@@ -93,10 +97,11 @@ fun Date.add(
  */
 fun Date.set(
     field: Int,
-    amount: Int
+    amount: Int,
+    timeZone: TimeZone = TimeZone.getDefault()
 ): Date {
     return Calendar
-        .getInstance(getTimeZone("UTC"))
+        .getInstance(timeZone)
         .let {
             it.time = this@set
             it.set(
