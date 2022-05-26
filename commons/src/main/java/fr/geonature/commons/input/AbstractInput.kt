@@ -3,7 +3,6 @@ package fr.geonature.commons.input
 import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.commons.data.entity.InputObserver
-import fr.geonature.commons.util.toDate
 import java.util.Calendar
 import java.util.Date
 
@@ -22,7 +21,19 @@ abstract class AbstractInput(
 
     var id: Long = generateId()
     var startDate: Date = Date()
-    var endDate: Date? = null
+        set(value) {
+            field = value
+            if (endDate.before(field)) {
+                endDate = field
+            }
+        }
+    var endDate: Date = startDate
+        set(value) {
+            field = value
+            if (startDate.after(field)) {
+                startDate = field
+            }
+        }
     var status: Status = Status.DRAFT
     var datasetId: Long? = null
     private val inputObserverIds: MutableSet<Long> = mutableSetOf()
@@ -32,7 +43,7 @@ abstract class AbstractInput(
     constructor(source: Parcel) : this(source.readString()!!) {
         this.id = source.readLong()
         this.startDate = source.readSerializable() as Date
-        this.endDate = source.readSerializable() as Date?
+        this.endDate = source.readSerializable() as Date
         this.status = source
             .readString()
             .let { statusAsString ->
@@ -117,15 +128,6 @@ abstract class AbstractInput(
         result = 31 * result + inputTaxa.hashCode()
 
         return result
-    }
-
-    fun setStartDate(isoDate: String?) {
-        this.startDate = toDate(isoDate)
-            ?: Date()
-    }
-
-    fun setEndDate(isoDate: String?) {
-        this.endDate = toDate(isoDate)
     }
 
     /**

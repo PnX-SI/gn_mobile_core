@@ -14,6 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.util.Calendar
+import java.util.Date
 
 /**
  * Unit tests about [AbstractInput].
@@ -24,7 +25,7 @@ import java.util.Calendar
 class InputTest {
 
     @Test
-    fun testHasDefaultId() {
+    fun `should have default ID`() {
         // given an empty Input
         val input = DummyInput()
 
@@ -33,7 +34,7 @@ class InputTest {
     }
 
     @Test
-    fun testHasDefaultStatus() {
+    fun `should have default status`() {
         // given an empty Input
         val input = DummyInput()
 
@@ -42,37 +43,52 @@ class InputTest {
     }
 
     @Test
-    fun testSetStartDate() {
-        // given an empty Input
-        val input = DummyInput()
+    fun `should set start date`() {
+        val now = Date()
+
+        // given an empty Input with default start/end date set
+        val input = DummyInput().apply {
+            startDate = toDate("2016-10-28T08:15:00Z")!!
+            endDate = toDate("2016-10-28T08:15:00Z")!!
+        }
 
         // when setting the input date
-        input.setStartDate("2016-10-28T08:15:00Z")
+        input.startDate = now
 
         // then
         assertEquals(
-            toDate("2016-10-28T08:15:00Z"),
+            now,
             input.startDate
         )
-    }
-
-    @Test
-    fun testSetEndDate() {
-        // given an empty Input
-        val input = DummyInput()
-
-        // when setting the input date
-        input.setEndDate("2016-10-29T09:00:00Z")
-
-        // then
         assertEquals(
-            toDate("2016-10-29T09:00:00Z"),
+            now,
             input.endDate
         )
     }
 
     @Test
-    fun testGetPrimaryInputObserver() {
+    fun `should set end date`() {
+        val now = toDate("2016-10-29T09:00:00Z")!!
+
+        // given an empty Input
+        val input = DummyInput()
+
+        // when setting the input date
+        input.endDate = now
+
+        // then
+        assertEquals(
+            now,
+            input.startDate
+        )
+        assertEquals(
+            now,
+            input.endDate
+        )
+    }
+
+    @Test
+    fun `should get primary observer`() {
         // given an empty Input
         val input = DummyInput()
 
@@ -108,7 +124,7 @@ class InputTest {
     }
 
     @Test
-    fun testGetInputObservers() {
+    fun `should get all observers`() {
         // given an empty Input
         val input = DummyInput()
 
@@ -184,7 +200,7 @@ class InputTest {
     }
 
     @Test
-    fun testSetPrimaryInputObserver() {
+    fun `should set primary observer`() {
         // given an empty Input
         val input = DummyInput()
 
@@ -253,7 +269,7 @@ class InputTest {
     }
 
     @Test
-    fun testSetAllInputObserver() {
+    fun `should set all observers`() {
         // given an Input with existing input observers
         val input = DummyInput()
         input.setAllInputObservers(
@@ -333,7 +349,7 @@ class InputTest {
     }
 
     @Test
-    fun testAddInputObserverId() {
+    fun `should add observer by ID`() {
         // given an Input with existing input observers
         val input = DummyInput()
         input.setAllInputObservers(
@@ -389,7 +405,7 @@ class InputTest {
     }
 
     @Test
-    fun testAddInputTaxon() {
+    fun `should add taxon`() {
         // given an Input with no input taxa
         val input = DummyInput()
 
@@ -461,7 +477,7 @@ class InputTest {
     }
 
     @Test
-    fun testRemoveInputTaxon() {
+    fun `should remove taxon`() {
         // given an Input with some input taxa
         val input = DummyInput().apply {
             addInputTaxon(
@@ -570,7 +586,7 @@ class InputTest {
     }
 
     @Test
-    fun testCurrentSelectedInputTaxon() {
+    fun `should get current selected taxon`() {
         // given an Input with no input data
         val input = DummyInput()
 
@@ -655,7 +671,7 @@ class InputTest {
     }
 
     @Test
-    fun testLastAddedInputTaxon() {
+    fun `should get last added taxon`() {
         // given an Input with no input data
         val input = DummyInput()
 
@@ -718,7 +734,7 @@ class InputTest {
     }
 
     @Test
-    fun testClearCurrentSelectedInputTaxonId() {
+    fun `should clear current selected taxon`() {
         // given an Input with no input data
         val input = DummyInput()
 
@@ -783,7 +799,7 @@ class InputTest {
     }
 
     @Test
-    fun testParcelable() {
+    fun `should create input from Parcel`() {
         // given an Input
         val input = DummyInput().apply {
             id = 1234
