@@ -20,14 +20,13 @@ import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.AuthLoginError
 import fr.geonature.datasync.auth.io.AuthLoginJsonReader
 import fr.geonature.datasync.auth.io.AuthLoginJsonWriter
-import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
+import fr.geonature.datasync.sync.worker.DataSyncWorker
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import org.tinylog.Logger
 import retrofit2.Response
-import java.util.Calendar
 
 /**
  * Default implementation of [IAuthManager].
@@ -56,43 +55,36 @@ class AuthManagerImpl(
     private val _isLoggedIn: MutableLiveData<Boolean> = MutableLiveData(false)
     override val isLoggedIn: LiveData<Boolean> = _isLoggedIn
 
-    override suspend fun getAuthLogin(): AuthLogin? = withContext(dispatcher) {
-        val authLogin = this@AuthManagerImpl.authLogin
+    override suspend fun getAuthLogin(): AuthLogin? =
+        withContext(dispatcher) {
+            val authLogin = this@AuthManagerImpl.authLogin
 
-        if (authLogin != null) {
-            if (!checkSessionValidity(authLogin)) {
+            if (authLogin != null) {
+                return@withContext authLogin
+            }
+
+            val authLoginAsJson = preferenceManager.getString(
+                KEY_PREFERENCE_AUTH_LOGIN,
+                null
+            )
+
+            if (authLoginAsJson.isNullOrBlank()) {
                 this@AuthManagerImpl.authLogin = null
                 return@withContext null
             }
 
-            return@withContext authLogin
-        }
+            authLoginJsonReader
+                .read(authLoginAsJson)
+                .let {
+                    if (it == null) {
+                        this@AuthManagerImpl.authLogin = null
+                        return@let it
+                    }
 
-        val authLoginAsJson = preferenceManager.getString(KEY_PREFERENCE_AUTH_LOGIN,
-            null)
-
-        if (authLoginAsJson.isNullOrBlank()) {
-            this@AuthManagerImpl.authLogin = null
-            return@withContext null
-        }
-
-        authLoginJsonReader
-            .read(authLoginAsJson)
-            .let {
-                if (it == null) {
-                    this@AuthManagerImpl.authLogin = null
-                    return@let it
+                    this@AuthManagerImpl.authLogin = it
+                    it
                 }
-
-                if (!checkSessionValidity(it)) {
-                    this@AuthManagerImpl.authLogin = null
-                    return@let null
-                }
-
-                this@AuthManagerImpl.authLogin = it
-                it
-            }
-    }
+        }
 
     override suspend fun login(
         username: String,
@@ -107,9 +99,13 @@ class AuthManagerImpl(
         val authLoginResponse = withContext(IO) {
             val authLoginResponse = runCatching {
                 geoNatureAPIClient
-                    .authLogin(AuthCredentials(username,
-                        password,
-                        applicationId))
+                    .authLogin(
+                        AuthCredentials(
+                            username,
+                            password,
+                            applicationId
+                        )
+                    )
                     .execute()
             }.fold(onSuccess = { response: Response<AuthLogin> ->
                 (if (response.isSuccessful) response
@@ -141,13 +137,15 @@ class AuthManagerImpl(
 
         this.authLogin = authLogin
 
-        notificationManager.cancel(CheckAuthLoginWorker.NOTIFICATION_ID)
+        notificationManager.cancel(DataSyncWorker.AUTH_NOTIFICATION_ID)
 
         return withContext(Dispatchers.Default) {
             preferenceManager
                 .edit()
-                .putString(KEY_PREFERENCE_AUTH_LOGIN,
-                    authLoginAsJson)
+                .putString(
+                    KEY_PREFERENCE_AUTH_LOGIN,
+                    authLoginAsJson
+                )
                 .commit()
                 .let {
                     authLoginResponse
@@ -155,30 +153,18 @@ class AuthManagerImpl(
         }
     }
 
-    override suspend fun logout() = withContext(dispatcher) {
-        geoNatureAPIClient.logout()
-        preferenceManager
-            .edit()
-            .remove(KEY_PREFERENCE_AUTH_LOGIN)
-            .commit()
-            .also {
-                if (it) {
-                    authLogin = null
-                }
-            }
-    }
-
-    private suspend fun checkSessionValidity(authLogin: AuthLogin): Boolean =
+    override suspend fun logout() =
         withContext(dispatcher) {
-            if (authLogin.expires.before(Calendar.getInstance().time)) {
-                Logger.info { "auth login expiry date ${authLogin.expires} reached: perform logout" }
-
-                logout()
-
-                return@withContext false
-            }
-
-            return@withContext true
+            geoNatureAPIClient.logout()
+            preferenceManager
+                .edit()
+                .remove(KEY_PREFERENCE_AUTH_LOGIN)
+                .commit()
+                .also {
+                    if (it) {
+                        authLogin = null
+                    }
+                }
         }
 
     private fun buildAuthLoginErrorResponse(response: Response<AuthLogin>): AuthLoginError? {
@@ -188,8 +174,10 @@ class AuthManagerImpl(
         val type = object : TypeToken<AuthLoginError>() {}.type
 
         return runCatching {
-            Gson().fromJson<AuthLoginError>(responseErrorBody.charStream(),
-                type)
+            Gson().fromJson<AuthLoginError>(
+                responseErrorBody.charStream(),
+                type
+            )
         }.getOrNull()
     }
 

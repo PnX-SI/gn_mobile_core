@@ -16,8 +16,8 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.geonature.datasync.R
-import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
+import fr.geonature.datasync.sync.worker.DataSyncWorker
 import org.tinylog.Logger
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -61,7 +61,7 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
                                 .Builder(
                                     applicationContext,
                                     inputData.getString(KEY_NOTIFICATION_CHANNEL_ID)
-                                        ?: CheckAuthLoginWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION
+                                        ?: DataSyncWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION
                                 )
                                 .setContentTitle(applicationContext.getText(R.string.notification_inputs_to_synchronize_title))
                                 .setContentText(
@@ -111,7 +111,7 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
         fun enqueueUniquePeriodicWork(
             context: Context,
             notificationComponentClassIntent: Class<*>,
-            notificationChannelId: String = CheckAuthLoginWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
+            notificationChannelId: String = DataSyncWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
             repeatInterval: Duration = 15.toDuration(DurationUnit.MINUTES)
         ) {
             getInstance(context).enqueueUniquePeriodicWork(

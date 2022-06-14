@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import fr.geonature.datasync.auth.io.CookieHelper
 import okhttp3.Cookie
-import org.tinylog.Logger
 
 /**
  * Default implementation of [ICookieManager].
@@ -18,20 +17,6 @@ class CookieManagerImpl(applicationContext: Context) : ICookieManager {
 
     override var cookie: Cookie? = null
         get() {
-            val cookie = field
-
-            if (cookie != null) {
-                if (cookie.expiresAt < System.currentTimeMillis()) {
-                    Logger.info { "cookie expiry date ${cookie.expiresAt} reached: perform logout" }
-
-                    clearCookie()
-
-                    return null
-                }
-
-                return cookie
-            }
-
             return preferenceManager
                 .getString(
                     KEY_PREFERENCE_COOKIE,

@@ -69,7 +69,7 @@ class CookieManagerTest {
     }
 
     @Test
-    fun `should return nothing if the current cookie is expired`() {
+    fun `should return the current cookie even if is expired`() {
         // given an expired Cookie to save and read
         val cookie = Cookie
             .Builder()
@@ -92,7 +92,10 @@ class CookieManagerTest {
         val cookieFromManager = cookieManager.cookie
 
         // then
-        assertNull(cookieFromManager)
+        assertEquals(
+            cookie,
+            cookieFromManager
+        )
     }
 
     @Test

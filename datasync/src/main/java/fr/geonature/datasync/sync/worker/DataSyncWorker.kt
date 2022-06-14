@@ -46,8 +46,6 @@ import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.User
-import fr.geonature.datasync.auth.IAuthManager
-import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.datasync.packageinfo.worker.CheckInputsToSynchronizeWorker
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
@@ -81,7 +79,6 @@ import kotlin.time.toJavaDuration
 class DataSyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val authManager: IAuthManager,
     private val dataSyncManager: IDataSyncManager,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
     @GeoNatureModuleName private val moduleName: String,
@@ -102,26 +99,6 @@ class DataSyncWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val startTime = Date()
-
-        // not connected: abort
-        if (authManager.getAuthLogin() == null) {
-            Logger.warn { "not connected: abort" }
-
-            sendNotification(
-                DataSyncStatus(
-                    WorkInfo.State.FAILED,
-                    applicationContext.getString(R.string.sync_error_server_not_connected),
-                    ServerStatus.UNAUTHORIZED
-                )
-            )
-
-            return Result.failure(
-                workData(
-                    applicationContext.getString(R.string.sync_error_server_not_connected),
-                    ServerStatus.UNAUTHORIZED
-                )
-            )
-        }
 
         val alreadyRunning = workManager
             .getWorkInfosByTag(DATA_SYNC_WORKER_TAG)
@@ -973,7 +950,8 @@ class DataSyncWorker @AssistedInject constructor(
 
     private suspend fun sendNotification(
         contentText: CharSequence?,
-        componentClassIntent: Class<*>? = null
+        componentClassIntent: Class<*>? = null,
+        notificationId: Int = SYNC_NOTIFICATION_ID
     ) {
         val notificationChannelId = inputData.getString(INPUT_NOTIFICATION_CHANNEL_ID)
         val intentClassName = inputData.getString(INPUT_INTENT_CLASS_NAME)
@@ -993,7 +971,7 @@ class DataSyncWorker @AssistedInject constructor(
 
         setForeground(
             ForegroundInfo(
-                SYNC_NOTIFICATION_ID,
+                notificationId,
                 NotificationCompat
                     .Builder(
                         applicationContext,
@@ -1027,7 +1005,8 @@ class DataSyncWorker @AssistedInject constructor(
         if (response?.code() == ServerStatus.UNAUTHORIZED.httpStatus) {
             sendNotification(
                 applicationContext.getString(R.string.sync_error_server_not_connected),
-                LoginActivity::class.java
+                LoginActivity::class.java,
+                AUTH_NOTIFICATION_ID
             )
 
             return DataSyncStatus(
@@ -1074,6 +1053,7 @@ class DataSyncWorker @AssistedInject constructor(
         const val DATA_SYNC_WORKER_TAG = "data_sync_worker_tag"
 
         const val SYNC_NOTIFICATION_ID = 3
+        const val AUTH_NOTIFICATION_ID = 4
 
         private const val INPUT_USERS_MENU_ID = "usersMenuId"
         private const val INPUT_TAXREF_LIST_ID = "taxrefListId"
@@ -1082,6 +1062,7 @@ class DataSyncWorker @AssistedInject constructor(
         private const val INPUT_WITH_ADDITIONAL_DATA = "withAdditionalData"
         private const val INPUT_INTENT_CLASS_NAME = "intent_class_name"
         private const val INPUT_NOTIFICATION_CHANNEL_ID = "notification_channel_id"
+        const val DEFAULT_CHANNEL_DATA_SYNCHRONIZATION = "channel_data_synchronization"
 
         /**
          * Convenience method for enqueuing unique work to this worker.
@@ -1128,7 +1109,7 @@ class DataSyncWorker @AssistedInject constructor(
             dataSyncSettings: DataSyncSettings,
             withAdditionalData: Boolean = true,
             notificationComponentClassIntent: Class<*>,
-            notificationChannelId: String = CheckAuthLoginWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
+            notificationChannelId: String = DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
             repeatInterval: Duration = 15.toDuration(DurationUnit.MINUTES)
         ) {
             getInstance(context).enqueueUniquePeriodicWork(

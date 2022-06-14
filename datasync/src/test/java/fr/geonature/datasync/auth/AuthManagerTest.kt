@@ -276,7 +276,7 @@ class AuthManagerTest {
     }
 
     @Test
-    fun `should return no AuthLogin if the current session is expired`() = runTest {
+    fun `should return existing AuthLogin even if the current session is expired`() = runTest {
         // given a successful login from backend
         val authLogin = AuthLogin(
             AuthUser(
@@ -318,7 +318,10 @@ class AuthManagerTest {
         val authLoginFromManager = authManager.getAuthLogin()
 
         // then
-        assertNull(authLoginFromManager)
+        assertEquals(
+            authLogin.user,
+            authLoginFromManager?.user
+        )
         verify(atLeast = 1) { isLoggedInObserver.onChanged(false) }
     }
 }
