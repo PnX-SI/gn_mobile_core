@@ -7,11 +7,11 @@ import fr.geonature.commons.data.entity.TaxonWithArea.Companion.fromCursor
 import io.mockk.MockKAnnotations.init
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import org.junit.Assert
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -136,7 +136,7 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testCreateFromCompleteCursor() {
+    fun `should create taxon with area from complete cursor`() {
         // given a mocked Cursor
         defaultProjection().forEachIndexed { index, c ->
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
@@ -184,7 +184,7 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testCreateFromPartialCursor() {
+    fun `should create taxon with area from partial cursor`() {
         // given a mocked Cursor
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
@@ -229,7 +229,7 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testCreateFromIncompleteCursor() {
+    fun `should create taxon with area from incomplete cursor`() {
         // given a mocked Cursor
         defaultProjection().forEachIndexed { index, c ->
             when (c) {
@@ -276,7 +276,7 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testCreateFromClosedCursor() {
+    fun `should return a null taxon from closed cursor`() {
         // given a mocked Cursor
         every { cursor.isClosed } returns true
 
@@ -288,7 +288,7 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testCreateFromInvalidCursor() {
+    fun `should return a null taxon from invalid cursor`() {
         // given a mocked Cursor
         defaultProjection().forEach { c ->
             every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
@@ -303,7 +303,7 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testParcelable() {
+    fun `should create taxon with area from Parcelable`() {
         // given a TaxonWithArea
         val taxonWithArea = TaxonWithArea(
             1234,
@@ -342,7 +342,7 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testDefaultProjection() {
+    fun `should build default projection`() {
         assertArrayEquals(
             arrayOf(
                 Pair(
@@ -399,7 +399,33 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun testFilter() {
+    fun `should build filter by name or description or rank from simple query string with area colors`() {
+        val taxonFilterByNameAndAreaColors = (TaxonWithArea
+            .Filter()
+            .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter)
+            .byAreaColors(
+                "red",
+                "grey"
+            )
+            .build()
+
+        assertEquals(
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
+            taxonFilterByNameAndAreaColors.first
+        )
+        assertArrayEquals(
+            arrayOf(
+                "*[aáàäâãAÁÀÄÂÃ][sS]*",
+                "*[aáàäâãAÁÀÄÂÃ][sS]*",
+                "*[aáàäâãAÁÀÄÂÃ][sS]*",
+                "%as%"
+            ),
+            taxonFilterByNameAndAreaColors.second
+        )
+    }
+
+    @Test
+    fun `should build filter with only area colors`() {
         val taxonFilterByAreaColors = TaxonWithArea
             .Filter()
             .byAreaColors(
@@ -412,29 +438,6 @@ class TaxonWithAreaTest {
             "(${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
             taxonFilterByAreaColors.first
         )
-        assertTrue(taxonFilterByAreaColors.second.isEmpty())
-
-        val taxonFilterByNameAndAreaColors = (TaxonWithArea
-            .Filter()
-            .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter)
-            .byAreaColors(
-                "red",
-                "grey"
-            )
-            .build()
-
-        assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} LIKE ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
-            taxonFilterByNameAndAreaColors.first
-        )
-        assertArrayEquals(
-            arrayOf(
-                "%as%",
-                "%as%",
-                "%as%",
-                "%as%"
-            ),
-            taxonFilterByNameAndAreaColors.second
-        )
+        Assert.assertTrue(taxonFilterByAreaColors.second.isEmpty())
     }
 }
