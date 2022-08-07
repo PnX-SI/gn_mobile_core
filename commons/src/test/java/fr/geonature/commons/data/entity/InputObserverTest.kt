@@ -4,6 +4,7 @@ import android.database.Cursor
 import android.os.Parcel
 import fr.geonature.commons.data.entity.InputObserver.Companion.defaultProjection
 import fr.geonature.commons.data.entity.InputObserver.Companion.fromCursor
+import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 import io.mockk.MockKAnnotations.init
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -51,7 +52,7 @@ class InputObserverTest {
     }
 
     @Test
-    fun testCreateFromCompleteCursor() {
+    fun `should create observer from complete cursor`() {
         // given a mocked Cursor
         defaultProjection().forEachIndexed { index, c ->
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
@@ -76,7 +77,7 @@ class InputObserverTest {
     }
 
     @Test
-    fun testCreateFromPartialCursor() {
+    fun `should create observer from partial cursor`() {
         // given a mocked Cursor
         defaultProjection().forEachIndexed { index, c ->
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
@@ -101,7 +102,19 @@ class InputObserverTest {
     }
 
     @Test
-    fun testCreateFromInvalidCursor() {
+    fun `should return a null observer from closed cursor`() {
+        // given a mocked Cursor
+        every { cursor.isClosed } returns true
+
+        // when getting InputObserver instance from Cursor
+        val inputObserver = fromCursor(cursor)
+
+        // then
+        assertNull(inputObserver)
+    }
+
+    @Test
+    fun `should return a null observer from invalid cursor`() {
         // given a mocked Cursor
         defaultProjection().forEach { c ->
             every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
@@ -118,19 +131,7 @@ class InputObserverTest {
     }
 
     @Test
-    fun testCreateFromClosedCursor() {
-        // given a mocked Cursor
-        every { cursor.isClosed } returns true
-
-        // when getting InputObserver instance from Cursor
-        val inputObserver = fromCursor(cursor)
-
-        // then
-        assertNull(inputObserver)
-    }
-
-    @Test
-    fun testParcelable() {
+    fun `should create observer from Parcelable`() {
         // given InputObserver
         val inputObserver = InputObserver(
             1234,
@@ -156,7 +157,7 @@ class InputObserverTest {
     }
 
     @Test
-    fun testDefaultProjection() {
+    fun `should build default projection`() {
         assertArrayEquals(
             arrayOf(
                 Pair(
@@ -173,6 +174,52 @@ class InputObserverTest {
                 )
             ),
             defaultProjection()
+        )
+    }
+
+    @Test
+    fun `should build filter by name from simple query string`() {
+        val filterByName = InputObserver
+            .Filter()
+            .byName("as")
+            .build()
+
+        assertEquals(
+            "(${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} GLOB ? OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} GLOB ?)",
+            filterByName.first
+        )
+        assertArrayEquals(
+            arrayOf(
+                "*[aáàäâãAÁÀÄÂÃ][sS]*",
+                "*[aáàäâãAÁÀÄÂÃ][sS]*"
+            ),
+            filterByName.second
+        )
+    }
+
+    @Test
+    fun `should build order by last name with no query string`() {
+        val orderByName = InputObserver
+            .OrderBy()
+            .byName()
+            .build()
+
+        assertEquals(
+            "${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} ${SQLiteSelectQueryBuilder.OrderingTerm.ASC.name}",
+            orderByName
+        )
+    }
+
+    @Test
+    fun `should build order by name with query string`() {
+        val orderByName = InputObserver
+            .OrderBy()
+            .byName("as")
+            .build()
+
+        assertEquals(
+            "(CASE WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} = 'as' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} = 'as') THEN 1" + " WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} LIKE '%as%' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} LIKE '%as%') THEN 2" + " WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} GLOB '*[aáàäâãAÁÀÄÂÃ][sS]*' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} GLOB '*[aáàäâãAÁÀÄÂÃ][sS]*') THEN 3" + " ELSE 4 END)",
+            orderByName
         )
     }
 }

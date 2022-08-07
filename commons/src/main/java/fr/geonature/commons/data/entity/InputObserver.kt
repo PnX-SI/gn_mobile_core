@@ -8,6 +8,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.EntityHelper.normalize
+import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 import fr.geonature.commons.data.helper.get
 import org.tinylog.Logger
 
@@ -112,26 +114,6 @@ data class InputObserver(
         }
 
         /**
-         * Apply custom filter.
-         */
-        fun filter(queryString: String?): Pair<String?, Array<String>?> {
-            return if (queryString.isNullOrBlank()) Pair(
-                null,
-                null
-            )
-            else {
-                val filter = "%$queryString%"
-                Pair(
-                    "${getColumnAlias(COLUMN_LASTNAME)} LIKE ? OR ${getColumnAlias(COLUMN_FIRSTNAME)} LIKE ?",
-                    arrayOf(
-                        filter,
-                        filter
-                    )
-                )
-            }
-        }
-
-        /**
          * Create a new [InputObserver] from the specified [Cursor].
          *
          * @param cursor A valid [Cursor]
@@ -171,7 +153,7 @@ data class InputObserver(
                 )
             } catch (e: Exception) {
                 e.message?.run {
-                   Logger.warn { this }
+                    Logger.warn { this }
                 }
 
                 null
@@ -190,5 +172,145 @@ data class InputObserver(
                     return arrayOfNulls(size)
                 }
             }
+    }
+
+    /**
+     * Filter query builder.
+     */
+    open class Filter(private val tableAlias: String = TABLE_NAME) {
+        private val wheres = mutableListOf<Pair<String, Array<*>?>>()
+
+        /**
+         * Filter by name.
+         *
+         * @return this
+         */
+        fun byName(queryString: String?): Filter {
+            if (queryString.isNullOrBlank()) {
+                return this
+            }
+
+            val normalizedQueryString = normalize(queryString)
+
+            this.wheres.add(
+                Pair(
+                    "(${
+                        getColumnAlias(
+                            COLUMN_LASTNAME,
+                            tableAlias
+                        )
+                    } GLOB ? OR ${
+                        getColumnAlias(
+                            COLUMN_FIRSTNAME,
+                            tableAlias
+                        )
+                    } GLOB ?)",
+                    arrayOf(
+                        normalizedQueryString,
+                        normalizedQueryString
+                    )
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Builds the WHERE clause as selection for this filter.
+         */
+        fun build(): Pair<String, Array<Any?>> {
+            val bindArgs = mutableListOf<Any?>()
+
+            val whereClauses = this.wheres.joinToString(" AND ") { pair ->
+                pair.second
+                    ?.toList()
+                    ?.also { bindArgs.addAll(it) }
+                pair.first
+            }
+
+            return Pair(
+                whereClauses,
+                bindArgs.toTypedArray()
+            )
+        }
+    }
+
+    /**
+     * Order by query builder.
+     */
+    open class OrderBy(private val tableAlias: String = TABLE_NAME) {
+        private val orderBy = mutableSetOf<String>()
+
+        /**
+         * Adds an ORDER BY statement on 'lastname' column and on 'firstname' column from given any
+         * query string. The default sort order is [SQLiteSelectQueryBuilder.OrderingTerm.ASC].
+         *
+         * @param queryString The query string.
+         *
+         * @return this
+         */
+        fun byName(queryString: String? = null): OrderBy {
+            if (queryString.isNullOrBlank()) {
+                this.orderBy.add(
+                    "${
+                        getColumnAlias(
+                            COLUMN_LASTNAME,
+                            tableAlias
+                        )
+                    } ${SQLiteSelectQueryBuilder.OrderingTerm.ASC.name}"
+                )
+
+                return this
+            }
+
+            val normalizedQueryString = normalize(queryString)
+
+            this.orderBy.add(
+                "(CASE WHEN (${
+                    getColumnAlias(
+                        COLUMN_LASTNAME,
+                        tableAlias
+                    )
+                } = '$queryString' OR ${
+                    getColumnAlias(
+                        COLUMN_FIRSTNAME,
+                        tableAlias
+                    )
+                } = '$queryString') THEN 1 WHEN (${
+                    getColumnAlias(
+                        COLUMN_LASTNAME,
+                        tableAlias
+                    )
+                } LIKE '%$queryString%' OR ${
+                    getColumnAlias(
+                        COLUMN_FIRSTNAME,
+                        tableAlias
+                    )
+                } LIKE '%$queryString%') THEN 2 WHEN (${
+                    getColumnAlias(
+                        COLUMN_LASTNAME,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString' OR ${
+                    getColumnAlias(
+                        COLUMN_FIRSTNAME,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString') THEN 3 ELSE 4 END)"
+            )
+
+            return this
+        }
+
+        /**
+         * Builds the ORDER BY clause.
+         */
+        fun build(): String? {
+            if (this.orderBy.isEmpty()) {
+                return null
+            }
+
+            return this.orderBy.joinToString(", ")
+        }
     }
 }
