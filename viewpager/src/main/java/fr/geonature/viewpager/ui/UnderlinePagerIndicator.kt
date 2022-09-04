@@ -8,16 +8,16 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
-import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import fr.geonature.viewpager.R
 
 /**
  * Draws a line for each page.
  * The current page line is colored differently than the unselected page lines.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-class UnderlinePageIndicator @JvmOverloads constructor(
+class UnderlinePagerIndicator @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = R.attr.underlinePageIndicatorStyle
@@ -25,12 +25,11 @@ class UnderlinePageIndicator @JvmOverloads constructor(
     context,
     attrs,
     defStyleAttr
-),
-    IPagerIndicator {
+), IPagerIndicator {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    private var viewPager: ViewPager? = null
+    private var viewPager: ViewPager2? = null
 
     private var currentPage = 0
     private var positionOffset = 0f
@@ -44,25 +43,55 @@ class UnderlinePageIndicator @JvmOverloads constructor(
         )
     }
 
-    override fun setViewPager(viewPager: ViewPager) {
+    override fun setViewPager(viewPager: ViewPager2) {
         if (this.viewPager === viewPager) {
             return
         }
 
-        this.viewPager?.removeOnPageChangeListener(this)
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrolled(
+                position: Int,
+                positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
+                super.onPageScrolled(
+                    position,
+                    positionOffset,
+                    positionOffsetPixels
+                )
+
+                currentPage = position
+                this@UnderlinePagerIndicator.positionOffset = positionOffset
+                invalidate()
+            }
+
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+
+                if (scrollState == ViewPager2.SCROLL_STATE_IDLE) {
+                    currentPage = position
+                    positionOffset = 0f
+                    invalidate()
+                }
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+
+                scrollState = state
+            }
+        })
 
         if (viewPager.adapter == null) {
             throw IllegalStateException("ViewPager does not have adapter instance.")
         }
 
         this.viewPager = viewPager
-        this.viewPager?.addOnPageChangeListener(this)
-
         invalidate()
     }
 
     override fun setViewPager(
-        viewPager: ViewPager,
+        viewPager: ViewPager2,
         initialPosition: Int
     ) {
         setViewPager(viewPager)
@@ -70,7 +99,8 @@ class UnderlinePageIndicator @JvmOverloads constructor(
     }
 
     override fun setCurrentItem(item: Int) {
-        val viewPager = viewPager ?: return
+        val viewPager = viewPager
+            ?: return
 
         viewPager.currentItem = item
         currentPage = item
@@ -79,28 +109,6 @@ class UnderlinePageIndicator @JvmOverloads constructor(
 
     override fun notifyDataSetChanged() {
         invalidate()
-    }
-
-    override fun onPageScrolled(
-        position: Int,
-        positionOffset: Float,
-        positionOffsetPixels: Int
-    ) {
-        currentPage = position
-        this.positionOffset = positionOffset
-        invalidate()
-    }
-
-    override fun onPageSelected(position: Int) {
-        if (scrollState == ViewPager.SCROLL_STATE_IDLE) {
-            currentPage = position
-            positionOffset = 0f
-            invalidate()
-        }
-    }
-
-    override fun onPageScrollStateChanged(state: Int) {
-        scrollState = state
     }
 
     override fun onSaveInstanceState(): Parcelable? {
@@ -125,9 +133,11 @@ class UnderlinePageIndicator @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val viewPager = viewPager ?: return
+        val viewPager = viewPager
+            ?: return
 
-        val count = viewPager.adapter?.count ?: 0
+        val count = viewPager.adapter?.itemCount
+            ?: 0
 
         if (count == 0) {
             return
@@ -167,13 +177,13 @@ class UnderlinePageIndicator @JvmOverloads constructor(
         // retrieve styles attributes
         val typedArray = context.obtainStyledAttributes(
             attrs,
-            R.styleable.UnderlinePageIndicator,
+            R.styleable.UnderlinePagerIndicator,
             defStyle,
             0
         )
 
         selectedColor = typedArray.getColor(
-            R.styleable.UnderlinePageIndicator_selectedColor,
+            R.styleable.UnderlinePagerIndicator_selectedColor,
             Color.BLUE
         )
 
