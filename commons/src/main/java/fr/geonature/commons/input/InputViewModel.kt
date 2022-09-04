@@ -1,6 +1,7 @@
 package fr.geonature.commons.input
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -15,6 +16,9 @@ import kotlinx.coroutines.launch
  */
 open class InputViewModel<I : AbstractInput, S : IAppSettings>(private val inputManager: IInputManager<I, S>) :
     ViewModel() {
+
+    private val _input = MutableLiveData<I>()
+    val input: LiveData<I> = _input
 
     private var deletedInputToRestore: I? = null
 
@@ -50,11 +54,21 @@ open class InputViewModel<I : AbstractInput, S : IAppSettings>(private val input
     }
 
     /**
+     * Edit current input.
+     *
+     * @param input the [AbstractInput] to edit
+     */
+    fun editInput(input: I) {
+        _input.postValue(input)
+    }
+
+    /**
      * Saves the given [AbstractInput] and sets it as default current [AbstractInput].
      *
      * @param input the [AbstractInput] to save
      */
     fun saveInput(input: I) {
+        _input.postValue(input)
         viewModelScope.launch(Main) {
             inputManager.saveInput(input)
         }
