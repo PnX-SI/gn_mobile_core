@@ -4,262 +4,97 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import fr.geonature.viewpager.BuildConfig
 import fr.geonature.viewpager.R
-import fr.geonature.viewpager.pager.Pager
-import fr.geonature.viewpager.pager.PagerManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.util.ArrayList
+import fr.geonature.viewpager.model.IPageFragment
+import fr.geonature.viewpager.model.IPageWithValidationFragment
+import fr.geonature.viewpager.model.PageFragmentViewModel
 
 /**
- * Basic [ViewPager] implementation as [AppCompatActivity].
+ * Basic [ViewPager2] implementation as [AppCompatActivity].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-abstract class AbstractPagerFragmentActivity :
-    AppCompatActivity(),
-    View.OnClickListener,
-    ViewPager.OnPageChangeListener {
+abstract class AbstractPagerFragmentActivity : AppCompatActivity(), OnPageFragmentListener {
 
-    lateinit var pagerManager: PagerManager
-    lateinit var adapter: SimpleFragmentPagerAdapter
-    lateinit var viewPager: EnablePagingViewPager
-    lateinit var previousButton: Button
+    val pageFragmentViewModel: PageFragmentViewModel by viewModels()
+
+    lateinit var viewPager: ViewPager2
+    private lateinit var pagerIndicator: IPagerIndicator
+    private lateinit var adapter: FragmentStateAdapter
+    private lateinit var previousButton: Button
     lateinit var nextButton: Button
 
-    internal var pager: Pager? = null
-    internal var restorePager = false
+    private val navigationButtonListener = View.OnClickListener {
+        when (it.id) {
+            R.id.previousButton -> {
+                goToPreviousPage()
+            }
+            R.id.nextButton -> {
+                if (!onNextAction()) {
+                    if (viewPager.currentItem < adapter.itemCount - 1) {
+                        goToNextPage()
+                    } else if (viewPager.currentItem == adapter.itemCount - 1) {
+                        // the last page
+                        performFinishAction()
+                    }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_pager)
 
-        pagerManager = PagerManager(application)
+        adapter = object : FragmentStateAdapter(this) {
+            override fun getItemCount(): Int {
+                return pageFragmentViewModel.size
+            }
 
-        adapter = SimpleFragmentPagerAdapter(
-            this,
-            supportFragmentManager
-        )
+            override fun createFragment(position: Int): Fragment {
+                return pageFragmentViewModel.getPageAtPosition(position) as Fragment
+            }
+        }
+
         viewPager = findViewById(R.id.pager)
         viewPager.adapter = adapter
+        viewPager.offscreenPageLimit = 1
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                this@AbstractPagerFragmentActivity.onPageSelected(position)
+            }
+        })
+
+        pagerIndicator = findViewById<UnderlinePagerIndicator>(R.id.indicator)
+        pagerIndicator.setViewPager(viewPager)
 
         previousButton = findViewById(R.id.previousButton)
         nextButton = findViewById(R.id.nextButton)
-    }
 
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
+        previousButton.isEnabled = viewPager.currentItem > 0
+        previousButton.visibility = if (viewPager.currentItem > 0) View.VISIBLE else View.INVISIBLE
+        previousButton.setOnClickListener(navigationButtonListener)
 
-        GlobalScope.launch(Dispatchers.Main) {
-            if (intent.hasExtra(EXTRA_PAGER_ID)) {
-                pager = pagerManager.load(
-                    intent.getLongExtra(
-                        EXTRA_PAGER_ID,
-                        0L
-                    )
-                )
+        nextButton.isEnabled = false
+        nextButton.setOnClickListener(navigationButtonListener)
 
-                if (BuildConfig.DEBUG) {
-                    Log.d(
-                        TAG,
-                        "onCreate, pager loaded: $pager"
-                    )
-                }
-            }
-
-            if (pager == null) {
-                pager = if (savedInstanceState == null) Pager()
-                else savedInstanceState.getParcelable(KEY_PAGER)
-            }
-
-            if (pager == null) {
-                pager = Pager()
-            }
-
-            val pager = pager ?: return@launch
-
-            val indicator = findViewById<UnderlinePageIndicator>(R.id.indicator)
-            indicator.setViewPager(viewPager)
-            viewPager.addOnPageChangeListener(this@AbstractPagerFragmentActivity)
-
-            if (savedInstanceState == null && pager.size == 0) {
-                pager.size = pagerFragments.size
-                pager.position = viewPager.currentItem
-            }
-
-            for (i in 0 until pagerFragments.size) {
-                var fragment = getPageFragment(i)
-
-                if (fragment == null) {
-                    // no fragment found through getSupportFragmentManager() so try to find it through getPagerFragments()
-                    fragment = ArrayList(pagerFragments.values)[i]
-                }
-
-                if (fragment == null) {
-                    Log.w(
-                        TAG,
-                        "onPostCreate: no fragment found at position $i"
-                    )
-                } else {
-                    adapter.fragments[fragment.getResourceTitle()] = (fragment as Fragment?)!!
-                }
-            }
-
-            adapter.notifyDataSetChanged()
-            viewPager.post {
-                restorePager = true
-                viewPager.currentItem = pager.position
-
-                if (pager.position == 0) {
-                    onPageSelected(viewPager.currentItem)
-                }
-            }
-
-            title = adapter.getPageTitle(viewPager.currentItem)
-
-            previousButton.isEnabled = viewPager.currentItem > 0
-            previousButton.visibility =
-                if (viewPager.currentItem > 0) View.VISIBLE else View.INVISIBLE
-            previousButton.setOnClickListener(this@AbstractPagerFragmentActivity)
-
-            nextButton.isEnabled = false
-            nextButton.setOnClickListener(this@AbstractPagerFragmentActivity)
+        pageFragmentViewModel.onChanges.observe(this) {
+            // in conflict with removePage() if offscreenPageLimit is too high…
+            if (viewPager.offscreenPageLimit > 1) adapter.notifyDataSetChanged()
+            else it.dispatchUpdatesTo(adapter)
+            
+            pagerIndicator.notifyDataSetChanged()
+            onPageSelected(viewPager.currentItem)
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(
-            KEY_PAGER,
-            pager
-        )
-
-        super.onSaveInstanceState(outState)
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        val fragment = getPageFragment(viewPager.currentItem)
-
-        nextButton.isEnabled = fragment == null || fragment.validate()
-        nextButton.setText(if (viewPager.currentItem < adapter.count - 1) R.string.button_pager_next else R.string.button_pager_finish)
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        val pager = pager ?: return
-
-        if (pager.id != 0L) {
-            GlobalScope.launch(Dispatchers.Main) {
-                pagerManager.save(pager)
-            }
-        }
-    }
-
-    protected abstract val pagerFragments: Map<Int, IValidateFragment>
-    protected abstract fun performFinishAction()
-
-    override fun onClick(v: View) {
-        when (v.id) {
-            R.id.previousButton -> {
-                if (viewPager.currentItem > 0) {
-                    viewPager.setCurrentItem(
-                        viewPager.currentItem - 1,
-                        true
-                    )
-                }
-            }
-            R.id.nextButton -> {
-                if (viewPager.currentItem < adapter.count - 1) {
-                    viewPager.setCurrentItem(
-                        viewPager.currentItem + 1,
-                        true
-                    )
-                } else if (viewPager.currentItem == adapter.count - 1) {
-                    // the last page
-                    performFinishAction()
-                }
-            }
-        }
-    }
-
-    override fun onPageScrollStateChanged(state: Int) {
-        // nothing to do ...
-    }
-
-    override fun onPageScrolled(
-        position: Int,
-        positionOffset: Float,
-        positionOffsetPixels: Int
-    ) {
-        // nothing to do ...
-    }
-
-    override fun onPageSelected(position: Int) {
-        if (BuildConfig.DEBUG) {
-            Log.d(
-                TAG,
-                "onPageSelected: $position"
-            )
-        }
-
-        // sets default paging control
-        viewPager.setPagingEnabled(true)
-
-        // checks validation before switching to the next page
-        val fragmentAtPreviousPosition = getPageFragment(position - 1)
-
-        if (position > 0 && !(fragmentAtPreviousPosition == null || fragmentAtPreviousPosition.validate())) {
-            viewPager.setCurrentItem(
-                position - 1,
-                true
-            )
-            return
-        }
-
-        // updates title
-        title = adapter.getPageTitle(position)
-        supportActionBar?.subtitle = adapter.getPageSubtitle(position)
-
-        val fragmentAtPosition = getPageFragment(position)
-
-        // refreshes the current view if needed
-        if (fragmentAtPosition != null) {
-            fragmentAtPosition.refreshView()
-
-            // disable or enable paging control for the current instance of IValidateFragment
-            viewPager.setPagingEnabled(fragmentAtPosition.pagingEnabled())
-        }
-
-        // updates navigation buttons statuses
-
-        previousButton.isEnabled = position > 0
-        previousButton.visibility = if (position > 0) View.VISIBLE else View.INVISIBLE
-
-        nextButton.setText(if (position < adapter.count - 1) R.string.button_pager_next else R.string.button_pager_finish)
-        nextButton.isEnabled = fragmentAtPosition == null || fragmentAtPosition.validate()
-
-        pager?.position = position
-    }
-
-    fun validateCurrentPage() {
-        val currentItem = viewPager.currentItem
-
-        if (currentItem < adapter.count) {
-            val fragment = getPageFragment(currentItem)
-            nextButton.isEnabled = fragment == null || fragment.validate()
-            supportActionBar?.subtitle = fragment?.getSubtitle()
-        }
-    }
-
-    open fun goToPreviousPage() {
+    override fun goToPreviousPage() {
         val currentItem = viewPager.currentItem
 
         if (currentItem > 0) {
@@ -270,18 +105,21 @@ abstract class AbstractPagerFragmentActivity :
         }
     }
 
-    fun goToNextPage() {
+    override fun goToNextPage() {
         val currentItem = viewPager.currentItem
 
-        if (currentItem < adapter.count - 1) {
-            val fragment = getPageFragment(currentItem)
-
-            if (fragment != null && fragment.validate()) {
+        if (currentItem < adapter.itemCount - 1) {
+            val pageFragment = getPageFragment(currentItem)
+            if (pageFragment != null || (pageFragment is IPageWithValidationFragment && (pageFragment as IPageWithValidationFragment).validate())) {
                 if (BuildConfig.DEBUG) {
-                    Log.d(
-                        TAG,
-                        "goToNextPage: " + fragment.getResourceTitle()
-                    )
+                    pageFragmentViewModel.pageFragments.keys
+                        .elementAtOrNull(currentItem + 1)
+                        ?.also {
+                            Log.d(
+                                TAG,
+                                "goToNextPage: '${getString(it)}'"
+                            )
+                        }
                 }
 
                 viewPager.setCurrentItem(
@@ -292,122 +130,145 @@ abstract class AbstractPagerFragmentActivity :
         }
     }
 
-    fun goToPage(position: Int) {
+    override fun goToPage(position: Int) {
         viewPager.setCurrentItem(
             position,
             true
         )
     }
 
-    fun goToPageByKey(key: Int) {
-        val fragment = adapter.fragments[key]
-
-        if (fragment is IValidateFragment) {
-            if (BuildConfig.DEBUG) {
-                Log.d(
-                    TAG,
-                    "goToPageByKey: key '$key'"
+    override fun goToPageByKey(key: Int) {
+        pageFragmentViewModel
+            .getPagePosition(key)
+            ?.also {
+                viewPager.setCurrentItem(
+                    it,
+                    true
                 )
             }
-
-            viewPager.setCurrentItem(
-                ArrayList(adapter.fragments.values).lastIndexOf(fragment),
-                true
-            )
-        } else {
-            Log.w(
-                TAG,
-                "goToPageByKey: key '$key' undefined"
-            )
-        }
-    }
-
-    fun goToFirstPage() {
-        viewPager.setCurrentItem(
-            0,
-            true
-        )
-    }
-
-    fun goToLastPage() {
-        viewPager.setCurrentItem(
-            adapter.count - 1,
-            true
-        )
     }
 
     /**
-     * Gets the current [IValidateFragment] instance at the current position of this pager.
-     *
-     * @return [IValidateFragment] instance
+     * Performs validation on the current page.
      */
-    fun getCurrentPageFragment(): IValidateFragment? {
-        val currentItem = viewPager.currentItem
-        var pageFragment = getPageFragment(currentItem)
-
-        if (pageFragment == null) {
-            // no fragment found through getSupportFragmentManager() so try to find it through getPagerFragments()
-            pageFragment = ArrayList(pagerFragments.values)[currentItem]
+    override fun validateCurrentPage() {
+        getCurrentPageFragment()?.also { pageFragment ->
+            nextButton.isEnabled = pageFragment
+                .takeIf { it is IPageWithValidationFragment }
+                ?.let { it as IPageWithValidationFragment }
+                ?.validate()
+                ?: true
         }
+    }
 
-        if (pageFragment == null) {
-            Log.w(
-                TAG,
-                "getCurrentPageFragment: no fragment found at position $currentItem"
-            )
-        }
+    override fun addPage(vararg pageFragment: Pair<Int, IPageFragment>) {
+        pageFragmentViewModel.add(*pageFragment)
+    }
 
-        return pageFragment
+    override fun removePage(vararg key: Int) {
+        pageFragmentViewModel.remove(*key)
     }
 
     /**
-     * Gets the current [IValidateFragment] instance at the current position of this pager.
+     * Gets the current [IPageFragment] instance at the current position of this pager.
      *
-     * @param position the position of [IValidateFragment] to retrieve
-     * @return [IValidateFragment] instance
+     * @return [IPageFragment] instance
      */
-    internal fun getPageFragment(position: Int?): IValidateFragment? {
-        val currentItem = viewPager.currentItem
+    fun getCurrentPageFragment(): IPageFragment? {
+        return getPageFragment(viewPager.currentItem)
+    }
 
-        val fragment =
-            supportFragmentManager.findFragmentByTag(
-                "android:switcher:" + R.id.pager + ":" + (
-                    position
-                        ?: currentItem
-                    )
+    /**
+     * The default title of this activity.
+     */
+    protected abstract fun getDefaultTitle(): CharSequence
+
+    /**
+     * Called on 'next' button is clicked.
+     *
+     * @return `false` to allow default action to be proceeded, `true` to apply custom action.
+     */
+    protected abstract fun onNextAction(): Boolean
+
+    /**
+     * Called on 'finish' button is clicked (the last page).
+     */
+    protected abstract fun performFinishAction()
+
+    protected open fun onPageSelected(position: Int) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG,
+                "onPageSelected: $position, [${
+                    pageFragmentViewModel.pageFragments.keys
+                        .map { getString(it) }
+                        .joinToString(", ") { "'$it'" }
+                }]")
+        }
+
+        // sets default paging control
+        viewPager.isUserInputEnabled = true
+
+        // checks validation before switching to the next page
+        if (position > 0 && (getPageFragment(position - 1)
+                ?.takeIf { it is IPageWithValidationFragment }
+                ?.let { it as IPageWithValidationFragment }
+                ?.validate() == false)
+        ) {
+            Log.d(
+                TAG,
+                "redirect to previous page: ${position - 1} (not valid)"
             )
 
-        return if (fragment != null && fragment is IValidateFragment) {
+            goToPreviousPage()
+
+            return
+        }
+
+        // updates title
+        title = getDefaultTitle()
+        supportActionBar?.subtitle = null
+
+        // updates navigation buttons statuses
+
+        previousButton.isEnabled = position > 0
+        previousButton.visibility = if (position > 0) View.VISIBLE else View.INVISIBLE
+
+        nextButton.setText(if (position < adapter.itemCount - 1) R.string.button_pager_next else R.string.button_pager_finish)
+        nextButton.isEnabled = false
+
+        getPageFragment(position)?.also { pageFragment ->
+            setTitle(pageFragment.getResourceTitle())
+            supportActionBar?.subtitle = pageFragment.getSubtitle()
+
+            // disable or enable paging control for the current instance of IPageFragment
+            viewPager.isUserInputEnabled = pageFragment.pagingEnabled()
+        }
+
+        validateCurrentPage()
+    }
+
+    /**
+     * Gets the current [IPageFragment] instance at given position of this pager.
+     *
+     * @param position the position of [IPageFragment] to retrieve
+     * @return [IPageFragment] instance
+     */
+    private fun getPageFragment(position: Int): IPageFragment? {
+        val fragment = pageFragmentViewModel.getPageAtPosition(position)
+
+        return if (fragment != null) {
             fragment
         } else {
             Log.w(
                 TAG,
-                "getPageFragment: no fragment found through getSupportFragmentManager() at position " + (
-                    position
-                        ?: currentItem
-                    )
+                "getPageFragment: no fragment found at position $position"
             )
 
             null
         }
     }
 
-    /**
-     * Gets the current [IValidateFragment] instance for a given key of this pager.
-     *
-     * @param key the key of [IValidateFragment] to retrieve
-     * @return [IValidateFragment] instance
-     * @see AbstractPagerFragmentActivity.getPageFragment
-     */
-    internal fun getPageFragmentByKey(key: Int?): IValidateFragment? {
-        return getPageFragment(ArrayList(adapter.fragments.keys).indexOf(key))
-    }
-
     companion object {
-
         private val TAG = AbstractPagerFragmentActivity::class.java.name
-
-        const val EXTRA_PAGER_ID = "extra_pager_id"
-        protected const val KEY_PAGER = "key_pager"
     }
 }
