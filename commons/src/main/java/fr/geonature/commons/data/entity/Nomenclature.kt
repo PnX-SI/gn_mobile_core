@@ -31,21 +31,18 @@ open class Nomenclature(
     /**
      * The unique ID of this nomenclature.
      */
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = COLUMN_ID)
-    var id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = COLUMN_ID) var id: Long,
 
-    @ColumnInfo(name = COLUMN_CODE)
-    var code: String,
+    @ColumnInfo(name = COLUMN_CODE) var code: String,
 
-    @ColumnInfo(name = COLUMN_HIERARCHY)
-    var hierarchy: String,
-    
-    @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
-    var defaultLabel: String,
+    @ColumnInfo(name = COLUMN_HIERARCHY) var hierarchy: String,
 
-    @ColumnInfo(name = COLUMN_TYPE_ID, index = true)
-    var typeId: Long
+    @ColumnInfo(name = COLUMN_DEFAULT_LABEL) var defaultLabel: String,
+
+    @ColumnInfo(
+        name = COLUMN_TYPE_ID,
+        index = true
+    ) var typeId: Long
 ) : Parcelable {
 
     internal constructor(source: Parcel) : this(
@@ -77,6 +74,10 @@ open class Nomenclature(
         result = 31 * result + typeId.hashCode()
 
         return result
+    }
+
+    override fun toString(): String {
+        return "Nomenclature(id=$id, code='$code', hierarchy='$hierarchy', defaultLabel='$defaultLabel', typeId=$typeId)"
     }
 
     override fun describeContents(): Int {

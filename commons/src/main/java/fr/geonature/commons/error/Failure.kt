@@ -7,6 +7,7 @@ package fr.geonature.commons.error
 sealed class Failure {
     data class NetworkFailure(val reason: String) : Failure()
     object ServerFailure : Failure()
+    data class DbFailure(val throwable: Throwable) : Failure()
 
     abstract class FeatureFailure : Failure()
 }
