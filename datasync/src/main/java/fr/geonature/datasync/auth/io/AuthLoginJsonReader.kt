@@ -31,13 +31,9 @@ class AuthLoginJsonReader {
             return null
         }
 
-        try {
-            return read(StringReader(json))
-        } catch (ioe: IOException) {
-            Logger.warn(ioe)
-        }
-
-        return null
+        return runCatching { read(StringReader(json)) }
+            .onFailure { Logger.warn(it) }
+            .getOrNull()
     }
 
     /**
@@ -47,7 +43,6 @@ class AuthLoginJsonReader {
      * @return a [AuthLogin] instance from the `JSON` reader
      * @throws IOException if something goes wrong
      */
-    @Throws(IOException::class)
     fun read(reader: Reader): AuthLogin? {
         val jsonReader = JsonReader(reader)
         val authLogin = readAuthLogin(jsonReader)
@@ -56,7 +51,6 @@ class AuthLoginJsonReader {
         return authLogin
     }
 
-    @Throws(IOException::class)
     private fun readAuthLogin(reader: JsonReader): AuthLogin? {
         var authUser: AuthUser? = null
         var expires: Date? = null
@@ -83,7 +77,6 @@ class AuthLoginJsonReader {
         )
     }
 
-    @Throws(IOException::class)
     private fun readAuthUser(reader: JsonReader): AuthUser? {
         var id: Long? = null
         var lastname: String? = null

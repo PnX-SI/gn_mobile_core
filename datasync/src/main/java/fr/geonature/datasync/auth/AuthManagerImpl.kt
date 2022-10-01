@@ -78,7 +78,7 @@ class AuthManagerImpl(
                 .let {
                     if (it == null) {
                         this@AuthManagerImpl.authLogin = null
-                        return@let it
+                        return@let null
                     }
 
                     this@AuthManagerImpl.authLogin = it
@@ -110,9 +110,14 @@ class AuthManagerImpl(
             }.fold(onSuccess = { response: Response<AuthLogin> ->
                 (if (response.isSuccessful) response
                     .body()
-                    ?.let { Either.Right(it) }
+                    ?.let {
+                        if (it.user.login.isBlank() || it.user.lastname.isBlank() || it.user.firstname.isBlank()) {
+                            Logger.warn { "invalid user: ${if (it.user.login.isBlank()) "missing 'login' attribute" else if (it.user.lastname.isBlank()) "missing 'lastname' attribute" else "missing 'firstname' attribute"}" }
+                            Either.Left(AuthFailure.InvalidUserFailure)
+                        } else Either.Right(it)
+                    }
                 else buildAuthLoginErrorResponse(response)?.let { authLoginError ->
-                    Either.Left(AuthFailure(authLoginError))
+                    Either.Left(AuthFailure.AuthLoginFailure(authLoginError))
                 })
                     ?: Either.Left<Failure>(Failure.ServerFailure)
 

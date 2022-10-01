@@ -75,12 +75,15 @@ class AuthLoginViewModel @Inject constructor(
                     is GeoNatureMissingConfigurationFailure -> {
                         LoginResult(error = R.string.login_failed_server_url_configuration)
                     }
-                    is AuthFailure -> {
+                    is AuthFailure.AuthLoginFailure -> {
                         when (it.authLoginError.type) {
                             "login" -> LoginResult(error = R.string.login_failed_login)
                             "password" -> LoginResult(error = R.string.login_failed_password)
                             else -> LoginResult(error = R.string.login_failed)
                         }
+                    }
+                    is AuthFailure.InvalidUserFailure -> {
+                        LoginResult(error = R.string.login_failed_invalid_user)
                     }
                     is Failure.NetworkFailure -> {
                         LoginResult(error = R.string.error_network_lost)

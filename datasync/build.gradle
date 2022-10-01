@@ -5,7 +5,7 @@ plugins {
     id 'kotlin-kapt'
 }
 
-version = "0.1.9"
+version = "0.2.0"
 
 android {
     compileSdk 31
@@ -77,6 +77,6 @@ dependencies {
     testImplementation 'io.mockk:mockk-agent-jvm:1.12.3'
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1-native-mt'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1'
     testImplementation 'org.robolectric:robolectric:4.8.1'
 }
