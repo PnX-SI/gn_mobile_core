@@ -8,4 +8,7 @@ import fr.geonature.datasync.api.model.AuthLoginError
  *
  * @author S. Grimault
  */
-data class AuthFailure(val authLoginError: AuthLoginError) : Failure.FeatureFailure()
+sealed class AuthFailure : Failure.FeatureFailure() {
+    data class AuthLoginFailure(val authLoginError: AuthLoginError) : AuthFailure()
+    object InvalidUserFailure : AuthFailure()
+}

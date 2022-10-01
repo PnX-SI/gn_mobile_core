@@ -10,6 +10,7 @@
     <string name="login_failed">Login failed</string>
     <string name="login_failed_login">Invalid login</string>
     <string name="login_failed_password">Invalid password</string>
+    <string name="login_failed_invalid_user">Invalid user, please contact your administrator.</string>
     <string name="login_failed_server_url_configuration">Missing GeoNature server configuration</string>
     <string name="login_success">Successfully authenticated</string>
 

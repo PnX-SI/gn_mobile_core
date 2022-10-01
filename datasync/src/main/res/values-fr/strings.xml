@@ -10,6 +10,7 @@
     <string name="login_failed">Echec lors de l\'authentification</string>
     <string name="login_failed_login">Utilisateur inconnu</string>
     <string name="login_failed_password">Mot de passe invalide</string>
+    <string name="login_failed_invalid_user">Utilisateur invalide, veuillez contacter votre administrateur.</string>
     <string name="login_failed_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
     <string name="login_success">Authentification réussie</string>
 
