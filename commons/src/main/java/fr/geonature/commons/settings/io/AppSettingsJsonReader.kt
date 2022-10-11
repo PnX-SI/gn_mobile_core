@@ -1,7 +1,7 @@
 package fr.geonature.commons.settings.io
 
 import android.util.JsonReader
-import fr.geonature.commons.input.AbstractInput
+import fr.geonature.commons.features.input.domain.AbstractInput
 import fr.geonature.commons.settings.IAppSettings
 import org.tinylog.Logger
 import java.io.IOException

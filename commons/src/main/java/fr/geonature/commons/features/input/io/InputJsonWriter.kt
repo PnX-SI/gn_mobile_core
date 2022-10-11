@@ -1,7 +1,7 @@
-package fr.geonature.commons.input.io
+package fr.geonature.commons.features.input.io
 
 import android.util.JsonWriter
-import fr.geonature.commons.input.AbstractInput
+import fr.geonature.commons.features.input.domain.AbstractInput
 import fr.geonature.commons.settings.IAppSettings
 import org.tinylog.Logger
 import java.io.IOException
@@ -105,6 +105,9 @@ class InputJsonWriter<I : AbstractInput, S : IAppSettings>(private val onInputJs
         writer
             .name("module")
             .value(input.module)
+        writer
+            .name("status")
+            .value(input.status.name.lowercase())
 
         onInputJsonWriterListener.writeAdditionalInputData(
             writer,

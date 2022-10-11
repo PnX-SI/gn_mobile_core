@@ -1,7 +1,8 @@
-package fr.geonature.commons.input.io
+package fr.geonature.commons.features.input.io
 
 import android.util.JsonReader
-import fr.geonature.commons.input.AbstractInput
+import fr.geonature.commons.features.input.domain.AbstractInput
+import fr.geonature.commons.util.nextStringOrNull
 import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
@@ -10,7 +11,7 @@ import java.io.StringReader
 /**
  * Default `JsonReader` about reading a `JSON` stream and build the corresponding [AbstractInput].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  *
  * @see InputJsonWriter
  */
@@ -63,6 +64,12 @@ class InputJsonReader<I : AbstractInput>(private val onInputJsonReaderListener: 
             when (val keyName = reader.nextName()) {
                 "id" -> input.id = reader.nextLong()
                 "module" -> input.module = reader.nextString()
+                "status" -> input.status = runCatching {
+                    reader
+                        .nextStringOrNull()
+                        ?.let { AbstractInput.Status.valueOf(it.uppercase()) }
+                }.getOrNull()
+                    ?: AbstractInput.Status.DRAFT
                 else -> onInputJsonReaderListener.readAdditionalInputData(
                     reader,
                     keyName,
