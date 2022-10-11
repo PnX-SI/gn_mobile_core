@@ -1,4 +1,5 @@
 {
   "id": 1234,
-  "module": "dummy"
+  "module": "dummy",
+  "status": "draft"
 }

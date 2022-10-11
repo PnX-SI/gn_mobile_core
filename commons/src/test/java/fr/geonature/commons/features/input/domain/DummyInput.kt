@@ -1,4 +1,4 @@
-package fr.geonature.commons.input
+package fr.geonature.commons.features.input.domain
 
 import android.os.Parcel
 import android.os.Parcelable
@@ -6,7 +6,7 @@ import android.os.Parcelable
 /**
  * Dummy implementation of [AbstractInput].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class DummyInput : AbstractInput {
 
@@ -14,8 +14,9 @@ class DummyInput : AbstractInput {
     constructor(source: Parcel) : super(source)
 
     override fun getTaxaFromParcel(source: Parcel): List<AbstractInputTaxon> {
-        val inputTaxa = source.createTypedArrayList(DummyInputTaxon.CREATOR)
-        return inputTaxa ?: emptyList()
+        val inputTaxa = source.createTypedArrayList(DummyInputTaxon)
+        return inputTaxa
+            ?: emptyList()
     }
 
     companion object CREATOR : Parcelable.Creator<DummyInput> {

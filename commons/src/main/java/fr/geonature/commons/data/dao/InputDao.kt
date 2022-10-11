@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import fr.geonature.commons.data.helper.ProviderHelper.buildUri
-import fr.geonature.commons.input.AbstractInput
+import fr.geonature.commons.features.input.domain.AbstractInput
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import org.json.JSONObject

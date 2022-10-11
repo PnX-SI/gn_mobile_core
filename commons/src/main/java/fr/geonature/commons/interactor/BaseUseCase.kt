@@ -3,8 +3,6 @@ package fr.geonature.commons.interactor
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 /**
@@ -24,11 +22,8 @@ abstract class BaseUseCase<out Type, in Params> where Type : Any {
         scope: CoroutineScope,
         onResult: (Either<Failure, Type>) -> Unit = {}
     ) {
-        scope.launch(Dispatchers.Main) {
-            val deferred = async(Dispatchers.IO) {
-                run(params)
-            }
-            onResult(deferred.await())
+        scope.launch {
+            onResult(run(params))
         }
     }
 

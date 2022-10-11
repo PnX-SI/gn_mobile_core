@@ -1,21 +1,17 @@
-package fr.geonature.commons.input.io
+package fr.geonature.commons.features.input.io
 
-import android.util.JsonWriter
 import fr.geonature.commons.FixtureHelper
-import fr.geonature.commons.MockitoKotlinHelper.any
-import fr.geonature.commons.input.DummyInput
+import fr.geonature.commons.features.input.domain.AbstractInput
+import fr.geonature.commons.features.input.domain.DummyInput
 import fr.geonature.commons.settings.DummyAppSettings
+import io.mockk.MockKAnnotations.init
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mock
-import org.mockito.Mockito.isNull
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -28,14 +24,14 @@ class InputJsonWriterTest {
 
     private lateinit var inputJsonWriter: InputJsonWriter<DummyInput, DummyAppSettings>
 
-    @Mock
+    @RelaxedMockK
     private lateinit var onInputJsonWriterListener: InputJsonWriter.OnInputJsonWriterListener<DummyInput, DummyAppSettings>
 
     @Before
     fun setUp() {
-        openMocks(this)
+        init(this)
 
-        inputJsonWriter = spy(InputJsonWriter(onInputJsonWriterListener))
+        inputJsonWriter = InputJsonWriter(onInputJsonWriterListener)
     }
 
     @Test
@@ -52,11 +48,13 @@ class InputJsonWriterTest {
         assertNotNull(json)
 
         // then
-        verify(onInputJsonWriterListener,).writeAdditionalInputData(
-            any(JsonWriter::class.java),
-            any(DummyInput::class.java),
-            isNull()
-        )
+        verify {
+            onInputJsonWriterListener.writeAdditionalInputData(
+                any(),
+                any(),
+                null
+            )
+        }
 
         assertEquals(
             FixtureHelper.getFixture("input_empty.json"),
@@ -83,15 +81,35 @@ class InputJsonWriterTest {
         assertNotNull(json)
 
         // then
-        verify(onInputJsonWriterListener).writeAdditionalInputData(
-            any(JsonWriter::class.java),
-            any(DummyInput::class.java),
-            eq(settings)
-        )
+        verify {
+            onInputJsonWriterListener.writeAdditionalInputData(
+                any(),
+                any(),
+                settings
+            )
+        }
 
         assertEquals(
             FixtureHelper.getFixture("input_empty.json"),
             json
+        )
+    }
+
+    @Test
+    fun `should write input with status`() {
+        assertEquals(
+            """{"id":1234,"module":"dummy","status":"draft"}""",
+            inputJsonWriter.write(DummyInput().apply {
+                id = 1234
+                status = AbstractInput.Status.DRAFT
+            })
+        )
+        assertEquals(
+            """{"id":1234,"module":"dummy","status":"to_sync"}""",
+            inputJsonWriter.write(DummyInput().apply {
+                id = 1234
+                status = AbstractInput.Status.TO_SYNC
+            })
         )
     }
 }

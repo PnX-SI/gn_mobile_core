@@ -1,4 +1,4 @@
-package fr.geonature.commons.input
+package fr.geonature.commons.features.input.domain
 
 import android.os.Parcel
 import android.os.Parcelable
@@ -7,7 +7,7 @@ import fr.geonature.commons.data.entity.AbstractTaxon
 /**
  * Describes an input taxon.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  *
  * @see AbstractTaxon
  */

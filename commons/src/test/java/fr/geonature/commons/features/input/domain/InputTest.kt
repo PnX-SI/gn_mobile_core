@@ -1,4 +1,4 @@
-package fr.geonature.commons.input
+package fr.geonature.commons.features.input.domain
 
 import android.os.Parcel
 import fr.geonature.commons.data.entity.InputObserver
