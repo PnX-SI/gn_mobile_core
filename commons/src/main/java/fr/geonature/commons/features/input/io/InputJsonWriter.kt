@@ -58,8 +58,8 @@ class InputJsonWriter<I : AbstractInput, S : IAppSettings>(private val onInputJs
                 input,
                 settings
             )
-        } catch (ioe: IOException) {
-            Logger.warn(ioe)
+        } catch (e: Exception) {
+            Logger.warn(e)
 
             return null
         }
