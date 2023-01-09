@@ -26,6 +26,9 @@ class BaseViewModelTest {
     @RelaxedMockK
     private lateinit var failureObserver: Observer<Failure>
 
+    @RelaxedMockK
+    private lateinit var errorObserver: Observer<Throwable>
+
     @Before
     fun setUp() {
         init(this)
@@ -34,15 +37,30 @@ class BaseViewModelTest {
     }
 
     @Test
-    fun `should handle failure by updating live data`() = runTest {
-        viewModel.handleError(Failure.NetworkFailure(reason = "not_connected"))
-        viewModel.failure.observeForever(failureObserver)
+    fun `should handle failure by updating live data`() =
+        runTest {
+            viewModel.handle(Failure.NetworkFailure(reason = "not_connected"))
+            viewModel.failure.observeForever(failureObserver)
 
-        // then
-        verify(atLeast = 1) { failureObserver.onChanged(Failure.NetworkFailure(reason = "not_connected")) }
-    }
+            // then
+            verify(atLeast = 1) { failureObserver.onChanged(Failure.NetworkFailure(reason = "not_connected")) }
+        }
+
+    @Test
+    fun `should handle error by updating live data`() =
+        runTest {
+            viewModel.handle(RuntimeException("some exception"))
+            viewModel.error.observeForever(errorObserver)
+
+            // then
+            verify(atLeast = 1) { errorObserver.onChanged(any<RuntimeException>()) }
+        }
 
     private class DummyViewModel : BaseViewModel() {
-        fun handleError(failure: Failure) = handleFailure(failure)
+        fun handle(failure: Failure) =
+            handleFailure(failure)
+
+        fun handle(error: Throwable) =
+            handleError(error)
     }
 }
