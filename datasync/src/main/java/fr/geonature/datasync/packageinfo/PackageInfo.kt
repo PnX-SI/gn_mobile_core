@@ -48,42 +48,48 @@ data class PackageInfo(
     suspend fun getInputsToSynchronize(
         applicationContext: Context,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): List<SyncInput> = withContext(dispatcher) {
-        FileUtils
-            .getInputsFolder(
-                applicationContext,
-                packageName
-            )
-            .walkTopDown()
-            .filter { it.isFile && it.extension == "json" }
-            .filter { it.nameWithoutExtension.startsWith("input") }
-            .filter { it.canRead() }
-            .map {
-                val toJson = runCatching { JSONObject(it.readText()) }.getOrNull()
-
-                if (toJson == null) {
-                    Logger.warn { "invalid input file found '${it.name}'" }
-
-                    it.delete()
-
-                    return@map null
-                }
-
-                val module = runCatching { toJson.getString("module") }.getOrNull()
-
-                if (module.isNullOrBlank()) {
-                    Logger.warn { "invalid input file found '${it.name}': missing 'module' attribute" }
-
-                    return@map null
-                }
-
-                SyncInput(
-                    it.absolutePath,
-                    module,
-                    toJson
+    ): List<SyncInput> =
+        withContext(dispatcher) {
+            FileUtils
+                .getInputsFolder(
+                    applicationContext,
+                    packageName
                 )
-            }
-            .filterNotNull()
-            .toList()
-    }
+                .walkTopDown()
+                .filter { it.isFile && it.extension == "json" }
+                .filter { it.nameWithoutExtension.startsWith("input") }
+                .filter { it.canRead() }
+                .map {
+                    val toJson = runCatching { JSONObject(it.readText()) }.getOrNull()
+
+                    if (toJson == null) {
+                        Logger.warn { "invalid input file found '${it.name}'" }
+
+                        it.delete()
+
+                        return@map null
+                    }
+
+                    val module = toJson
+                        .optString("module")
+                        .takeIf { module -> module.isNotBlank() }
+                        ?: toJson
+                            .optJSONObject("properties")
+                            ?.getString("module")
+
+                    if (module.isNullOrBlank()) {
+                        Logger.warn { "invalid input file found '${it.name}': missing 'module' attribute" }
+
+                        return@map null
+                    }
+
+                    SyncInput(
+                        it.absolutePath,
+                        module,
+                        toJson
+                    )
+                }
+                .filterNotNull()
+                .toList()
+        }
 }
