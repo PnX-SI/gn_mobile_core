@@ -1,7 +1,6 @@
 package fr.geonature.commons.settings.io
 
 import android.util.JsonReader
-import fr.geonature.commons.features.input.domain.AbstractInput
 import fr.geonature.commons.settings.IAppSettings
 import org.tinylog.Logger
 import java.io.IOException
@@ -109,7 +108,7 @@ class AppSettingsJsonReader<AS : IAppSettings>(private val onAppSettingsJsonRead
          *
          * @param reader the current @code JsonReader} to use
          * @param keyName the JSON key read
-         * @param appSettings the current [AbstractInput] to use
+         * @param appSettings the current [IAppSettings] to use
          *
          * @throws IOException if something goes wrong
          * @throws IllegalArgumentException if invalid parameter was given
