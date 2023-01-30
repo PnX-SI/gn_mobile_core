@@ -15,6 +15,7 @@ import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.AuthLoginError
 import fr.geonature.datasync.api.model.AuthUser
+import fr.geonature.datasync.auth.error.AuthFailure
 import io.mockk.Called
 import io.mockk.MockKAnnotations.init
 import io.mockk.every

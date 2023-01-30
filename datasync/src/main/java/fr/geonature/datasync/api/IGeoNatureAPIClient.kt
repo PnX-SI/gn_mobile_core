@@ -9,7 +9,6 @@ import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
 import fr.geonature.datasync.api.model.User
 import okhttp3.ResponseBody
-import org.json.JSONObject
 import retrofit2.Call
 
 /**
@@ -27,8 +26,10 @@ interface IGeoNatureAPIClient {
         val taxHubBaseUrl: String? = null,
     ) : Parcelable {
 
-        private constructor(parcel: Parcel) : this(parcel.readString()!!,
-            parcel.readString())
+        private constructor(parcel: Parcel) : this(
+            parcel.readString()!!,
+            parcel.readString()
+        )
 
         override fun describeContents(): Int {
             return 0
@@ -73,11 +74,6 @@ interface IGeoNatureAPIClient {
      * Performs logout.
      */
     fun logout()
-
-    fun sendInput(
-        module: String,
-        input: JSONObject,
-    ): Call<ResponseBody>
 
     fun getMetaDatasets(): Call<ResponseBody>
 

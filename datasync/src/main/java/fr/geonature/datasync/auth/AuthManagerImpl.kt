@@ -18,6 +18,7 @@ import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.AuthLoginError
+import fr.geonature.datasync.auth.error.AuthFailure
 import fr.geonature.datasync.auth.io.AuthLoginJsonReader
 import fr.geonature.datasync.auth.io.AuthLoginJsonWriter
 import fr.geonature.datasync.sync.worker.DataSyncWorker

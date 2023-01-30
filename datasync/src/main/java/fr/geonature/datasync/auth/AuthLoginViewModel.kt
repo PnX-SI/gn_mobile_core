@@ -13,6 +13,7 @@ import fr.geonature.datasync.R
 import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.auth.error.AuthFailure
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
