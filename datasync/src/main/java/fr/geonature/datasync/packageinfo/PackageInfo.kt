@@ -70,20 +70,36 @@ data class PackageInfo(
                         return@map null
                     }
 
-                    val module = toJson
-                        .optString("module")
-                        .takeIf { module -> module.isNotBlank() }
+                    val id = toJson
+                        .optJSONObject("properties")
+                        ?.optLong("internal_id")
+                        ?.takeIf { id -> id > 0L }
                         ?: toJson
-                            .optJSONObject("properties")
-                            ?.getString("module")
+                            .optLong("id")
+                            .takeIf { id -> id > 0L }
 
+                    if (id == null) {
+                        Logger.warn { "invalid input file found '${it.name}': missing 'properties/internal_id' or 'id' attribute" }
+
+                        return@map null
+                    }
+
+                    val module = toJson
+                        .optJSONObject("properties")
+                        ?.getString("module")
+                        ?.takeIf { module -> module.isNotBlank() }
+                        ?: toJson
+                            .optString("module")
+                            .takeIf { module -> module.isNotBlank() }
+                    
                     if (module.isNullOrBlank()) {
-                        Logger.warn { "invalid input file found '${it.name}': missing 'module' attribute" }
+                        Logger.warn { "invalid input file found '${it.name}': missing 'properties/module' or 'module' attribute" }
 
                         return@map null
                     }
 
                     SyncInput(
+                        id,
                         it.absolutePath,
                         module,
                         toJson

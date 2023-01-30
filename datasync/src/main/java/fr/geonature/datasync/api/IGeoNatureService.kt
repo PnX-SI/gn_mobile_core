@@ -5,7 +5,6 @@ import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.TaxrefArea
 import fr.geonature.datasync.api.model.User
-import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
@@ -32,16 +31,6 @@ interface IGeoNatureService {
     fun authLogin(
         @Body authCredentials: AuthCredentials
     ): Call<AuthLogin>
-
-    @Headers(
-        "Accept: application/json",
-        "Content-Type: application/json;charset=UTF-8"
-    )
-    @POST("api/{module}/releve")
-    fun sendInput(
-        @Path("module") module: String,
-        @Body input: RequestBody
-    ): Call<ResponseBody>
 
     @Headers("Accept: application/json")
     @GET("api/meta/datasets?fields=modules")

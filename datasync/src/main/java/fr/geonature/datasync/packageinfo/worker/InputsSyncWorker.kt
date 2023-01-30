@@ -10,16 +10,12 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
+import fr.geonature.datasync.packageinfo.ISynchronizeObservationRecordRepository
 import fr.geonature.datasync.packageinfo.PackageInfo
 import fr.geonature.datasync.packageinfo.SyncInput
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import org.tinylog.Logger
-import retrofit2.awaitResponse
-import java.io.File
 
 /**
  * Inputs synchronization worker from given [PackageInfo].
@@ -30,8 +26,8 @@ import java.io.File
 class InputsSyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val geoNatureAPIClient: IGeoNatureAPIClient,
-    private val packageInfoRepository: IPackageInfoRepository
+    private val packageInfoRepository: IPackageInfoRepository,
+    private val synchronizeRecordRepository: ISynchronizeObservationRecordRepository
 ) : CoroutineWorker(
     appContext,
     workerParams
@@ -57,7 +53,7 @@ class InputsSyncWorker @AssistedInject constructor(
             )
         )
 
-        val inputsToSynchronize = packageInfoRepository.getInputsToSynchronize(packageInfo)
+        val inputsToSynchronize = packageInfo.getInputsToSynchronize(applicationContext)
         val inputsSynchronized = mutableListOf<SyncInput>()
 
         if (inputsToSynchronize.isEmpty()) {
@@ -68,12 +64,12 @@ class InputsSyncWorker @AssistedInject constructor(
                 )
             )
 
-            Logger.info {"no inputs to synchronize for '$packageName'"  }
+            Logger.info { "no observation records to synchronize for '$packageName'" }
 
             return Result.success()
         }
 
-        Logger.info { "${inputsToSynchronize.size} input(s) to synchronize for '$packageName'..." }
+        Logger.info { "${inputsToSynchronize.size} observation record(s) to synchronize for '$packageName'..." }
 
         setProgress(
             workData(
@@ -84,41 +80,13 @@ class InputsSyncWorker @AssistedInject constructor(
         )
 
         inputsToSynchronize.forEach { syncInput ->
-            try {
-                val response = geoNatureAPIClient
-                    .sendInput(
-                        syncInput.module,
-                        syncInput.payload
-                    )
-                    .awaitResponse()
+            val synchronizeInputResult = synchronizeRecordRepository(syncInput.id)
 
-                if (!response.isSuccessful) {
-                    setProgress(
-                        workData(
-                            packageInfo.packageName,
-                            WorkInfo.State.FAILED,
-                            inputsToSynchronize.size - inputsSynchronized.size
-                        )
-                    )
-                    delay(1000)
-
-                    return@forEach
+            if (synchronizeInputResult.isFailure) {
+                (synchronizeInputResult.exceptionOrNull()?.message
+                    ?: "failed to synchronize observation record '${syncInput.id}'").also {
+                    Logger.warn { it }
                 }
-
-                deleteSynchronizedInput(syncInput)
-                    .takeIf { deleted -> deleted }
-                    ?.also {
-                        inputsSynchronized.add(syncInput)
-                        setProgress(
-                            workData(
-                                packageInfo.packageName,
-                                WorkInfo.State.RUNNING,
-                                inputsToSynchronize.size - inputsSynchronized.size
-                            )
-                        )
-                    }
-            } catch (e: Exception) {
-                Logger.warn(e)
 
                 setProgress(
                     workData(
@@ -127,18 +95,33 @@ class InputsSyncWorker @AssistedInject constructor(
                         inputsToSynchronize.size - inputsSynchronized.size
                     )
                 )
+
                 delay(1000)
+
+                return@forEach
             }
+
+            inputsSynchronized.add(syncInput)
+
+            setProgress(
+                workData(
+                    packageInfo.packageName,
+                    WorkInfo.State.RUNNING,
+                    inputsToSynchronize.size - inputsSynchronized.size
+                )
+            )
         }
 
-        Logger.info { "inputs synchronization ${if (inputsSynchronized.size == inputsToSynchronize.size) "successfully finished" else "finished with errors"} for '$packageName'" }
+        Logger.info {
+            "observation records synchronization ${if (inputsSynchronized.size == inputsToSynchronize.size) "successfully finished" else "finished with errors"} for '$packageName'"
+        }
 
         return if (inputsSynchronized.size == inputsToSynchronize.size) {
             Result.success(
                 workData(
                     packageInfo.packageName,
                     WorkInfo.State.SUCCEEDED,
-                    inputsToSynchronize.size - inputsSynchronized.size
+                    0
                 )
             )
         } else {
@@ -149,15 +132,6 @@ class InputsSyncWorker @AssistedInject constructor(
                     inputsToSynchronize.size - inputsSynchronized.size
                 )
             )
-        }
-    }
-
-    private suspend fun deleteSynchronizedInput(syncInput: SyncInput): Boolean {
-        return withContext(Dispatchers.IO) {
-            File(syncInput.filePath)
-                .takeIf { it.exists() && it.isFile && it.parentFile?.canWrite() ?: false }
-                ?.delete()
-                ?: false
         }
     }
 
