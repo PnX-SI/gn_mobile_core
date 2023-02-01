@@ -2,10 +2,10 @@ package fr.geonature.commons.data.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.entity.AbstractTaxon
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
+import fr.geonature.commons.data.helper.EntityHelper.column
 
 /**
  * Data access object for [Taxon].
@@ -14,6 +14,36 @@ import fr.geonature.commons.data.entity.TaxonArea
  */
 @Dao
 abstract class TaxonDao : BaseDao<Taxon>() {
+
+    @Query(
+        """SELECT t.*
+            FROM ${Taxon.TABLE_NAME} t
+            WHERE t.${AbstractTaxon.COLUMN_ID} = :taxonId
+        """
+    )
+    abstract suspend fun findById(taxonId: Long): Taxon?
+
+    @Query(
+        """SELECT t.*
+            FROM ${Taxon.TABLE_NAME} t
+            WHERE t.${AbstractTaxon.COLUMN_ID} IN (:taxonIds)
+        """
+    )
+    abstract suspend fun findByIds(vararg taxonIds: Long): List<Taxon>
+
+    @Query(
+        """SELECT
+            t.*,
+            ta.*
+            FROM ${Taxon.TABLE_NAME} t
+            LEFT JOIN ${TaxonArea.TABLE_NAME} ta ON ta.${TaxonArea.COLUMN_TAXON_ID} = t.${AbstractTaxon.COLUMN_ID} AND ta.${TaxonArea.COLUMN_AREA_ID} = :areaId
+            WHERE t.${AbstractTaxon.COLUMN_ID} = :taxonId
+        """
+    )
+    abstract suspend fun findByIdMatchingArea(
+        taxonId: Long,
+        areaId: Long
+    ): Map<Taxon, TaxonArea?>
 
     @Query("DELETE FROM ${Taxon.TABLE_NAME} WHERE ${AbstractTaxon.COLUMN_ID} = :id")
     abstract fun deleteById(id: Long)
