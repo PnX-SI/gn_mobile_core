@@ -1,19 +1,26 @@
 package fr.geonature.datasync.api
 
+import android.webkit.MimeTypeMap
 import fr.geonature.datasync.api.error.MissingConfigurationException
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
 import fr.geonature.datasync.api.model.User
 import fr.geonature.datasync.auth.ICookieManager
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.tinylog.Logger
 import retrofit2.Call
+import java.io.File
 
 /**
- * GeoNature API client.
+ * Default implementation of _GeoNature_ API client.
  *
  * @author S. Grimault
  */
@@ -67,6 +74,53 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
 
     override fun logout() {
         cookieManager.clearCookie()
+    }
+
+    override fun sendMediaFile(
+        mediaType: Long,
+        tableLocation: Long,
+        author: String,
+        titleEn: String?,
+        titleFr: String?,
+        descriptionEn: String?,
+        descriptionFr: String?,
+        mediaFile: File
+    ): Call<Media> {
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
+
+        return geoNatureService.sendMediaFile(
+            mediaType,
+            tableLocation,
+            author.toRequestBody(),
+            titleEn?.toRequestBody(),
+            titleFr?.toRequestBody(),
+            descriptionEn?.toRequestBody(),
+            descriptionFr?.toRequestBody(),
+            MultipartBody.Part.createFormData(
+                "file",
+                mediaFile.name,
+                mediaFile.asRequestBody((mediaFile
+                    .toURI()
+                    .toURL()
+                    .openConnection().contentType
+                    ?: mediaFile.extension
+                        .takeIf { it.isNotEmpty() }
+                        ?.let {
+                            MimeTypeMap
+                                .getSingleton()
+                                .getMimeTypeFromExtension(it)
+                        })?.toMediaTypeOrNull()
+                ),
+            ),
+        )
+    }
+
+    override fun deleteMediaFile(mediaId: Int): Call<ResponseBody> {
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
+
+        return geoNatureService.deleteMediaFile(mediaId)
     }
 
     override fun getMetaDatasets(): Call<ResponseBody> {
@@ -139,6 +193,13 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
             ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getApplications()
+    }
+
+    override fun getIdTableLocation(): Call<Long> {
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
+
+        return geoNatureService.getIdTableLocation()
     }
 
     override fun downloadPackage(url: String): Call<ResponseBody> {
