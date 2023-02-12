@@ -4,15 +4,17 @@ import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
 import fr.geonature.datasync.api.model.User
 import okhttp3.ResponseBody
 import retrofit2.Call
+import java.io.File
 
 /**
- * GeoNature API client.
+ * _GeoNature_ API client.
  *
  * @author S. Grimault
  */
@@ -75,6 +77,19 @@ interface IGeoNatureAPIClient {
      */
     fun logout()
 
+    fun sendMediaFile(
+        mediaType: Long,
+        tableLocation: Long,
+        author: String,
+        titleEn: String?,
+        titleFr: String?,
+        descriptionEn: String?,
+        descriptionFr: String?,
+        mediaFile: File
+    ): Call<Media>
+
+    fun deleteMediaFile(mediaId: Int): Call<ResponseBody>
+
     fun getMetaDatasets(): Call<ResponseBody>
 
     fun getUsers(menuId: Int): Call<List<User>>
@@ -101,6 +116,8 @@ interface IGeoNatureAPIClient {
      * Gets all available applications from GeoNature.
      */
     fun getApplications(): Call<ResponseBody>
+
+    fun getIdTableLocation(): Call<Long>
 
     /**
      * Downloads application package (APK) from GeoNature.
