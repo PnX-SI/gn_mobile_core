@@ -24,4 +24,9 @@ sealed class NomenclatureException(
      * Failure about no [Nomenclature] found from given mnemonic.
      */
     data class NoNomenclatureValuesFoundException(val mnemonic: String) : NomenclatureException()
+
+    /**
+     * Failure about no [Nomenclature] found.
+     */
+    class NoNomenclatureFoundException(message: String?) : NomenclatureException(message)
 }
