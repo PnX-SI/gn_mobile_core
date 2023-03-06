@@ -9,6 +9,6 @@ import androidx.work.WorkInfo
  */
 data class DataSyncStatus(
     val state: WorkInfo.State,
-    val syncMessage: String?,
+    val syncMessage: String? = null,
     val serverStatus: ServerStatus = ServerStatus.OK
 )
