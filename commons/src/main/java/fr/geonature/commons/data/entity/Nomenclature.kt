@@ -7,7 +7,6 @@ import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
@@ -24,7 +23,7 @@ import org.tinylog.Logger
         entity = NomenclatureType::class,
         parentColumns = [NomenclatureType.COLUMN_ID],
         childColumns = [Nomenclature.COLUMN_TYPE_ID],
-        onDelete = CASCADE
+        onDelete = ForeignKey.CASCADE
     )]
 )
 open class Nomenclature(
