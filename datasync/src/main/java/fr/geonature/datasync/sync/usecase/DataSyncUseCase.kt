@@ -128,12 +128,23 @@ class DataSyncUseCase @Inject constructor(
                 return@flow
             }
 
-            database
-                .datasetDao()
-                .run {
-                    deleteAll()
-                    insert(*dataset.toTypedArray())
+            runCatching {
+                database
+                    .datasetDao()
+                    .run {
+                        deleteAll()
+                        insert(*dataset.toTypedArray())
+                    }
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_dataset_error)
+                        )
+                    )
                 }
+                .getOrThrow()
 
             emit(
                 DataSyncStatus(
@@ -185,12 +196,23 @@ class DataSyncUseCase @Inject constructor(
                 return@flow
             }
 
-            database
-                .inputObserverDao()
-                .run {
-                    deleteAll()
-                    insert(*inputObservers)
+            runCatching {
+                database
+                    .inputObserverDao()
+                    .run {
+                        deleteAll()
+                        insert(*inputObservers)
+                    }
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_observers_error)
+                        )
+                    )
                 }
+                .getOrThrow()
 
             emit(
                 DataSyncStatus(
@@ -239,12 +261,23 @@ class DataSyncUseCase @Inject constructor(
                 return@flow
             }
 
-            database
-                .taxonomyDao()
-                .run {
-                    deleteAll()
-                    insert(*taxonomyRanks.toTypedArray())
+            runCatching {
+                database
+                    .taxonomyDao()
+                    .run {
+                        deleteAll()
+                        insert(*taxonomyRanks.toTypedArray())
+                    }
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_taxonomy_ranks_error)
+                        )
+                    )
                 }
+                .getOrThrow()
 
             emit(
                 DataSyncStatus(
@@ -408,7 +441,24 @@ class DataSyncUseCase @Inject constructor(
                 .keys()
                 .asSequence()
                 .filter { mnemonic ->
-                    nomenclatureTypesToUpdate.find { it.mnemonic == mnemonic } != null
+                    val nomenclatureType =
+                        nomenclatureTypesToUpdate.find { it.mnemonic == mnemonic }
+                            ?: return@filter run {
+                                Logger.warn { "no such nomenclature type '$mnemonic' with default value" }
+                                false
+                            }
+                    val defaultNomenclatureId = defaultNomenclatureAsJson.getLong(mnemonic)
+
+                    run {
+                        val predicate =
+                            nomenclaturesToUpdate.any { it.typeId == nomenclatureType.id && it.id == defaultNomenclatureId }
+
+                        if (!predicate) {
+                            Logger.warn { "no default nomenclature value found with mnemonic '$mnemonic'" }
+                        }
+
+                        predicate
+                    }
                 }
                 .map {
                     DefaultNomenclature(
@@ -431,29 +481,88 @@ class DataSyncUseCase @Inject constructor(
                 )
             )
 
-            database
-                .nomenclatureTypeDao()
-                .run {
-                    deleteAll()
-                    insert(*nomenclatureTypesToUpdate)
-                }
-            database
-                .nomenclatureDao()
-                .run {
-                    if (nomenclaturesToUpdate.isNotEmpty()) {
+            runCatching {
+                database
+                    .nomenclatureTypeDao()
+                    .run {
                         deleteAll()
-                        insert(*nomenclaturesToUpdate)
+                        insert(*nomenclatureTypesToUpdate)
                     }
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_nomenclature_type_error)
+                        )
+                    )
                 }
-            database
-                .taxonomyDao()
-                .insertOrIgnore(*taxonomyToUpdate)
-            database
-                .nomenclatureTaxonomyDao()
-                .insert(*nomenclaturesTaxonomyToUpdate)
-            database
-                .defaultNomenclatureDao()
-                .insert(*defaultNomenclaturesToUpdate)
+                .getOrThrow()
+
+            runCatching {
+                database
+                    .nomenclatureDao()
+                    .run {
+                        if (nomenclaturesToUpdate.isNotEmpty()) {
+                            deleteAll()
+                            insert(*nomenclaturesToUpdate)
+                        }
+                    }
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_nomenclature_error)
+                        )
+                    )
+                }
+                .getOrThrow()
+
+            runCatching {
+                database
+                    .taxonomyDao()
+                    .insertOrIgnore(*taxonomyToUpdate)
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_taxonomy_ranks_error)
+                        )
+                    )
+                }
+                .getOrThrow()
+
+            runCatching {
+                database
+                    .nomenclatureTaxonomyDao()
+                    .insert(*nomenclaturesTaxonomyToUpdate)
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_nomenclature_error)
+                        )
+                    )
+                }
+                .getOrThrow()
+
+            runCatching {
+                database
+                    .defaultNomenclatureDao()
+                    .insert(*defaultNomenclaturesToUpdate)
+            }
+                .onFailure {
+                    emit(
+                        onFailure(
+                            it,
+                            application.getString(R.string.sync_data_nomenclature_default_error)
+                        )
+                    )
+                }
+                .getOrThrow()
         }
 
     private suspend fun synchronizeTaxa(
@@ -531,9 +640,11 @@ class DataSyncUseCase @Inject constructor(
                     .toList()
                     .toTypedArray()
 
-                database
-                    .taxonDao()
-                    .insert(*taxa)
+                runCatching {
+                    database
+                        .taxonDao()
+                        .insert(*taxa)
+                }.onFailure { Logger.warn(it) { "failed to update taxa (offset: $offset)" } }
 
                 Logger.info { "taxa to update: ${offset + taxa.size}" }
 
@@ -560,46 +671,48 @@ class DataSyncUseCase @Inject constructor(
                 )
             )
 
-            val orphanedTaxaIds = mutableSetOf<Long>()
+            runCatching {
+                val orphanedTaxaIds = mutableSetOf<Long>()
 
-            database
-                .taxonDao()
-                .QB()
-                .cursor()
-                .run {
-                    Logger.info { "deleting orphaned taxa..." }
-                    moveToFirst()
-
-                    while (!isAfterLast) {
-                        Taxon
-                            .fromCursor(this)
-                            ?.run {
-                                if (!validTaxaIds.contains(id)) {
-                                    orphanedTaxaIds.add(id)
-                                }
-                            }
-
-                        moveToNext()
-                    }
-                }
-            orphanedTaxaIds.forEach {
                 database
                     .taxonDao()
-                    .deleteById(it)
-            }
+                    .QB()
+                    .cursor()
+                    .run {
+                        Logger.info { "deleting orphaned taxa..." }
+                        moveToFirst()
 
-            Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
+                        while (!isAfterLast) {
+                            Taxon
+                                .fromCursor(this)
+                                ?.run {
+                                    if (!validTaxaIds.contains(id)) {
+                                        orphanedTaxaIds.add(id)
+                                    }
+                                }
 
-            emit(
-                DataSyncStatus(
-                    state = WorkInfo.State.SUCCEEDED,
-                    syncMessage = application.resources.getQuantityString(
-                        R.plurals.sync_data_taxa_orphaned_deleted,
-                        orphanedTaxaIds.size,
-                        orphanedTaxaIds.size
+                            moveToNext()
+                        }
+                    }
+                orphanedTaxaIds.forEach {
+                    database
+                        .taxonDao()
+                        .deleteById(it)
+                }
+
+                Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
+
+                emit(
+                    DataSyncStatus(
+                        state = WorkInfo.State.SUCCEEDED,
+                        syncMessage = application.resources.getQuantityString(
+                            R.plurals.sync_data_taxa_orphaned_deleted,
+                            orphanedTaxaIds.size,
+                            orphanedTaxaIds.size
+                        )
                     )
                 )
-            )
+            }.onFailure { Logger.warn(it) { "failed to delete orphaned taxa" } }
 
             if (withAdditionalData) {
                 Logger.info { "synchronize taxa additional data..." }
@@ -660,9 +773,11 @@ class DataSyncUseCase @Inject constructor(
                         .toList()
                         .toTypedArray()
 
-                    database
-                        .taxonAreaDao()
-                        .insert(*taxonAreas)
+                    runCatching {
+                        database
+                            .taxonAreaDao()
+                            .insert(*taxonAreas)
+                    }.onFailure { Logger.warn(it) { "failed to update taxa with areas (offset: $offset)" } }
 
                     Logger.info { "updating ${taxonAreas.size} taxa with areas from offset $offset" }
 

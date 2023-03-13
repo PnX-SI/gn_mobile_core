@@ -40,6 +40,7 @@
     <string name="sync_data_nomenclature_type">Types de nomenclature : %1$d</string>
     <string name="sync_data_nomenclature_type_error">Types de nomenclature : échec</string>
     <string name="sync_data_nomenclature">Nomenclature : %1$d</string>
+    <string name="sync_data_nomenclature_error">Nomenclature : échec</string>
     <string name="sync_data_nomenclature_default">Valeurs par défaut de la nomenclature : %1$d</string>
     <string name="sync_data_nomenclature_default_error">Valeurs par défaut de la nomenclature : échec</string>
     <string name="sync_data_taxa">Taxons : %1$d</string>

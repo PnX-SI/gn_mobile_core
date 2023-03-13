@@ -116,7 +116,7 @@ class DataSyncWorker @AssistedInject constructor(
                 }
             }
             .catch {
-                Logger.warn { it.message }
+                Logger.warn(it) { it.message }
             }
             .lastOrNull()
             ?.let {
