@@ -40,6 +40,7 @@
     <string name="sync_data_nomenclature_type">Nomenclature type: %1$d</string>
     <string name="sync_data_nomenclature_type_error">Nomenclature type: failure</string>
     <string name="sync_data_nomenclature">Nomenclature: %1$d</string>
+    <string name="sync_data_nomenclature_error">Nomenclature values: failure</string>
     <string name="sync_data_nomenclature_default">Nomenclature default values: %1$d</string>
     <string name="sync_data_nomenclature_default_error">Nomenclature default values: failure</string>
     <string name="sync_data_taxa">Taxa: %1$d</string>
