@@ -12,11 +12,9 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.datasync.packageinfo.worker.DownloadPackageInfoWorker
-import fr.geonature.datasync.packageinfo.worker.InputsSyncWorker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,35 +34,6 @@ class PackageInfoViewModel @Inject constructor(
     private val _appSettingsUpdated: MutableLiveData<Boolean> = MutableLiveData()
     private val _allPackageInfos: MutableLiveData<List<PackageInfo>> = MutableLiveData(emptyList())
 
-    private val _synchronizeInputsFromPackageInfo =
-        map(workManager.getWorkInfosByTagLiveData(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)) { workInfos ->
-            val workInfoData = workInfos
-                .firstOrNull()
-                ?.let { workInfo ->
-                    workInfo.progress
-                        .getString(InputsSyncWorker.KEY_PACKAGE_NAME)
-                        ?.let { workInfo.progress }
-                        ?: workInfo.outputData
-                            .getString(InputsSyncWorker.KEY_PACKAGE_NAME)
-                            ?.let { workInfo.outputData }
-                }
-                ?: return@map null
-
-            val packageName = workInfoData.getString(InputsSyncWorker.KEY_PACKAGE_NAME)
-                ?: return@map null
-
-            AppPackageInputsStatus(
-                packageName,
-                WorkInfo.State.values()[workInfoData.getInt(
-                    InputsSyncWorker.KEY_PACKAGE_STATUS,
-                    WorkInfo.State.ENQUEUED.ordinal
-                )],
-                workInfoData.getInt(
-                    InputsSyncWorker.KEY_PACKAGE_INPUTS,
-                    0
-                )
-            )
-        }
     private val _downloadPackageInfo = MutableLiveData<AppPackageDownloadStatus>()
 
     /**
@@ -74,20 +43,6 @@ class PackageInfoViewModel @Inject constructor(
         postValue(emptyList())
         addSource(_allPackageInfos) { packageInfos ->
             value = packageInfos
-        }
-        addSource(_synchronizeInputsFromPackageInfo) { inputsStatus ->
-            value = value?.map { packageInfo ->
-                inputsStatus?.let {
-                    if (it.packageName == inputsStatus.packageName) {
-                        packageInfo
-                            .copy()
-                            .apply {
-                                this.inputsStatus = inputsStatus
-                            }
-                    } else packageInfo
-                }
-                    ?: packageInfo
-            }
         }
         addSource(_downloadPackageInfo) { downloadStatus ->
             value = value?.map { packageInfo ->
@@ -224,37 +179,9 @@ class PackageInfoViewModel @Inject constructor(
     }
 
     fun cancelTasks() {
-        workManager.cancelAllWorkByTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
+
     }
 
     private fun startSyncInputs(packageInfo: PackageInfo) {
-        val constraints = Constraints
-            .Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val inputsSyncWorkerRequest = OneTimeWorkRequest
-            .Builder(InputsSyncWorker::class.java)
-            .addTag(InputsSyncWorker.INPUT_SYNC_WORKER_TAG)
-            .setConstraints(constraints)
-            .setInputData(
-                Data
-                    .Builder()
-                    .putString(
-                        InputsSyncWorker.KEY_PACKAGE_NAME,
-                        packageInfo.packageName
-                    )
-                    .build()
-            )
-            .build()
-
-        val continuation = workManager.beginUniqueWork(
-            InputsSyncWorker.workName(packageInfo.packageName),
-            ExistingWorkPolicy.KEEP,
-            inputsSyncWorkerRequest
-        )
-
-        // start the work
-        continuation.enqueue()
     }
 }
