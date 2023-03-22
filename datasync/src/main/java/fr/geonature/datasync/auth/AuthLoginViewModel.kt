@@ -1,11 +1,10 @@
 package fr.geonature.datasync.auth
 
-import android.app.Application
 import android.text.TextUtils
 import androidx.annotation.StringRes
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.commons.error.Failure
@@ -24,10 +23,9 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AuthLoginViewModel @Inject constructor(
-    application: Application,
     private val authManager: IAuthManager,
     geoNatureAPIClient: IGeoNatureAPIClient
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _loginFormState = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginFormState
@@ -35,7 +33,7 @@ class AuthLoginViewModel @Inject constructor(
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
-    val isLoggedIn: LiveData<Boolean> = authManager.isLoggedIn
+    val isLoggedIn: LiveData<AuthLogin?> = authManager.isLoggedIn
 
     init {
         if (!geoNatureAPIClient.checkSettings()) {
