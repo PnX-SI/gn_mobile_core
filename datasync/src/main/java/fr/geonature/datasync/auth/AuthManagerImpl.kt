@@ -50,11 +50,11 @@ class AuthManagerImpl(
     private var authLogin: AuthLogin? = null
         set(value) {
             field = value
-            _isLoggedIn.postValue(value != null)
+            _isLoggedIn.postValue(value)
         }
 
-    private val _isLoggedIn: MutableLiveData<Boolean> = MutableLiveData(false)
-    override val isLoggedIn: LiveData<Boolean> = _isLoggedIn
+    private val _isLoggedIn: MutableLiveData<AuthLogin?> = MutableLiveData()
+    override val isLoggedIn: LiveData<AuthLogin?> = _isLoggedIn
 
     override suspend fun getAuthLogin(): AuthLogin? =
         withContext(dispatcher) {

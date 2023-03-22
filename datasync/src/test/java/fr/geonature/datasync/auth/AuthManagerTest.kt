@@ -72,7 +72,7 @@ class AuthManagerTest {
     private lateinit var authLoginErrorResponse: ResponseBody
 
     @RelaxedMockK
-    private lateinit var isLoggedInObserver: Observer<Boolean>
+    private lateinit var isLoggedInObserver: Observer<AuthLogin?>
 
     @Before
     fun setUp() {
@@ -96,7 +96,7 @@ class AuthManagerTest {
 
             // then
             assertNull(noSuchAuthLogin)
-            verify(atLeast = 1) { isLoggedInObserver.onChanged(false) }
+            verify(atLeast = 1) { isLoggedInObserver.onChanged(null) }
         }
 
     @Test
@@ -124,7 +124,7 @@ class AuthManagerTest {
             every { authLoginResponse.isSuccessful } returns true
             every { authLoginResponse.body() } returns authLogin
 
-            verify(atLeast = 1) { isLoggedInObserver.onChanged(false) }
+            verify(inverse = true) { isLoggedInObserver.onChanged(any()) }
 
             // when perform authentication
             val auth = authManager.login(
@@ -139,7 +139,7 @@ class AuthManagerTest {
                 authLogin,
                 auth.orNull()
             )
-            verify(atLeast = 1) { isLoggedInObserver.onChanged(true) }
+            verify(atLeast = 1) { isLoggedInObserver.onChanged(authLogin) }
 
             val authLoginFromManager = authManager.getAuthLogin()
 
@@ -151,8 +151,8 @@ class AuthManagerTest {
                 authLogin.expires.toIsoDateString(),
                 authLoginFromManager?.expires?.toIsoDateString()
             )
-            assertTrue(authManager.isLoggedIn.value == true)
-            verify(atLeast = 1) { isLoggedInObserver.onChanged(true) }
+            assertTrue(authManager.isLoggedIn.value == authLogin)
+            verify(atLeast = 1) { isLoggedInObserver.onChanged(authLogin) }
         }
 
     @Test
@@ -232,7 +232,7 @@ class AuthManagerTest {
             every { authLoginResponse.isSuccessful } returns true
             every { authLoginResponse.body() } returns authLogin
 
-            verify(atLeast = 1) { isLoggedInObserver.onChanged(false) }
+            verify(inverse = true) { isLoggedInObserver.onChanged(any()) }
 
             // when perform authentication
             val auth = authManager.login(
@@ -318,7 +318,7 @@ class AuthManagerTest {
             verify(atLeast = 1) { geoNatureAPIClient.logout() }
             assertTrue(disconnected)
             assertNull(authLoginFromManager)
-            verify(atLeast = 1) { isLoggedInObserver.onChanged(false) }
+            verify(atLeast = 1) { isLoggedInObserver.onChanged(null) }
         }
 
     @Test
@@ -369,6 +369,6 @@ class AuthManagerTest {
                 authLogin.user,
                 authLoginFromManager?.user
             )
-            verify(atLeast = 1) { isLoggedInObserver.onChanged(false) }
+            verify(atLeast = 1) { isLoggedInObserver.onChanged(authLogin) }
         }
 }
