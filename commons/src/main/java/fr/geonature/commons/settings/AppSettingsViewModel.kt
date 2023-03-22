@@ -1,6 +1,7 @@
 package fr.geonature.commons.settings
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.liveData
@@ -13,6 +14,9 @@ import androidx.lifecycle.liveData
 open class AppSettingsViewModel<AS : IAppSettings>(private val appSettingsManager: IAppSettingsManager<AS>) :
     ViewModel() {
 
+    private val _appSettings = MutableLiveData<AS?>()
+    val appSettings: LiveData<AS?> = _appSettings
+
     fun getAppSettingsFilename(): String {
         return appSettingsManager.getAppSettingsFilename()
     }
@@ -21,6 +25,7 @@ open class AppSettingsViewModel<AS : IAppSettings>(private val appSettingsManage
         liveData {
             val appSettings = appSettingsManager.loadAppSettings()
             emit(appSettings)
+            _appSettings.value = appSettings
         }
 
     /**
