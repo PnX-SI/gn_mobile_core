@@ -23,9 +23,10 @@ import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.ServerStatus
 import fr.geonature.datasync.sync.io.DatasetJsonReader
 import fr.geonature.datasync.sync.io.TaxonomyJsonReader
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import org.json.JSONObject
 import org.tinylog.Logger
@@ -47,50 +48,83 @@ class DataSyncUseCase @Inject constructor(
 ) : BaseFlowUseCase<DataSyncStatus, DataSyncUseCase.Params>() {
 
     override suspend fun run(params: Params): Flow<DataSyncStatus> =
-        database.withTransaction {
-            flow {
-                emit(checkServerUrls(params.withAdditionalData))
-                emitAll(synchronizeDataset())
-                emitAll(synchronizeObservers(params.usersMenuId))
-                emitAll(synchronizeTaxonomyRanks())
-                emitAll(synchronizeNomenclature())
-                emitAll(
-                    synchronizeTaxa(
-                        params.taxRefListId,
-                        params.codeAreaType,
-                        params.pageSize,
-                        params.withAdditionalData
+        channelFlow {
+            database.withTransaction {
+                checkServerUrls(params.withAdditionalData).collect {
+                    sendOrThrow(
+                        this,
+                        it
                     )
-                )
+                }
+                synchronizeDataset().collect {
+                    sendOrThrow(
+                        this,
+                        it
+                    )
+                }
+                synchronizeObservers(params.usersMenuId).collect {
+                    sendOrThrow(
+                        this,
+                        it
+                    )
+                }
+                synchronizeTaxonomyRanks().collect {
+                    sendOrThrow(
+                        this,
+                        it
+                    )
+                }
+                synchronizeNomenclature().collect {
+                    sendOrThrow(
+                        this,
+                        it
+                    )
+                }
+                synchronizeTaxa(
+                    params.taxRefListId,
+                    params.codeAreaType,
+                    params.pageSize,
+                    params.withAdditionalData
+                ).collect {
+                    sendOrThrow(
+                        this,
+                        it
+                    )
+                }
             }
         }
 
-    private fun checkServerUrls(withAdditionalData: Boolean = true): DataSyncStatus {
-        return runCatching { geoNatureAPIClient.getBaseUrls() }.fold(
-            onSuccess = {
-                if (geoNatureAPIClient.checkSettings()) {
-                    Logger.info {
-                        "starting local data synchronization from '${it.geoNatureBaseUrl}' (with additional data: $withAdditionalData)..."
-                    }
+    private fun checkServerUrls(withAdditionalData: Boolean = true): Flow<DataSyncStatus> =
+        flow {
+            runCatching { geoNatureAPIClient.getBaseUrls() }.fold(
+                onSuccess = {
+                    if (geoNatureAPIClient.checkSettings()) {
+                        Logger.info {
+                            "starting local data synchronization from '${it.geoNatureBaseUrl}' (with additional data: $withAdditionalData)..."
+                        }
 
-                    DataSyncStatus(state = WorkInfo.State.SUCCEEDED)
-                } else {
-                    DataSyncStatus(
-                        state = WorkInfo.State.FAILED,
-                        syncMessage = application.getString(R.string.sync_error_server_url_configuration),
-                        serverStatus = ServerStatus.INTERNAL_SERVER_ERROR
+                        emit(DataSyncStatus(state = WorkInfo.State.SUCCEEDED))
+                    } else {
+                        emit(
+                            DataSyncStatus(
+                                state = WorkInfo.State.FAILED,
+                                syncMessage = application.getString(R.string.sync_error_server_url_configuration),
+                                serverStatus = ServerStatus.INTERNAL_SERVER_ERROR
+                            )
+                        )
+                    }
+                },
+                onFailure = {
+                    emit(
+                        DataSyncStatus(
+                            state = WorkInfo.State.FAILED,
+                            syncMessage = application.getString(R.string.sync_error_server_url_configuration),
+                            serverStatus = ServerStatus.INTERNAL_SERVER_ERROR
+                        )
                     )
-                }
-            },
-            onFailure = {
-                DataSyncStatus(
-                    state = WorkInfo.State.FAILED,
-                    syncMessage = application.getString(R.string.sync_error_server_url_configuration),
-                    serverStatus = ServerStatus.INTERNAL_SERVER_ERROR
-                )
-            },
-        )
-    }
+                },
+            )
+        }
 
     private suspend fun synchronizeDataset(): Flow<DataSyncStatus> =
         flow {
@@ -109,7 +143,8 @@ class DataSyncUseCase @Inject constructor(
                         )
                     )
                 }
-                .getOrThrow()
+                .getOrNull()
+                ?: return@flow
 
             val dataset = runCatching {
                 DatasetJsonReader().read(
@@ -135,16 +170,14 @@ class DataSyncUseCase @Inject constructor(
                         deleteAll()
                         insert(*dataset.toTypedArray())
                     }
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_dataset_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_dataset_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
 
             emit(
                 DataSyncStatus(
@@ -174,7 +207,8 @@ class DataSyncUseCase @Inject constructor(
                         )
                     )
                 }
-                .getOrThrow()
+                .getOrNull()
+                ?: return@flow
 
             val inputObservers = response
                 .asSequence()
@@ -203,16 +237,14 @@ class DataSyncUseCase @Inject constructor(
                         deleteAll()
                         insert(*inputObservers)
                     }
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_observers_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_observers_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
 
             emit(
                 DataSyncStatus(
@@ -242,7 +274,8 @@ class DataSyncUseCase @Inject constructor(
                         )
                     )
                 }
-                .getOrThrow()
+                .getOrNull()
+                ?: return@flow
 
             val taxonomyRanks = runCatching {
                 TaxonomyJsonReader().read(
@@ -268,16 +301,14 @@ class DataSyncUseCase @Inject constructor(
                         deleteAll()
                         insert(*taxonomyRanks.toTypedArray())
                     }
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_taxonomy_ranks_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_taxonomy_ranks_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
 
             emit(
                 DataSyncStatus(
@@ -307,7 +338,8 @@ class DataSyncUseCase @Inject constructor(
                         )
                     )
                 }
-                .getOrThrow()
+                .getOrNull()
+                ?: return@flow
 
             val validNomenclatureTypesToUpdate = nomenclaturesResponse
                 .asSequence()
@@ -425,7 +457,8 @@ class DataSyncUseCase @Inject constructor(
                         )
                     )
                 }
-                .getOrThrow()
+                .getOrNull()
+                ?: return@flow
 
             val defaultNomenclatureAsJson = runCatching {
                 JSONObject(
@@ -488,16 +521,14 @@ class DataSyncUseCase @Inject constructor(
                         deleteAll()
                         insert(*nomenclatureTypesToUpdate)
                     }
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_nomenclature_type_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_nomenclature_type_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
 
             runCatching {
                 database
@@ -508,61 +539,53 @@ class DataSyncUseCase @Inject constructor(
                             insert(*nomenclaturesToUpdate)
                         }
                     }
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_nomenclature_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_nomenclature_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
 
             runCatching {
                 database
                     .taxonomyDao()
                     .insertOrIgnore(*taxonomyToUpdate)
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_taxonomy_ranks_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_taxonomy_ranks_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
 
             runCatching {
                 database
                     .nomenclatureTaxonomyDao()
                     .insert(*nomenclaturesTaxonomyToUpdate)
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_nomenclature_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_nomenclature_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
 
             runCatching {
                 database
                     .defaultNomenclatureDao()
                     .insert(*defaultNomenclaturesToUpdate)
-            }
-                .onFailure {
-                    emit(
-                        onFailure(
-                            it,
-                            application.getString(R.string.sync_data_nomenclature_default_error)
-                        )
+            }.onFailure {
+                emit(
+                    onFailure(
+                        it,
+                        application.getString(R.string.sync_data_nomenclature_default_error)
                     )
-                }
-                .getOrThrow()
+                )
+            }
         }
 
     private suspend fun synchronizeTaxa(
@@ -600,7 +623,8 @@ class DataSyncUseCase @Inject constructor(
                             )
                         )
                     }
-                    .getOrThrow()
+                    .getOrNull()
+                    ?: return@flow
 
                 if (taxrefResponse.isEmpty()) {
                     hasNext = false
@@ -739,7 +763,8 @@ class DataSyncUseCase @Inject constructor(
                                 )
                             )
                         }
-                        .getOrThrow()
+                        .getOrNull()
+                        ?: return@flow
 
                     if (taxrefAreasResponse.isEmpty()) {
                         hasNext = false
@@ -812,6 +837,22 @@ class DataSyncUseCase @Inject constructor(
                     syncMessage = errorMessage
                 )
             }
+        }
+    }
+
+    /**
+     * Sends synchronization status to the given channel and throw exception if its current status
+     * is [WorkInfo.State.FAILED] to cancel the current transaction.
+     */
+    private suspend fun sendOrThrow(
+        channel: SendChannel<DataSyncStatus>,
+        dataSyncStatus: DataSyncStatus
+    ) {
+        channel.send(dataSyncStatus)
+
+        if (dataSyncStatus.state == WorkInfo.State.FAILED) {
+            delay(500)
+            throw java.lang.Exception(dataSyncStatus.syncMessage)
         }
     }
 
