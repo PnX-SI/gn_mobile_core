@@ -53,10 +53,10 @@ data class NomenclatureType(
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeLong(id)
             it.writeString(mnemonic)
             it.writeString(defaultLabel)

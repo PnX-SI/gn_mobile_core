@@ -2,45 +2,39 @@ package fr.geonature.commons.settings.io
 
 import android.util.JsonReader
 import fr.geonature.commons.FixtureHelper.getFixture
-import fr.geonature.commons.MockitoKotlinHelper.any
-import fr.geonature.commons.MockitoKotlinHelper.eq
 import fr.geonature.commons.settings.DummyAppSettings
+import io.mockk.MockKAnnotations.init
+import io.mockk.every
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.atMost
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests about [AppSettingsJsonReader].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class AppSettingsJsonReaderTest {
 
     private lateinit var appSettingsJsonReader: AppSettingsJsonReader<DummyAppSettings>
 
-    @Mock
+    @RelaxedMockK
     private lateinit var onAppSettingsJsonJsonReaderListener: AppSettingsJsonReader.OnAppSettingsJsonReaderListener<DummyAppSettings>
 
     @Before
     fun setUp() {
-        openMocks(this)
+        init(this)
 
-        doReturn(DummyAppSettings()).`when`(onAppSettingsJsonJsonReaderListener)
-            .createAppSettings()
+        every { onAppSettingsJsonJsonReaderListener.createAppSettings() } returns DummyAppSettings()
 
-        appSettingsJsonReader = spy(AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener))
+        appSettingsJsonReader = AppSettingsJsonReader(onAppSettingsJsonJsonReaderListener)
     }
 
     @Test
@@ -54,16 +48,16 @@ class AppSettingsJsonReaderTest {
 
     @Test
     fun testReadAppSettingsFromJsonString() {
-        `when`(
+        every {
             onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(
-                any(JsonReader::class.java),
-                eq("attribute"),
-                any(DummyAppSettings::class.java)
+                any(),
+                "attribute",
+                any()
             )
-        ).then {
+        } answers {
             assertEquals(
                 "value",
-                (it.getArgument(0) as JsonReader).nextString()
+                firstArg<JsonReader>().nextString()
             )
         }
 
@@ -74,14 +68,13 @@ class AppSettingsJsonReaderTest {
         val appSettings = appSettingsJsonReader.read(json)
 
         // then
-        verify(
-            onAppSettingsJsonJsonReaderListener,
-            atMost(1)
-        ).readAdditionalAppSettingsData(
-            any(JsonReader::class.java),
-            eq("attribute"),
-            any(DummyAppSettings::class.java)
-        )
+        verify {
+            onAppSettingsJsonJsonReaderListener.readAdditionalAppSettingsData(
+                any(),
+                "attribute",
+                any()
+            )
+        }
 
         assertNotNull(appSettings)
     }

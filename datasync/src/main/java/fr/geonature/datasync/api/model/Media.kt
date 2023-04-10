@@ -3,6 +3,7 @@ package fr.geonature.datasync.api.model
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import fr.geonature.compat.os.readSerializableCompat
 import java.util.Date
 import java.util.UUID
 
@@ -28,7 +29,8 @@ data class Media(
 
     constructor(source: Parcel) : this(
         source.readInt(),
-        source.readSerializable() as UUID,
+        source.readSerializableCompat()
+            ?: UUID.randomUUID(),
         source.readInt(),
         source.readInt(),
         source.readString()!!,
@@ -37,8 +39,10 @@ data class Media(
         source.readString(),
         source.readString(),
         source.readString(),
-        source.readSerializable() as Date,
-        source.readSerializable() as Date
+        source.readSerializableCompat()
+            ?: Date(),
+        source.readSerializableCompat()
+            ?: Date()
     )
 
     override fun describeContents(): Int {
@@ -46,10 +50,10 @@ data class Media(
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeInt(id)
             it.writeSerializable(uuid)
             it.writeInt(mediaType)

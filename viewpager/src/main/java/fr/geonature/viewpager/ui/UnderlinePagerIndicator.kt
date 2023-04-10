@@ -113,8 +113,7 @@ class UnderlinePagerIndicator @JvmOverloads constructor(
 
     override fun onSaveInstanceState(): Parcelable? {
         val superState = super.onSaveInstanceState()
-
-        if (superState == null) return superState
+            ?: return null
 
         val savedState = SavedState(superState)
         savedState.currentPage = currentPage

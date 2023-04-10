@@ -12,26 +12,25 @@ import androidx.lifecycle.Observer
  *
  * @param handler the handler to execute on change.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-class OneTimeObserver<T>(private val handler: (T?) -> Unit) :
-    Observer<T>,
-    LifecycleOwner {
-    private val lifecycle = LifecycleRegistry(this)
+class OneTimeObserver<T>(private val handler: (T?) -> Unit) : Observer<T>, LifecycleOwner {
+    override val lifecycle = LifecycleRegistry(this)
 
     init {
         lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
     }
 
-    override fun getLifecycle(): Lifecycle = lifecycle
-
-    override fun onChanged(t: T?) {
-        handler(t)
+    override fun onChanged(value: T) {
+        handler(value)
         lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
 }
 
 fun <T> LiveData<T>.observeOnce(onChangeHandler: (T?) -> Unit) {
     val observer = OneTimeObserver(handler = onChangeHandler)
-    observe(observer, observer)
+    observe(
+        observer,
+        observer
+    )
 }

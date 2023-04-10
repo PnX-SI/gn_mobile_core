@@ -5,7 +5,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations.map
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -50,50 +50,52 @@ class DataSyncViewModel @Inject constructor(
     val isSyncRunning: LiveData<Boolean> = _isSyncRunning
 
     fun observeDataSyncStatus(): LiveData<DataSyncStatus?> {
-        return map(workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)) { workInfoList ->
-            if (workInfoList == null || workInfoList.isEmpty()) {
-                currentSyncWorkerId = null
-                return@map null
-            }
+        return workManager
+            .getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+            .map { workInfoList ->
+                if (workInfoList == null || workInfoList.isEmpty()) {
+                    currentSyncWorkerId = null
+                    return@map null
+                }
 
-            val workInfo = workInfoList.firstOrNull { it.id == currentSyncWorkerId }
-                ?: workInfoList.firstOrNull { it.state == WorkInfo.State.RUNNING }
+                val workInfo = workInfoList.firstOrNull { it.id == currentSyncWorkerId }
+                    ?: workInfoList.firstOrNull { it.state == WorkInfo.State.RUNNING }
 
-            // no work info is running: abort
-            if (workInfo == null) {
-                currentSyncWorkerId = null
-                return@map null
-            }
+                // no work info is running: abort
+                if (workInfo == null) {
+                    currentSyncWorkerId = null
+                    return@map null
+                }
 
-            // this is a new work info: set the current worker
-            if (workInfo.id != currentSyncWorkerId) {
-                currentSyncWorkerId = workInfo.id
-            }
+                // this is a new work info: set the current worker
+                if (workInfo.id != currentSyncWorkerId) {
+                    currentSyncWorkerId = workInfo.id
+                }
 
-            val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
-                DataSyncWorker.KEY_SERVER_STATUS,
-                workInfo.outputData.getInt(
+                val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
                     DataSyncWorker.KEY_SERVER_STATUS,
-                    ServerStatus.OK.ordinal
-                )
-            )]
+                    workInfo.outputData.getInt(
+                        DataSyncWorker.KEY_SERVER_STATUS,
+                        ServerStatus.OK.ordinal
+                    )
+                )]
 
-            // this work info is not scheduled or not running: the current worker is done
-            if (workInfo.state !in arrayListOf(
-                    WorkInfo.State.ENQUEUED,
-                    WorkInfo.State.RUNNING
+                // this work info is not scheduled or not running: the current worker is done
+                if (workInfo.state !in arrayListOf(
+                        WorkInfo.State.ENQUEUED,
+                        WorkInfo.State.RUNNING
+                    )
+                ) {
+                    currentSyncWorkerId = null
+                }
+
+                DataSyncStatus(
+                    workInfo.state,
+                    workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
+                        ?: workInfo.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
+                    serverStatus
                 )
-            ) {
-                currentSyncWorkerId = null
             }
-
-            DataSyncStatus(
-                workInfo.state,
-                workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
-                    ?: workInfo.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
-                serverStatus
-            )
-        }
     }
 
     fun startSync(

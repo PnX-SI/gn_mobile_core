@@ -65,10 +65,10 @@ data class TaxonArea(
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeLong(taxonId)
             it.writeLong(areaId)
             it.writeString(color)

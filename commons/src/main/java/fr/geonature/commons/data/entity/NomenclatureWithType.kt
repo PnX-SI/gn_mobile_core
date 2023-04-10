@@ -60,7 +60,7 @@ open class NomenclatureWithType : Nomenclature {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
         super.writeToParcel(
@@ -68,7 +68,7 @@ open class NomenclatureWithType : Nomenclature {
             flags
         )
 
-        dest?.writeParcelable(
+        dest.writeParcelable(
             type,
             flags
         )

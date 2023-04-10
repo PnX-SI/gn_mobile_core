@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations.map
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
 import androidx.work.Data
@@ -145,41 +145,43 @@ class PackageInfoViewModel @Inject constructor(
             inputsSyncWorkerRequest
         )
 
-        return map(workManager.getWorkInfoByIdLiveData(inputsSyncWorkerRequest.id)) {
-            if (it == null) {
-                return@map null
+        return workManager
+            .getWorkInfoByIdLiveData(inputsSyncWorkerRequest.id)
+            .map {
+                if (it == null) {
+                    return@map null
+                }
+
+                val packageNameToUpgrade =
+                    it.progress.getString(DownloadPackageInfoWorker.KEY_PACKAGE_NAME)
+                        ?: it.outputData.getString(DownloadPackageInfoWorker.KEY_PACKAGE_NAME)
+                        ?: return@map null
+
+                val downloadStatus = AppPackageDownloadStatus(packageNameToUpgrade,
+                    it.state,
+                    it.outputData
+                        .getInt(
+                            DownloadPackageInfoWorker.KEY_PROGRESS,
+                            -1
+                        )
+                        .takeIf { progress -> progress > 0 }
+                        ?: it.progress.getInt(
+                            DownloadPackageInfoWorker.KEY_PROGRESS,
+                            -1
+                        ),
+                    it.outputData.getString(DownloadPackageInfoWorker.KEY_APK_FILE_PATH))
+
+                _downloadPackageInfo.postValue(downloadStatus)
+
+                downloadStatus
             }
-
-            val packageNameToUpgrade =
-                it.progress.getString(DownloadPackageInfoWorker.KEY_PACKAGE_NAME)
-                    ?: it.outputData.getString(DownloadPackageInfoWorker.KEY_PACKAGE_NAME)
-                    ?: return@map null
-
-            val downloadStatus = AppPackageDownloadStatus(packageNameToUpgrade,
-                it.state,
-                it.outputData
-                    .getInt(
-                        DownloadPackageInfoWorker.KEY_PROGRESS,
-                        -1
-                    )
-                    .takeIf { progress -> progress > 0 }
-                    ?: it.progress.getInt(
-                        DownloadPackageInfoWorker.KEY_PROGRESS,
-                        -1
-                    ),
-                it.outputData.getString(DownloadPackageInfoWorker.KEY_APK_FILE_PATH))
-
-            _downloadPackageInfo.postValue(downloadStatus)
-
-            downloadStatus
-        }.also {
-            // start the work
-            continuation.enqueue()
-        }
+            .also {
+                // start the work
+                continuation.enqueue()
+            }
     }
 
     fun cancelTasks() {
-
     }
 
     private fun startSyncInputs(packageInfo: PackageInfo) {

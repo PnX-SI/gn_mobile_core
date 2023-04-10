@@ -11,7 +11,7 @@ import java.io.File
 /**
  * Helpers for [File] utilities.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 object FileUtils {
 

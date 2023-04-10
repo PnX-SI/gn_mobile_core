@@ -1,5 +1,6 @@
 package fr.geonature.mountpoint.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Environment
 import android.util.Log
@@ -8,15 +9,13 @@ import fr.geonature.mountpoint.R
 import fr.geonature.mountpoint.model.MountPoint
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.ArrayList
-import java.util.HashSet
 import java.util.Scanner
 import java.util.TreeSet
 
 /**
  * Class helper about [MountPoint].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 object MountPointUtils {
 
@@ -31,8 +30,9 @@ object MountPointUtils {
         val externalStorage = System.getenv("EXTERNAL_STORAGE")
 
         if (externalStorage.isNullOrBlank()) {
-            @Suppress("DEPRECATION") val mountPoint = MountPoint(
-                context.getExternalFilesDir(null)?.absolutePath?.split("/Android/data")
+            val mountPoint = buildMountPoint(
+                context.getExternalFilesDir(null)?.absolutePath
+                    ?.split("/Android/data")
                     ?.firstOrNull()
                     ?: Environment.getExternalStorageDirectory().absolutePath,
                 MountPoint.StorageType.INTERNAL
@@ -48,7 +48,7 @@ object MountPointUtils {
             return mountPoint
         }
 
-        val mountPoint = MountPoint(
+        val mountPoint = buildMountPoint(
             externalStorage,
             MountPoint.StorageType.INTERNAL
         )
@@ -154,7 +154,7 @@ object MountPointUtils {
                     mountPoints.addAll(mountPointsFromProcMounts)
 
                     // fallback: try to find all externals storage from Android APIs if Android version >= 19
-                    if (mountPointsFromProcMounts.isEmpty() && DeviceUtils.isPostKitKat) {
+                    if (mountPointsFromProcMounts.isEmpty()) {
                         mountPoints.addAll(getMountPointsFromAPI(context))
                     }
                 }
@@ -188,6 +188,7 @@ object MountPointUtils {
      * @return a human representation of the storage size
      */
 
+    @SuppressLint("DiscouragedApi")
     fun formatStorageSize(
         context: Context,
         storageSize: Long
@@ -235,6 +236,7 @@ object MountPointUtils {
      *
      * @return a human representation of the storage status
      */
+    @SuppressLint("DiscouragedApi")
     fun formatStorageStatus(
         context: Context,
         status: String
@@ -260,31 +262,32 @@ object MountPointUtils {
     private fun getMountPointsFromAPI(context: Context): List<MountPoint> {
         val mountPoints = ArrayList<MountPoint>()
 
-        if (DeviceUtils.isPostKitKat) {
-            val externalFilesDirs = context.getExternalFilesDirs(null)
-            var firstPrimaryStorage = true
+        val externalFilesDirs = context.getExternalFilesDirs(null)
+        var firstPrimaryStorage = true
 
-            for (file in externalFilesDirs) {
-                if (file == null) {
-                    continue
-                }
+        for (file in externalFilesDirs) {
+            if (file == null) {
+                continue
+            }
 
-                val path = file.absolutePath
-                val mountPoint = buildMountPoint(
+            val path = file.absolutePath
+            val mountPoint = runCatching {
+                buildMountPoint(
                     path.substring(
                         0,
-                        path.indexOf("/Android")
+                        path
+                            .indexOf("/Android")
                             .coerceAtLeast(0)
                     ),
                     if (firstPrimaryStorage) MountPoint.StorageType.INTERNAL else MountPoint.StorageType.EXTERNAL
                 )
+            }.getOrNull()
 
-                if (mountPoint !== null) {
-                    mountPoints.add(mountPoint)
-                }
-
-                firstPrimaryStorage = false
+            if (mountPoint !== null) {
+                mountPoints.add(mountPoint)
             }
+
+            firstPrimaryStorage = false
         }
 
         return mountPoints
@@ -306,7 +309,8 @@ object MountPointUtils {
             }
 
             if (!secondaryStorage.isNullOrBlank()) {
-                val paths = secondaryStorage.split(":".toRegex())
+                val paths = secondaryStorage
+                    .split(":".toRegex())
                     .dropLastWhile {
                         it.isEmpty()
                     }
@@ -314,10 +318,12 @@ object MountPointUtils {
                 var firstSecondaryStorage = true
 
                 for (path in paths) {
-                    val mountPoint = buildMountPoint(
-                        path,
-                        if (firstSecondaryStorage) MountPoint.StorageType.EXTERNAL else MountPoint.StorageType.USB
-                    )
+                    val mountPoint = runCatching {
+                        buildMountPoint(
+                            path,
+                            if (firstSecondaryStorage) MountPoint.StorageType.EXTERNAL else MountPoint.StorageType.USB
+                        )
+                    }.getOrNull()
 
                     if (mountPoint != null) {
                         if (BuildConfig.DEBUG) {
@@ -379,7 +385,8 @@ object MountPointUtils {
 
                     // parse 'media_type' only it the storage type was not found from line comment
                     if (line.startsWith("media_type") && storageType == null) {
-                        val tokens = line.split("\\s".toRegex())
+                        val tokens = line
+                            .split("\\s".toRegex())
                             .dropLastWhile {
                                 it.isEmpty()
                             }
@@ -394,17 +401,20 @@ object MountPointUtils {
 
                     // parse 'dev_mount'
                     if (line.startsWith("dev_mount") && storageType != null) {
-                        val tokens = line.split("\\s".toRegex())
+                        val tokens = line
+                            .split("\\s".toRegex())
                             .dropLastWhile {
                                 it.isEmpty()
                             }
                             .toTypedArray()
 
                         if (tokens.size >= 3) {
-                            val mountPoint = buildMountPoint(
-                                tokens[2],
-                                storageType
-                            )
+                            val mountPoint = runCatching {
+                                buildMountPoint(
+                                    tokens[2],
+                                    storageType
+                                )
+                            }.getOrNull()
 
                             if (mountPoint != null) {
                                 mountPoints.add(mountPoint)
@@ -417,7 +427,8 @@ object MountPointUtils {
             } catch (fnfe: FileNotFoundException) {
                 Log.w(
                     TAG,
-                    fnfe.message ?: "'vold.fstab' not found"
+                    fnfe.message
+                        ?: "'vold.fstab' not found"
                 )
             }
 
@@ -447,17 +458,20 @@ object MountPointUtils {
                     val line = scanner.nextLine()
 
                     if (line.startsWith("/dev/block/vold") || line.startsWith("/dev/fuse")) {
-                        val tokens = line.split("\\s".toRegex())
+                        val tokens = line
+                            .split("\\s".toRegex())
                             .dropLastWhile {
                                 it.isEmpty()
                             }
                             .toTypedArray()
 
                         if (tokens.size >= 2) {
-                            val mountPoint = buildMountPoint(
-                                tokens[1],
-                                MountPoint.StorageType.EXTERNAL
-                            )
+                            val mountPoint = runCatching {
+                                buildMountPoint(
+                                    tokens[1],
+                                    MountPoint.StorageType.EXTERNAL
+                                )
+                            }.getOrNull()
 
                             if (mountPoint != null) {
                                 mountPoints.add(mountPoint)
@@ -470,7 +484,8 @@ object MountPointUtils {
             } catch (fnfe: FileNotFoundException) {
                 Log.w(
                     TAG,
-                    fnfe.message ?: "'/proc/mounts' not found"
+                    fnfe.message
+                        ?: "'/proc/mounts' not found"
                 )
             }
 
@@ -485,32 +500,12 @@ object MountPointUtils {
         }
 
     private fun buildMountPoint(
-        mountPath: File,
-        storageType: MountPoint.StorageType
-    ): MountPoint? {
-        if (!mountPath.isDirectory) {
-            if (BuildConfig.DEBUG) {
-                Log.d(
-                    TAG,
-                    "failed to build mount point from '$mountPath'"
-                )
-            }
-
-            return null
-        }
-
-        return MountPoint(
-            mountPath.absolutePath,
-            storageType
-        )
-    }
-
-    private fun buildMountPoint(
         mountPath: String,
         storageType: MountPoint.StorageType
-    ): MountPoint? {
-        return buildMountPoint(
-            File(if (mountPath.isBlank()) "/" else mountPath),
+    ): MountPoint {
+        return MountPoint(runCatching {
+            File(mountPath.ifBlank { "/" }).canonicalFile
+        }.getOrDefault(File(mountPath.ifBlank { "/" })),
             storageType
         )
     }

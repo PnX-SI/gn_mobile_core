@@ -20,25 +20,27 @@ class DataSyncSettingsUriDataSourceImpl(
     private val resource: Uri,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : IDataSyncSettingsDataSource {
-    override suspend fun load(): DataSyncSettings = withContext(dispatcher) {
-        Logger.info { "loading data sync settings from URI '${resource}'..." }
+    override suspend fun load(): DataSyncSettings =
+        withContext(dispatcher) {
+            Logger.info { "loading data sync settings from URI '${resource}'..." }
 
-        (applicationContext.contentResolver.acquireContentProviderClient(resource)
-            ?: throw DataSyncSettingsNotFoundException(source = resource.toString())).use {
-            val dataSyncSettings = (runCatching {
-                it.openFile(
-                    resource,
-                    "r"
-                )
-            }.getOrNull()
-                ?: throw DataSyncSettingsNotFoundException(source = resource.toString())).use { pfd ->
-                val dataSyncSettings =
-                    runCatching { DataSyncSettingsJsonReader().read(FileReader(pfd.fileDescriptor)) }.getOrThrow()
+            (applicationContext.contentResolver.acquireContentProviderClient(resource)
+                ?: throw DataSyncSettingsNotFoundException(source = resource.toString())).use {
+                val dataSyncSettings = (runCatching {
+                    it.openFile(
+                        resource,
+                        "r"
+                    )
+                }.getOrNull()
+                    ?: throw DataSyncSettingsNotFoundException(source = resource.toString())).use { pfd ->
+                    val dataSyncSettings = run {
+                        DataSyncSettingsJsonReader().read(FileReader(pfd.fileDescriptor))
+                    }
+
+                    dataSyncSettings
+                }
 
                 dataSyncSettings
             }
-
-            dataSyncSettings
         }
-    }
 }

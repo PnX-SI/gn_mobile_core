@@ -1,19 +1,16 @@
 package fr.geonature.commons.ui.adapter
 
 import android.view.View
+import io.mockk.MockKAnnotations.init
+import io.mockk.clearAllMocks
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.verify
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.Mock
-import org.mockito.Mockito.clearInvocations
-import org.mockito.Mockito.never
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -24,14 +21,14 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ListItemRecyclerViewAdapterTest {
 
-    @Mock
+    @RelaxedMockK
     private lateinit var onListItemRecyclerViewAdapterListener: AbstractListItemRecyclerViewAdapter.OnListItemRecyclerViewAdapterListener<String>
 
     private lateinit var stringListItemRecyclerViewAdapter: StringListItemRecyclerViewAdapter
 
     @Before
     fun setUp() {
-        openMocks(this)
+        init(this)
 
         stringListItemRecyclerViewAdapter =
             StringListItemRecyclerViewAdapter(onListItemRecyclerViewAdapterListener)
@@ -43,7 +40,7 @@ class ListItemRecyclerViewAdapterTest {
         stringListItemRecyclerViewAdapter.setItems(emptyList())
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(true)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(true) }
         assertEquals(
             0,
             stringListItemRecyclerViewAdapter.itemCount
@@ -62,7 +59,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             2,
             stringListItemRecyclerViewAdapter.itemCount
@@ -75,16 +72,11 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when adding some new element
         stringListItemRecyclerViewAdapter.setItems(listOf("item #3"))
 
         // then
-        verify(
-            onListItemRecyclerViewAdapterListener,
-            times(2)
-        ).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             1,
             stringListItemRecyclerViewAdapter.itemCount
@@ -94,13 +86,11 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when adding nothing
         stringListItemRecyclerViewAdapter.setItems(emptyList())
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(true)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(true) }
         assertEquals(
             0,
             stringListItemRecyclerViewAdapter.itemCount
@@ -119,7 +109,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             2,
             stringListItemRecyclerViewAdapter.itemCount
@@ -132,13 +122,11 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when clearing the adapter
         stringListItemRecyclerViewAdapter.clear()
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(true)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(true) }
         assertEquals(
             0,
             stringListItemRecyclerViewAdapter.itemCount
@@ -152,7 +140,7 @@ class ListItemRecyclerViewAdapterTest {
         stringListItemRecyclerViewAdapter.add("item #1")
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             1,
             stringListItemRecyclerViewAdapter.itemCount
@@ -162,8 +150,6 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when adding another item at first position
         stringListItemRecyclerViewAdapter.add(
             "item #2",
@@ -171,7 +157,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             2,
             stringListItemRecyclerViewAdapter.itemCount
@@ -184,8 +170,6 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when adding item at invalid position
         stringListItemRecyclerViewAdapter.add(
             "item #3",
@@ -193,7 +177,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             3,
             stringListItemRecyclerViewAdapter.itemCount
@@ -207,8 +191,6 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when adding item at invalid position
         stringListItemRecyclerViewAdapter.add(
             "item #4",
@@ -216,7 +198,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             4,
             stringListItemRecyclerViewAdapter.itemCount
@@ -241,7 +223,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             1,
             stringListItemRecyclerViewAdapter.itemCount
@@ -251,8 +233,6 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when updating item at first position
         stringListItemRecyclerViewAdapter.set(
             "item #2",
@@ -260,7 +240,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             1,
             stringListItemRecyclerViewAdapter.itemCount
@@ -272,8 +252,6 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when adding item at invalid position
         stringListItemRecyclerViewAdapter.set(
             "item #3",
@@ -281,7 +259,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             2,
             stringListItemRecyclerViewAdapter.itemCount
@@ -294,8 +272,6 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when adding item at invalid position
         stringListItemRecyclerViewAdapter.add(
             "item #4",
@@ -303,7 +279,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             3,
             stringListItemRecyclerViewAdapter.itemCount
@@ -329,7 +305,7 @@ class ListItemRecyclerViewAdapterTest {
         )
 
         // then
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertEquals(
             2,
             stringListItemRecyclerViewAdapter.itemCount
@@ -342,17 +318,14 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
+        clearAllMocks()
 
         // when removing non existing item
         assertEquals(
             -1,
             stringListItemRecyclerViewAdapter.remove("item #3")
         )
-        verify(
-            onListItemRecyclerViewAdapterListener,
-            never()
-        ).showEmptyTextView(anyBoolean())
+        verify(inverse = true) { onListItemRecyclerViewAdapterListener.showEmptyTextView(any()) }
         assertArrayEquals(
             arrayOf(
                 "item #1",
@@ -361,27 +334,23 @@ class ListItemRecyclerViewAdapterTest {
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
 
-        clearInvocations(onListItemRecyclerViewAdapterListener)
-
         // when removing last item
         assertEquals(
             1,
             stringListItemRecyclerViewAdapter.remove("item #2")
         )
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(false)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(false) }
         assertArrayEquals(
             arrayOf("item #1"),
             stringListItemRecyclerViewAdapter.items.toTypedArray()
         )
-
-        clearInvocations(onListItemRecyclerViewAdapterListener)
 
         // when removing last item
         assertEquals(
             0,
             stringListItemRecyclerViewAdapter.remove("item #1")
         )
-        verify(onListItemRecyclerViewAdapterListener).showEmptyTextView(true)
+        verify { onListItemRecyclerViewAdapterListener.showEmptyTextView(true) }
         assertTrue(stringListItemRecyclerViewAdapter.items.isEmpty())
     }
 

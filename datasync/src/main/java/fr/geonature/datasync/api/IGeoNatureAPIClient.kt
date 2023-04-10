@@ -38,10 +38,10 @@ interface IGeoNatureAPIClient {
         }
 
         override fun writeToParcel(
-            dest: Parcel?,
+            dest: Parcel,
             flags: Int,
         ) {
-            dest?.apply {
+            dest.apply {
                 writeString(geoNatureBaseUrl)
                 writeString(taxHubBaseUrl)
             }
