@@ -27,6 +27,6 @@ class DataSyncSettingsFileDataSourceImpl(
             throw DataSyncSettingsNotFoundException(source = jsonFile.absolutePath)
         }
 
-        runCatching { DataSyncSettingsJsonReader().read(FileReader(jsonFile)) }.getOrThrow()
+        run { DataSyncSettingsJsonReader().read(FileReader(jsonFile)) }
     }
 }

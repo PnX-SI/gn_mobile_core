@@ -62,10 +62,10 @@ class Taxonomy : Parcelable {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeString(kingdom)
             it.writeString(group)
         }

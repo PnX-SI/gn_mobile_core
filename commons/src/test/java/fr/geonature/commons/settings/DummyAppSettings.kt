@@ -6,7 +6,7 @@ import android.os.Parcelable
 /**
  * Dummy implementation of [IAppSettings].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 data class DummyAppSettings(var attribute: String? = null) : IAppSettings {
 
@@ -17,10 +17,10 @@ data class DummyAppSettings(var attribute: String? = null) : IAppSettings {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.writeString(attribute)
+        dest.writeString(attribute)
     }
 
     companion object CREATOR : Parcelable.Creator<DummyAppSettings> {

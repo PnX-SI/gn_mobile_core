@@ -15,7 +15,7 @@ import org.robolectric.RobolectricTestRunner
 /**
  * Unit test for [FileUtils].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class FileUtilsTest {

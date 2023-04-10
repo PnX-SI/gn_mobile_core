@@ -84,10 +84,10 @@ open class Nomenclature(
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeLong(id)
             it.writeString(code)
             it.writeString(hierarchy)

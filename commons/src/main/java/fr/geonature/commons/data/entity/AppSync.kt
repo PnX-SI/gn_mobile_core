@@ -32,10 +32,10 @@ data class AppSync(
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeString(packageId)
             it.writeSerializable(lastSync)
             it.writeSerializable(lastSyncEssential)

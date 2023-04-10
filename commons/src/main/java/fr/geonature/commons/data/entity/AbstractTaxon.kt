@@ -8,6 +8,7 @@ import androidx.room.Embedded
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.EntityHelper.normalize
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
+import fr.geonature.compat.os.readParcelableCompat
 
 /**
  * Base taxon.
@@ -68,7 +69,7 @@ abstract class AbstractTaxon : Parcelable {
     constructor(source: Parcel) : this(
         source.readLong(),
         source.readString()!!,
-        source.readParcelable(Taxonomy::class.java.classLoader)!!,
+        source.readParcelableCompat<Taxonomy>()!!,
         source.readString(),
         source.readString(),
         source.readString()
@@ -107,10 +108,10 @@ abstract class AbstractTaxon : Parcelable {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeLong(id)
             it.writeString(name)
             it.writeParcelable(

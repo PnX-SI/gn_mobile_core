@@ -63,7 +63,7 @@ class TaxonWithArea : AbstractTaxon {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
         super.writeToParcel(
@@ -71,7 +71,7 @@ class TaxonWithArea : AbstractTaxon {
             flags
         )
 
-        dest?.writeParcelable(
+        dest.writeParcelable(
             taxonArea,
             flags
         )

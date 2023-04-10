@@ -44,7 +44,7 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
         super.writeToParcel(
@@ -52,7 +52,7 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
             flags
         )
 
-        dest?.writeParcelable(
+        dest.writeParcelable(
             taxonony,
             flags
         )
