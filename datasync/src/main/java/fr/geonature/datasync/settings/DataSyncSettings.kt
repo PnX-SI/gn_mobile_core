@@ -20,7 +20,7 @@ data class DataSyncSettings(
     val taxrefListId: Int = 0,
     val codeAreaType: String? = null,
     val pageSize: Int = Builder.DEFAULT_PAGE_SIZE,
-    val dataSyncPeriodicity: Duration? = null,
+    val dataSyncPeriodicity: Duration? = Builder.DEFAULT_DATA_SYNC_PERIODICITY,
     val essentialDataSyncPeriodicity: Duration? = null
 ) : Parcelable {
 
@@ -99,10 +99,10 @@ data class DataSyncSettings(
         private var pageSize: Int = DEFAULT_PAGE_SIZE
 
         /**
-         * Configure all data synchronization periodicity.
+         * Configure all data synchronization periodicity (default: 7 days).
          * Sets to `null` to disable it.
          */
-        private var dataSyncPeriodicity: Duration? = null
+        private var dataSyncPeriodicity: Duration? = DEFAULT_DATA_SYNC_PERIODICITY
 
         /**
          * Configure essential data synchronization periodicity.
@@ -277,6 +277,7 @@ data class DataSyncSettings(
         companion object {
             const val DEFAULT_PAGE_SIZE = 10000
             val DEFAULT_MIN_DURATION = 15.toDuration(DurationUnit.MINUTES)
+            val DEFAULT_DATA_SYNC_PERIODICITY = 7.toDuration(DurationUnit.DAYS)
         }
     }
 
