@@ -6,5 +6,5 @@ Used by Occtax-mobile (https://github.com/PnX-SI/gn_mobile_occtax).
 
 ## Documentation
 
-- Settings details: https://github.com/PnX-SI/gn_mobile_core/tree/master/sync
+- Settings details: https://github.com/PnX-SI/gn_mobile_core/tree/master/datasync
 - Development: https://github.com/PnX-SI/gn_mobile_core/tree/master/docs
