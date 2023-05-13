@@ -309,7 +309,7 @@ class DataSyncWorker @AssistedInject constructor(
                             .build()
                     )
                     .setInitialDelay(
-                        (if (withAdditionalData) 15.toDuration(DurationUnit.MINUTES) else (repeatInterval / 2).coerceAtLeast(30.toDuration(DurationUnit.MINUTES))).inWholeSeconds,
+                        (if (withAdditionalData) 1.toDuration(DurationUnit.MINUTES) else 15.toDuration(DurationUnit.MINUTES)).inWholeSeconds,
                         TimeUnit.SECONDS
                     )
                     .setBackoffCriteria(

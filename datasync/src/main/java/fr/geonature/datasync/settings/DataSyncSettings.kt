@@ -3,6 +3,7 @@ package fr.geonature.datasync.settings
 import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.datasync.util.parseAsDuration
+import org.tinylog.Logger
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -113,17 +114,18 @@ data class DataSyncSettings(
         /**
          * Makes a copy of given [DataSyncSettings].
          */
-        fun from(dataSyncSettings: DataSyncSettings) = apply {
-            geoNatureServerUrl = dataSyncSettings.geoNatureServerUrl
-            taxHubServerUrl = dataSyncSettings.taxHubServerUrl
-            applicationId = dataSyncSettings.applicationId
-            usersListId = dataSyncSettings.usersListId
-            taxrefListId = dataSyncSettings.taxrefListId
-            codeAreaType = dataSyncSettings.codeAreaType
-            pageSize = dataSyncSettings.pageSize
-            dataSyncPeriodicity = dataSyncSettings.dataSyncPeriodicity
-            essentialDataSyncPeriodicity = dataSyncSettings.essentialDataSyncPeriodicity
-        }
+        fun from(dataSyncSettings: DataSyncSettings) =
+            apply {
+                geoNatureServerUrl = dataSyncSettings.geoNatureServerUrl
+                taxHubServerUrl = dataSyncSettings.taxHubServerUrl
+                applicationId = dataSyncSettings.applicationId
+                usersListId = dataSyncSettings.usersListId
+                taxrefListId = dataSyncSettings.taxrefListId
+                codeAreaType = dataSyncSettings.codeAreaType
+                pageSize = dataSyncSettings.pageSize
+                dataSyncPeriodicity = dataSyncSettings.dataSyncPeriodicity
+                essentialDataSyncPeriodicity = dataSyncSettings.essentialDataSyncPeriodicity
+            }
 
         /**
          * Sets server base URLs. These URLs are mandatory and an [IllegalArgumentException] may be
@@ -132,45 +134,51 @@ data class DataSyncSettings(
         fun serverUrls(
             geoNatureServerUrl: String,
             taxHubServerUrl: String
-        ) = apply {
-            this.geoNatureServerUrl = geoNatureServerUrl
-            this.taxHubServerUrl = taxHubServerUrl
-        }
+        ) =
+            apply {
+                this.geoNatureServerUrl = geoNatureServerUrl
+                this.taxHubServerUrl = taxHubServerUrl
+            }
 
         /**
          * Sets GeoNature application ID in UsersHub.
          */
-        fun applicationId(applicationId: Int) = apply {
-            this.applicationId = applicationId
-        }
+        fun applicationId(applicationId: Int) =
+            apply {
+                this.applicationId = applicationId
+            }
 
         /**
          * Sets GeoNature observer list ID in UsersHub.
          */
-        fun usersListId(usersListId: Int) = apply {
-            this.usersListId = usersListId
-        }
+        fun usersListId(usersListId: Int) =
+            apply {
+                this.usersListId = usersListId
+            }
 
         /**
          * Sets GeoNature taxa list ID.
          */
-        fun taxrefListId(taxrefListId: Int) = apply {
-            this.taxrefListId = taxrefListId
-        }
+        fun taxrefListId(taxrefListId: Int) =
+            apply {
+                this.taxrefListId = taxrefListId
+            }
 
         /**
          * Sets GeoNature area type.
          */
-        fun codeAreaType(codeAreaType: String?) = apply {
-            this.codeAreaType = codeAreaType
-        }
+        fun codeAreaType(codeAreaType: String?) =
+            apply {
+                this.codeAreaType = codeAreaType
+            }
 
         /**
          * Sets page size while fetching paginated values (default: 10000).
          */
-        fun pageSize(pageSize: Int = DEFAULT_PAGE_SIZE) = apply {
-            this.pageSize = pageSize
-        }
+        fun pageSize(pageSize: Int = DEFAULT_PAGE_SIZE) =
+            apply {
+                this.pageSize = pageSize
+            }
 
         /**
          * Sets the data synchronization periodicity (default to `null`).
@@ -200,45 +208,57 @@ data class DataSyncSettings(
         fun dataSyncPeriodicity(
             dataSyncPeriodicity: Duration? = null,
             essentialDataSyncPeriodicity: Duration? = null
-        ) = apply {
-            val validDataSyncPeriodicity = dataSyncPeriodicity?.coerceAtLeast(DEFAULT_MIN_DURATION)
-            val validEssentialDataSyncPeriodicity =
-                essentialDataSyncPeriodicity?.coerceAtLeast(DEFAULT_MIN_DURATION)
+        ) =
+            apply {
+                val validDataSyncPeriodicity = dataSyncPeriodicity?.takeIf {
+                    if (it < DEFAULT_MIN_DURATION) Logger.warn { "data synchronization periodicity cannot be shorter than $DEFAULT_MIN_DURATION, use default" }
+                    it >= DEFAULT_MIN_DURATION
+                }
+                val validEssentialDataSyncPeriodicity = essentialDataSyncPeriodicity
+                    ?.takeIf {
+                        if (it < DEFAULT_MIN_DURATION) Logger.warn { "essential data synchronization periodicity cannot be shorter than $DEFAULT_MIN_DURATION" }
+                        it >= DEFAULT_MIN_DURATION
+                    }
+                    ?.takeIf {
+                        if (validDataSyncPeriodicity != null && it >= validDataSyncPeriodicity) Logger.warn { "essential data synchronization periodicity cannot be greater than data synchronization periodicity" }
+                        if (validDataSyncPeriodicity == null) true else it < validDataSyncPeriodicity
+                    }
 
-            // no periodic synchronization is correctly configured: abort
-            if (validDataSyncPeriodicity == null && validEssentialDataSyncPeriodicity == null) {
-                this.dataSyncPeriodicity = null
-                this.essentialDataSyncPeriodicity = null
-
-                return@apply
-            }
-
-            // all periodic synchronizations are correctly configured
-            if (validDataSyncPeriodicity != null && validEssentialDataSyncPeriodicity != null) {
-                if (validEssentialDataSyncPeriodicity >= validDataSyncPeriodicity) {
-                    this.dataSyncPeriodicity = validDataSyncPeriodicity
+                // no periodic synchronization is correctly configured: use default
+                if (validDataSyncPeriodicity == null && validEssentialDataSyncPeriodicity == null) {
+                    this.dataSyncPeriodicity =
+                        if (dataSyncPeriodicity == null) null else DEFAULT_DATA_SYNC_PERIODICITY
                     this.essentialDataSyncPeriodicity = null
 
                     return@apply
                 }
 
-                this.dataSyncPeriodicity = validDataSyncPeriodicity
-                this.essentialDataSyncPeriodicity = validEssentialDataSyncPeriodicity
+                // all periodic synchronizations are correctly configured
+                if (validDataSyncPeriodicity != null && validEssentialDataSyncPeriodicity != null) {
+                    if (validEssentialDataSyncPeriodicity >= validDataSyncPeriodicity) {
+                        this.dataSyncPeriodicity = validDataSyncPeriodicity
+                        this.essentialDataSyncPeriodicity = null
 
-                return@apply
-            }
+                        return@apply
+                    }
 
-            // at least one periodic synchronization is correctly configured
-            arrayOf(
-                validDataSyncPeriodicity,
-                validEssentialDataSyncPeriodicity
-            )
-                .firstOrNull { it != null }
-                ?.also {
-                    this.dataSyncPeriodicity = it
-                    this.essentialDataSyncPeriodicity = null
+                    this.dataSyncPeriodicity = validDataSyncPeriodicity
+                    this.essentialDataSyncPeriodicity = validEssentialDataSyncPeriodicity
+
+                    return@apply
                 }
-        }
+
+                // at least one periodic synchronization is correctly configured
+                arrayOf(
+                    validDataSyncPeriodicity,
+                    validEssentialDataSyncPeriodicity
+                )
+                    .firstOrNull { it != null }
+                    ?.also {
+                        this.dataSyncPeriodicity = it
+                        this.essentialDataSyncPeriodicity = null
+                    }
+            }
 
         /**
          * @see [Builder.dataSyncPeriodicity]
@@ -246,12 +266,13 @@ data class DataSyncSettings(
         fun dataSyncPeriodicity(
             dataSyncPeriodicity: String? = null,
             essentialDataSyncPeriodicity: String? = null
-        ) = apply {
-            dataSyncPeriodicity(
-                dataSyncPeriodicity?.parseAsDuration(),
-                essentialDataSyncPeriodicity?.parseAsDuration()
-            )
-        }
+        ) =
+            apply {
+                dataSyncPeriodicity(
+                    dataSyncPeriodicity?.parseAsDuration(),
+                    essentialDataSyncPeriodicity?.parseAsDuration()
+                )
+            }
 
         /**
          * Builds a new instance of [DataSyncSettings].
