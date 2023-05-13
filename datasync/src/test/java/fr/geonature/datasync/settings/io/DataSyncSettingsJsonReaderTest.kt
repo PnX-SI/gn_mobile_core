@@ -77,6 +77,56 @@ class DataSyncSettingsJsonReaderTest {
     }
 
     @Test
+    fun `should read data sync settings from valid JSON file with partial periodicity`() {
+        // given a JSON settings
+        val json = getFixture("settings_datasync_with_partial_periodicity.json")
+
+        // when read the JSON as DataSyncSettings
+        val dataSyncSettings = DataSyncSettingsJsonReader().read(json)
+
+        // then
+        assertNotNull(dataSyncSettings)
+        assertEquals(
+            DataSyncSettings(
+                geoNatureServerUrl = "https://demo.geonature.fr/geonature",
+                taxHubServerUrl = "https://demo.geonature.fr/taxhub",
+                applicationId = 3,
+                usersListId = 1,
+                taxrefListId = 100,
+                codeAreaType = "M10",
+                pageSize = 1000,
+                dataSyncPeriodicity = 30.toDuration(DurationUnit.MINUTES)
+            ),
+            dataSyncSettings
+        )
+    }
+
+    @Test
+    fun `should read data sync settings from valid JSON file with invalid periodicity`() {
+        // given a JSON settings
+        val json = getFixture("settings_datasync_with_invalid_periodicity.json")
+
+        // when read the JSON as DataSyncSettings
+        val dataSyncSettings = DataSyncSettingsJsonReader().read(json)
+
+        // then
+        assertNotNull(dataSyncSettings)
+        assertEquals(
+            DataSyncSettings(
+                geoNatureServerUrl = "https://demo.geonature.fr/geonature",
+                taxHubServerUrl = "https://demo.geonature.fr/taxhub",
+                applicationId = 3,
+                usersListId = 1,
+                taxrefListId = 100,
+                codeAreaType = "M10",
+                pageSize = 1000,
+                dataSyncPeriodicity = DataSyncSettings.Builder.DEFAULT_DATA_SYNC_PERIODICITY
+            ),
+            dataSyncSettings
+        )
+    }
+
+    @Test
     fun `should read data sync settings from valid JSON file with sync property`() {
         // given a JSON settings
         val json = getFixture("settings_sync.json")

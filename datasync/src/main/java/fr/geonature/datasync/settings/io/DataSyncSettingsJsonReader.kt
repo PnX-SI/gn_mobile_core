@@ -96,70 +96,75 @@ class DataSyncSettingsJsonReader {
      *
      * @throws DataSyncSettingsException if something goes wrong
      */
-    fun read(jsonReader: JsonReader): DataSyncSettings = runCatching {
-        val builder = DataSyncSettings.Builder()
+    fun read(jsonReader: JsonReader): DataSyncSettings =
+        runCatching {
+            val builder = DataSyncSettings.Builder()
 
-        var geoNatureServerUrl: String? = null
-        var taxHubServerUrl: String? = null
-        var essentialDataSyncPeriodicity: String? = null
-        var dataSyncPeriodicity: String? = null
+            var geoNatureServerUrl: String? = null
+            var taxHubServerUrl: String? = null
+            var essentialDataSyncPeriodicity: String? = null
+            var dataSyncPeriodicity: String? = null
 
-        when (jsonReader.peek()) {
-            BEGIN_OBJECT -> {
-                jsonReader.beginObject()
+            when (jsonReader.peek()) {
+                BEGIN_OBJECT -> {
+                    jsonReader.beginObject()
 
-                while (jsonReader.hasNext()) {
-                    when (jsonReader.nextName()) {
-                        "sync" -> builder.from(read(jsonReader))
-                        "geonature_url" -> geoNatureServerUrl = jsonReader.nextString()
-                        "taxhub_url" -> taxHubServerUrl = jsonReader.nextString()
-                        "uh_application_id" -> {
-                            Logger.warn { "property 'uh_application_id' is deprecated in favor of 'gn_application_id'" }
-                            builder.applicationId(jsonReader.nextInt())
+                    while (jsonReader.hasNext()) {
+                        when (jsonReader.nextName()) {
+                            "sync" -> builder.from(read(jsonReader))
+                            "geonature_url" -> geoNatureServerUrl = jsonReader.nextString()
+                            "taxhub_url" -> taxHubServerUrl = jsonReader.nextString()
+                            "uh_application_id" -> {
+                                Logger.warn { "property 'uh_application_id' is deprecated in favor of 'gn_application_id'" }
+                                builder.applicationId(jsonReader.nextInt())
+                            }
+
+                            "gn_application_id" -> builder.applicationId(jsonReader.nextInt())
+                            "observers_list_id" -> builder.usersListId(jsonReader.nextInt())
+                            "taxa_list_id" -> builder.taxrefListId(jsonReader.nextInt())
+                            "code_area_type" -> builder.codeAreaType(jsonReader.nextStringOrNull())
+                            "page_size" -> builder.pageSize(jsonReader.nextInt())
+                            "sync_periodicity_data_essential" -> essentialDataSyncPeriodicity =
+                                jsonReader.nextStringOrNull()
+
+                            "sync_periodicity_data" -> dataSyncPeriodicity =
+                                jsonReader.nextStringOrNull()
+
+                            else -> jsonReader.skipValue()
                         }
-                        "gn_application_id" -> builder.applicationId(jsonReader.nextInt())
-                        "observers_list_id" -> builder.usersListId(jsonReader.nextInt())
-                        "taxa_list_id" -> builder.taxrefListId(jsonReader.nextInt())
-                        "code_area_type" -> builder.codeAreaType(jsonReader.nextStringOrNull())
-                        "page_size" -> builder.pageSize(jsonReader.nextInt())
-                        "sync_periodicity_data_essential" -> essentialDataSyncPeriodicity =
-                            jsonReader.nextStringOrNull()
-                        "sync_periodicity_data" -> dataSyncPeriodicity =
-                            jsonReader.nextStringOrNull()
-                        else -> jsonReader.skipValue()
                     }
+
+                    jsonReader.endObject()
                 }
 
-                jsonReader.endObject()
+                else -> {
+                    jsonReader.skipValue()
+                }
             }
-            else -> {
-                jsonReader.skipValue()
+
+            if (!geoNatureServerUrl.isNullOrBlank() && !taxHubServerUrl.isNullOrBlank()) {
+                builder.serverUrls(
+                    geoNatureServerUrl = geoNatureServerUrl,
+                    taxHubServerUrl = taxHubServerUrl
+                )
             }
-        }
 
-        if (!geoNatureServerUrl.isNullOrBlank() && !taxHubServerUrl.isNullOrBlank()) {
-            builder.serverUrls(
-                geoNatureServerUrl = geoNatureServerUrl,
-                taxHubServerUrl = taxHubServerUrl
-            )
-        }
+            if (!dataSyncPeriodicity.isNullOrBlank() || !essentialDataSyncPeriodicity.isNullOrBlank()) {
+                builder.dataSyncPeriodicity(
+                    dataSyncPeriodicity = dataSyncPeriodicity,
+                    essentialDataSyncPeriodicity = essentialDataSyncPeriodicity
+                )
+            }
 
-        if (!dataSyncPeriodicity.isNullOrBlank() && !essentialDataSyncPeriodicity.isNullOrBlank()) {
-            builder.dataSyncPeriodicity(
-                dataSyncPeriodicity = dataSyncPeriodicity,
-                essentialDataSyncPeriodicity = essentialDataSyncPeriodicity
-            )
+            builder.build()
         }
+            .onFailure { exception ->
+                Logger.warn(exception)
 
-        builder.build()
-    }
-        .onFailure { exception ->
-            Logger.warn(exception)
-
-            throw DataSyncSettingsJsonParseException(
-                message = exception.message,
-                cause = exception
-            )
-        }
-        .getOrThrow()
+                throw DataSyncSettingsJsonParseException(
+                    message = exception.message,
+                    cause = exception
+                )
+            }
+            .getOrThrow()
 }
