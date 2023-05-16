@@ -123,6 +123,7 @@ class NomenclatureDaoTest {
             assertEquals(expectedNomenclatureTaxonomy
                 .filter { it.taxonomy == Taxonomy(kingdom = Taxonomy.ANY) }
                 .mapNotNull { expectedNomenclatures.find { nomenclature -> nomenclature.id == it.nomenclatureId } }
+                .distinctBy { it.id }
                 .sortedBy { it.defaultLabel },
                 nomenclaturesForStatutBioAndNoTaxonomy
             )
@@ -145,6 +146,7 @@ class NomenclatureDaoTest {
             assertEquals(expectedNomenclatureTaxonomy
                 .filter { it.taxonomy == Taxonomy(kingdom = Taxonomy.ANY) }
                 .mapNotNull { expectedNomenclatures.find { nomenclature -> nomenclature.id == it.nomenclatureId } }
+                .distinctBy { it.id }
                 .sortedBy { it.defaultLabel },
                 nomenclaturesForStatutBioAndAnyKingdomTaxonomy
             )
@@ -168,6 +170,7 @@ class NomenclatureDaoTest {
             assertEquals(expectedNomenclatureTaxonomy
                 .filter { it.taxonomy == Taxonomy(kingdom = Taxonomy.ANY) }
                 .mapNotNull { expectedNomenclatures.find { nomenclature -> nomenclature.id == it.nomenclatureId } }
+                .distinctBy { it.id }
                 .sortedBy { it.defaultLabel },
                 nomenclaturesForStatutBioAndAnyTaxonomy
             )
@@ -195,6 +198,7 @@ class NomenclatureDaoTest {
                     ).contains(it.taxonomy)
                 }
                 .mapNotNull { expectedNomenclatures.find { nomenclature -> nomenclature.id == it.nomenclatureId } }
+                .distinctBy { it.id }
                 .sortedBy { it.defaultLabel },
                 nomenclaturesForStatutBioAndAnyTaxonomy
             )
@@ -227,6 +231,7 @@ class NomenclatureDaoTest {
                     ).contains(it.taxonomy)
                 }
                 .mapNotNull { expectedNomenclatures.find { nomenclature -> nomenclature.id == it.nomenclatureId } }
+                .distinctBy { it.id }
                 .sortedBy { it.defaultLabel },
                 nomenclaturesForStatutBioAndAnyTaxonomy
             )
@@ -289,6 +294,13 @@ class NomenclatureDaoTest {
         val expectedNomenclatures = listOf(
             Nomenclature(
                 id = 29,
+                code = "0",
+                hierarchy = "013.000",
+                defaultLabel = "Inconnu",
+                typeId = 13
+            ),
+            Nomenclature(
+                id = 30,
                 code = "1",
                 hierarchy = "013.001",
                 defaultLabel = "Non renseigné",
@@ -296,23 +308,44 @@ class NomenclatureDaoTest {
             ),
             Nomenclature(
                 id = 31,
+                code = "2",
+                hierarchy = "013.002",
+                defaultLabel = "Non déterminé",
+                typeId = 13
+            ),
+            Nomenclature(
+                id = 32,
                 code = "3",
                 hierarchy = "013.003",
                 defaultLabel = "Reproduction",
                 typeId = 13
             ),
             Nomenclature(
-                id = 32,
+                id = 33,
                 code = "4",
                 hierarchy = "013.004",
                 defaultLabel = "Hibernation",
                 typeId = 13
             ),
             Nomenclature(
-                id = 33,
+                id = 34,
                 code = "5",
                 hierarchy = "013.005",
                 defaultLabel = "Estivation",
+                typeId = 13
+            ),
+            Nomenclature(
+                id = 35,
+                code = "9",
+                hierarchy = "013.009",
+                defaultLabel = "Pas de reproduction",
+                typeId = 13
+            ),
+            Nomenclature(
+                id = 36,
+                code = "13",
+                hierarchy = "013.013",
+                defaultLabel = "Végétatif",
                 typeId = 13
             ),
             Nomenclature(
@@ -364,46 +397,33 @@ class NomenclatureDaoTest {
                 taxonomy = Taxonomy(kingdom = Taxonomy.ANY)
             ),
             NomenclatureTaxonomy(
-                nomenclatureId = 31,
-                taxonomy = Taxonomy(kingdom = "Animalia")
+                nomenclatureId = 30,
+                taxonomy = Taxonomy(kingdom = Taxonomy.ANY)
             ),
             NomenclatureTaxonomy(
                 nomenclatureId = 31,
-                taxonomy = Taxonomy(kingdom = "Fungi")
-            ),
-            NomenclatureTaxonomy(
-                nomenclatureId = 31,
-                taxonomy = Taxonomy(kingdom = "Plantae")
+                taxonomy = Taxonomy(kingdom = Taxonomy.ANY)
             ),
             NomenclatureTaxonomy(
                 nomenclatureId = 32,
+                taxonomy = Taxonomy(kingdom = "Animalia")
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 32,
+                taxonomy = Taxonomy(kingdom = "Fungi")
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 32,
+                taxonomy = Taxonomy(kingdom = "Plantae")
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 33,
                 taxonomy = Taxonomy(
                     kingdom = "Animalia",
                     group = "Amphibiens"
                 )
             ),
             NomenclatureTaxonomy(
-                nomenclatureId = 32,
-                taxonomy = Taxonomy(
-                    kingdom = "Animalia",
-                    group = "Mammifères"
-                )
-            ),
-            NomenclatureTaxonomy(
-                nomenclatureId = 32,
-                taxonomy = Taxonomy(
-                    kingdom = "Animalia",
-                    group = "Oiseaux"
-                )
-            ),
-            NomenclatureTaxonomy(
-                nomenclatureId = 32,
-                taxonomy = Taxonomy(
-                    kingdom = "Animalia",
-                    group = "Reptiles"
-                )
-            ),
-            NomenclatureTaxonomy(
                 nomenclatureId = 33,
                 taxonomy = Taxonomy(
                     kingdom = "Animalia",
@@ -423,6 +443,43 @@ class NomenclatureDaoTest {
                     kingdom = "Animalia",
                     group = "Reptiles"
                 )
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 34,
+                taxonomy = Taxonomy(
+                    kingdom = "Animalia",
+                    group = "Mammifères"
+                )
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 34,
+                taxonomy = Taxonomy(
+                    kingdom = "Animalia",
+                    group = "Oiseaux"
+                )
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 34,
+                taxonomy = Taxonomy(
+                    kingdom = "Animalia",
+                    group = "Reptiles"
+                )
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 35,
+                taxonomy = Taxonomy(kingdom = "Animalia")
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 35,
+                taxonomy = Taxonomy(kingdom = "Fungi")
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 35,
+                taxonomy = Taxonomy(kingdom = "Plantae")
+            ),
+            NomenclatureTaxonomy(
+                nomenclatureId = 36,
+                taxonomy = Taxonomy(kingdom = "Plantae")
             )
         )
 

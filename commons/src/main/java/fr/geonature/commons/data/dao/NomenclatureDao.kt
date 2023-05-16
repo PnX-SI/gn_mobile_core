@@ -61,7 +61,7 @@ abstract class NomenclatureDao : BaseDao<Nomenclature>() {
      * @return a list of [Nomenclature] matching given criteria
      */
     @Query(
-        """SELECT n.*
+        """SELECT DISTINCT n.*
         FROM ${Nomenclature.TABLE_NAME} n
         JOIN ${NomenclatureType.TABLE_NAME} nt ON nt.${NomenclatureType.COLUMN_ID} = n.${Nomenclature.COLUMN_TYPE_ID}
             AND nt.${NomenclatureType.COLUMN_MNEMONIC} = :mnemonic
