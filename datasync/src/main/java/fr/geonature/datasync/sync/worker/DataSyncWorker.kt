@@ -280,7 +280,7 @@ class DataSyncWorker @AssistedInject constructor(
             return dataSyncWorkRequest.id.also {
                 getInstance(context).enqueueUniqueWork(
                     DATA_SYNC_WORKER,
-                    ExistingWorkPolicy.REPLACE,
+                    ExistingWorkPolicy.KEEP,
                     dataSyncWorkRequest
                 )
             }
