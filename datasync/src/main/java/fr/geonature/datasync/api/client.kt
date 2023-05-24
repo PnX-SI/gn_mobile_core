@@ -121,6 +121,7 @@ fun <T> createServiceClient(
                     addInterceptor(it)
                 }
             }
+            .retryOnConnectionFailure(true)
             .build())
         .addConverterFactory(
             GsonConverterFactory.create(
