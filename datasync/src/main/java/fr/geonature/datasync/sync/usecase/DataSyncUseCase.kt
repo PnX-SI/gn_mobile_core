@@ -597,6 +597,12 @@ class DataSyncUseCase @Inject constructor(
         flow {
             Logger.info { "synchronize taxa..." }
 
+            runCatching {
+                database
+                    .taxonDao()
+                    .deleteAll()
+            }.onFailure { Logger.warn(it) { "failed to deleting existing taxa" } }
+
             var hasNext: Boolean
             var offset = 0
 
@@ -687,56 +693,6 @@ class DataSyncUseCase @Inject constructor(
             } while (hasNext)
 
             delay(1000)
-
-            emit(
-                DataSyncStatus(
-                    state = WorkInfo.State.SUCCEEDED,
-                    syncMessage = application.getString(R.string.sync_data_taxa_orphaned_deleting)
-                )
-            )
-
-            runCatching {
-                val orphanedTaxaIds = mutableSetOf<Long>()
-
-                database
-                    .taxonDao()
-                    .QB()
-                    .cursor()
-                    .run {
-                        Logger.info { "deleting orphaned taxa..." }
-                        moveToFirst()
-
-                        while (!isAfterLast) {
-                            Taxon
-                                .fromCursor(this)
-                                ?.run {
-                                    if (!validTaxaIds.contains(id)) {
-                                        orphanedTaxaIds.add(id)
-                                    }
-                                }
-
-                            moveToNext()
-                        }
-                    }
-                orphanedTaxaIds.forEach {
-                    database
-                        .taxonDao()
-                        .deleteById(it)
-                }
-
-                Logger.info { "orphaned taxa deleted: ${orphanedTaxaIds.size}" }
-
-                emit(
-                    DataSyncStatus(
-                        state = WorkInfo.State.SUCCEEDED,
-                        syncMessage = application.resources.getQuantityString(
-                            R.plurals.sync_data_taxa_orphaned_deleted,
-                            orphanedTaxaIds.size,
-                            orphanedTaxaIds.size
-                        )
-                    )
-                )
-            }.onFailure { Logger.warn(it) { "failed to delete orphaned taxa" } }
 
             if (withAdditionalData) {
                 Logger.info { "synchronize taxa additional data..." }

@@ -45,12 +45,6 @@
     <string name="sync_data_nomenclature_default_error">Valeurs par défaut de la nomenclature : échec</string>
     <string name="sync_data_taxa">Taxons : %1$d</string>
     <string name="sync_data_taxa_with_errors">Synchronisation des taxons terminée avec des erreurs</string>
-    <string name="sync_data_taxa_orphaned_deleting">Suppression des taxons orphelins…</string>
-    <plurals name="sync_data_taxa_orphaned_deleted">
-        <item quantity="one">%d taxon orphelin supprimé</item>
-        <item quantity="other">%d taxons orphelins supprimés</item>
-        <item quantity="many">%d taxons orphelins supprimés</item>
-    </plurals>
     <string name="sync_data_taxa_areas">Unités géographiques : %1$d</string>
     <string name="sync_data_taxa_areas_with_errors">Synchronisation des unités géographiques terminée avec des erreurs</string>
     <string name="sync_data_succeeded">Terminée.</string>
