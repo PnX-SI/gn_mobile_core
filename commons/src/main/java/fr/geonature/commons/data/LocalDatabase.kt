@@ -2,8 +2,12 @@ package fr.geonature.commons.data
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import fr.geonature.commons.data.dao.AdditionalFieldDao
+import fr.geonature.commons.data.dao.AdditionalFieldDatasetDao
+import fr.geonature.commons.data.dao.CodeObjectDao
 import fr.geonature.commons.data.dao.DatasetDao
 import fr.geonature.commons.data.dao.DefaultNomenclatureDao
+import fr.geonature.commons.data.dao.FieldValueDao
 import fr.geonature.commons.data.dao.InputObserverDao
 import fr.geonature.commons.data.dao.NomenclatureDao
 import fr.geonature.commons.data.dao.NomenclatureTaxonomyDao
@@ -11,8 +15,12 @@ import fr.geonature.commons.data.dao.NomenclatureTypeDao
 import fr.geonature.commons.data.dao.TaxonAreaDao
 import fr.geonature.commons.data.dao.TaxonDao
 import fr.geonature.commons.data.dao.TaxonomyDao
+import fr.geonature.commons.data.entity.AdditionalField
+import fr.geonature.commons.data.entity.AdditionalFieldDataset
+import fr.geonature.commons.data.entity.CodeObject
 import fr.geonature.commons.data.entity.Dataset
 import fr.geonature.commons.data.entity.DefaultNomenclature
+import fr.geonature.commons.data.entity.FieldValue
 import fr.geonature.commons.data.entity.InputObserver
 import fr.geonature.commons.data.entity.Nomenclature
 import fr.geonature.commons.data.entity.NomenclatureTaxonomy
@@ -20,8 +28,6 @@ import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
 import fr.geonature.commons.data.entity.Taxonomy
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.withContext
 
 /**
  * The Room database.
@@ -32,14 +38,19 @@ import kotlinx.coroutines.withContext
     entities = [
         Dataset::class,
         InputObserver::class,
-        Taxonomy::class, Taxon::class,
+        Taxonomy::class,
+        Taxon::class,
         TaxonArea::class,
         NomenclatureType::class,
         Nomenclature::class,
         NomenclatureTaxonomy::class,
         DefaultNomenclature::class,
+        AdditionalField::class,
+        AdditionalFieldDataset::class,
+        CodeObject::class,
+        FieldValue::class,
     ],
-    version = 19,
+    version = 20,
     exportSchema = false
 )
 abstract class LocalDatabase : RoomDatabase() {
@@ -90,22 +101,22 @@ abstract class LocalDatabase : RoomDatabase() {
     abstract fun defaultNomenclatureDao(): DefaultNomenclatureDao
 
     /**
-     * Deletes all rows from all the tables that are registered to this database.
+     * @return The DAO for the [AdditionalField.TABLE_NAME] table.
      */
-    @Deprecated(
-        message = "use directly clearAllTables()",
-        replaceWith = ReplaceWith("clearAllTables()"),
-    )
-    suspend fun clearDatabase() =
-        withContext(IO) {
-            defaultNomenclatureDao().deleteAll()
-            nomenclatureTaxonomyDao().deleteAll()
-            nomenclatureDao().deleteAll()
-            nomenclatureTypeDao().deleteAll()
-            taxonAreaDao().deleteAll()
-            taxonDao().deleteAll()
-            taxonomyDao().deleteAll()
-            inputObserverDao().deleteAll()
-            datasetDao().deleteAll()
-        }
+    abstract fun additionalFieldDao(): AdditionalFieldDao
+
+    /**
+     * @return The DAO for the [AdditionalFieldDataset.TABLE_NAME] table.
+     */
+    abstract fun additionalFieldDatasetDao(): AdditionalFieldDatasetDao
+
+    /**
+     * @return The DAO for the [CodeObject.TABLE_NAME] table.
+     */
+    abstract fun codeObjectDao(): CodeObjectDao
+
+    /**
+     * @return The DAO for the [FieldValue.TABLE_NAME] table.
+     */
+    abstract fun fieldValueDao(): FieldValueDao
 }

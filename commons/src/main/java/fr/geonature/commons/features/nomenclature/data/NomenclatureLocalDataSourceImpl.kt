@@ -20,7 +20,7 @@ class NomenclatureLocalDataSourceImpl(
 
     override suspend fun getAllNomenclatureTypes(): List<NomenclatureType> {
         return nomenclatureTypeDao
-            .findAll()
+            .findAllOrderByMnemonic()
             .also {
                 if (it.isEmpty()) throw NomenclatureException.NoNomenclatureTypeFoundException
             }

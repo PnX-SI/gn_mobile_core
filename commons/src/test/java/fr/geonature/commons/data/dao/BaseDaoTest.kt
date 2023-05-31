@@ -14,7 +14,7 @@ import org.robolectric.RobolectricTestRunner
 /**
  * Unit tests about [BaseDao].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class BaseDaoTest {
@@ -35,7 +35,8 @@ class BaseDaoTest {
     @Test
     fun getSimpleQueryBuilder() {
         // given a simple query builder from DAO
-        val sqLiteQuery = SimpleEntityDao().createQueryBuilder()
+        val sqLiteQuery = SimpleEntityDao()
+            .createQueryBuilder()
             .build()
 
         // then
@@ -52,7 +53,8 @@ class BaseDaoTest {
     @Test
     fun getSimpleQueryBuilderFromQB() {
         // given a simple query builder from DAO
-        val sqLiteQuery = SimpleEntityDao().QB()
+        val sqLiteQuery = SimpleEntityDao()
+            .QB()
             .getQueryBuilder()
             .build()
 
@@ -70,12 +72,11 @@ class BaseDaoTest {
     @Test
     fun getQueryBuilderWithSelectionWithNoArgs() {
         // given a simple query builder from DAO
-        val sqLiteQuery =
-            (
-                SimpleEntityDao().QB()
-                    .whereSelection("col = 1") as SimpleEntityDao.QB
-                ).getQueryBuilder()
-                .build()
+        val sqLiteQuery = (SimpleEntityDao()
+            .QB()
+            .whereSelection("col = 1") as SimpleEntityDao.QB)
+            .getQueryBuilder()
+            .build()
 
         // then
         assertNotNull(sqLiteQuery)
@@ -96,16 +97,16 @@ class BaseDaoTest {
     @Test
     fun getQueryBuilderWithSelectionWithArgs() {
         // given a simple query builder from DAO
-        val sqLiteQuery = (
-            SimpleEntityDao().QB()
-                .whereSelection(
-                    "col = ? OR col = ?",
-                    arrayOf(
-                        12,
-                        "some_args"
-                    )
-                ) as SimpleEntityDao.QB
-            ).getQueryBuilder()
+        val sqLiteQuery = (SimpleEntityDao()
+            .QB()
+            .whereSelection(
+                "col = ? OR col = ?",
+                arrayOf(
+                    12,
+                    "some_args"
+                )
+            ) as SimpleEntityDao.QB)
+            .getQueryBuilder()
             .build()
 
         // then
@@ -135,6 +136,10 @@ class BaseDaoTest {
     }
 
     class InvalidEntityDao : BaseDao<InvalidEntity>() {
+        override suspend fun findAll(query: SupportSQLiteQuery): List<InvalidEntity> {
+            return emptyList()
+        }
+
         override fun insert(vararg entity: InvalidEntity) {
         }
 
@@ -147,6 +152,10 @@ class BaseDaoTest {
     }
 
     class SimpleEntityDao : BaseDao<SimpleEntity>() {
+        override suspend fun findAll(query: SupportSQLiteQuery): List<SimpleEntity> {
+            return emptyList()
+        }
+
         override fun insert(vararg entity: SimpleEntity) {
         }
 

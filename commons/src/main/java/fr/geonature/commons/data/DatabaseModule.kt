@@ -7,9 +7,13 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import fr.geonature.commons.data.dao.AdditionalFieldDao
+import fr.geonature.commons.data.dao.AdditionalFieldDatasetDao
 import fr.geonature.commons.data.dao.AppSyncDao
+import fr.geonature.commons.data.dao.CodeObjectDao
 import fr.geonature.commons.data.dao.DatasetDao
 import fr.geonature.commons.data.dao.DefaultNomenclatureDao
+import fr.geonature.commons.data.dao.FieldValueDao
 import fr.geonature.commons.data.dao.InputObserverDao
 import fr.geonature.commons.data.dao.NomenclatureDao
 import fr.geonature.commons.data.dao.NomenclatureTaxonomyDao
@@ -17,9 +21,13 @@ import fr.geonature.commons.data.dao.NomenclatureTypeDao
 import fr.geonature.commons.data.dao.TaxonAreaDao
 import fr.geonature.commons.data.dao.TaxonDao
 import fr.geonature.commons.data.dao.TaxonomyDao
+import fr.geonature.commons.data.entity.AdditionalField
+import fr.geonature.commons.data.entity.AdditionalFieldDataset
 import fr.geonature.commons.data.entity.AppSync
+import fr.geonature.commons.data.entity.CodeObject
 import fr.geonature.commons.data.entity.Dataset
 import fr.geonature.commons.data.entity.DefaultNomenclature
+import fr.geonature.commons.data.entity.FieldValue
 import fr.geonature.commons.data.entity.InputObserver
 import fr.geonature.commons.data.entity.Nomenclature
 import fr.geonature.commons.data.entity.NomenclatureTaxonomy
@@ -158,5 +166,37 @@ object DatabaseModule {
     @Provides
     fun provideDefaultNomenclatureDao(database: LocalDatabase): DefaultNomenclatureDao {
         return database.defaultNomenclatureDao()
+    }
+
+    /**
+     * @return The DAO for the [AdditionalField.TABLE_NAME] table.
+     */
+    @Provides
+    fun provideAdditionalFieldDao(database: LocalDatabase): AdditionalFieldDao {
+        return database.additionalFieldDao()
+    }
+
+    /**
+     * @return The DAO for the [AdditionalFieldDataset.TABLE_NAME] table.
+     */
+    @Provides
+    fun provideAdditionalFieldDatasetDao(database: LocalDatabase): AdditionalFieldDatasetDao {
+        return database.additionalFieldDatasetDao()
+    }
+
+    /**
+     * @return The DAO for the [CodeObject.TABLE_NAME] table.
+     */
+    @Provides
+    fun provideCodeObjectDao(database: LocalDatabase): CodeObjectDao {
+        return database.codeObjectDao()
+    }
+
+    /**
+     * @return The DAO for the [FieldValue.TABLE_NAME] table.
+     */
+    @Provides
+    fun provideFieldValueDao(database: LocalDatabase): FieldValueDao {
+        return database.fieldValueDao()
     }
 }

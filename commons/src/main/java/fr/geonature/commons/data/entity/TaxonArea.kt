@@ -10,6 +10,7 @@ import androidx.room.TypeConverters
 import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import fr.geonature.compat.os.readSerializableCompat
 import org.tinylog.Logger
 import java.util.Date
 
@@ -57,7 +58,7 @@ data class TaxonArea(
         source.readLong(),
         source.readString(),
         source.readInt(),
-        source.readSerializable() as Date
+        source.readSerializableCompat()
     )
 
     override fun describeContents(): Int {

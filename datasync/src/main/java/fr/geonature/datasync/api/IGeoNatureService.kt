@@ -93,6 +93,10 @@ interface IGeoNatureService {
     @GET("api/gn_commons/get_id_table_location/pr_occtax.cor_counting_occtax")
     fun getIdTableLocation(): Call<Long>
 
+    @Headers("Accept: application/json")
+    @GET("api/gn_commons/additional_fields")
+    fun getAdditionalFields(@Query("module_code") module: String): Call<ResponseBody>
+
     @Streaming
     @GET
     fun downloadPackage(

@@ -1,7 +1,6 @@
 package fr.geonature.commons.data.entity
 
 import android.database.Cursor
-import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
 import androidx.room.ColumnInfo
@@ -10,6 +9,7 @@ import androidx.room.TypeConverters
 import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import kotlinx.parcelize.Parcelize
 import org.tinylog.Logger
 import java.util.Date
 
@@ -20,74 +20,48 @@ import java.util.Date
  */
 @Entity(
     tableName = Dataset.TABLE_NAME,
-    primaryKeys = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE]
+    primaryKeys = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE],
 )
 @TypeConverters(Converters::class)
+@Parcelize
 data class Dataset(
 
     /**
      * The unique ID of this dataset.
      */
     @ColumnInfo(name = COLUMN_ID)
-    var id: Long,
+    val id: Long,
 
     /**
      * The related module of this dataset.
      */
     @ColumnInfo(name = COLUMN_MODULE)
-    var module: String,
+    val module: String,
 
     /**
      * The name of the dataset.
      */
     @ColumnInfo(name = COLUMN_NAME)
-    var name: String,
+    val name: String,
 
     /**
      * The description of the dataset.
      */
     @ColumnInfo(name = COLUMN_DESCRIPTION)
-    var description: String?,
+    val description: String?,
 
     /**
      * Whether this dataset is active or not.
      */
     @ColumnInfo(name = COLUMN_ACTIVE)
-    var active: Boolean = false,
+    val active: Boolean = false,
 
     /**
      * The creation date of this dataset.
      */
     @ColumnInfo(name = COLUMN_CREATED_AT)
-    var createdAt: Date?
+    val createdAt: Date?
 ) : Parcelable {
-
-    private constructor(source: Parcel) : this(
-        source.readLong(),
-        source.readString()!!,
-        source.readString()!!,
-        source.readString(),
-        source.readByte() == 1.toByte(),
-        source.readSerializable() as Date
-    )
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    override fun writeToParcel(
-        dest: Parcel,
-        flags: Int
-    ) {
-        dest.also {
-            it.writeLong(id)
-            it.writeString(module)
-            it.writeString(name)
-            it.writeString(description)
-            it.writeByte((if (active) 1 else 0).toByte()) // as boolean value
-            it.writeSerializable(createdAt)
-        }
-    }
 
     companion object {
 
@@ -221,18 +195,6 @@ data class Dataset(
                 }
 
                 null
-            }
-        }
-
-        @JvmField
-        val CREATOR: Parcelable.Creator<Dataset> = object : Parcelable.Creator<Dataset> {
-
-            override fun createFromParcel(source: Parcel): Dataset {
-                return Dataset(source)
-            }
-
-            override fun newArray(size: Int): Array<Dataset?> {
-                return arrayOfNulls(size)
             }
         }
     }

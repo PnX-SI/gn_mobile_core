@@ -5,6 +5,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import fr.geonature.compat.os.readSerializableCompat
 import org.tinylog.Logger
 import java.util.Date
 
@@ -22,8 +23,8 @@ data class AppSync(
 
     private constructor(source: Parcel) : this(
         source.readString()!!,
-        source.readSerializable() as Date,
-        source.readSerializable() as Date,
+        source.readSerializableCompat(),
+        source.readSerializableCompat(),
         source.readInt()
     )
 
