@@ -85,6 +85,16 @@ abstract class BaseDao<T> {
     }
 
     /**
+     * Whether this table is empty or not.
+     */
+    fun isEmpty(): Boolean {
+        return query(SimpleSQLiteQuery("SELECT COUNT(*) FROM $entityTableName")).let {
+            it.moveToFirst()
+            it.getInt(0) == 0
+        }
+    }
+
+    /**
      * Gets the default query builder for this DAO.
      */
     fun createQueryBuilder(): SQLiteSelectQueryBuilder {
