@@ -14,7 +14,7 @@ plugins {
     id 'org.jlleitschuh.gradle.ktlint' version "$klint_version"
     id 'org.jlleitschuh.gradle.ktlint-idea' version "$klint_version"
     id 'com.android.library' version '7.4.2' apply false
-    id 'org.jetbrains.kotlin.android' version '1.8.0' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.20' apply false
 }
 
 task clean(type: Delete) {
