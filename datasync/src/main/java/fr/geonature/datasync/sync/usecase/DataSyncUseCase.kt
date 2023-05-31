@@ -23,6 +23,7 @@ import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.ServerStatus
 import fr.geonature.datasync.sync.io.DatasetJsonReader
 import fr.geonature.datasync.sync.io.TaxonomyJsonReader
+import fr.geonature.datasync.sync.repository.ISynchronizeAdditionalDataRepository
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +45,8 @@ class DataSyncUseCase @Inject constructor(
     private val application: Application,
     @GeoNatureModuleName private val moduleName: String,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
-    private val database: LocalDatabase
+    private val database: LocalDatabase,
+    private val synchronizeAdditionalDataRepository: ISynchronizeAdditionalDataRepository
 ) : BaseFlowUseCase<DataSyncStatus, DataSyncUseCase.Params>() {
 
     override suspend fun run(params: Params): Flow<DataSyncStatus> =
@@ -86,6 +88,12 @@ class DataSyncUseCase @Inject constructor(
                     params.pageSize,
                     params.withAdditionalData
                 ).collect {
+                    sendOrThrow(
+                        this,
+                        it
+                    )
+                }
+                synchronizeAdditionalDataRepository().collect {
                     sendOrThrow(
                         this,
                         it

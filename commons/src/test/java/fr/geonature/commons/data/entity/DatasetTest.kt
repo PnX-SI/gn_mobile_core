@@ -7,6 +7,7 @@ import fr.geonature.commons.data.entity.Dataset.Companion.fromCursor
 import io.mockk.MockKAnnotations.init
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import kotlinx.parcelize.parcelableCreator
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -105,7 +106,7 @@ class DatasetTest {
     }
 
     @Test
-    fun testParcelable() {
+    fun `should create Dataset from Parcel`() {
         // given a dataset
         val dataset = Dataset(
             1234,
@@ -129,7 +130,7 @@ class DatasetTest {
         // then
         assertEquals(
             dataset,
-            Dataset.CREATOR.createFromParcel(parcel)
+            parcelableCreator<Dataset>().createFromParcel(parcel)
         )
     }
 

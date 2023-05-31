@@ -12,7 +12,7 @@ import java.lang.reflect.ParameterizedType
 /**
  * Default DAO about entities.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 abstract class BaseDao<T> {
 
@@ -36,9 +36,20 @@ abstract class BaseDao<T> {
 
         @Suppress("UNCHECKED_CAST")
         val clazz = parameterizedType(javaClass).actualTypeArguments[0] as Class<T>
-        entityTableName = clazz.getDeclaredField("TABLE_NAME")
+        entityTableName = clazz
+            .getDeclaredField("TABLE_NAME")
             .get(String::class) as String
     }
+
+    /**
+     * Returns all items from the given entity table.
+     */
+    suspend fun findAll(): List<T> {
+        return findAll(SimpleSQLiteQuery("SELECT * FROM $entityTableName"))
+    }
+
+    @RawQuery
+    protected abstract suspend fun findAll(query: SupportSQLiteQuery): List<T>
 
     /**
      * Insert an array of objects in database (Replace strategy on conflict).
@@ -100,7 +111,8 @@ abstract class BaseDao<T> {
 
             selectQueryBuilder.andWhere(
                 selection,
-                *selectionArgs ?: emptyArray()
+                *selectionArgs
+                    ?: emptyArray()
             )
 
             return this

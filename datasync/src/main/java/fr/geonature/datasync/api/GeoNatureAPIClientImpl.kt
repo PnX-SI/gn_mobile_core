@@ -202,6 +202,13 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         return geoNatureService.getIdTableLocation()
     }
 
+    override fun getAdditionalFields(module: String): Call<ResponseBody> {
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
+
+        return geoNatureService.getAdditionalFields(module)
+    }
+
     override fun downloadPackage(url: String): Call<ResponseBody> {
         val geoNatureService = geoNatureService
             ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException

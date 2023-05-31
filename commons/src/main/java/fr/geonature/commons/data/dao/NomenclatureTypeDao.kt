@@ -23,7 +23,7 @@ abstract class NomenclatureTypeDao : BaseDao<NomenclatureType>() {
         """SELECT * FROM ${NomenclatureType.TABLE_NAME}
             ORDER BY ${NomenclatureType.COLUMN_MNEMONIC} ASC"""
     )
-    abstract suspend fun findAll(): List<NomenclatureType>
+    abstract suspend fun findAllOrderByMnemonic(): List<NomenclatureType>
 
     /**
      * Internal query builder for [NomenclatureType].

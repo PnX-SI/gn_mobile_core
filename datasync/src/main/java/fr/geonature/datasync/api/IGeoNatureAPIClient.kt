@@ -21,7 +21,7 @@ import java.io.File
 interface IGeoNatureAPIClient {
 
     /**
-     * GeoNature base URLs.
+     * _GeoNature_ base URLs.
      */
     data class ServerUrls(
         val geoNatureBaseUrl: String,
@@ -64,7 +64,7 @@ interface IGeoNatureAPIClient {
     fun getBaseUrls(): ServerUrls
 
     /**
-     * Sets base URLs for GeoNature and TaxHub.
+     * Sets base URLs for _GeoNature_ and _TaxHub_.
      *
      * @param url base URLs
      */
@@ -113,14 +113,19 @@ interface IGeoNatureAPIClient {
     fun getDefaultNomenclaturesValues(module: String): Call<ResponseBody>
 
     /**
-     * Gets all available applications from GeoNature.
+     * Gets all available applications from _GeoNature_.
      */
     fun getApplications(): Call<ResponseBody>
 
     fun getIdTableLocation(): Call<Long>
 
     /**
-     * Downloads application package (APK) from GeoNature.
+     * Gets additional fields from _GeoNature_ according to given module name.
+     */
+    fun getAdditionalFields(module: String): Call<ResponseBody>
+
+    /**
+     * Downloads application package (APK) from _GeoNature_.
      */
     fun downloadPackage(url: String): Call<ResponseBody>
 

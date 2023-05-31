@@ -58,7 +58,7 @@ class NomenclatureTypeDaoTest {
     fun `should insert and find nomenclature types`() =
         runTest {
             val expectedNomenclatureTypes = initializeNomenclatureTypes()
-            val nomenclatureTypesFromDb = nomenclatureTypeDao.findAll()
+            val nomenclatureTypesFromDb = nomenclatureTypeDao.findAllOrderByMnemonic()
 
             assertEquals(
                 expectedNomenclatureTypes.sortedBy { it.defaultLabel },
