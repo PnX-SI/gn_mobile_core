@@ -5,13 +5,16 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.await
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.geonature.commons.interactor.BaseResultUseCase
 import fr.geonature.datasync.settings.DataSyncSettings
+import fr.geonature.datasync.sync.usecase.HasLocalDataUseCase
 import fr.geonature.datasync.sync.worker.DataSyncWorker
 import kotlinx.coroutines.launch
 import org.tinylog.Logger
@@ -28,7 +31,8 @@ import kotlin.time.Duration
 @HiltViewModel
 class DataSyncViewModel @Inject constructor(
     application: Application,
-    dataSyncManager: IDataSyncManager
+    dataSyncManager: IDataSyncManager,
+    private val hasLocalDataUseCase: HasLocalDataUseCase
 ) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
@@ -48,6 +52,20 @@ class DataSyncViewModel @Inject constructor(
 
     private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)
     val isSyncRunning: LiveData<Boolean> = _isSyncRunning
+
+    fun hasLocalData(): LiveData<Boolean> =
+        liveData {
+            hasLocalDataUseCase
+                .run(BaseResultUseCase.None())
+                .fold(
+                    onSuccess = {
+                        emit(true)
+                    },
+                    onFailure = {
+                        emit(false)
+                    },
+                )
+        }
 
     fun observeDataSyncStatus(): LiveData<DataSyncStatus?> {
         return workManager
