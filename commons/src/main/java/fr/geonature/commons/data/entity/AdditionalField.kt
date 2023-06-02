@@ -60,6 +60,7 @@ data class AdditionalField(
         RADIO("radio"),
         SELECT("select"),
         TEXT("text"),
+        TEXTAREA("textarea"),
         TIME("time")
     }
 
