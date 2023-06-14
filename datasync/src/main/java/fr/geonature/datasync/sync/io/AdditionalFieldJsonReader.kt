@@ -95,6 +95,7 @@ class AdditionalFieldJsonReader {
         var fieldName: String? = null
         var fieldLabel: String? = null
         val fieldValues = mutableListOf<Pair<String, String?>>()
+        var nomenclatureType: String? = null
 
         while (reader.hasNext()) {
             when (reader.nextName()) {
@@ -106,6 +107,7 @@ class AdditionalFieldJsonReader {
                 "field_name" -> fieldName = reader.nextStringOrNull()
                 "field_label" -> fieldLabel = reader.nextStringOrNull()
                 "field_values" -> fieldValues.addAll(readFieldValues(reader))
+                "code_nomenclature_type" -> nomenclatureType = reader.nextStringOrNull()
                 else -> reader.skipValue()
             }
         }
@@ -117,13 +119,15 @@ class AdditionalFieldJsonReader {
         return modules
             .distinct()
             .map { module ->
-                AdditionalFieldWithValues(AdditionalField(
-                    id,
-                    module,
-                    fieldType,
-                    fieldName,
-                    fieldLabel
-                ),
+                AdditionalFieldWithValues(
+                    additionalField = AdditionalField(
+                        id,
+                        module,
+                        fieldType,
+                        fieldName,
+                        fieldLabel
+                    ),
+                    nomenclatureTypeMnemonic = nomenclatureType,
                     codeObjects = objects.map { codeObject ->
                         CodeObject(
                             id,
@@ -136,7 +140,8 @@ class AdditionalFieldJsonReader {
                             it.first,
                             it.second
                         )
-                    })
+                    },
+                )
             }
     }
 

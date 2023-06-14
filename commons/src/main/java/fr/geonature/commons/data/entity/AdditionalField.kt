@@ -17,10 +17,12 @@ import kotlinx.parcelize.Parcelize
 @Entity(
     tableName = AdditionalField.TABLE_NAME,
     primaryKeys = [AdditionalField.COLUMN_ID],
-    indices = [Index(
-        value = [AdditionalField.COLUMN_ID, AdditionalField.COLUMN_MODULE],
-        unique = true
-    )]
+    indices = [
+        Index(
+            value = [AdditionalField.COLUMN_ID, AdditionalField.COLUMN_MODULE],
+            unique = true
+        ),
+    ]
 )
 @Parcelize
 data class AdditionalField(
@@ -49,6 +51,11 @@ data class AdditionalField(
      * The label of this additional field.
      */
     @ColumnInfo(name = COLUMN_FIELD_LABEL) val label: String,
+
+    /**
+     * The description of this additional field.
+     */
+    @ColumnInfo(name = COLUMN_FIELD_DESCRIPTION) val description: String? = null,
 ) : Parcelable {
 
     enum class FieldType(val type: String) {
@@ -80,6 +87,7 @@ data class AdditionalField(
         const val COLUMN_FIELD_TYPE = "field_type"
         const val COLUMN_FIELD_NAME = "name"
         const val COLUMN_FIELD_LABEL = "label"
+        const val COLUMN_FIELD_DESCRIPTION = "description"
     }
 }
 
@@ -90,23 +98,32 @@ data class AdditionalField(
  */
 @Entity(
     tableName = AdditionalFieldDataset.TABLE_NAME,
-    primaryKeys = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID, AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE],
-    indices = [Index(
-        value = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID, AdditionalFieldDataset.COLUMN_MODULE],
-    ), Index(
-        value = [AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE],
-    )],
-    foreignKeys = [ForeignKey(
-        entity = AdditionalField::class,
-        parentColumns = [AdditionalField.COLUMN_ID, AdditionalField.COLUMN_MODULE],
-        childColumns = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID, AdditionalFieldDataset.COLUMN_MODULE],
-        onDelete = ForeignKey.CASCADE
-    ), ForeignKey(
-        entity = Dataset::class,
-        parentColumns = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE],
-        childColumns = [AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE],
-        onDelete = ForeignKey.CASCADE
-    )]
+    primaryKeys = [
+        AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID,
+        AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE,
+    ],
+    indices = [
+        Index(
+            value = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID, AdditionalFieldDataset.COLUMN_MODULE],
+        ),
+        Index(
+            value = [AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE],
+        ),
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = AdditionalField::class,
+            parentColumns = [AdditionalField.COLUMN_ID, AdditionalField.COLUMN_MODULE],
+            childColumns = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID, AdditionalFieldDataset.COLUMN_MODULE],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Dataset::class,
+            parentColumns = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE],
+            childColumns = [AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE],
+            onDelete = ForeignKey.CASCADE
+        ),
+    ]
 )
 data class AdditionalFieldDataset(
     @ColumnInfo(name = COLUMN_ADDITIONAL_FIELD_ID) val additionalFieldId: Long,
@@ -127,19 +144,67 @@ data class AdditionalFieldDataset(
 }
 
 /**
+ * Describes an additional field linked with nomenclature type.
+ *
+ * @author S. Grimault
+ */
+@Entity(
+    tableName = AdditionalFieldNomenclature.TABLE_NAME,
+    primaryKeys = [
+        AdditionalFieldNomenclature.COLUMN_ADDITIONAL_FIELD_ID,
+        AdditionalFieldNomenclature.COLUMN_NOMENCLATURE_TYPE_MNEMONIC,
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = AdditionalField::class,
+            parentColumns = [AdditionalField.COLUMN_ID],
+            childColumns = [AdditionalFieldNomenclature.COLUMN_ADDITIONAL_FIELD_ID],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = NomenclatureType::class,
+            parentColumns = [NomenclatureType.COLUMN_MNEMONIC],
+            childColumns = [AdditionalFieldNomenclature.COLUMN_NOMENCLATURE_TYPE_MNEMONIC],
+            onDelete = ForeignKey.CASCADE
+        ),
+    ]
+)
+@Parcelize
+data class AdditionalFieldNomenclature(
+    @ColumnInfo(name = COLUMN_ADDITIONAL_FIELD_ID) val additionalFieldId: Long,
+    @ColumnInfo(name = COLUMN_NOMENCLATURE_TYPE_MNEMONIC) val nomenclatureTypeMnemonic: String
+) : Parcelable {
+    companion object {
+
+        /**
+         * The name of the 'additional_field_nomenclatures' table.
+         */
+        const val TABLE_NAME = "additional_field_nomenclatures"
+
+        const val COLUMN_ADDITIONAL_FIELD_ID = "additional_field_id"
+        const val COLUMN_NOMENCLATURE_TYPE_MNEMONIC = "nomenclature_type_mnemonic"
+    }
+}
+
+/**
  * Describes a code object. Used as main filter for [AdditionalField].
  *
  * @author S. Grimault
  */
 @Entity(
     tableName = CodeObject.TABLE_NAME,
-    primaryKeys = [CodeObject.COLUMN_ADDITIONAL_FIELD_ID, CodeObject.COLUMN_CODE],
-    foreignKeys = [ForeignKey(
-        entity = AdditionalField::class,
-        parentColumns = [AdditionalField.COLUMN_ID],
-        childColumns = [CodeObject.COLUMN_ADDITIONAL_FIELD_ID],
-        onDelete = ForeignKey.CASCADE
-    )]
+    primaryKeys = [
+        CodeObject.COLUMN_ADDITIONAL_FIELD_ID,
+        CodeObject.COLUMN_CODE,
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = AdditionalField::class,
+            parentColumns = [AdditionalField.COLUMN_ID],
+            childColumns = [CodeObject.COLUMN_ADDITIONAL_FIELD_ID],
+            onDelete = ForeignKey.CASCADE
+        ),
+    ]
 )
 @Parcelize
 data class CodeObject(
@@ -165,13 +230,18 @@ data class CodeObject(
  */
 @Entity(
     tableName = FieldValue.TABLE_NAME,
-    primaryKeys = [FieldValue.COLUMN_ADDITIONAL_FIELD_ID, FieldValue.COLUMN_VALUE],
-    foreignKeys = [ForeignKey(
-        entity = AdditionalField::class,
-        parentColumns = [AdditionalField.COLUMN_ID],
-        childColumns = [FieldValue.COLUMN_ADDITIONAL_FIELD_ID],
-        onDelete = ForeignKey.CASCADE
-    )]
+    primaryKeys = [
+        FieldValue.COLUMN_ADDITIONAL_FIELD_ID,
+        FieldValue.COLUMN_VALUE,
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = AdditionalField::class,
+            parentColumns = [AdditionalField.COLUMN_ID],
+            childColumns = [FieldValue.COLUMN_ADDITIONAL_FIELD_ID],
+            onDelete = ForeignKey.CASCADE
+        ),
+    ]
 )
 @Parcelize
 data class FieldValue(
@@ -204,7 +274,19 @@ data class AdditionalFieldWithCodeObject(
 ) : Parcelable
 
 /**
- * Describes an additional fields with all possible values.
+ * Describes an additional field linked to [NomenclatureType] and [CodeObject].
+ *
+ * @author S. Grimault
+ */
+@Parcelize
+data class AdditionalFieldWithNomenclatureAndCodeObject(
+    @Embedded val additionalField: AdditionalField,
+    val mnemonic: String,
+    @Embedded val codeObject: CodeObject
+) : Parcelable
+
+/**
+ * Describes a complete additional field linked with its dataset with all possible values.
  *
  * @author S. Grimault
  */
@@ -212,6 +294,7 @@ data class AdditionalFieldWithCodeObject(
 data class AdditionalFieldWithValues(
     val additionalField: AdditionalField,
     val datasetIds: List<Long> = emptyList(),
+    val nomenclatureTypeMnemonic: String? = null,
     val codeObjects: List<CodeObject>,
     val values: List<FieldValue> = emptyList()
 ) : Parcelable

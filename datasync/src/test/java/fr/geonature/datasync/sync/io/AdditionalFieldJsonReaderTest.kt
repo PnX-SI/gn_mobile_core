@@ -151,6 +151,7 @@ internal class AdditionalFieldJsonReaderTest {
                         name = "test nomenclature",
                         label = "Test nomenclature"
                     ),
+                    nomenclatureTypeMnemonic = "VENT",
                     codeObjects = listOf(
                         CodeObject(
                             additionalFieldId = 8,

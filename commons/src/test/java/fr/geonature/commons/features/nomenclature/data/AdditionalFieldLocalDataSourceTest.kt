@@ -9,15 +9,19 @@ import fr.geonature.commons.CoroutineTestRule
 import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.dao.AdditionalFieldDao
 import fr.geonature.commons.data.dao.AdditionalFieldDatasetDao
+import fr.geonature.commons.data.dao.AdditionalFieldNomenclatureDao
 import fr.geonature.commons.data.dao.CodeObjectDao
 import fr.geonature.commons.data.dao.DatasetDao
 import fr.geonature.commons.data.dao.FieldValueDao
+import fr.geonature.commons.data.dao.NomenclatureTypeDao
 import fr.geonature.commons.data.entity.AdditionalField
 import fr.geonature.commons.data.entity.AdditionalFieldDataset
+import fr.geonature.commons.data.entity.AdditionalFieldNomenclature
 import fr.geonature.commons.data.entity.AdditionalFieldWithValues
 import fr.geonature.commons.data.entity.CodeObject
 import fr.geonature.commons.data.entity.Dataset
 import fr.geonature.commons.data.entity.FieldValue
+import fr.geonature.commons.data.entity.NomenclatureType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -47,8 +51,10 @@ internal class AdditionalFieldLocalDataSourceTest {
 
     private lateinit var db: LocalDatabase
     private lateinit var datasetDao: DatasetDao
+    private lateinit var nomenclatureTypeDao: NomenclatureTypeDao
     private lateinit var additionalFieldDao: AdditionalFieldDao
     private lateinit var additionalFieldDatasetDao: AdditionalFieldDatasetDao
+    private lateinit var additionalFieldNomenclatureDao: AdditionalFieldNomenclatureDao
     private lateinit var codeObjectDao: CodeObjectDao
     private lateinit var fieldValueDao: FieldValueDao
     private lateinit var additionalFieldLocalDataSource: IAdditionalFieldLocalDataSource
@@ -64,8 +70,10 @@ internal class AdditionalFieldLocalDataSourceTest {
             .allowMainThreadQueries()
             .build()
         datasetDao = db.datasetDao()
+        nomenclatureTypeDao = db.nomenclatureTypeDao()
         additionalFieldDao = db.additionalFieldDao()
         additionalFieldDatasetDao = db.additionalFieldDatasetDao()
+        additionalFieldNomenclatureDao = db.additionalFieldNomenclatureDao()
         codeObjectDao = db.codeObjectDao()
         fieldValueDao = db.fieldValueDao()
 
@@ -85,6 +93,7 @@ internal class AdditionalFieldLocalDataSourceTest {
     fun `should find all additional fields matching object code`() =
         runTest {
             initializeDataset()
+            initializeNomenclatureTypes()
             val expectedAdditionalFields = initializeAdditionalFields()
 
             val additionalFieldsFromDb = additionalFieldLocalDataSource.getAdditionalFields(
@@ -124,12 +133,13 @@ internal class AdditionalFieldLocalDataSourceTest {
     fun `should add new additional fields and remove all existing ones`() =
         runTest {
             val expectedDataset = initializeDataset()
+            val expectedNomenclatureTypes = initializeNomenclatureTypes()
             initializeAdditionalFields()
 
             val expectedAdditionalFields = listOf(
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
-                        id = 6,
+                        id = 7L,
                         module = "occtax",
                         fieldType = AdditionalField.FieldType.RADIO,
                         name = "radio_field_new",
@@ -138,32 +148,34 @@ internal class AdditionalFieldLocalDataSourceTest {
                     datasetIds = listOf(17L),
                     codeObjects = listOf(
                         CodeObject(
-                            additionalFieldId = 6,
+                            additionalFieldId = 7L,
                             key = "OCCTAX_OCCURENCE"
                         )
                     ),
                     values = listOf(
                         FieldValue(
-                            additionalFieldId = 6,
+                            additionalFieldId = 7L,
                             value = "false"
                         ),
                         FieldValue(
-                            additionalFieldId = 6,
+                            additionalFieldId = 7L,
                             value = "true"
                         )
                     )
                 ),
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
-                        id = 5,
+                        id = 6L,
                         module = "occtax",
                         fieldType = AdditionalField.FieldType.NOMENCLATURE,
-                        name = "nomenclature_field",
-                        label = "Nomenclature field"
+                        name = "statut_bio_field",
+                        label = "STATUT_BIO field"
                     ),
+                    datasetIds = listOf(17L),
+                    nomenclatureTypeMnemonic = "STATUT_BIO",
                     codeObjects = listOf(
                         CodeObject(
-                            additionalFieldId = 5,
+                            additionalFieldId = 6L,
                             key = "OCCTAX_DENOMBREMENT"
                         )
                     ),
@@ -174,7 +186,7 @@ internal class AdditionalFieldLocalDataSourceTest {
 
             val additionalFieldsFromDb = additionalFieldLocalDataSource.getAdditionalFields(
                 17L,
-                "OCCTAX_OCCURENCE"
+                "OCCTAX_DENOMBREMENT"
             )
 
             assertEquals(expectedAdditionalFields
@@ -195,6 +207,10 @@ internal class AdditionalFieldLocalDataSourceTest {
             assertEquals(
                 expectedDataset,
                 datasetDao.findAll()
+            )
+            assertEquals(
+                expectedNomenclatureTypes,
+                nomenclatureTypeDao.findAll()
             )
         }
 
@@ -226,6 +242,28 @@ internal class AdditionalFieldLocalDataSourceTest {
             )
         ).also {
             datasetDao.insert(*it.toTypedArray())
+        }
+    }
+
+    private fun initializeNomenclatureTypes(): List<NomenclatureType> {
+        return listOf(
+            NomenclatureType(
+                id = 7,
+                mnemonic = "ETA_BIO",
+                defaultLabel = "Etat biologique de l'observation"
+            ),
+            NomenclatureType(
+                id = 13,
+                mnemonic = "STATUT_BIO",
+                defaultLabel = "Statut biologique"
+            ),
+            NomenclatureType(
+                id = 14,
+                mnemonic = "METH_OBS",
+                defaultLabel = "Méthodes d'observation"
+            )
+        ).also {
+            nomenclatureTypeDao.insert(*it.toTypedArray())
         }
     }
 
@@ -330,7 +368,23 @@ internal class AdditionalFieldLocalDataSourceTest {
                         label = "Value 2"
                     )
                 )
-            )
+            ),
+            AdditionalFieldWithValues(
+                additionalField = AdditionalField(
+                    id = 5L,
+                    module = "occtax",
+                    fieldType = AdditionalField.FieldType.NOMENCLATURE,
+                    name = "eta_bio_field",
+                    label = "ETA_BIO field"
+                ),
+                nomenclatureTypeMnemonic = "ETA_BIO",
+                codeObjects = listOf(
+                    CodeObject(
+                        additionalFieldId = 5L,
+                        key = "OCCTAX_DENOMBREMENT"
+                    )
+                )
+            ),
         ).also { additionalFields ->
             additionalFieldDao.insert(*additionalFields
                 .map { it.additionalField }
@@ -342,6 +396,16 @@ internal class AdditionalFieldLocalDataSourceTest {
                             additionalFieldId = it.additionalField.id,
                             datasetId = datasetId,
                             module = "occtax"
+                        )
+                    }
+                }
+                .toTypedArray())
+            additionalFieldNomenclatureDao.insert(*additionalFields
+                .mapNotNull {
+                    it.nomenclatureTypeMnemonic?.let { mnemonic ->
+                        AdditionalFieldNomenclature(
+                            additionalFieldId = it.additionalField.id,
+                            nomenclatureTypeMnemonic = mnemonic,
                         )
                     }
                 }
