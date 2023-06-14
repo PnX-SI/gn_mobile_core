@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import fr.geonature.commons.data.dao.AdditionalFieldDao
 import fr.geonature.commons.data.dao.AdditionalFieldDatasetDao
+import fr.geonature.commons.data.dao.AdditionalFieldNomenclatureDao
 import fr.geonature.commons.data.dao.CodeObjectDao
 import fr.geonature.commons.data.dao.DatasetDao
 import fr.geonature.commons.data.dao.DefaultNomenclatureDao
@@ -17,6 +18,7 @@ import fr.geonature.commons.data.dao.TaxonDao
 import fr.geonature.commons.data.dao.TaxonomyDao
 import fr.geonature.commons.data.entity.AdditionalField
 import fr.geonature.commons.data.entity.AdditionalFieldDataset
+import fr.geonature.commons.data.entity.AdditionalFieldNomenclature
 import fr.geonature.commons.data.entity.CodeObject
 import fr.geonature.commons.data.entity.Dataset
 import fr.geonature.commons.data.entity.DefaultNomenclature
@@ -47,6 +49,7 @@ import fr.geonature.commons.data.entity.Taxonomy
         DefaultNomenclature::class,
         AdditionalField::class,
         AdditionalFieldDataset::class,
+        AdditionalFieldNomenclature::class,
         CodeObject::class,
         FieldValue::class,
     ],
@@ -109,6 +112,11 @@ abstract class LocalDatabase : RoomDatabase() {
      * @return The DAO for the [AdditionalFieldDataset.TABLE_NAME] table.
      */
     abstract fun additionalFieldDatasetDao(): AdditionalFieldDatasetDao
+
+    /**
+     * @return The DAO for the [AdditionalFieldNomenclature.TABLE_NAME] table.
+     */
+    abstract fun additionalFieldNomenclatureDao(): AdditionalFieldNomenclatureDao
 
     /**
      * @return The DAO for the [CodeObject.TABLE_NAME] table.

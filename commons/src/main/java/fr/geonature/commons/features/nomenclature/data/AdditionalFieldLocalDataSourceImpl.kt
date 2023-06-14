@@ -3,6 +3,7 @@ package fr.geonature.commons.features.nomenclature.data
 import androidx.room.withTransaction
 import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.entity.AdditionalFieldDataset
+import fr.geonature.commons.data.entity.AdditionalFieldNomenclature
 import fr.geonature.commons.data.entity.AdditionalFieldWithValues
 
 /**
@@ -20,6 +21,35 @@ class AdditionalFieldLocalDataSourceImpl(
         vararg codeObject: String
     ): List<AdditionalFieldWithValues> {
         return (database
+            .additionalFieldDao()
+            .findAllWithNomenclatureByModuleAndCodeObject(
+                moduleName,
+                *codeObject
+            )
+            .map {
+                AdditionalFieldWithValues(
+                    additionalField = it.additionalField,
+                    nomenclatureTypeMnemonic = it.mnemonic,
+                    codeObjects = listOf(it.codeObject),
+                )
+            } + (datasetId?.let {
+            database
+                .additionalFieldDao()
+                .findAllWithNomenclatureByModuleAndDatasetAndCodeObject(
+                    moduleName,
+                    datasetId,
+                    *codeObject
+                )
+                .map {
+                    AdditionalFieldWithValues(
+                        additionalField = it.additionalField,
+                        datasetIds = listOf(datasetId),
+                        nomenclatureTypeMnemonic = it.mnemonic,
+                        codeObjects = listOf(it.codeObject),
+                    )
+                }
+        }
+            ?: emptyList()) + database
             .additionalFieldDao()
             .findAllByModuleAndCodeObject(
                 moduleName,
@@ -77,6 +107,18 @@ class AdditionalFieldLocalDataSourceImpl(
                                 additionalFieldId = it.additionalField.id,
                                 datasetId = datasetId,
                                 module = moduleName
+                            )
+                        }
+                    }
+                    .toTypedArray())
+            database
+                .additionalFieldNomenclatureDao()
+                .insert(*additionalFieldWithValues
+                    .mapNotNull { additionalFieldWithValues ->
+                        additionalFieldWithValues.nomenclatureTypeMnemonic?.let {
+                            AdditionalFieldNomenclature(
+                                additionalFieldWithValues.additionalField.id,
+                                it
                             )
                         }
                     }

@@ -9,11 +9,14 @@ import fr.geonature.commons.CoroutineTestRule
 import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.entity.AdditionalField
 import fr.geonature.commons.data.entity.AdditionalFieldDataset
+import fr.geonature.commons.data.entity.AdditionalFieldNomenclature
 import fr.geonature.commons.data.entity.AdditionalFieldWithCodeObject
+import fr.geonature.commons.data.entity.AdditionalFieldWithNomenclatureAndCodeObject
 import fr.geonature.commons.data.entity.AdditionalFieldWithValues
 import fr.geonature.commons.data.entity.CodeObject
 import fr.geonature.commons.data.entity.Dataset
 import fr.geonature.commons.data.entity.FieldValue
+import fr.geonature.commons.data.entity.NomenclatureType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -43,8 +46,10 @@ internal class AdditionalFieldDaoTest {
 
     private lateinit var db: LocalDatabase
     private lateinit var datasetDao: DatasetDao
+    private lateinit var nomenclatureTypeDao: NomenclatureTypeDao
     private lateinit var additionalFieldDao: AdditionalFieldDao
     private lateinit var additionalFieldDatasetDao: AdditionalFieldDatasetDao
+    private lateinit var additionalFieldNomenclatureDao: AdditionalFieldNomenclatureDao
     private lateinit var codeObjectDao: CodeObjectDao
     private lateinit var fieldValueDao: FieldValueDao
 
@@ -59,8 +64,10 @@ internal class AdditionalFieldDaoTest {
             .allowMainThreadQueries()
             .build()
         datasetDao = db.datasetDao()
+        nomenclatureTypeDao = db.nomenclatureTypeDao()
         additionalFieldDao = db.additionalFieldDao()
         additionalFieldDatasetDao = db.additionalFieldDatasetDao()
+        additionalFieldNomenclatureDao = db.additionalFieldNomenclatureDao()
         codeObjectDao = db.codeObjectDao()
         fieldValueDao = db.fieldValueDao()
     }
@@ -72,74 +79,11 @@ internal class AdditionalFieldDaoTest {
     }
 
     @Test
-    fun `should insert and find all additional fields matching dataset and object code`() =
-        runTest {
-            initializeDataset()
-            val expectedAdditionalFields = initializeAdditionalFields()
-
-            val additionalFieldsFromDb = additionalFieldDao.findAllByModuleAndDatasetAndCodeObject(
-                "occtax",
-                1L,
-                "OCCTAX_RELEVE"
-            )
-
-            assertEquals(expectedAdditionalFields
-                .filter { it.additionalField.id == 1L }
-                .map {
-                    it.copy(values = it.values.sortedBy { v -> v.value })
-                }
-                .sortedBy { it.additionalField.name }
-                .associate {
-                    AdditionalFieldWithCodeObject(it.additionalField,
-                        it.codeObjects.first { codeObject ->
-                            codeObject.key == "OCCTAX_RELEVE"
-                        }) to it.values.sortedBy { v -> v.value }
-                },
-                additionalFieldsFromDb.toSortedMap(compareBy { it.additionalField.name })
-            )
-        }
-
-    @Test
-    fun `should insert and find all additional fields matching dataset and a list of object code`() =
-        runTest {
-            initializeDataset()
-            val expectedAdditionalFields = initializeAdditionalFields()
-
-            val additionalFieldsFromDb = additionalFieldDao.findAllByModuleAndDatasetAndCodeObject(
-                "occtax",
-                1L,
-                "OCCTAX_RELEVE",
-                "OCCTAX_OCCURENCE"
-            )
-
-            assertEquals(expectedAdditionalFields
-                .filter { additionalField ->
-                    listOf(
-                        1L,
-                        3L
-                    ).any { it == additionalField.additionalField.id }
-                }
-                .map {
-                    it.copy(values = it.values.sortedBy { v -> v.value })
-                }
-                .sortedBy { it.additionalField.name }
-                .flatMap {
-                    it.codeObjects.map { codeObject ->
-                        AdditionalFieldWithCodeObject(
-                            it.additionalField,
-                            codeObject
-                        ) to it.values.sortedBy { v -> v.value }
-                    }
-                }
-                .toMap(),
-                additionalFieldsFromDb.toSortedMap(compareBy { it.additionalField.name })
-            )
-        }
-
-    @Test
     fun `should insert and find all additional fields with no dataset matching object code`() =
         runTest {
             initializeDataset()
+            initializeNomenclatureTypes()
+
             val expectedAdditionalFields = initializeAdditionalFields()
 
             val additionalFieldsFromDb = additionalFieldDao.findAllByModuleAndCodeObject(
@@ -148,7 +92,10 @@ internal class AdditionalFieldDaoTest {
             )
 
             assertEquals(expectedAdditionalFields
-                .filter { it.additionalField.id == 2L }
+                .asSequence()
+                .filter { it.datasetIds.isEmpty() }
+                .filter { it.additionalField.fieldType != AdditionalField.FieldType.NOMENCLATURE }
+                .filter { it.codeObjects.any { codeObject -> codeObject.key == "OCCTAX_RELEVE" } }
                 .map {
                     it.copy(values = it.values.sortedBy { v -> v.value })
                 }
@@ -162,6 +109,116 @@ internal class AdditionalFieldDaoTest {
                 additionalFieldsFromDb.toSortedMap(compareBy { it.additionalField.name })
             )
         }
+
+    @Test
+    fun `should insert and find all additional fields of type 'nomenclature' with no dataset matching object code`() =
+        runTest {
+            initializeDataset()
+            initializeNomenclatureTypes()
+
+            val expectedAdditionalFields = initializeAdditionalFields()
+
+            val additionalFieldsFromDb =
+                additionalFieldDao.findAllWithNomenclatureByModuleAndCodeObject(
+                    "occtax",
+                    "OCCTAX_RELEVE"
+                )
+
+            assertEquals(expectedAdditionalFields
+                .asSequence()
+                .filter { it.datasetIds.isEmpty() }
+                .filter { it.additionalField.fieldType == AdditionalField.FieldType.NOMENCLATURE }
+                .filter { it.codeObjects.any { codeObject -> codeObject.key == "OCCTAX_RELEVE" } }
+                .sortedBy { it.additionalField.name }
+                .flatMap { additionalFieldWithValues ->
+                    additionalFieldWithValues.codeObjects.map { codeObject ->
+                        AdditionalFieldWithNomenclatureAndCodeObject(
+                            additionalField = additionalFieldWithValues.additionalField,
+                            mnemonic = additionalFieldWithValues.nomenclatureTypeMnemonic!!,
+                            codeObject = codeObject
+                        )
+                    }
+                }
+                .toList(),
+                additionalFieldsFromDb.sortedBy { it.additionalField.name })
+        }
+
+    @Test
+    fun `should insert and find all additional fields matching dataset and object code`() =
+        runTest {
+            initializeDataset()
+            initializeNomenclatureTypes()
+
+            val expectedAdditionalFields = initializeAdditionalFields()
+
+            val additionalFieldsFromDb = additionalFieldDao.findAllByModuleAndDatasetAndCodeObject(
+                "occtax",
+                1L,
+                "OCCTAX_RELEVE"
+            )
+
+            assertEquals(expectedAdditionalFields
+                .asSequence()
+                .filter { it.datasetIds.any { datasetId -> datasetId == 1L } }
+                .filter { it.additionalField.fieldType != AdditionalField.FieldType.NOMENCLATURE }
+                .filter { it.codeObjects.any { codeObject -> codeObject.key == "OCCTAX_RELEVE" } }
+                .map {
+                    it.copy(values = it.values.sortedBy { v -> v.value })
+                }
+                .sortedBy { it.additionalField.name }
+                .associate {
+                    AdditionalFieldWithCodeObject(it.additionalField,
+                        it.codeObjects.first { codeObject ->
+                            codeObject.key == "OCCTAX_RELEVE"
+                        }) to it.values.sortedBy { v -> v.value }
+                },
+                additionalFieldsFromDb.toSortedMap(compareBy { it.additionalField.name })
+            )
+        }
+
+    @Test
+    fun `should insert and find all additional fields of type 'nomenclature' matching dataset and a list of object code`() =
+        runTest {
+            initializeDataset()
+            initializeNomenclatureTypes()
+
+            val expectedAdditionalFields = initializeAdditionalFields()
+
+            val additionalFieldsFromDb =
+                additionalFieldDao.findAllWithNomenclatureByModuleAndDatasetAndCodeObject(
+                    "occtax",
+                    1L,
+                    "OCCTAX_RELEVE"
+                )
+
+            assertEquals(expectedAdditionalFields
+                .asSequence()
+                .filter { it.datasetIds.any { datasetId -> datasetId == 1L } }
+                .filter { it.additionalField.fieldType == AdditionalField.FieldType.NOMENCLATURE }
+                .filter {
+                    it.codeObjects.any { codeObject ->
+                        listOf(
+                            "OCCTAX_RELEVE"
+                        ).contains(codeObject.key)
+                    }
+                }
+                .sortedBy { it.additionalField.name }
+                .flatMap { additionalFieldWithValues ->
+                    additionalFieldWithValues.codeObjects.map { codeObject ->
+                        AdditionalFieldWithNomenclatureAndCodeObject(
+                            additionalField = additionalFieldWithValues.additionalField,
+                            mnemonic = additionalFieldWithValues.nomenclatureTypeMnemonic!!,
+                            codeObject = codeObject
+                        )
+                    }
+                }
+                .toList(),
+                additionalFieldsFromDb.sortedBy { it.additionalField.name })
+        }
+
+    @Test
+    fun `should insert and find all additional fields matching dataset and a list of object code`() =
+        runTest {}
 
     private fun initializeDataset(): List<Dataset> {
         return listOf(
@@ -194,8 +251,30 @@ internal class AdditionalFieldDaoTest {
         }
     }
 
+    private fun initializeNomenclatureTypes(): List<NomenclatureType> {
+        return listOf(
+            NomenclatureType(
+                id = 7,
+                mnemonic = "ETA_BIO",
+                defaultLabel = "Etat biologique de l'observation"
+            ),
+            NomenclatureType(
+                id = 13,
+                mnemonic = "STATUT_BIO",
+                defaultLabel = "Statut biologique"
+            ),
+            NomenclatureType(
+                id = 14,
+                mnemonic = "METH_OBS",
+                defaultLabel = "Méthodes d'observation"
+            )
+        ).also {
+            nomenclatureTypeDao.insert(*it.toTypedArray())
+        }
+    }
+
     private fun initializeAdditionalFields(): List<AdditionalFieldWithValues> {
-        val additionalFieldWithValues = listOf(
+        return listOf(
             AdditionalFieldWithValues(
                 additionalField = AdditionalField(
                     id = 1L,
@@ -241,25 +320,15 @@ internal class AdditionalFieldDaoTest {
                 additionalField = AdditionalField(
                     id = 3L,
                     module = "occtax",
-                    fieldType = AdditionalField.FieldType.SELECT,
-                    name = "select_field",
-                    label = "Select field"
+                    fieldType = AdditionalField.FieldType.NOMENCLATURE,
+                    name = "statut_bio_field",
+                    label = "STATUT_BIO field"
                 ),
-                datasetIds = listOf(1L),
+                nomenclatureTypeMnemonic = "STATUT_BIO",
                 codeObjects = listOf(
                     CodeObject(
                         additionalFieldId = 3L,
-                        key = "OCCTAX_OCCURENCE"
-                    )
-                ),
-                values = listOf(
-                    FieldValue(
-                        additionalFieldId = 3L,
-                        value = "value1"
-                    ),
-                    FieldValue(
-                        additionalFieldId = 3L,
-                        value = "value2"
+                        key = "OCCTAX_RELEVE"
                     )
                 )
             ),
@@ -267,26 +336,16 @@ internal class AdditionalFieldDaoTest {
                 additionalField = AdditionalField(
                     id = 4L,
                     module = "occtax",
-                    fieldType = AdditionalField.FieldType.RADIO,
-                    name = "radio_field",
-                    label = "Radio field"
+                    fieldType = AdditionalField.FieldType.NOMENCLATURE,
+                    name = "meth_obs_field",
+                    label = "METH_OBS field"
                 ),
+                datasetIds = listOf(1L),
+                nomenclatureTypeMnemonic = "METH_OBS",
                 codeObjects = listOf(
                     CodeObject(
                         additionalFieldId = 4L,
-                        key = "OCCTAX_OCCURENCE"
-                    )
-                ),
-                values = listOf(
-                    FieldValue(
-                        additionalFieldId = 4L,
-                        value = "value1",
-                        label = "Value 1"
-                    ),
-                    FieldValue(
-                        additionalFieldId = 4L,
-                        value = "value2",
-                        label = "Value 2"
+                        key = "OCCTAX_RELEVE"
                     )
                 )
             ),
@@ -294,14 +353,25 @@ internal class AdditionalFieldDaoTest {
                 additionalField = AdditionalField(
                     id = 5L,
                     module = "occtax",
-                    fieldType = AdditionalField.FieldType.NOMENCLATURE,
-                    name = "nomenclature_field",
-                    label = "Nomenclature field"
+                    fieldType = AdditionalField.FieldType.SELECT,
+                    name = "select_field",
+                    label = "Select field"
                 ),
+                datasetIds = listOf(1L),
                 codeObjects = listOf(
                     CodeObject(
                         additionalFieldId = 5L,
-                        key = "OCCTAX_DENOMBREMENT"
+                        key = "OCCTAX_OCCURENCE"
+                    )
+                ),
+                values = listOf(
+                    FieldValue(
+                        additionalFieldId = 5L,
+                        value = "value1"
+                    ),
+                    FieldValue(
+                        additionalFieldId = 5L,
+                        value = "value2"
                     )
                 )
             ),
@@ -309,13 +379,56 @@ internal class AdditionalFieldDaoTest {
                 additionalField = AdditionalField(
                     id = 6L,
                     module = "occtax",
+                    fieldType = AdditionalField.FieldType.RADIO,
+                    name = "radio_field",
+                    label = "Radio field"
+                ),
+                codeObjects = listOf(
+                    CodeObject(
+                        additionalFieldId = 6L,
+                        key = "OCCTAX_OCCURENCE"
+                    )
+                ),
+                values = listOf(
+                    FieldValue(
+                        additionalFieldId = 6L,
+                        value = "value1",
+                        label = "Value 1"
+                    ),
+                    FieldValue(
+                        additionalFieldId = 6L,
+                        value = "value2",
+                        label = "Value 2"
+                    )
+                )
+            ),
+            AdditionalFieldWithValues(
+                additionalField = AdditionalField(
+                    id = 7L,
+                    module = "occtax",
+                    fieldType = AdditionalField.FieldType.NOMENCLATURE,
+                    name = "eta_bio_field",
+                    label = "ETA_BIO field"
+                ),
+                nomenclatureTypeMnemonic = "ETA_BIO",
+                codeObjects = listOf(
+                    CodeObject(
+                        additionalFieldId = 7L,
+                        key = "OCCTAX_DENOMBREMENT"
+                    )
+                )
+            ),
+            AdditionalFieldWithValues(
+                additionalField = AdditionalField(
+                    id = 8L,
+                    module = "occtax",
                     fieldType = AdditionalField.FieldType.NUMBER,
                     name = "number_field",
                     label = "Number field"
                 ),
                 codeObjects = listOf(
                     CodeObject(
-                        additionalFieldId = 6L,
+                        additionalFieldId = 8L,
                         key = "OCCTAX_DENOMBREMENT"
                     )
                 )
@@ -335,6 +448,16 @@ internal class AdditionalFieldDaoTest {
                     }
                 }
                 .toTypedArray())
+            additionalFieldNomenclatureDao.insert(*additionalFields
+                .mapNotNull {
+                    it.nomenclatureTypeMnemonic?.let { mnemonic ->
+                        AdditionalFieldNomenclature(
+                            additionalFieldId = it.additionalField.id,
+                            nomenclatureTypeMnemonic = mnemonic,
+                        )
+                    }
+                }
+                .toTypedArray())
             codeObjectDao.insert(*additionalFields
                 .flatMap { it.codeObjects }
                 .toTypedArray())
@@ -342,7 +465,5 @@ internal class AdditionalFieldDaoTest {
                 .flatMap { it.values }
                 .toTypedArray())
         }
-
-        return additionalFieldWithValues
     }
 }
