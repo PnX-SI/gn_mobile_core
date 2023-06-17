@@ -21,9 +21,10 @@ import fr.geonature.datasync.api.error.BaseApiException
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.ServerStatus
+import fr.geonature.datasync.sync.SynchronizeAdditionalFieldsRepository
 import fr.geonature.datasync.sync.io.DatasetJsonReader
 import fr.geonature.datasync.sync.io.TaxonomyJsonReader
-import fr.geonature.datasync.sync.repository.ISynchronizeAdditionalDataRepository
+import fr.geonature.datasync.sync.repository.ISynchronizeLocalDataRepository
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -46,7 +47,7 @@ class DataSyncUseCase @Inject constructor(
     @GeoNatureModuleName private val moduleName: String,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
     private val database: LocalDatabase,
-    private val synchronizeAdditionalDataRepository: ISynchronizeAdditionalDataRepository
+    @SynchronizeAdditionalFieldsRepository private val synchronizeAdditionalFieldsRepository: ISynchronizeLocalDataRepository
 ) : BaseFlowUseCase<DataSyncStatus, DataSyncUseCase.Params>() {
 
     override suspend fun run(params: Params): Flow<DataSyncStatus> =
@@ -93,11 +94,14 @@ class DataSyncUseCase @Inject constructor(
                         it
                     )
                 }
-                synchronizeAdditionalDataRepository().collect {
-                    sendOrThrow(
-                        this,
-                        it
-                    )
+
+                if (params.withAdditionalFields) {
+                    synchronizeAdditionalFieldsRepository().collect {
+                        sendOrThrow(
+                            this,
+                            it
+                        )
+                    }
                 }
             }
         }
@@ -788,6 +792,7 @@ class DataSyncUseCase @Inject constructor(
                     serverStatus = ServerStatus.UNAUTHORIZED
                 )
             }
+
             is BaseApiException.InternalServerException -> {
                 DataSyncStatus(
                     state = WorkInfo.State.FAILED,
@@ -795,6 +800,7 @@ class DataSyncUseCase @Inject constructor(
                     serverStatus = ServerStatus.INTERNAL_SERVER_ERROR
                 )
             }
+
             else -> {
                 DataSyncStatus(
                     state = WorkInfo.State.FAILED,
@@ -822,6 +828,7 @@ class DataSyncUseCase @Inject constructor(
 
     data class Params(
         val withAdditionalData: Boolean = true,
+        val withAdditionalFields: Boolean = false,
         val usersMenuId: Int = 0,
         val taxRefListId: Int = 0,
         val codeAreaType: String?,

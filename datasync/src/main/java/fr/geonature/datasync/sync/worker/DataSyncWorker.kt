@@ -131,7 +131,8 @@ class DataSyncWorker @AssistedInject constructor(
                         it.serverStatus
                     )
                 )
-            }?: Result.failure()
+            }
+            ?: Result.failure()
 
         Logger.info { "local data synchronization ${if (result is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms" }
 
@@ -245,6 +246,7 @@ class DataSyncWorker @AssistedInject constructor(
         private const val INPUT_CODE_AREA_TYPE = "codeAreaType"
         private const val INPUT_PAGE_SIZE = "pageSize"
         private const val INPUT_WITH_ADDITIONAL_DATA = "withAdditionalData"
+        private const val INPUT_WITH_ADDITIONAL_FIELDS = "withAdditionalFields"
         private const val INPUT_INTENT_CLASS_NAME = "intent_class_name"
         private const val INPUT_NOTIFICATION_CHANNEL_ID = "notification_channel_id"
         const val DEFAULT_CHANNEL_DATA_SYNCHRONIZATION = "channel_data_synchronization"
@@ -255,6 +257,7 @@ class DataSyncWorker @AssistedInject constructor(
         fun enqueueUniqueWork(
             context: Context,
             dataSyncSettings: DataSyncSettings,
+            withAdditionalFields: Boolean = false,
             notificationComponentClassIntent: Class<*>,
             notificationChannelId: String
         ): UUID {
@@ -270,7 +273,8 @@ class DataSyncWorker @AssistedInject constructor(
                 .setInputData(
                     inputData(
                         dataSyncSettings,
-                        true,
+                        withAdditionalData = true,
+                        withAdditionalFields,
                         notificationComponentClassIntent,
                         notificationChannelId
                     )
@@ -293,6 +297,7 @@ class DataSyncWorker @AssistedInject constructor(
             context: Context,
             dataSyncSettings: DataSyncSettings,
             withAdditionalData: Boolean = true,
+            withAdditionalFields: Boolean = false,
             notificationComponentClassIntent: Class<*>,
             notificationChannelId: String = DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
             repeatInterval: Duration = 15.toDuration(DurationUnit.MINUTES)
@@ -321,6 +326,7 @@ class DataSyncWorker @AssistedInject constructor(
                         inputData(
                             dataSyncSettings,
                             withAdditionalData,
+                            withAdditionalFields,
                             notificationComponentClassIntent,
                             notificationChannelId
                         )
@@ -335,6 +341,7 @@ class DataSyncWorker @AssistedInject constructor(
         private fun inputData(
             dataSyncSettings: DataSyncSettings,
             withAdditionalData: Boolean = true,
+            withAdditionalFields: Boolean = false,
             notificationComponentClassIntent: Class<*>,
             notificationChannelId: String
         ): Data {
@@ -359,6 +366,10 @@ class DataSyncWorker @AssistedInject constructor(
                 .putBoolean(
                     INPUT_WITH_ADDITIONAL_DATA,
                     withAdditionalData
+                )
+                .putBoolean(
+                    INPUT_WITH_ADDITIONAL_FIELDS,
+                    withAdditionalFields
                 )
                 .putString(
                     INPUT_INTENT_CLASS_NAME,

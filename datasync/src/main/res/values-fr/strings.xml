@@ -47,6 +47,8 @@
     <string name="sync_data_taxa_with_errors">Synchronisation des taxons terminée avec des erreurs</string>
     <string name="sync_data_taxa_areas">Unités géographiques : %1$d</string>
     <string name="sync_data_taxa_areas_with_errors">Synchronisation des unités géographiques terminée avec des erreurs</string>
+    <string name="sync_data_additional_fields">Champs additionnels : %1$d</string>
+    <string name="sync_data_additional_fields_error">Champs additionnels : échec</string>
     <string name="sync_data_succeeded">Terminée.</string>
 
     <string name="notification_data_synchronization_title">Synchronisation des données…</string>
