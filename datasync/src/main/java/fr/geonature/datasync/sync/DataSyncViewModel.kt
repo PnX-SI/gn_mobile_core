@@ -118,6 +118,7 @@ class DataSyncViewModel @Inject constructor(
 
     fun startSync(
         dataSyncSettings: DataSyncSettings,
+        withAdditionalFields: Boolean = false,
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
@@ -126,6 +127,7 @@ class DataSyncViewModel @Inject constructor(
         currentSyncWorkerId = DataSyncWorker.enqueueUniqueWork(
             getApplication(),
             dataSyncSettings,
+            withAdditionalFields,
             notificationComponentClassIntent,
             notificationChannelId
         )
@@ -133,6 +135,7 @@ class DataSyncViewModel @Inject constructor(
 
     fun configurePeriodicSync(
         appSettings: DataSyncSettings,
+        withAdditionalFields: Boolean = false,
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
@@ -175,6 +178,7 @@ class DataSyncViewModel @Inject constructor(
                     appSettings,
                     dataSyncPeriodicity,
                     withAdditionalData = true,
+                    withAdditionalFields,
                     notificationComponentClassIntent,
                     notificationChannelId
                 )
@@ -182,6 +186,7 @@ class DataSyncViewModel @Inject constructor(
                     appSettings,
                     essentialDataSyncPeriodicity,
                     withAdditionalData = false,
+                    withAdditionalFields,
                     notificationComponentClassIntent,
                     notificationChannelId
                 )
@@ -200,6 +205,7 @@ class DataSyncViewModel @Inject constructor(
                         appSettings,
                         it,
                         withAdditionalData = true,
+                        withAdditionalFields = false,
                         notificationComponentClassIntent,
                         notificationChannelId
                     )
@@ -218,6 +224,7 @@ class DataSyncViewModel @Inject constructor(
         dataSyncSettings: DataSyncSettings,
         repeatInterval: Duration,
         withAdditionalData: Boolean = true,
+        withAdditionalFields: Boolean = false,
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
@@ -227,6 +234,7 @@ class DataSyncViewModel @Inject constructor(
             getApplication(),
             dataSyncSettings,
             withAdditionalData,
+            withAdditionalFields,
             notificationComponentClassIntent,
             notificationChannelId,
             repeatInterval

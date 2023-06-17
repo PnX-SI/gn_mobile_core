@@ -4,11 +4,11 @@ import fr.geonature.datasync.sync.DataSyncStatus
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Synchronize additional data.
+ * Synchronize local data.
  *
  * @author S. Grimault
  */
-interface ISynchronizeAdditionalDataRepository {
+interface ISynchronizeLocalDataRepository {
 
     suspend operator fun invoke(): Flow<DataSyncStatus>
 }
