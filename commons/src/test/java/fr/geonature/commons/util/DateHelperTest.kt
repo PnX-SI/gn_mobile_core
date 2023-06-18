@@ -5,8 +5,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.TimeZone.getTimeZone
+import java.util.Date
 
 /**
  * Unit test for `DateHelper`.
@@ -25,7 +29,6 @@ class DateHelperTest {
         assertNotNull(isoDateTime)
         assertEquals("2016-10-28T08:15:00",
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").let {
-                it.timeZone = getTimeZone("UTC")
                 it.format(isoDateTime!!)
             })
 
@@ -33,7 +36,6 @@ class DateHelperTest {
         assertNotNull(isoDate)
         assertEquals("2016-10-28",
             SimpleDateFormat("yyyy-MM-dd").let {
-                it.timeZone = getTimeZone("UTC")
                 it.format(isoDate!!)
             })
 
@@ -41,9 +43,50 @@ class DateHelperTest {
         assertNotNull(hourOnlyDate)
         assertEquals("08:15",
             SimpleDateFormat("HH:mm").let {
-                it.timeZone = getTimeZone("UTC")
                 it.format(hourOnlyDate!!)
             })
+    }
+
+    @Test
+    fun `should parse date string to local date`() {
+        val localDateTime = LocalDateTime.parse(
+            "2016-10-28T08:15:00Z",
+            DateTimeFormatter.ISO_DATE_TIME
+        )
+        val date = Date.from(
+            localDateTime
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+        )
+
+        assertEquals(
+            "2016-10-28",
+            date.format("yyyy-MM-dd")
+        )
+        assertEquals(
+            "08:15",
+            date.format("HH:mm")
+        )
+    }
+
+    @Test
+    fun `should parse time string to local date`() {
+        val now = LocalDateTime.now(ZoneId.systemDefault())
+
+        val localDateTime = LocalTime.parse(
+            "08:15",
+            DateTimeFormatter.ISO_TIME
+        ).atDate(now.toLocalDate())
+
+        val date = Date.from(
+            localDateTime
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+        )
+
+        assertEquals(
+            "08:15",
+            date.format("HH:mm"))
     }
 
     @Test
@@ -54,21 +97,15 @@ class DateHelperTest {
         )
         assertEquals(
             "2016-10-29",
-            toDate("2016-10-28T23:00:00Z")?.format(
-                "yyyy-MM-dd",
-                getTimeZone("GMT+2")
-            )
+            toDate("2016-10-29T23:00:00Z")?.format("yyyy-MM-dd")
         )
         assertEquals(
             "08:15",
             toDate("2016-10-28T08:15:00Z")?.format("HH:mm")
         )
         assertEquals(
-            "10:15",
-            toDate("2016-10-28T08:15:00Z")?.format(
-                "HH:mm",
-                getTimeZone("GMT+2")
-            )
+            "08:15",
+            toDate("2016-10-28T08:15:00Z")?.format("HH:mm")
         )
     }
 
@@ -84,38 +121,23 @@ class DateHelperTest {
     fun `should get calendar field value`() {
         assertEquals(
             2016,
-            toDate("2016-10-28T08:15:00Z")?.get(
-                Calendar.YEAR,
-                getTimeZone("UTC")
-            )
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.YEAR)
         )
         assertEquals(
             9,
-            toDate("2016-10-28T08:15:00Z")?.get(
-                Calendar.MONTH,
-                getTimeZone("UTC")
-            )
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.MONTH)
         )
         assertEquals(
             28,
-            toDate("2016-10-28T08:15:00Z")?.get(
-                Calendar.DAY_OF_MONTH,
-                getTimeZone("UTC")
-            )
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.DAY_OF_MONTH)
         )
         assertEquals(
             8,
-            toDate("2016-10-28T08:15:00Z")?.get(
-                Calendar.HOUR_OF_DAY,
-                getTimeZone("UTC")
-            )
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.HOUR_OF_DAY)
         )
         assertEquals(
             15,
-            toDate("2016-10-28T08:15:00Z")?.get(
-                Calendar.MINUTE,
-                getTimeZone("UTC")
-            )
+            toDate("2016-10-28T08:15:00Z")?.get(Calendar.MINUTE)
         )
     }
 
@@ -143,13 +165,11 @@ class DateHelperTest {
             toDate("2016-10-28T09:00:00Z")
                 ?.set(
                     Calendar.HOUR,
-                    8,
-                    getTimeZone("UTC")
+                    8
                 )
                 ?.set(
                     Calendar.MINUTE,
-                    15,
-                    getTimeZone("UTC")
+                    15
                 )
                 ?.toIsoDateString()
         )
