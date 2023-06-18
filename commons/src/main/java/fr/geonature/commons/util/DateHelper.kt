@@ -1,11 +1,15 @@
 package fr.geonature.commons.util
 
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import java.util.TimeZone.getTimeZone
 
 /**
  * `Date` helpers.
@@ -19,20 +23,36 @@ import java.util.TimeZone.getTimeZone
 fun toDate(str: String?): Date? {
     if (str.isNullOrBlank()) return null
 
-    val parse: (String) -> Date? = {
-        runCatching {
-            SimpleDateFormat(
-                it,
-                Locale.getDefault()
-            )
-                .apply { timeZone = getTimeZone("UTC") }
-                .parse(str)
-        }.getOrNull()
+    return runCatching {
+        LocalDateTime.parse(
+            str,
+            DateTimeFormatter.ISO_DATE_TIME
+        )
     }
-
-    return parse("yyyy-MM-dd'T'HH:mm:ss'Z'")
-        ?: parse("yyyy-MM-dd")
-        ?: parse("HH:mm")
+        .recoverCatching {
+            LocalDate
+                .parse(
+                    str,
+                    DateTimeFormatter.ISO_DATE
+                )
+                .atStartOfDay()
+        }
+        .recoverCatching {
+            LocalTime
+                .parse(
+                    str,
+                    DateTimeFormatter.ISO_TIME
+                )
+                .atDate(LocalDate.now())
+        }
+        .map {
+            Date.from(
+                it
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant()
+            )
+        }
+        .getOrNull()
 }
 
 /**
@@ -40,7 +60,7 @@ fun toDate(str: String?): Date? {
  */
 fun Date.format(
     pattern: String,
-    timeZone: TimeZone = getTimeZone("UTC")
+    timeZone: TimeZone = TimeZone.getDefault()
 ): String {
     return SimpleDateFormat(
         pattern,
