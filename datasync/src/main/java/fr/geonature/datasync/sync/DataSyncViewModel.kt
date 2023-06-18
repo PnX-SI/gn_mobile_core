@@ -59,6 +59,8 @@ class DataSyncViewModel @Inject constructor(
                 .run(BaseResultUseCase.None())
                 .fold(
                     onSuccess = {
+                        Logger.debug { "has local data: $it" }
+
                         emit(true)
                     },
                     onFailure = {
