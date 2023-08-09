@@ -181,7 +181,7 @@ class InputObserverTest {
     fun `should build filter by name from simple query string`() {
         val filterByName = InputObserver
             .Filter()
-            .byName("as")
+            .byName("admin'")
             .build()
 
         assertEquals(
@@ -190,8 +190,8 @@ class InputObserverTest {
         )
         assertArrayEquals(
             arrayOf(
-                "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "*[aáàäâãAÁÀÄÂÃ][sS]*"
+                "*[aáàäâãAÁÀÄÂÃ][dD][mM][iíìïîĩIÍÌÏÎĨ][nñNÑ]['']*",
+                "*[aáàäâãAÁÀÄÂÃ][dD][mM][iíìïîĩIÍÌÏÎĨ][nñNÑ]['']*"
             ),
             filterByName.second
         )
@@ -214,11 +214,11 @@ class InputObserverTest {
     fun `should build order by name with query string`() {
         val orderByName = InputObserver
             .OrderBy()
-            .byName("as")
+            .byName("admin'")
             .build()
 
         assertEquals(
-            "(CASE WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} = 'as' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} = 'as') THEN 1" + " WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} LIKE '%as%' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} LIKE '%as%') THEN 2" + " WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} GLOB '*[aáàäâãAÁÀÄÂÃ][sS]*' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} GLOB '*[aáàäâãAÁÀÄÂÃ][sS]*') THEN 3" + " ELSE 4 END)",
+            "(CASE WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} = 'admin''' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} = 'admin''') THEN 1" + " WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} LIKE '%admin''%' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} LIKE '%admin''%') THEN 2" + " WHEN (${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_LASTNAME} GLOB '*[aáàäâãAÁÀÄÂÃ][dD][mM][iíìïîĩIÍÌÏÎĨ][nñNÑ]['']*' OR ${InputObserver.TABLE_NAME}_${InputObserver.COLUMN_FIRSTNAME} GLOB '*[aáàäâãAÁÀÄÂÃ][dD][mM][iíìïîĩIÍÌÏÎĨ][nñNÑ]['']*') THEN 3" + " ELSE 4 END)",
             orderByName
         )
     }

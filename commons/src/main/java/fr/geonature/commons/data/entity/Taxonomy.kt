@@ -95,7 +95,7 @@ class Taxonomy : Parcelable {
         const val ANY = "any"
 
         private val sanitizeValue: (String?) -> String = { value ->
-            if (value == null || value.isEmpty() || arrayOf(
+            if (value.isNullOrEmpty() || arrayOf(
                     "autre",
                     "all"
                 ).any {

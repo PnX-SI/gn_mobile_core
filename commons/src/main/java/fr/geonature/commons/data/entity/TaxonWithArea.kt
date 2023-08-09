@@ -3,6 +3,7 @@ package fr.geonature.commons.data.entity
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import fr.geonature.commons.data.helper.sqlEscape
 
 /**
  * Describes a taxon with area.
@@ -144,7 +145,7 @@ class TaxonWithArea : AbstractTaxon {
                         TaxonArea.TABLE_NAME
                     )
                     } IN (${color.filter { it != "none" }
-                        .joinToString(", ") { "'$it'" }})${color.find { it == "none" }
+                        .joinToString(", ") { "'${it.sqlEscape()}'" }})${color.find { it == "none" }
                         ?.let {
                             " OR (${
                                 getColumnAlias(
