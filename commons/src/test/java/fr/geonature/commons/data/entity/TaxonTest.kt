@@ -309,7 +309,7 @@ class TaxonTest {
     fun `should build filter by name or description or rank from simple query string`() {
         val taxonFilterByNameAndTaxonomy = Taxon
             .Filter()
-            .byNameOrDescriptionOrRank("as")
+            .byNameOrDescriptionOrRank("frelon d'")
             .build()
 
         assertEquals(
@@ -318,10 +318,10 @@ class TaxonTest {
         )
         assertArrayEquals(
             arrayOf(
-                "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "%as%"
+                "*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*",
+                "*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*",
+                "*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*",
+                "%frelon d''%"
             ),
             taxonFilterByNameAndTaxonomy.second
         )
@@ -452,11 +452,11 @@ class TaxonTest {
     fun `should build order by name with query string`() {
         val orderByName = Taxon
             .OrderBy()
-            .byName("as")
+            .byName("frelon d'")
             .build()
 
         assertEquals(
-            "(CASE WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} = 'as' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} = 'as') THEN 1" + " WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE '%as%' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE '%as%') THEN 2" + " WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB '*[aáàäâãAÁÀÄÂÃ][sS]*' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB '*[aáàäâãAÁÀÄÂÃ][sS]*') THEN 3" + " ELSE 4 END)",
+            "(CASE WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} = 'frelon d''' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} = 'frelon d''') THEN 1" + " WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE '%frelon d''%' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE '%frelon d''%') THEN 2" + " WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB '*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB '*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*') THEN 3" + " ELSE 4 END)",
             orderByName
         )
     }

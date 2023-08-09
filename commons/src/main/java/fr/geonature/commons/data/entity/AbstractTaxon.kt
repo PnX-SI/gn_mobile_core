@@ -6,8 +6,9 @@ import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import fr.geonature.commons.data.helper.EntityHelper.column
-import fr.geonature.commons.data.helper.EntityHelper.normalize
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
+import fr.geonature.commons.data.helper.sqlEscape
+import fr.geonature.commons.data.helper.sqlNormalize
 import fr.geonature.compat.os.readParcelableCompat
 
 /**
@@ -195,7 +196,8 @@ abstract class AbstractTaxon : Parcelable {
                 return this
             }
 
-            val normalizedQueryString = normalize(queryString)
+            val escapedQueryString = queryString.sqlEscape()
+            val normalizedQueryString = queryString.sqlNormalize()
 
             this.wheres.add(
                 Pair(
@@ -224,7 +226,7 @@ abstract class AbstractTaxon : Parcelable {
                         normalizedQueryString,
                         normalizedQueryString,
                         normalizedQueryString,
-                        "%$queryString%"
+                        "%$escapedQueryString%"
                     )
                 )
             )
@@ -260,8 +262,8 @@ abstract class AbstractTaxon : Parcelable {
                         )
                     } = ?))",
                     arrayOf(
-                        taxonomy.kingdom,
-                        taxonomy.group
+                        taxonomy.kingdom.sqlEscape(),
+                        taxonomy.group.sqlEscape()
                     )
                 )
             )
@@ -283,7 +285,7 @@ abstract class AbstractTaxon : Parcelable {
                             tableAlias
                         )
                     } = ?)",
-                    arrayOf(kingdom)
+                    arrayOf(kingdom.sqlEscape())
                 )
             )
 
@@ -362,7 +364,8 @@ abstract class AbstractTaxon : Parcelable {
                 return this
             }
 
-            val normalizedQueryString = normalize(queryString)
+            val escapedQueryString = queryString.sqlEscape()
+            val normalizedQueryString = queryString.sqlNormalize()
 
             this.orderBy.add(
                 "(CASE WHEN (${
@@ -370,22 +373,22 @@ abstract class AbstractTaxon : Parcelable {
                         COLUMN_NAME,
                         tableAlias
                     )
-                } = '$queryString' OR ${
+                } = '$escapedQueryString' OR ${
                     getColumnAlias(
                         COLUMN_NAME_COMMON,
                         tableAlias
                     )
-                } = '$queryString') THEN 1 WHEN (${
+                } = '$escapedQueryString') THEN 1 WHEN (${
                     getColumnAlias(
                         COLUMN_NAME,
                         tableAlias
                     )
-                } LIKE '%$queryString%' OR ${
+                } LIKE '%$escapedQueryString%' OR ${
                     getColumnAlias(
                         COLUMN_NAME_COMMON,
                         tableAlias
                     )
-                } LIKE '%$queryString%') THEN 2 WHEN (${
+                } LIKE '%$escapedQueryString%') THEN 2 WHEN (${
                     getColumnAlias(
                         COLUMN_NAME,
                         tableAlias

@@ -405,12 +405,12 @@ class TaxonWithAreaTest {
             .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter)
             .byAreaColors(
                 "red",
-                "grey"
+                "grey'"
             )
             .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'))",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'''))",
             taxonFilterByNameAndAreaColors.first
         )
         assertArrayEquals(
