@@ -47,7 +47,7 @@ import java.io.StringReader
  *
  * @author S. Grimault
  */
-class DataSyncSettingsJsonReader {
+class DataSyncSettingsJsonReader(private val fromExistingDataSyncSettings: DataSyncSettings? = null) {
 
     /**
      * parse a `JSON` string to convert as [DataSyncSettings].
@@ -98,7 +98,9 @@ class DataSyncSettingsJsonReader {
      */
     fun read(jsonReader: JsonReader): DataSyncSettings =
         runCatching {
-            val builder = DataSyncSettings.Builder()
+            val builder = DataSyncSettings
+                .Builder()
+                .from(fromExistingDataSyncSettings)
 
             var geoNatureServerUrl: String? = null
             var taxHubServerUrl: String? = null

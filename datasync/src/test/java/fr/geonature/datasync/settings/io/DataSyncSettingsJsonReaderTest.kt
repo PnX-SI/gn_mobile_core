@@ -153,6 +153,44 @@ class DataSyncSettingsJsonReaderTest {
     }
 
     @Test
+    fun `should override existing data sync settings from partial JSON file`() {
+        // given an existing DataSyncSettings
+        val existingDataSyncSettings = DataSyncSettings(
+            geoNatureServerUrl = "https://demo.geonature.fr/geonature",
+            taxHubServerUrl = "https://demo.geonature.fr/taxhub",
+            applicationId = 3,
+            usersListId = 1,
+            taxrefListId = 100,
+            codeAreaType = "M10",
+            pageSize = 1000,
+            dataSyncPeriodicity = 30.toDuration(DurationUnit.MINUTES),
+            essentialDataSyncPeriodicity = 20.toDuration(DurationUnit.MINUTES)
+        )
+
+        // and a partial JSON settings
+        val json = getFixture("settings_datasync_partial.json")
+
+        // when read the JSON as DataSyncSettings
+        val dataSyncSettings = DataSyncSettingsJsonReader(existingDataSyncSettings).read(json)
+
+        // then
+        assertNotNull(dataSyncSettings)
+        assertEquals(
+            DataSyncSettings(
+                geoNatureServerUrl = "https://demo.geonature.fr/geonature",
+                taxHubServerUrl = "https://demo.geonature.fr/taxhub",
+                applicationId = 3,
+                usersListId = 1,
+                taxrefListId = 100,
+                codeAreaType = "M20",
+                pageSize = 10000,
+                dataSyncPeriodicity = 40.toDuration(DurationUnit.MINUTES)
+            ),
+            dataSyncSettings
+        )
+    }
+
+    @Test
     fun `should fail to read data sync settings from invalid empty JSON`() {
         // when read an invalid JSON as AppSettings
         val dataSyncSettings = DataSyncSettingsJsonReader().read("")
