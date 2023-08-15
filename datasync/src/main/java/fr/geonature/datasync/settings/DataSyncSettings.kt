@@ -114,8 +114,10 @@ data class DataSyncSettings(
         /**
          * Makes a copy of given [DataSyncSettings].
          */
-        fun from(dataSyncSettings: DataSyncSettings) =
+        fun from(dataSyncSettings: DataSyncSettings?) =
             apply {
+                if (dataSyncSettings == null) return@apply
+
                 geoNatureServerUrl = dataSyncSettings.geoNatureServerUrl
                 taxHubServerUrl = dataSyncSettings.taxHubServerUrl
                 applicationId = dataSyncSettings.applicationId
