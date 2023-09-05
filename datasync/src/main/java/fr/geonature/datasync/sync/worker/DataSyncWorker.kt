@@ -85,6 +85,10 @@ class DataSyncWorker @AssistedInject constructor(
                         INPUT_WITH_ADDITIONAL_DATA,
                         true
                     ),
+                    withAdditionalFields = inputData.getBoolean(
+                        INPUT_WITH_ADDITIONAL_FIELDS,
+                        false
+                    ),
                     usersMenuId = inputData.getInt(
                         INPUT_USERS_MENU_ID,
                         0
