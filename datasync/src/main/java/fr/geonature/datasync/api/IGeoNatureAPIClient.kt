@@ -8,6 +8,7 @@ import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
+import fr.geonature.datasync.api.model.TaxrefVersion
 import fr.geonature.datasync.api.model.User
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -107,6 +108,8 @@ interface IGeoNatureAPIClient {
         limit: Int? = null,
         offset: Int? = null,
     ): Call<List<TaxrefArea>>
+
+    fun getTaxrefVersion(): Call<TaxrefVersion>
 
     fun getNomenclatures(): Call<List<NomenclatureType>>
 
