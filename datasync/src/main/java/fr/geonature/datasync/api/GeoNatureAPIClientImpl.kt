@@ -8,6 +8,7 @@ import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
+import fr.geonature.datasync.api.model.TaxrefVersion
 import fr.geonature.datasync.api.model.User
 import fr.geonature.datasync.auth.ICookieManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -172,6 +173,13 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
             limit,
             offset
         )
+    }
+
+    override fun getTaxrefVersion(): Call<TaxrefVersion> {
+        val taxHubService = taxHubService
+            ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
+
+        return taxHubService.getTaxrefVersion()
     }
 
     override fun getNomenclatures(): Call<List<NomenclatureType>> {

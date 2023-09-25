@@ -1,7 +1,10 @@
 package fr.geonature.datasync.sync.usecase
 
 import android.app.Application
+import android.content.SharedPreferences
 import android.text.TextUtils
+import androidx.core.content.edit
+import androidx.preference.PreferenceManager.getDefaultSharedPreferences
 import androidx.room.withTransaction
 import androidx.work.WorkInfo
 import fr.geonature.commons.data.GeoNatureModuleName
@@ -15,6 +18,7 @@ import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
 import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.interactor.BaseFlowUseCase
+import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.error.BaseApiException
@@ -34,6 +38,7 @@ import org.json.JSONObject
 import org.tinylog.Logger
 import retrofit2.await
 import java.io.BufferedReader
+import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
@@ -49,6 +54,8 @@ class DataSyncUseCase @Inject constructor(
     private val database: LocalDatabase,
     @SynchronizeAdditionalFieldsRepository private val synchronizeAdditionalFieldsRepository: ISynchronizeLocalDataRepository
 ) : BaseFlowUseCase<DataSyncStatus, DataSyncUseCase.Params>() {
+
+    private val sharedPreferences: SharedPreferences = getDefaultSharedPreferences(application)
 
     override suspend fun run(params: Params): Flow<DataSyncStatus> =
         channelFlow {
@@ -607,104 +614,134 @@ class DataSyncUseCase @Inject constructor(
         withAdditionalData: Boolean = true
     ): Flow<DataSyncStatus> =
         flow {
-            Logger.info { "synchronize taxa..." }
-
-            runCatching {
-                database
-                    .taxonDao()
-                    .deleteAll()
-            }.onFailure { Logger.warn(it) { "failed to deleting existing taxa" } }
+            val lastUpdatedDate = getTaxaLastUpdatedDate()?.also {
+                Logger.info { "taxa last synchronization date: ${it.toIsoDateString()}" }
+            }
+            val taxaLastUpdatedDate = runCatching {
+                geoNatureAPIClient
+                    .getTaxrefVersion()
+                    .await()
+            }
+                .onFailure {
+                    Logger.warn { "failed to get taxa last updated date from GeoNature..." }
+                }
+                .getOrNull()?.updatedAt?.also {
+                    Logger.info { "taxa last synchronization date from remote: ${it.toIsoDateString()}" }
+                }
 
             var hasNext: Boolean
             var offset = 0
+            var hasErrors = false
 
             val validTaxaIds = mutableSetOf<Long>()
 
-            // fetch all taxa from paginated list
-            do {
-                val taxrefResponse = runCatching {
-                    geoNatureAPIClient
-                        .getTaxref(
-                            taxRefListId,
-                            pageSize,
-                            offset
-                        )
-                        .await()
-                }
-                    .onFailure {
-                        Logger.warn { "taxa synchronization finished with errors" }
-
-                        emit(
-                            onFailure(
-                                it,
-                                application.getString(R.string.sync_data_taxa_with_errors)
-                            )
-                        )
-                    }
-                    .getOrNull()
-                    ?: return@flow
-
-                if (taxrefResponse.isEmpty()) {
-                    hasNext = false
-                    continue
-                }
-
-                val taxa = taxrefResponse
-                    .asSequence()
-                    .map { taxRef ->
-                        // check if this taxon as a valid taxonomy definition
-                        if (taxRef.kingdom.isNullOrBlank() || taxRef.group.isNullOrBlank()) {
-                            Logger.warn { "invalid taxon with ID '${taxRef.id}' found: no taxonomy defined" }
-
-                            return@map null
-                        }
-
-                        Taxon(
-                            id = taxRef.id,
-                            name = taxRef.name.trim(),
-                            taxonomy = Taxonomy(
-                                taxRef.kingdom,
-                                taxRef.group
-                            ),
-                            commonName = taxRef.commonName?.trim(),
-                            description = taxRef.fullName.trim(),
-                            rank = ".+\\[(\\w+) - \\d+]"
-                                .toRegex()
-                                .find(taxRef.description)?.groupValues
-                                ?.elementAtOrNull(1)
-                                ?.let { "${it.uppercase(Locale.ROOT)} - ${taxRef.id}" },
-                        )
-                    }
-                    .filterNotNull()
-                    .onEach {
-                        validTaxaIds.add(it.id)
-                    }
-                    .toList()
-                    .toTypedArray()
+            if (lastUpdatedDate == null || taxaLastUpdatedDate == null || taxaLastUpdatedDate.after(lastUpdatedDate)) {
+                Logger.info { "synchronize taxa..." }
 
                 runCatching {
                     database
                         .taxonDao()
-                        .insert(*taxa)
-                }.onFailure { Logger.warn(it) { "failed to update taxa (offset: $offset)" } }
+                        .deleteAll()
+                }.onFailure { Logger.warn(it) { "failed to deleting existing taxa" } }
 
-                Logger.info { "taxa to update: ${offset + taxa.size}" }
+                // fetch all taxa from paginated list
+                do {
+                    val taxrefResponse = runCatching {
+                        geoNatureAPIClient
+                            .getTaxref(
+                                taxRefListId,
+                                pageSize,
+                                offset
+                            )
+                            .await()
+                    }
+                        .onFailure {
+                            Logger.warn { "taxa synchronization finished with errors" }
+                            hasErrors = true
+                            emit(
+                                onFailure(
+                                    it,
+                                    application.getString(R.string.sync_data_taxa_with_errors)
+                                )
+                            )
+                        }
+                        .getOrNull()
+                        ?: return@flow
 
-                emit(
-                    DataSyncStatus(
-                        state = WorkInfo.State.SUCCEEDED,
-                        syncMessage = application.getString(
-                            R.string.sync_data_taxa,
-                            (offset + taxa.size)
+                    if (taxrefResponse.isEmpty()) {
+                        hasNext = false
+                        continue
+                    }
+
+                    val taxa = taxrefResponse
+                        .asSequence()
+                        .map { taxRef ->
+                            // check if this taxon as a valid taxonomy definition
+                            if (taxRef.kingdom.isNullOrBlank() || taxRef.group.isNullOrBlank()) {
+                                Logger.warn { "invalid taxon with ID '${taxRef.id}' found: no taxonomy defined" }
+
+                                return@map null
+                            }
+
+                            Taxon(
+                                id = taxRef.id,
+                                name = taxRef.name.trim(),
+                                taxonomy = Taxonomy(
+                                    taxRef.kingdom,
+                                    taxRef.group
+                                ),
+                                commonName = taxRef.commonName?.trim(),
+                                description = taxRef.fullName.trim(),
+                                rank = ".+\\[(\\w+) - \\d+]"
+                                    .toRegex()
+                                    .find(taxRef.description)?.groupValues
+                                    ?.elementAtOrNull(1)
+                                    ?.let { "${it.uppercase(Locale.ROOT)} - ${taxRef.id}" },
+                            )
+                        }
+                        .filterNotNull()
+                        .onEach {
+                            validTaxaIds.add(it.id)
+                        }
+                        .toList()
+                        .toTypedArray()
+
+                    runCatching {
+                        database
+                            .taxonDao()
+                            .insert(*taxa)
+                    }.onFailure {
+                        Logger.warn(it) { "failed to update taxa (offset: $offset)" }
+                        hasErrors = true
+                    }
+
+                    Logger.info { "taxa to update: ${offset + taxa.size}" }
+
+                    emit(
+                        DataSyncStatus(
+                            state = WorkInfo.State.SUCCEEDED,
+                            syncMessage = application.getString(
+                                R.string.sync_data_taxa,
+                                (offset + taxa.size)
+                            )
                         )
                     )
-                )
 
-                offset += pageSize
-                hasNext = taxrefResponse.size == pageSize
-            } while (hasNext)
+                    offset += pageSize
+                    hasNext = taxrefResponse.size == pageSize
+                } while (hasNext && !hasErrors)
 
-            delay(1000)
+                updateTaxaLastUpdatedDate()
+
+                delay(1000)
+            } else {
+                validTaxaIds.addAll(runCatching {
+                    database
+                        .taxonDao()
+                        .findAll()
+                        .map { it.id }
+                }.getOrDefault(emptyList()))
+            }
 
             if (withAdditionalData) {
                 Logger.info { "synchronize taxa additional data..." }
@@ -732,6 +769,9 @@ class DataSyncUseCase @Inject constructor(
                             )
                         }
                         .getOrNull()
+                        ?.also {
+                            Logger.warn { "failed to fetch taxa by area from offset $offset" }
+                        }
                         ?: return@flow
 
                     if (taxrefAreasResponse.isEmpty()) {
@@ -826,6 +866,25 @@ class DataSyncUseCase @Inject constructor(
         }
     }
 
+    fun getTaxaLastUpdatedDate(): Date? {
+        return this.sharedPreferences
+            .getLong(
+                KEY_SYNC_TAXA_LAST_UPDATED_AT,
+                -1L
+            )
+            .takeUnless { it == -1L }
+            ?.let { Date(it) }
+    }
+
+    fun updateTaxaLastUpdatedDate() {
+        this.sharedPreferences.edit {
+            putLong(
+                KEY_SYNC_TAXA_LAST_UPDATED_AT,
+                Date().time
+            )
+        }
+    }
+
     data class Params(
         val withAdditionalData: Boolean = true,
         val withAdditionalFields: Boolean = false,
@@ -834,4 +893,8 @@ class DataSyncUseCase @Inject constructor(
         val codeAreaType: String?,
         val pageSize: Int = DataSyncSettings.Builder.DEFAULT_PAGE_SIZE
     )
+
+    companion object {
+        private const val KEY_SYNC_TAXA_LAST_UPDATED_AT = "key_sync_taxa_last_updated_at"
+    }
 }

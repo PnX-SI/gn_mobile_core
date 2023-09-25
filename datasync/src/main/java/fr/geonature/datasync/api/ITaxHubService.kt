@@ -1,6 +1,7 @@
 package fr.geonature.datasync.api
 
 import fr.geonature.datasync.api.model.Taxref
+import fr.geonature.datasync.api.model.TaxrefVersion
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.GET
@@ -26,4 +27,8 @@ interface ITaxHubService {
         @Query("limit") limit: Int? = null,
         @Query("offset") offset: Int? = null
     ): Call<List<Taxref>>
+
+    @Headers("Accept: application/json")
+    @GET("api/taxref/version")
+    fun getTaxrefVersion(): Call<TaxrefVersion>
 }

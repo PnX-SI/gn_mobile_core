@@ -308,7 +308,7 @@ class DataSyncWorker @AssistedInject constructor(
         ) {
             getInstance(context).enqueueUniquePeriodicWork(
                 if (withAdditionalData) DATA_SYNC_WORKER_PERIODIC else DATA_SYNC_WORKER_PERIODIC_ESSENTIAL,
-                ExistingPeriodicWorkPolicy.UPDATE,
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                 PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(repeatInterval.toJavaDuration())
                     .addTag(DATA_SYNC_WORKER_TAG)
                     .setConstraints(
