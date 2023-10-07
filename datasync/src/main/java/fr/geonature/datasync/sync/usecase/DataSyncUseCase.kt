@@ -691,7 +691,7 @@ class DataSyncUseCase @Inject constructor(
                                     taxRef.group
                                 ),
                                 commonName = taxRef.commonName?.trim(),
-                                description = taxRef.fullName.trim(),
+                                description = taxRef.fullName?.trim(),
                                 rank = ".+\\[(\\w+) - \\d+]"
                                     .toRegex()
                                     .find(taxRef.description)?.groupValues
