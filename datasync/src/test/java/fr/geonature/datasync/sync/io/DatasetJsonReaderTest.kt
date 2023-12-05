@@ -58,7 +58,7 @@ class DatasetJsonReaderTest {
     @Test
     fun testRead() {
         // given an input file to read
-        val json = getFixture("metadataset_geonature.json")
+        val json = getFixture("dataset_geonature.json")
 
         // when parsing this file
         val dataset = datasetJsonReader.read(json)
@@ -73,7 +73,8 @@ class DatasetJsonReaderTest {
                     "Dataset #1",
                     "Description of Dataset #1",
                     true,
-                    datasetJsonReader.toDate("2019-10-30 22:32:16.591174")
+                    datasetJsonReader.toDate("2019-10-30T22:32:16.591174"),
+                    100
                 ),
                 Dataset(
                     19L,
@@ -81,7 +82,8 @@ class DatasetJsonReaderTest {
                     "Dataset #2",
                     "Description of Dataset #2",
                     false,
-                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")
+                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240"),
+                    null
                 ),
                 Dataset(
                     19L,
@@ -89,7 +91,8 @@ class DatasetJsonReaderTest {
                     "Dataset #2",
                     "Description of Dataset #2",
                     false,
-                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")
+                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240"),
+                    null
                 )
             ),
             dataset.toTypedArray()

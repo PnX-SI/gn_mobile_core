@@ -222,7 +222,8 @@ internal class AdditionalFieldLocalDataSourceTest {
                 name = "Contact aléatoire tous règnes confondus",
                 description = "Observations aléatoires de la faune, de la flore ou de la fonge",
                 active = true,
-                createdAt = Date.from(Instant.parse("2016-10-28T08:15:00Z"))
+                createdAt = Date.from(Instant.parse("2016-10-28T08:15:00Z")),
+                100
             ),
             Dataset(
                 id = 17,
@@ -230,7 +231,8 @@ internal class AdditionalFieldLocalDataSourceTest {
                 name = "Jeu de données personnel de Auger Ariane",
                 description = "Jeu de données personnel de Auger Ariane",
                 active = true,
-                createdAt = Date.from(Instant.parse("2020-03-28T10:00:00Z"))
+                createdAt = Date.from(Instant.parse("2020-03-28T10:00:00Z")),
+                100
             ),
             Dataset(
                 id = 30,
@@ -238,7 +240,8 @@ internal class AdditionalFieldLocalDataSourceTest {
                 name = "Observation opportuniste aléatoire tout règne confondu",
                 description = "Observation opportuniste aléatoire tout règne confondu",
                 active = true,
-                createdAt = Date.from(Instant.parse("2022-11-19T12:00:00Z"))
+                createdAt = Date.from(Instant.parse("2022-11-19T12:00:00Z")),
+                100
             )
         ).also {
             datasetDao.insert(*it.toTypedArray())

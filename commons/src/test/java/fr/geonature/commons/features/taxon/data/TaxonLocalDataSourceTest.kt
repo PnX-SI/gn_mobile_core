@@ -196,8 +196,7 @@ class TaxonLocalDataSourceTest {
                     group = "Amphibiens"
                 ),
                 null,
-                "Salamandra atra atra (Laurenti, 1768)",
-                "ES - 84"
+                "Salamandra atra atra (Laurenti, 1768)"
             ),
             Taxon(
                 324L,
@@ -207,8 +206,7 @@ class TaxonLocalDataSourceTest {
                     group = "Amphibiens"
                 ),
                 "Grenouille rousse (La)",
-                "Rana temporaria Linnaeus, 1758",
-                "ES - 324"
+                "Rana temporaria Linnaeus, 1758"
             )
         )
 

@@ -4,10 +4,11 @@ import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
-import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
+import fr.geonature.datasync.api.model.TaxrefListResult
 import fr.geonature.datasync.api.model.TaxrefVersion
 import fr.geonature.datasync.api.model.User
 import okhttp3.ResponseBody
@@ -91,22 +92,21 @@ interface IGeoNatureAPIClient {
 
     fun deleteMediaFile(mediaId: Int): Call<ResponseBody>
 
-    fun getMetaDatasets(): Call<ResponseBody>
+    fun getMetaDatasets(query: DatasetQuery): Call<ResponseBody>
 
     fun getUsers(menuId: Int): Call<List<User>>
 
     fun getTaxonomyRanks(): Call<ResponseBody>
 
     fun getTaxref(
-        listId: Int,
         limit: Int? = null,
-        offset: Int? = null,
-    ): Call<List<Taxref>>
+        page: Int? = null,
+    ): Call<TaxrefListResult>
 
     fun getTaxrefAreas(
         codeAreaType: String? = null,
         limit: Int? = null,
-        offset: Int? = null,
+        page: Int? = null,
     ): Call<List<TaxrefArea>>
 
     fun getTaxrefVersion(): Call<TaxrefVersion>

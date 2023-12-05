@@ -15,10 +15,12 @@ Manage available applications registered from GeoNature and installed ones.
 
 ## GeoNature APIs
 
-See [IGeoNatureService](./src/main/java/fr/geonature/datasync/api/IGeoNatureService.kt) and [ITaxHubService](./src/main/java/fr/geonature/datasync/api/ITaxHubService.kt) interfaces definition about GeoNature and TaxHub APIs endpoints consumed:
+See [IGeoNatureService](./src/main/java/fr/geonature/datasync/api/IGeoNatureService.kt)
+and [ITaxHubService](./src/main/java/fr/geonature/datasync/api/ITaxHubService.kt) interfaces
+definition about GeoNature and TaxHub APIs endpoints consumed:
 
 | Route                                       | Method | Description                                                      |
-| ------------------------------------------- | ------ | ---------------------------------------------------------------- |
+|---------------------------------------------|--------|------------------------------------------------------------------|
 | `/api/auth/login`                           | `POST` | Performs authentication.                                         |
 | `/api/{module}/releve`                      | `POST` | Send observer's input to given GeoNature module (e.g. `occtax`). |
 | `/api/meta/datasets`                        | `GET`  | Fetch datasets.                                                  |
@@ -28,7 +30,8 @@ See [IGeoNatureService](./src/main/java/fr/geonature/datasync/api/IGeoNatureServ
 | `/api/{module}/defaultNomenclatures`        | `GET`  | Fetch default nomenclature values.                               |
 | `/api/gn_commons/t_mobile_apps`             | `GET`  | Fetch available applications.                                    |
 | `/api/taxref/regnewithgroupe2`              | `GET`  | Fetch taxonomic ranks.                                           |
-| `/api/taxref/allnamebylist/{id}`            | `GET`  | Fetch taxa.                                                      |
+| `/api/taxref`                               | `GET`  | Fetch taxa.                                                      |
+| `/api/taxref/version`                       | `GET`  | Fetch the current version of the taxa database.                  |
 
 ## Settings
 
@@ -65,7 +68,7 @@ or
 ### Parameters description
 
 | Parameter                         | UI      | Description                                          | Default value |
-| --------------------------------- | ------- | ---------------------------------------------------- |---------------|
+|-----------------------------------|---------|------------------------------------------------------|---------------|
 | `geonature_url`                   | &#9745; | GeoNature URL                                        |               |
 | `taxhub_url`                      | &#9744; | TaxHub URL                                           |               |
 | `gn_application_id`               | &#9744; | GeoNature application ID in UsersHub                 |               |

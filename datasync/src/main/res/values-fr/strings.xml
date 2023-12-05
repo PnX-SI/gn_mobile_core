@@ -45,6 +45,8 @@
     <string name="sync_data_nomenclature_default_error">Valeurs par défaut de la nomenclature : échec</string>
     <string name="sync_data_taxa">Taxons : %1$d</string>
     <string name="sync_data_taxa_with_errors">Synchronisation des taxons terminée avec des erreurs</string>
+    <string name="sync_data_taxa_list">Liste des taxons: %1$d</string>
+    <string name="sync_data_taxa_list_with_errors">Synchronisation des listes de taxons terminée avec des erreurs</string>
     <string name="sync_data_taxa_areas">Unités géographiques : %1$d</string>
     <string name="sync_data_taxa_areas_with_errors">Synchronisation des unités géographiques terminée avec des erreurs</string>
     <string name="sync_data_additional_fields">Champs additionnels : %1$d</string>

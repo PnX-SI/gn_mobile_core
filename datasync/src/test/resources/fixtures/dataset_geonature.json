@@ -37,7 +37,7 @@
           "id_cda": 37
         }
       ],
-      "meta_create_date": "2019-10-30 22:32:16.591174",
+      "meta_create_date": "2019-10-30T22:32:16.591174",
       "meta_update_date": null,
       "bbox_west": null,
       "id_nomenclature_dataset_objectif": 415,
@@ -60,7 +60,8 @@
           "module_external_url": null,
           "id_module": 4
         }
-      ]
+      ],
+      "id_taxa_list": 100
     },
     {
       "id_nomenclature_resource_type": 324,

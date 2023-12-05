@@ -2,6 +2,7 @@ package fr.geonature.commons.util
 
 import android.util.JsonReader
 import android.util.JsonToken.BOOLEAN
+import android.util.JsonToken.NUMBER
 import android.util.JsonToken.STRING
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,6 +34,22 @@ fun JSONObject.toMap(): Map<String, *> =
                 else -> value
             }
         }
+
+/**
+ * Returns the long value of the next token and consuming it.
+ * If the next token is not a long value returns `null`.
+ */
+fun JsonReader.nextLongOrNull(): Long? {
+    return when (peek()) {
+        NUMBER -> {
+            nextLong()
+        }
+        else -> {
+            skipValue()
+            null
+        }
+    }
+}
 
 /**
  * Returns the string value of the next token and consuming it.

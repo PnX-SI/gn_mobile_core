@@ -48,7 +48,8 @@ class DatasetTest {
                 "Dataset #1",
                 "description",
                 true,
-                now
+                now,
+                100
             ),
             Dataset(
                 1234,
@@ -56,7 +57,8 @@ class DatasetTest {
                 "Dataset #1",
                 "description",
                 true,
-                now
+                now,
+                100
             )
         )
     }
@@ -74,6 +76,7 @@ class DatasetTest {
         every { cursor.getString(3) } returns "description"
         every { cursor.getInt(4) } returns 1
         every { cursor.getLong(5) } returns 1477642500000
+        every { cursor.getLong(6) } returns 100
 
         // when getting a dataset instance from Cursor
         val dataset = fromCursor(cursor)
@@ -87,7 +90,8 @@ class DatasetTest {
                 "Dataset #1",
                 "description",
                 true,
-                Date.from(Instant.parse("2016-10-28T08:15:00Z"))
+                Date.from(Instant.parse("2016-10-28T08:15:00Z")),
+                100
             ),
             dataset
         )
@@ -114,7 +118,8 @@ class DatasetTest {
             "Dataset #1",
             "description",
             true,
-            Date.from(Instant.now())
+            Date.from(Instant.now()),
+            100
         )
 
         // when we obtain a Parcel object to write the dataset instance to it
@@ -161,6 +166,10 @@ class DatasetTest {
                 Pair(
                     "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_CREATED_AT}\"",
                     "${Dataset.TABLE_NAME}_${Dataset.COLUMN_CREATED_AT}"
+                ),
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_TAXA_LIST_ID}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_TAXA_LIST_ID}"
                 )
             ),
             defaultProjection()

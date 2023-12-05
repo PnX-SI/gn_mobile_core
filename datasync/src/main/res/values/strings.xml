@@ -45,6 +45,8 @@
     <string name="sync_data_nomenclature_default_error">Nomenclature default values: failure</string>
     <string name="sync_data_taxa">Taxa: %1$d</string>
     <string name="sync_data_taxa_with_errors">Taxa synchronization finished with errors</string>
+    <string name="sync_data_taxa_list">Taxa list: %1$d</string>
+    <string name="sync_data_taxa_list_with_errors">Taxa list synchronization finished with errors</string>
     <string name="sync_data_taxa_areas">Taxa by area: %1$d</string>
     <string name="sync_data_taxa_areas_with_errors">Taxa by area synchronization finished with errors</string>
     <string name="sync_data_additional_fields">Additional fields: %1$d</string>

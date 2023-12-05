@@ -16,12 +16,14 @@ import fr.geonature.commons.data.entity.NomenclatureTaxonomy
 import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
+import fr.geonature.commons.data.entity.TaxonList
 import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.interactor.BaseFlowUseCase
 import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.error.BaseApiException
+import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.ServerStatus
@@ -39,7 +41,6 @@ import org.tinylog.Logger
 import retrofit2.await
 import java.io.BufferedReader
 import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -91,7 +92,6 @@ class DataSyncUseCase @Inject constructor(
                     )
                 }
                 synchronizeTaxa(
-                    params.taxRefListId,
                     params.codeAreaType,
                     params.pageSize,
                     params.withAdditionalData
@@ -151,7 +151,7 @@ class DataSyncUseCase @Inject constructor(
 
             val response = runCatching {
                 geoNatureAPIClient
-                    .getMetaDatasets()
+                    .getMetaDatasets(DatasetQuery(code = moduleName.uppercase()))
                     .await()
             }
                 .onFailure {
@@ -608,7 +608,6 @@ class DataSyncUseCase @Inject constructor(
         }
 
     private suspend fun synchronizeTaxa(
-        taxRefListId: Int,
         codeAreaType: String?,
         pageSize: Int,
         withAdditionalData: Boolean = true
@@ -631,6 +630,7 @@ class DataSyncUseCase @Inject constructor(
 
             var hasNext: Boolean
             var offset = 0
+            var page = 1
             var hasErrors = false
 
             val validTaxaIds = mutableSetOf<Long>()
@@ -646,12 +646,11 @@ class DataSyncUseCase @Inject constructor(
 
                 // fetch all taxa from paginated list
                 do {
-                    val taxrefResponse = runCatching {
+                    val taxrefListResult = runCatching {
                         geoNatureAPIClient
                             .getTaxref(
-                                taxRefListId,
                                 pageSize,
-                                offset
+                                page
                             )
                             .await()
                     }
@@ -668,12 +667,12 @@ class DataSyncUseCase @Inject constructor(
                         .getOrNull()
                         ?: return@flow
 
-                    if (taxrefResponse.isEmpty()) {
+                    if (taxrefListResult.items.isEmpty()) {
                         hasNext = false
                         continue
                     }
 
-                    val taxa = taxrefResponse
+                    val taxa = taxrefListResult.items
                         .asSequence()
                         .map { taxRef ->
                             // check if this taxon as a valid taxonomy definition
@@ -691,12 +690,7 @@ class DataSyncUseCase @Inject constructor(
                                     taxRef.group
                                 ),
                                 commonName = taxRef.commonName?.trim(),
-                                description = taxRef.fullName?.trim(),
-                                rank = ".+\\[(\\w+) - \\d+]"
-                                    .toRegex()
-                                    .find(taxRef.description)?.groupValues
-                                    ?.elementAtOrNull(1)
-                                    ?.let { "${it.uppercase(Locale.ROOT)} - ${taxRef.id}" },
+                                description = taxRef.fullName?.trim()
                             )
                         }
                         .filterNotNull()
@@ -706,12 +700,30 @@ class DataSyncUseCase @Inject constructor(
                         .toList()
                         .toTypedArray()
 
+                    val taxaList = taxrefListResult.items
+                        .asSequence()
+                        .filter { taxRef -> validTaxaIds.any { it == taxRef.id } }
+                        .flatMap { taxRef ->
+                            (taxRef.list
+                                ?: emptyList()).map {
+                                TaxonList(
+                                    taxRef.id,
+                                    it
+                                )
+                            }
+                        }
+                        .toList()
+                        .toTypedArray()
+
                     runCatching {
                         database
                             .taxonDao()
                             .insert(*taxa)
+                        database
+                            .taxonListDao()
+                            .insert(*taxaList)
                     }.onFailure {
-                        Logger.warn(it) { "failed to update taxa (offset: $offset)" }
+                        Logger.warn(it) { "failed to update taxa (page: $page)" }
                         hasErrors = true
                     }
 
@@ -728,7 +740,8 @@ class DataSyncUseCase @Inject constructor(
                     )
 
                     offset += pageSize
-                    hasNext = taxrefResponse.size == pageSize
+                    page++
+                    hasNext = taxrefListResult.items.size == pageSize
                 } while (hasNext && !hasErrors)
 
                 updateTaxaLastUpdatedDate()
@@ -747,15 +760,16 @@ class DataSyncUseCase @Inject constructor(
                 Logger.info { "synchronize taxa additional data..." }
 
                 offset = 0
+                page = 1
 
-                // fetch all taxa metadata from paginated list
+                // fetch all taxa areas from paginated list
                 do {
                     val taxrefAreasResponse = runCatching {
                         geoNatureAPIClient
                             .getTaxrefAreas(
                                 codeAreaType,
                                 pageSize,
-                                offset
+                                page
                             )
                             .await()
                     }
@@ -769,9 +783,6 @@ class DataSyncUseCase @Inject constructor(
                             )
                         }
                         .getOrNull()
-                        ?.also {
-                            Logger.warn { "failed to fetch taxa by area from offset $offset" }
-                        }
                         ?: return@flow
 
                     if (taxrefAreasResponse.isEmpty()) {
@@ -779,7 +790,7 @@ class DataSyncUseCase @Inject constructor(
                         continue
                     }
 
-                    Logger.info { "found ${taxrefAreasResponse.size} taxa with areas from offset $offset" }
+                    Logger.info { "found ${taxrefAreasResponse.size} taxa with areas from page $page" }
 
                     emit(
                         DataSyncStatus(
@@ -810,11 +821,12 @@ class DataSyncUseCase @Inject constructor(
                         database
                             .taxonAreaDao()
                             .insert(*taxonAreas)
-                    }.onFailure { Logger.warn(it) { "failed to update taxa with areas (offset: $offset)" } }
+                    }.onFailure { Logger.warn(it) { "failed to update taxa with areas (page: $page)" } }
 
-                    Logger.info { "updating ${taxonAreas.size} taxa with areas from offset $offset" }
+                    Logger.info { "updating ${taxonAreas.size} taxa with areas from page $page" }
 
                     offset += pageSize
+                    page++
                     hasNext = taxrefAreasResponse.size == pageSize
                 } while (hasNext)
             }
@@ -866,7 +878,7 @@ class DataSyncUseCase @Inject constructor(
         }
     }
 
-    fun getTaxaLastUpdatedDate(): Date? {
+    private fun getTaxaLastUpdatedDate(): Date? {
         return this.sharedPreferences
             .getLong(
                 KEY_SYNC_TAXA_LAST_UPDATED_AT,
@@ -876,7 +888,7 @@ class DataSyncUseCase @Inject constructor(
             ?.let { Date(it) }
     }
 
-    fun updateTaxaLastUpdatedDate() {
+    private fun updateTaxaLastUpdatedDate() {
         this.sharedPreferences.edit {
             putLong(
                 KEY_SYNC_TAXA_LAST_UPDATED_AT,
@@ -889,7 +901,6 @@ class DataSyncUseCase @Inject constructor(
         val withAdditionalData: Boolean = true,
         val withAdditionalFields: Boolean = false,
         val usersMenuId: Int = 0,
-        val taxRefListId: Int = 0,
         val codeAreaType: String?,
         val pageSize: Int = DataSyncSettings.Builder.DEFAULT_PAGE_SIZE
     )
