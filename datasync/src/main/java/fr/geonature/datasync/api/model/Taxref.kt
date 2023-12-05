@@ -3,9 +3,21 @@ package fr.geonature.datasync.api.model
 import com.google.gson.annotations.SerializedName
 
 /**
- * GeoNature Taxref definition.
+ * _GeoNature_ Taxa list result.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
+ */
+data class TaxrefListResult(
+    val items: List<Taxref>,
+    val total: Int,
+    val limit: Int,
+    val page: Int
+)
+
+/**
+ * _GeoNature_ Taxref definition.
+ *
+ * @author S. Grimault
  */
 data class Taxref(
     @SerializedName("cd_nom")
@@ -23,12 +35,15 @@ data class Taxref(
     @SerializedName("nom_vern")
     val commonName: String?,
 
-    @SerializedName("search_name")
+    @SerializedName("nom_complet")
     val description: String,
 
     @SerializedName("regne")
     val kingdom: String?,
 
     @SerializedName("group2_inpn")
-    val group: String?
+    val group: String?,
+
+    @SerializedName("listes")
+    val list: List<Long>?
 )

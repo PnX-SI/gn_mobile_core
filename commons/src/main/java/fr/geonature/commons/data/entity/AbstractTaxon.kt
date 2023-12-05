@@ -45,33 +45,24 @@ abstract class AbstractTaxon : Parcelable {
     @ColumnInfo(name = COLUMN_DESCRIPTION)
     var description: String?
 
-    /**
-     * The rank description of the taxon.
-     */
-    @ColumnInfo(name = COLUMN_RANK)
-    var rank: String?
-
     constructor(
         id: Long,
         name: String,
         taxonomy: Taxonomy,
         commonName: String? = null,
-        description: String? = null,
-        rank: String? = null
+        description: String? = null
     ) {
         this.id = id
         this.name = name
         this.taxonomy = taxonomy
         this.commonName = commonName
         this.description = description
-        this.rank = rank
     }
 
     constructor(source: Parcel) : this(
         source.readLong(),
         source.readString()!!,
         source.readParcelableCompat<Taxonomy>()!!,
-        source.readString(),
         source.readString(),
         source.readString()
     )
@@ -85,7 +76,6 @@ abstract class AbstractTaxon : Parcelable {
         if (taxonomy != other.taxonomy) return false
         if (commonName != other.commonName) return false
         if (description != other.description) return false
-        if (rank != other.rank) return false
 
         return true
     }
@@ -97,8 +87,6 @@ abstract class AbstractTaxon : Parcelable {
         result = 31 * result + (commonName?.hashCode()
             ?: 0)
         result = 31 * result + (description?.hashCode()
-            ?: 0)
-        result = 31 * result + (rank?.hashCode()
             ?: 0)
 
         return result
@@ -121,7 +109,6 @@ abstract class AbstractTaxon : Parcelable {
             )
             it.writeString(commonName)
             it.writeString(description)
-            it.writeString(rank)
         }
     }
 
@@ -135,7 +122,6 @@ abstract class AbstractTaxon : Parcelable {
         const val COLUMN_NAME = "name"
         const val COLUMN_NAME_COMMON = "name_common"
         const val COLUMN_DESCRIPTION = "description"
-        const val COLUMN_RANK = "rank"
 
         /**
          * Gets the default projection.
@@ -157,10 +143,6 @@ abstract class AbstractTaxon : Parcelable {
                 ),
                 column(
                     COLUMN_DESCRIPTION,
-                    tableAlias
-                ),
-                column(
-                    COLUMN_RANK,
                     tableAlias
                 )
             )
@@ -191,12 +173,11 @@ abstract class AbstractTaxon : Parcelable {
          *
          * @return this
          */
-        fun byNameOrDescriptionOrRank(queryString: String?): Filter {
+        fun byNameOrDescription(queryString: String?): Filter {
             if (queryString.isNullOrBlank()) {
                 return this
             }
 
-            val escapedQueryString = queryString.sqlEscape()
             val normalizedQueryString = queryString.sqlNormalize()
 
             this.wheres.add(
@@ -216,17 +197,11 @@ abstract class AbstractTaxon : Parcelable {
                             COLUMN_DESCRIPTION,
                             tableAlias
                         )
-                    } GLOB ? OR ${
-                        getColumnAlias(
-                            COLUMN_RANK,
-                            tableAlias
-                        )
-                    } LIKE ?)",
+                    } GLOB ?)",
                     arrayOf(
                         normalizedQueryString,
                         normalizedQueryString,
-                        normalizedQueryString,
-                        "%$escapedQueryString%"
+                        normalizedQueryString
                     )
                 )
             )

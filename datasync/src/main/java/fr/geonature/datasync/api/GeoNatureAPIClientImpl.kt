@@ -4,10 +4,11 @@ import android.webkit.MimeTypeMap
 import fr.geonature.datasync.api.error.MissingConfigurationException
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
-import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
+import fr.geonature.datasync.api.model.TaxrefListResult
 import fr.geonature.datasync.api.model.TaxrefVersion
 import fr.geonature.datasync.api.model.User
 import fr.geonature.datasync.auth.ICookieManager
@@ -124,11 +125,11 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         return geoNatureService.deleteMediaFile(mediaId)
     }
 
-    override fun getMetaDatasets(): Call<ResponseBody> {
+    override fun getMetaDatasets(query: DatasetQuery): Call<ResponseBody> {
         val geoNatureService = geoNatureService
             ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
-        return geoNatureService.getMetaDatasets()
+        return geoNatureService.getMetaDatasets(query)
     }
 
     override fun getUsers(menuId: Int): Call<List<User>> {
@@ -146,24 +147,22 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
     }
 
     override fun getTaxref(
-        listId: Int,
         limit: Int?,
-        offset: Int?
-    ): Call<List<Taxref>> {
+        page: Int?
+    ): Call<TaxrefListResult> {
         val taxHubService = taxHubService
             ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
 
         return taxHubService.getTaxref(
-            listId,
             limit,
-            offset
+            page
         )
     }
 
     override fun getTaxrefAreas(
         codeAreaType: String?,
         limit: Int?,
-        offset: Int?
+        page: Int?
     ): Call<List<TaxrefArea>> {
         val geoNatureService = geoNatureService
             ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
@@ -171,7 +170,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         return geoNatureService.getTaxrefAreas(
             codeAreaType,
             limit,
-            offset
+            page
         )
     }
 

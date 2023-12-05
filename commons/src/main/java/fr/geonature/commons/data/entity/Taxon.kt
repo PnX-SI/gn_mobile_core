@@ -24,15 +24,13 @@ class Taxon : AbstractTaxon {
         name: String,
         taxonomy: Taxonomy,
         commonName: String? = null,
-        description: String? = null,
-        rank: String? = null
+        description: String? = null
     ) : super(
         id,
         name,
         taxonomy,
         commonName,
-        description,
-        rank
+        description
     )
 
     private constructor(source: Parcel) : super(source)
@@ -113,12 +111,6 @@ class Taxon : AbstractTaxon {
                     cursor.get(
                         getColumnAlias(
                             COLUMN_DESCRIPTION,
-                            tableAlias
-                        )
-                    ),
-                    cursor.get(
-                        getColumnAlias(
-                            COLUMN_RANK,
                             tableAlias
                         )
                     )

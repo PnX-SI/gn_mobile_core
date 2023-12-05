@@ -51,7 +51,6 @@ class TaxonWithAreaTest {
                 ),
                 null,
                 "desc",
-                null,
                 null
             ),
             TaxonWithArea(
@@ -63,7 +62,6 @@ class TaxonWithAreaTest {
                 ),
                 null,
                 "desc",
-                null,
                 null
             )
         )
@@ -78,7 +76,6 @@ class TaxonWithAreaTest {
                 ),
                 "taxon_01_common",
                 "desc",
-                "ES - 1234",
                 TaxonArea(
                     1234,
                     10,
@@ -96,7 +93,6 @@ class TaxonWithAreaTest {
                 ),
                 "taxon_01_common",
                 "desc",
-                "ES - 1234",
                 TaxonArea(
                     1234,
                     10,
@@ -148,12 +144,11 @@ class TaxonWithAreaTest {
         every { cursor.getString(3) } returns "Ascidies"
         every { cursor.getString(4) } returns "taxon_01_common"
         every { cursor.getString(5) } returns "desc"
-        every { cursor.getString(6) } returns "ES - 1234"
-        every { cursor.getLong(7) } returns 1234
-        every { cursor.getLong(8) } returns 10
-        every { cursor.getString(9) } returns "red"
-        every { cursor.getInt(10) } returns 3
-        every { cursor.getLong(11) } returns 1477642500000
+        every { cursor.getLong(6) } returns 1234
+        every { cursor.getLong(7) } returns 10
+        every { cursor.getString(8) } returns "red"
+        every { cursor.getInt(9) } returns 3
+        every { cursor.getLong(10) } returns 1477642500000
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -170,7 +165,6 @@ class TaxonWithAreaTest {
                 ),
                 "taxon_01_common",
                 "desc",
-                "ES - 1234",
                 TaxonArea(
                     1234,
                     10,
@@ -204,7 +198,6 @@ class TaxonWithAreaTest {
         every { cursor.getString(3) } returns "Ascidies"
         every { cursor.getString(4) } returns null
         every { cursor.getString(5) } returns "desc"
-        every { cursor.getString(6) } returns null
 
         // when getting a TaxonWithArea instance from Cursor
         val taxonWithArea = fromCursor(cursor)
@@ -221,7 +214,6 @@ class TaxonWithAreaTest {
                 ),
                 null,
                 "desc",
-                null,
                 null
             ),
             taxonWithArea
@@ -249,7 +241,6 @@ class TaxonWithAreaTest {
         every { cursor.getString(3) } returns "Ascidies"
         every { cursor.getString(4) } returns null
         every { cursor.getString(5) } returns "desc"
-        every { cursor.getString(6) } returns null
         every { cursor.getLong(7) } returns 0
         every { cursor.getLong(8) } returns 0
 
@@ -268,7 +259,6 @@ class TaxonWithAreaTest {
                 ),
                 null,
                 "desc",
-                null,
                 null
             ),
             taxonWithArea
@@ -314,7 +304,6 @@ class TaxonWithAreaTest {
             ),
             "taxon_01_common",
             "desc",
-            "ES - 1234",
             TaxonArea(
                 1234,
                 10,
@@ -370,10 +359,6 @@ class TaxonWithAreaTest {
                     "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"
                 ),
                 Pair(
-                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_RANK}\"",
-                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK}"
-                ),
-                Pair(
                     "${TaxonArea.TABLE_NAME}.\"${TaxonArea.COLUMN_TAXON_ID}\"",
                     "${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_TAXON_ID}"
                 ),
@@ -399,10 +384,10 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun `should build filter by name or description or rank from simple query string with area colors`() {
+    fun `should build filter by name or description from simple query string with area colors`() {
         val taxonFilterByNameAndAreaColors = (TaxonWithArea
             .Filter()
-            .byNameOrDescriptionOrRank("as") as TaxonWithArea.Filter)
+            .byNameOrDescription("as") as TaxonWithArea.Filter)
             .byAreaColors(
                 "red",
                 "grey'"
@@ -410,15 +395,14 @@ class TaxonWithAreaTest {
             .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'''))",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'''))",
             taxonFilterByNameAndAreaColors.first
         )
         assertArrayEquals(
             arrayOf(
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "%as%"
+                "*[aáàäâãAÁÀÄÂÃ][sS]*"
             ),
             taxonFilterByNameAndAreaColors.second
         )

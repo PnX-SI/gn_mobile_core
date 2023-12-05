@@ -33,7 +33,9 @@ The authority of this content provider is `<application package>.provider`.
 | **\<Base URI\>**/taxonomy/\*                       | String                                  | Fetch taxonomy matching a given kingdom                                                |
 | **\<Base URI\>**/taxonomy/\*/\*                    | String, String                          | Fetch taxonomy matching a given kingdom and group                                      |
 | **\<Base URI\>**/taxa                              | n/a                                     | Fetch all taxa                                                                         |
+| **\<Base URI\>**/taxa/list/#                       | Number                                  | Fetch all taxa matching a given list ID                                                |
 | **\<Base URI\>**/taxa/area/#                       | Number                                  | Fetch all taxa matching a given area ID                                                |
+| **\<Base URI\>**/taxa/list/#/area/#                | Number, Number                          | Fetch all taxa matching a given list ID and area ID                                    |
 | **\<Base URI\>**/taxa/#                            | Number                                  | Fetch a taxon by ID                                                                    |
 | **\<Base URI\>**/taxa/#/area/#                     | Number, Number                          | Fetch a taxon by ID matching a given area ID                                           |
 | **\<Base URI\>**/nomenclature_types                | n/a                                     | Fetch all nomenclature types                                                           |

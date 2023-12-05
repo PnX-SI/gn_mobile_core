@@ -15,6 +15,7 @@ import fr.geonature.commons.data.dao.NomenclatureTaxonomyDao
 import fr.geonature.commons.data.dao.NomenclatureTypeDao
 import fr.geonature.commons.data.dao.TaxonAreaDao
 import fr.geonature.commons.data.dao.TaxonDao
+import fr.geonature.commons.data.dao.TaxonListDao
 import fr.geonature.commons.data.dao.TaxonomyDao
 import fr.geonature.commons.data.entity.AdditionalField
 import fr.geonature.commons.data.entity.AdditionalFieldDataset
@@ -29,6 +30,7 @@ import fr.geonature.commons.data.entity.NomenclatureTaxonomy
 import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
+import fr.geonature.commons.data.entity.TaxonList
 import fr.geonature.commons.data.entity.Taxonomy
 
 /**
@@ -43,6 +45,7 @@ import fr.geonature.commons.data.entity.Taxonomy
         Taxonomy::class,
         Taxon::class,
         TaxonArea::class,
+        TaxonList::class,
         NomenclatureType::class,
         Nomenclature::class,
         NomenclatureTaxonomy::class,
@@ -53,7 +56,7 @@ import fr.geonature.commons.data.entity.Taxonomy
         CodeObject::class,
         FieldValue::class,
     ],
-    version = 20,
+    version = 21,
     exportSchema = false
 )
 abstract class LocalDatabase : RoomDatabase() {
@@ -82,6 +85,11 @@ abstract class LocalDatabase : RoomDatabase() {
      * @return The DAO for the [TaxonArea.TABLE_NAME] table.
      */
     abstract fun taxonAreaDao(): TaxonAreaDao
+
+    /**
+     * @return The DAO for the [TaxonList.TABLE_NAME] table.
+     */
+    abstract fun taxonListDao(): TaxonListDao
 
     /**
      * @return The DAO for the [NomenclatureType.TABLE_NAME] table.

@@ -93,10 +93,6 @@ class DataSyncWorker @AssistedInject constructor(
                         INPUT_USERS_MENU_ID,
                         0
                     ),
-                    taxRefListId = inputData.getInt(
-                        INPUT_TAXREF_LIST_ID,
-                        0
-                    ),
                     codeAreaType = inputData.getString(INPUT_CODE_AREA_TYPE),
                     pageSize = inputData.getInt(
                         INPUT_PAGE_SIZE,
@@ -246,7 +242,6 @@ class DataSyncWorker @AssistedInject constructor(
         const val AUTH_NOTIFICATION_ID = 4
 
         private const val INPUT_USERS_MENU_ID = "usersMenuId"
-        private const val INPUT_TAXREF_LIST_ID = "taxrefListId"
         private const val INPUT_CODE_AREA_TYPE = "codeAreaType"
         private const val INPUT_PAGE_SIZE = "pageSize"
         private const val INPUT_WITH_ADDITIONAL_DATA = "withAdditionalData"
@@ -354,10 +349,6 @@ class DataSyncWorker @AssistedInject constructor(
                 .putInt(
                     INPUT_USERS_MENU_ID,
                     dataSyncSettings.usersListId
-                )
-                .putInt(
-                    INPUT_TAXREF_LIST_ID,
-                    dataSyncSettings.taxrefListId
                 )
                 .putString(
                     INPUT_CODE_AREA_TYPE,

@@ -71,8 +71,7 @@ class TaxonTest {
                     "Ascidies"
                 ),
                 "taxon_01_common",
-                "desc",
-                "ES - 1234"
+                "desc"
             ),
             Taxon(
                 1234,
@@ -82,8 +81,7 @@ class TaxonTest {
                     "Ascidies"
                 ),
                 "taxon_01_common",
-                "desc",
-                "ES - 1234"
+                "desc"
             )
         )
 
@@ -136,8 +134,7 @@ class TaxonTest {
                     "Ascidies"
                 ),
                 "taxon_01_common",
-                "desc",
-                "ES - 1234"
+                "desc"
             ),
             taxon
         )
@@ -155,10 +152,6 @@ class TaxonTest {
                     ),
                     column(
                         AbstractTaxon.COLUMN_DESCRIPTION,
-                        Taxon.TABLE_NAME
-                    ),
-                    column(
-                        AbstractTaxon.COLUMN_RANK,
                         Taxon.TABLE_NAME
                     )
                 ) -> {
@@ -247,8 +240,7 @@ class TaxonTest {
                 "Ascidies"
             ),
             "taxon_01_common",
-            "desc",
-            "ES - 1234"
+            "desc"
         )
 
         // when we obtain a Parcel object to write the Taxon instance to it
@@ -295,10 +287,6 @@ class TaxonTest {
                 Pair(
                     "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_DESCRIPTION}\"",
                     "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION}"
-                ),
-                Pair(
-                    "${Taxon.TABLE_NAME}.\"${AbstractTaxon.COLUMN_RANK}\"",
-                    "${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK}"
                 )
             ),
             defaultProjection()
@@ -306,54 +294,52 @@ class TaxonTest {
     }
 
     @Test
-    fun `should build filter by name or description or rank from simple query string`() {
+    fun `should build filter by name or description from simple query string`() {
         val taxonFilterByNameAndTaxonomy = Taxon
             .Filter()
-            .byNameOrDescriptionOrRank("frelon d'")
+            .byNameOrDescription("frelon d'")
             .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?)",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ?)",
             taxonFilterByNameAndTaxonomy.first
         )
         assertArrayEquals(
             arrayOf(
                 "*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*",
                 "*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*",
-                "*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*",
-                "%frelon d''%"
+                "*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*"
             ),
             taxonFilterByNameAndTaxonomy.second
         )
     }
 
     @Test
-    fun `should build filter by name or description or rank from normalized query string`() {
+    fun `should build filter by name or description from normalized query string`() {
         val taxonFilterByNameAndTaxonomy = Taxon
             .Filter()
-            .byNameOrDescriptionOrRank("âne")
+            .byNameOrDescription("âne")
             .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?)",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ?)",
             taxonFilterByNameAndTaxonomy.first
         )
         assertArrayEquals(
             arrayOf(
                 "*[aáàäâãAÁÀÄÂÃ][nñNÑ][eéèëêẽEÉÈËÊẼ]*",
                 "*[aáàäâãAÁÀÄÂÃ][nñNÑ][eéèëêẽEÉÈËÊẼ]*",
-                "*[aáàäâãAÁÀÄÂÃ][nñNÑ][eéèëêẽEÉÈËÊẼ]*",
-                "%âne%"
+                "*[aáàäâãAÁÀÄÂÃ][nñNÑ][eéèëêẽEÉÈËÊẼ]*"
             ),
             taxonFilterByNameAndTaxonomy.second
         )
     }
 
     @Test
-    fun `should build filter by name or description or rank from simple query string with full taxonomy`() {
+    fun `should build filter by name or description from simple query string with full taxonomy`() {
         val taxonFilterByNameAndTaxonomy = Taxon
             .Filter()
-            .byNameOrDescriptionOrRank("as")
+            .byNameOrDescription("as")
             .byTaxonomy(
                 Taxonomy(
                     "Animalia",
@@ -363,7 +349,7 @@ class TaxonTest {
             .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ?) AND ((${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_GROUP} = ?))",
             taxonFilterByNameAndTaxonomy.first
         )
         assertArrayEquals(
@@ -371,7 +357,6 @@ class TaxonTest {
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "%as%",
                 "Animalia",
                 "Ascidies"
             ),
@@ -380,10 +365,10 @@ class TaxonTest {
     }
 
     @Test
-    fun `should build filter by name or description or rank from simple query string with taxonomy kingdom`() {
+    fun `should build filter by name or description from simple query string with taxonomy kingdom`() {
         val taxonFilterByNameAndKingdom = Taxon
             .Filter()
-            .byNameOrDescriptionOrRank("as")
+            .byNameOrDescription("as")
             .byTaxonomy(
                 Taxonomy(
                     "Animalia"
@@ -392,7 +377,7 @@ class TaxonTest {
             .build()
 
         assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_RANK} LIKE ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
+            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ?) AND (${Taxon.TABLE_NAME}_${Taxonomy.COLUMN_KINGDOM} = ?)",
             taxonFilterByNameAndKingdom.first
         )
         assertArrayEquals(
@@ -400,7 +385,6 @@ class TaxonTest {
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
                 "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "%as%",
                 "Animalia"
             ),
             taxonFilterByNameAndKingdom.second

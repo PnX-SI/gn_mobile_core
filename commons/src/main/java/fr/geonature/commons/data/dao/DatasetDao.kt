@@ -1,6 +1,7 @@
 package fr.geonature.commons.data.dao
 
 import androidx.room.Dao
+import androidx.room.Query
 import fr.geonature.commons.data.entity.Dataset
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.ASC
@@ -12,6 +13,14 @@ import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.AS
  */
 @Dao
 abstract class DatasetDao : BaseDao<Dataset>() {
+
+    @Query(
+        """SELECT d.*
+            FROM ${Dataset.TABLE_NAME} d
+            WHERE d.${Dataset.COLUMN_ID} = :datasetId
+        """
+    )
+    abstract suspend fun findById(datasetId: Long): Dataset?
 
     /**
      * Internal query builder for [Dataset].

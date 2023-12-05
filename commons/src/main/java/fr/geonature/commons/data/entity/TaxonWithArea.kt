@@ -20,15 +20,13 @@ class TaxonWithArea : AbstractTaxon {
         taxonomy: Taxonomy,
         commonName: String? = null,
         description: String? = null,
-        rank: String? = null,
         taxonArea: TaxonArea?
     ) : super(
         id,
         name,
         taxonomy,
         commonName,
-        description,
-        rank
+        description
     ) {
         this.taxonArea = taxonArea
     }
@@ -38,8 +36,7 @@ class TaxonWithArea : AbstractTaxon {
         taxon.name,
         taxon.taxonomy,
         taxon.commonName,
-        taxon.description,
-        taxon.rank
+        taxon.description
     )
 
     private constructor(source: Parcel) : super(source) {
@@ -51,9 +48,7 @@ class TaxonWithArea : AbstractTaxon {
         if (other !is TaxonWithArea) return false
         if (!super.equals(other)) return false
 
-        if (taxonArea != other.taxonArea) return false
-
-        return true
+        return taxonArea == other.taxonArea
     }
 
     override fun hashCode(): Int {

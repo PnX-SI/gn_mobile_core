@@ -5,7 +5,9 @@ import androidx.room.Query
 import fr.geonature.commons.data.entity.AbstractTaxon
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
+import fr.geonature.commons.data.entity.TaxonList
 import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 
 /**
  * Data access object for [Taxon].
@@ -55,6 +57,37 @@ abstract class TaxonDao : BaseDao<Taxon>() {
 
         init {
             selectQueryBuilder.columns(*Taxon.defaultProjection())
+        }
+
+        fun withListId(listId: Long?): QB {
+            if (listId == null) return this
+
+            selectQueryBuilder
+                .columns(*TaxonList.defaultProjection())
+                .join(
+                    SQLiteSelectQueryBuilder.JoinOperator.DEFAULT,
+                    TaxonList.TABLE_NAME,
+                    "${
+                        column(
+                            TaxonList.COLUMN_TAXON_ID,
+                            TaxonList.TABLE_NAME
+                        ).second
+                    } = ${
+                        column(
+                            AbstractTaxon.COLUMN_ID,
+                            entityTableName
+                        ).second
+                    } AND ${
+                        column(
+                            TaxonList.COLUMN_TAXA_LIST_ID,
+                            TaxonList.TABLE_NAME
+                        ).second
+                    } = ?",
+                    TaxonList.TABLE_NAME,
+                    listId
+                )
+
+            return this
         }
 
         fun withArea(id: Long?): QB {

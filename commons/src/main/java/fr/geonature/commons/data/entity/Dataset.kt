@@ -29,38 +29,37 @@ data class Dataset(
     /**
      * The unique ID of this dataset.
      */
-    @ColumnInfo(name = COLUMN_ID)
-    val id: Long,
+    @ColumnInfo(name = COLUMN_ID) val id: Long,
 
     /**
      * The related module of this dataset.
      */
-    @ColumnInfo(name = COLUMN_MODULE)
-    val module: String,
+    @ColumnInfo(name = COLUMN_MODULE) val module: String,
 
     /**
      * The name of the dataset.
      */
-    @ColumnInfo(name = COLUMN_NAME)
-    val name: String,
+    @ColumnInfo(name = COLUMN_NAME) val name: String,
 
     /**
      * The description of the dataset.
      */
-    @ColumnInfo(name = COLUMN_DESCRIPTION)
-    val description: String?,
+    @ColumnInfo(name = COLUMN_DESCRIPTION) val description: String?,
 
     /**
      * Whether this dataset is active or not.
      */
-    @ColumnInfo(name = COLUMN_ACTIVE)
-    val active: Boolean = false,
+    @ColumnInfo(name = COLUMN_ACTIVE) val active: Boolean = false,
 
     /**
      * The creation date of this dataset.
      */
-    @ColumnInfo(name = COLUMN_CREATED_AT)
-    val createdAt: Date?
+    @ColumnInfo(name = COLUMN_CREATED_AT) val createdAt: Date?,
+
+    /**
+     * The taxa list id of this dataset.
+     */
+    @ColumnInfo(name = COLUMN_TAXA_LIST_ID) val taxaListId: Long?
 ) : Parcelable {
 
     companion object {
@@ -80,6 +79,7 @@ data class Dataset(
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_ACTIVE = "active"
         const val COLUMN_CREATED_AT = "created_at"
+        const val COLUMN_TAXA_LIST_ID = "taxa_list_id"
 
         /**
          * Gets the default projection.
@@ -108,6 +108,10 @@ data class Dataset(
                 ),
                 column(
                     COLUMN_CREATED_AT,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_TAXA_LIST_ID,
                     tableAlias
                 )
             )
@@ -185,6 +189,12 @@ data class Dataset(
                     cursor.get(
                         getColumnAlias(
                             COLUMN_CREATED_AT,
+                            tableAlias
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_TAXA_LIST_ID,
                             tableAlias
                         )
                     )

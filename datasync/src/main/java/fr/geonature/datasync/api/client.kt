@@ -20,7 +20,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 /**
- * Helper function to create a compliant HTTP client with GeoNature APIs.
+ * Helper function to create a compliant HTTP client with _GeoNature_ APIs.
  *
  * @author S. Grimault
  */
@@ -78,33 +78,38 @@ fun <T> createServiceClient(
             .addInterceptor {
                 val request = it.request()
 
-                runCatching { it.proceed(request) }.onSuccess { response ->
-                    if (!response.isSuccessful) {
-                        throw when (response.code) {
-                            400 -> BaseApiException.BadRequestException(
-                                response.message,
-                                response,
-                            )
-                            401 -> BaseApiException.UnauthorizedException(
-                                response.message,
-                                response,
-                            )
-                            404 -> BaseApiException.NotFoundException(
-                                response.message,
-                                response,
-                            )
-                            500 -> BaseApiException.InternalServerException(
-                                response.message,
-                                response,
-                            )
-                            else -> BaseApiException.ApiException(
-                                response.code,
-                                response.message,
-                                response,
-                            )
+                runCatching { it.proceed(request) }
+                    .onSuccess { response ->
+                        if (!response.isSuccessful) {
+                            throw when (response.code) {
+                                400 -> BaseApiException.BadRequestException(
+                                    response.message,
+                                    response,
+                                )
+
+                                401 -> BaseApiException.UnauthorizedException(
+                                    response.message,
+                                    response,
+                                )
+
+                                404 -> BaseApiException.NotFoundException(
+                                    response.message,
+                                    response,
+                                )
+
+                                500 -> BaseApiException.InternalServerException(
+                                    response.message,
+                                    response,
+                                )
+
+                                else -> BaseApiException.ApiException(
+                                    response.code,
+                                    response.message,
+                                    response,
+                                )
+                            }
                         }
                     }
-                }
                     .getOrElse { throwable ->
                         throw when (throwable) {
                             is SocketException,
@@ -112,6 +117,7 @@ fun <T> createServiceClient(
                             is UnknownHostException,
                             is ConnectionShutdownException,
                             -> NetworkException(throwable.message)
+
                             else -> throwable
                         }
                     }

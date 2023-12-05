@@ -2,6 +2,7 @@ package fr.geonature.datasync.api
 
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.TaxrefArea
@@ -57,9 +58,12 @@ interface IGeoNatureService {
     @DELETE("api/gn_commons/media/{id}")
     fun deleteMediaFile(@Path("id") mediaId: Int): Call<ResponseBody>
 
-    @Headers("Accept: application/json")
-    @GET("api/meta/datasets?fields=modules")
-    fun getMetaDatasets(): Call<ResponseBody>
+    @Headers(
+        "Accept: application/json",
+        "Content-Type: application/json;charset=UTF-8"
+    )
+    @POST("api/meta/datasets?fields=modules")
+    fun getMetaDatasets(@Body query: DatasetQuery): Call<ResponseBody>
 
     @Headers("Accept: application/json")
     @GET("api/users/menu/{id}")
@@ -72,7 +76,7 @@ interface IGeoNatureService {
     fun getTaxrefAreas(
         @Query("code_area_type") codeAreaType: String? = null,
         @Query("limit") limit: Int? = null,
-        @Query("offset") offset: Int? = null
+        @Query("page") page: Int? = null
     ): Call<List<TaxrefArea>>
 
     @Headers("Accept: application/json")
