@@ -756,7 +756,7 @@ class DataSyncUseCase @Inject constructor(
                 }.getOrDefault(emptyList()))
             }
 
-            if (withAdditionalData) {
+            if (withAdditionalData && codeAreaType?.isNotBlank() == true) {
                 Logger.info { "synchronize taxa additional data..." }
 
                 offset = 0
