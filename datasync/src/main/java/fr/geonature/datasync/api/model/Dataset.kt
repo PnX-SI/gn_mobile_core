@@ -8,5 +8,5 @@ import com.google.gson.annotations.SerializedName
  * @author S. Grimault
  */
 data class DatasetQuery(
-    @SerializedName("module_code") val code: String
+    @SerializedName("create") val code: String
 )

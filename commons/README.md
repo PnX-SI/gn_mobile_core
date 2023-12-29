@@ -21,11 +21,11 @@ The authority of this content provider is `<application package>.provider`.
 **Base URI:** `content://<application package>.provider`
 
 | URI                                                | Parameters                              | Description                                                                            |
-| -------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
+|----------------------------------------------------|-----------------------------------------|----------------------------------------------------------------------------------------|
 | **\<Base URI\>**/app_sync/\*                       | String                                  | Fetch synchronization status by application package ID (e.g. `fr.geonature.occtax`)    |
-| **\<Base URI\>**/dataset/\*                        | String                                  | Fetch all dataset from given module (e.g. `occtax`)                                    |
-| **\<Base URI\>**/dataset/\*/active                 | String                                  | Fetch all active dataset from given module (e.g. `occtax`)                             |
-| **\<Base URI\>**/dataset/\*/#                      | String, Number                          | Fetch dataset by ID from given module (e.g. `occtax`)                                  |
+| **\<Base URI\>**/dataset                           | String                                  | Fetch all dataset                                                                      |
+| **\<Base URI\>**/dataset/active                    | String                                  | Fetch all active dataset                                                               |
+| **\<Base URI\>**/dataset/#                         | String, Number                          | Fetch dataset by ID                                                                    |
 | **\<Base URI\>**/observers                         | n/a                                     | Fetch all registered observers                                                         |
 | **\<Base URI\>**/observers/\*                      | String (list of comma separated values) | Fetch all registered observers matching a list of IDs                                  |
 | **\<Base URI\>**/observers/#                       | Number                                  | Fetch an observer by ID                                                                |

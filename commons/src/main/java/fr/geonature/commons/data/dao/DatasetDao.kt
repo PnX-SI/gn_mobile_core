@@ -39,22 +39,6 @@ abstract class DatasetDao : BaseDao<Dataset>() {
                 )
         }
 
-        fun whereModule(module: String?): QB {
-            if (module.isNullOrBlank()) {
-                return this
-            }
-
-            selectQueryBuilder.andWhere(
-                "${column(
-                    Dataset.COLUMN_MODULE,
-                    entityTableName
-                ).second} = ?",
-                module
-            )
-
-            return this
-        }
-
         fun whereActive(): QB {
             selectQueryBuilder.andWhere(
                 "${column(

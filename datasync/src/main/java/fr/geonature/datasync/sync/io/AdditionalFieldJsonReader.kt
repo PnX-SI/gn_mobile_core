@@ -122,7 +122,6 @@ class AdditionalFieldJsonReader {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id,
-                        module,
                         fieldType,
                         fieldName,
                         fieldLabel

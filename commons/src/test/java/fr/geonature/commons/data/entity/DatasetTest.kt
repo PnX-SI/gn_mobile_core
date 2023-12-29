@@ -2,6 +2,7 @@ package fr.geonature.commons.data.entity
 
 import android.database.Cursor
 import android.os.Parcel
+import androidx.core.database.getLongOrNull
 import fr.geonature.commons.data.entity.Dataset.Companion.defaultProjection
 import fr.geonature.commons.data.entity.Dataset.Companion.fromCursor
 import io.mockk.MockKAnnotations.init
@@ -44,20 +45,20 @@ class DatasetTest {
         assertEquals(
             Dataset(
                 1234,
-                "occtax",
                 "Dataset #1",
                 "description",
                 true,
                 now,
+                null,
                 100
             ),
             Dataset(
                 1234,
-                "occtax",
                 "Dataset #1",
                 "description",
                 true,
                 now,
+                null,
                 100
             )
         )
@@ -71,11 +72,13 @@ class DatasetTest {
             every { cursor.getColumnIndex(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
-        every { cursor.getString(1) } returns "occtax"
-        every { cursor.getString(2) } returns "Dataset #1"
-        every { cursor.getString(3) } returns "description"
-        every { cursor.getInt(4) } returns 1
-        every { cursor.getLong(5) } returns 1477642500000
+        every { cursor.getString(1) } returns "Dataset #1"
+        every { cursor.getString(2) } returns "description"
+        every { cursor.getInt(3) } returns 1
+        every { cursor.getLong(4) } returns 1477642500000
+        every { cursor.isNull(4) } returns false
+        every { cursor.getLongOrNull(5) } returns null
+        every { cursor.isNull(5) } returns true
         every { cursor.getLong(6) } returns 100
 
         // when getting a dataset instance from Cursor
@@ -86,11 +89,11 @@ class DatasetTest {
         assertEquals(
             Dataset(
                 1234,
-                "occtax",
                 "Dataset #1",
                 "description",
                 true,
                 Date.from(Instant.parse("2016-10-28T08:15:00Z")),
+                null,
                 100
             ),
             dataset
@@ -114,11 +117,11 @@ class DatasetTest {
         // given a dataset
         val dataset = Dataset(
             1234,
-            "occtax",
             "Dataset #1",
             "description",
             true,
             Date.from(Instant.now()),
+            null,
             100
         )
 
@@ -148,10 +151,6 @@ class DatasetTest {
                     "${Dataset.TABLE_NAME}_${Dataset.COLUMN_ID}"
                 ),
                 Pair(
-                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_MODULE}\"",
-                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_MODULE}"
-                ),
-                Pair(
                     "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_NAME}\"",
                     "${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME}"
                 ),
@@ -166,6 +165,10 @@ class DatasetTest {
                 Pair(
                     "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_CREATED_AT}\"",
                     "${Dataset.TABLE_NAME}_${Dataset.COLUMN_CREATED_AT}"
+                ),
+                Pair(
+                    "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_UPDATED_AT}\"",
+                    "${Dataset.TABLE_NAME}_${Dataset.COLUMN_UPDATED_AT}"
                 ),
                 Pair(
                     "${Dataset.TABLE_NAME}.\"${Dataset.COLUMN_TAXA_LIST_ID}\"",

@@ -62,7 +62,7 @@ interface IGeoNatureService {
         "Accept: application/json",
         "Content-Type: application/json;charset=UTF-8"
     )
-    @POST("api/meta/datasets?fields=modules")
+    @POST("api/meta/datasets")
     fun getMetaDatasets(@Body query: DatasetQuery): Call<ResponseBody>
 
     @Headers("Accept: application/json")

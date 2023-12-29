@@ -1,6 +1,7 @@
 package fr.geonature.commons.data.helper
 
 import android.database.Cursor
+import androidx.core.database.getLongOrNull
 import fr.geonature.commons.data.helper.Converters.fromTimestamp
 import java.util.Date
 
@@ -32,7 +33,7 @@ inline fun <reified T> Cursor.get(
         Float::class -> if (columnIndex > -1) getFloat(columnIndex) as T? else defaultValue
         Double::class -> if (columnIndex > -1) getDouble(columnIndex) as T? else defaultValue
         Boolean::class -> if (columnIndex > -1) getInt(columnIndex).run { this != 0 } as T? else defaultValue
-        Date::class -> if (columnIndex > -1) getLong(columnIndex).run { if (this == 0L) null else fromTimestamp(this) } as T? else defaultValue
+        Date::class -> if (columnIndex > -1) (getLongOrNull(columnIndex)?.run { if (this == 0L) null else fromTimestamp(this) }?:defaultValue) as T? else defaultValue
         else -> throw IllegalArgumentException("Unsupported type ${T::class.java}")
     }.run { this ?: defaultValue }
 }
