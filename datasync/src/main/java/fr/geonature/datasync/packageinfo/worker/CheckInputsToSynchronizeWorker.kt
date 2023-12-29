@@ -1,9 +1,12 @@
 package fr.geonature.datasync.packageinfo.worker
 
+import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
@@ -55,6 +58,14 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
                 .getString(KEY_INTENT_CLASS_NAME)
                 ?.also {
                     if (inputsToSynchronize > 0) {
+                        if (ActivityCompat.checkSelfPermission(
+                                applicationContext,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            return@also
+                        }
+
                         notify(
                             SYNC_NOTIFICATION_ID,
                             NotificationCompat
@@ -116,7 +127,7 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
         ) {
             getInstance(context).enqueueUniquePeriodicWork(
                 CHECK_INPUTS_TO_SYNC_WORKER,
-                ExistingPeriodicWorkPolicy.REPLACE,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(repeatInterval.toJavaDuration())
                     .addTag(CHECK_INPUTS_TO_SYNC_WORKER_TAG)
                     .setInputData(

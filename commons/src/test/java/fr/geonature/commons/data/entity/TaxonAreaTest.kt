@@ -88,6 +88,7 @@ class TaxonAreaTest {
         every { cursor.getString(2) } returns "red"
         every { cursor.getInt(3) } returns 3
         every { cursor.getLong(4) } returns 1477642500000
+        every { cursor.isNull(4) } returns false
 
         // when getting a TaxonArea instance from Cursor
         val taxonArea = fromCursor(cursor)

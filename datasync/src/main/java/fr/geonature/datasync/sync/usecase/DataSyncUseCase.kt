@@ -627,6 +627,11 @@ class DataSyncUseCase @Inject constructor(
                 .getOrNull()?.updatedAt?.also {
                     Logger.info { "taxa last synchronization date from remote: ${it.toIsoDateString()}" }
                 }
+            val hasLocalData = runCatching {
+                !database
+                    .taxonDao()
+                    .isEmpty()
+            }.getOrDefault(false)
 
             var hasNext: Boolean
             var offset = 0
@@ -635,7 +640,7 @@ class DataSyncUseCase @Inject constructor(
 
             val validTaxaIds = mutableSetOf<Long>()
 
-            if (lastUpdatedDate == null || taxaLastUpdatedDate == null || taxaLastUpdatedDate.after(lastUpdatedDate)) {
+            if (!hasLocalData || lastUpdatedDate == null || taxaLastUpdatedDate == null || taxaLastUpdatedDate.after(lastUpdatedDate)) {
                 Logger.info { "synchronize taxa..." }
 
                 runCatching {

@@ -78,7 +78,9 @@ class AppSyncTest {
         }
         every { cursor.getString(0) } returns "fr.geonature.sync"
         every { cursor.getLong(1) } returns 1477638900000
+        every { cursor.isNull(1) } returns false
         every { cursor.getLong(2) } returns 1477642500000
+        every { cursor.isNull(2) } returns false
         every { cursor.getInt(3) } returns 3
 
         // when getting AppSync instance from Cursor

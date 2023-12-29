@@ -19,7 +19,7 @@ import kotlinx.parcelize.Parcelize
     primaryKeys = [AdditionalField.COLUMN_ID],
     indices = [
         Index(
-            value = [AdditionalField.COLUMN_ID, AdditionalField.COLUMN_MODULE],
+            value = [AdditionalField.COLUMN_ID],
             unique = true
         ),
     ]
@@ -31,11 +31,6 @@ data class AdditionalField(
      * The unique ID of this additional field.
      */
     @ColumnInfo(name = COLUMN_ID) val id: Long,
-
-    /**
-     * The related module of this additional field.
-     */
-    @ColumnInfo(name = COLUMN_MODULE) val module: String,
 
     /**
      * The type of this additional field.
@@ -83,7 +78,6 @@ data class AdditionalField(
          */
         const val COLUMN_ID = BaseColumns._ID
 
-        const val COLUMN_MODULE = "module"
         const val COLUMN_FIELD_TYPE = "field_type"
         const val COLUMN_FIELD_NAME = "name"
         const val COLUMN_FIELD_LABEL = "label"
@@ -100,35 +94,34 @@ data class AdditionalField(
     tableName = AdditionalFieldDataset.TABLE_NAME,
     primaryKeys = [
         AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID,
-        AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE,
+        AdditionalFieldDataset.COLUMN_DATASET_ID
     ],
     indices = [
         Index(
-            value = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID, AdditionalFieldDataset.COLUMN_MODULE],
+            value = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID]
         ),
         Index(
-            value = [AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE],
+            value = [AdditionalFieldDataset.COLUMN_DATASET_ID]
         ),
     ],
     foreignKeys = [
         ForeignKey(
             entity = AdditionalField::class,
-            parentColumns = [AdditionalField.COLUMN_ID, AdditionalField.COLUMN_MODULE],
-            childColumns = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID, AdditionalFieldDataset.COLUMN_MODULE],
+            parentColumns = [AdditionalField.COLUMN_ID],
+            childColumns = [AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = Dataset::class,
-            parentColumns = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE],
-            childColumns = [AdditionalFieldDataset.COLUMN_DATASET_ID, AdditionalFieldDataset.COLUMN_MODULE],
+            parentColumns = [Dataset.COLUMN_ID],
+            childColumns = [AdditionalFieldDataset.COLUMN_DATASET_ID],
             onDelete = ForeignKey.CASCADE
         ),
     ]
 )
 data class AdditionalFieldDataset(
     @ColumnInfo(name = COLUMN_ADDITIONAL_FIELD_ID) val additionalFieldId: Long,
-    @ColumnInfo(name = COLUMN_DATASET_ID) val datasetId: Long,
-    @ColumnInfo(name = COLUMN_MODULE) val module: String,
+    @ColumnInfo(name = COLUMN_DATASET_ID) val datasetId: Long
 ) {
     companion object {
 
@@ -139,7 +132,6 @@ data class AdditionalFieldDataset(
 
         const val COLUMN_ADDITIONAL_FIELD_ID = "additional_field_id"
         const val COLUMN_DATASET_ID = "dataset_id"
-        const val COLUMN_MODULE = "module"
     }
 }
 

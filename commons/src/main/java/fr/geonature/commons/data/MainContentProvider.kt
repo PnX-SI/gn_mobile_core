@@ -75,17 +75,17 @@ class MainContentProvider : ContentProvider() {
             )
             addURI(
                 authority,
-                "${Dataset.TABLE_NAME}/*",
+                Dataset.TABLE_NAME,
                 DATASET
             )
             addURI(
                 authority,
-                "${Dataset.TABLE_NAME}/*/active",
+                "${Dataset.TABLE_NAME}/active",
                 DATASET_ACTIVE
             )
             addURI(
                 authority,
-                "${Dataset.TABLE_NAME}/*/#",
+                "${Dataset.TABLE_NAME}/#",
                 DATASET_ID
             )
             addURI(
@@ -402,16 +402,10 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-
         val onlyActive = uri.lastPathSegment == "active"
 
         return getDatasetDao(context)
             .QB()
-            .whereModule(module)
             .also {
                 if (onlyActive) {
                     it.whereActive()
@@ -424,14 +418,8 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-
         return getDatasetDao(context)
             .QB()
-            .whereModule(module)
             .whereId(uri.lastPathSegment?.toLongOrNull())
             .cursor()
     }

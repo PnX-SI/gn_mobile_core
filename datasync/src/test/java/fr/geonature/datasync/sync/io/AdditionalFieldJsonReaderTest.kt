@@ -55,7 +55,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 2,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.TEXT,
                         name = "test_add",
                         label = "Test champs"
@@ -71,7 +70,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 6,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.SELECT,
                         name = "exemple select",
                         label = "exemple select"
@@ -96,7 +94,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 9,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.RADIO,
                         name = "test_radio",
                         label = "Test radio"
@@ -121,7 +118,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 10,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.CHECKBOX,
                         name = "test_checkbox",
                         label = "Test checkbox"
@@ -146,7 +142,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 8,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.NOMENCLATURE,
                         name = "test nomenclature",
                         label = "Test nomenclature"
@@ -163,7 +158,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 12,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.RADIO,
                         name = "radio_test2",
                         label = "Radio test 2"
@@ -188,7 +182,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 11,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.RADIO,
                         name = "bool_radio",
                         label = "Test bool radio"
@@ -213,7 +206,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 13,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.MULTISELECT,
                         name = "select_multiple",
                         label = "test select multiple"
@@ -266,7 +258,6 @@ internal class AdditionalFieldJsonReaderTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 7,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.MULTISELECT,
                         name = "test_multi_select",
                         label = "Test multiselect"

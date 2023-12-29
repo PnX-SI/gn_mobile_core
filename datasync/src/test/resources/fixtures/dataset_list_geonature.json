@@ -1,0 +1,93 @@
+[
+  {
+    "id_nomenclature_resource_type": 324,
+    "terrestrial_domain": true,
+    "dataset_shortname": "Dataset #1 (shortname)",
+    "id_dataset": 18,
+    "dataset_name": "Dataset #1",
+    "dataset_desc": "Description of Dataset #1",
+    "active": true,
+    "id_nomenclature_source_status": 75,
+    "bbox_south": null,
+    "keywords": null,
+    "marine_domain": true,
+    "id_nomenclature_collecting_method": 403,
+    "id_nomenclature_data_origin": 78,
+    "id_acquisition_framework": 21,
+    "bbox_east": null,
+    "id_nomenclature_data_type": 326,
+    "cor_dataset_actor": [
+      {
+        "id_organism": null,
+        "id_nomenclature_actor_role": 371,
+        "role": {
+          "id_organisme": null,
+          "identifiant": "id12",
+          "remarques": "",
+          "prenom_role": "Coralie",
+          "nom_complet": "Coralie Courcelle",
+          "id_role": 31,
+          "groupe": false,
+          "nom_role": "Courcelle",
+          "email": "coralie.courcelle@rhyta.com "
+        },
+        "id_role": 31,
+        "id_dataset": 18,
+        "id_cda": 37
+      }
+    ],
+    "meta_create_date": "2019-10-30T22:32:16.591174",
+    "meta_update_date": null,
+    "bbox_west": null,
+    "id_nomenclature_dataset_objectif": 415,
+    "unique_dataset_id": "463e4904-a94c-476a-aead-e31f926bc498",
+    "validable": null,
+    "bbox_north": null,
+    "id_taxa_list": 100
+  },
+  {
+    "id_nomenclature_resource_type": 324,
+    "terrestrial_domain": true,
+    "dataset_shortname": "Dataset #2 (shortname)",
+    "id_dataset": 19,
+    "dataset_name": "Dataset #2",
+    "dataset_desc": "Description of Dataset #2",
+    "active": false,
+    "id_nomenclature_source_status": 75,
+    "bbox_south": null,
+    "keywords": null,
+    "marine_domain": true,
+    "id_nomenclature_collecting_method": 403,
+    "id_nomenclature_data_origin": 78,
+    "id_acquisition_framework": 23,
+    "bbox_east": null,
+    "id_nomenclature_data_type": 326,
+    "cor_dataset_actor": [
+      {
+        "id_organism": null,
+        "id_nomenclature_actor_role": 371,
+        "role": {
+          "id_organisme": null,
+          "identifiant": "emilie.savaroc",
+          "remarques": "",
+          "prenom_role": "Hélène",
+          "nom_complet": "Hélène Deschênes",
+          "id_role": 33,
+          "groupe": false,
+          "nom_role": "Deschênes",
+          "email": "helene.deschenes@dayrep.com"
+        },
+        "id_role": 33,
+        "id_dataset": 19,
+        "id_cda": 39
+      }
+    ],
+    "meta_create_date": "2019-11-13 10:08:47.762240",
+    "meta_update_date": "2020-10-28T08:15:00.000000",
+    "bbox_west": null,
+    "id_nomenclature_dataset_objectif": 415,
+    "unique_dataset_id": "fcc3d898-610f-47a8-912c-424304bb523c",
+    "validable": null,
+    "bbox_north": null
+  }
+]

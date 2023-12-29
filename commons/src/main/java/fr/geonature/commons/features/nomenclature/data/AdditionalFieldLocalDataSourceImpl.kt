@@ -11,10 +11,8 @@ import fr.geonature.commons.data.entity.AdditionalFieldWithValues
  *
  * @author S. Grimault
  */
-class AdditionalFieldLocalDataSourceImpl(
-    private val moduleName: String,
-    private val database: LocalDatabase,
-) : IAdditionalFieldLocalDataSource {
+class AdditionalFieldLocalDataSourceImpl(private val database: LocalDatabase) :
+    IAdditionalFieldLocalDataSource {
 
     override suspend fun getAdditionalFields(
         datasetId: Long?,
@@ -22,10 +20,7 @@ class AdditionalFieldLocalDataSourceImpl(
     ): List<AdditionalFieldWithValues> {
         return (database
             .additionalFieldDao()
-            .findAllWithNomenclatureByModuleAndCodeObject(
-                moduleName,
-                *codeObject
-            )
+            .findAllWithNomenclatureByCodeObject(*codeObject)
             .map {
                 AdditionalFieldWithValues(
                     additionalField = it.additionalField,
@@ -35,8 +30,7 @@ class AdditionalFieldLocalDataSourceImpl(
             } + (datasetId?.let {
             database
                 .additionalFieldDao()
-                .findAllWithNomenclatureByModuleAndDatasetAndCodeObject(
-                    moduleName,
+                .findAllWithNomenclatureByDatasetAndCodeObject(
                     datasetId,
                     *codeObject
                 )
@@ -51,10 +45,7 @@ class AdditionalFieldLocalDataSourceImpl(
         }
             ?: emptyList()) + database
             .additionalFieldDao()
-            .findAllByModuleAndCodeObject(
-                moduleName,
-                *codeObject
-            )
+            .findAllByCodeObject(*codeObject)
             .map {
                 AdditionalFieldWithValues(
                     additionalField = it.key.additionalField,
@@ -64,8 +55,7 @@ class AdditionalFieldLocalDataSourceImpl(
             } + (datasetId?.let {
             database
                 .additionalFieldDao()
-                .findAllByModuleAndDatasetAndCodeObject(
-                    moduleName,
+                .findAllByDatasetAndCodeObject(
                     datasetId,
                     *codeObject
                 )
@@ -105,8 +95,7 @@ class AdditionalFieldLocalDataSourceImpl(
                         it.datasetIds.map { datasetId ->
                             AdditionalFieldDataset(
                                 additionalFieldId = it.additionalField.id,
-                                datasetId = datasetId,
-                                module = moduleName
+                                datasetId = datasetId
                             )
                         }
                     }

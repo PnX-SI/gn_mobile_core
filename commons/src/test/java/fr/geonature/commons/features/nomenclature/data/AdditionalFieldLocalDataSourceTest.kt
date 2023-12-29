@@ -77,10 +77,7 @@ internal class AdditionalFieldLocalDataSourceTest {
         codeObjectDao = db.codeObjectDao()
         fieldValueDao = db.fieldValueDao()
 
-        additionalFieldLocalDataSource = AdditionalFieldLocalDataSourceImpl(
-            "occtax",
-            db
-        )
+        additionalFieldLocalDataSource = AdditionalFieldLocalDataSourceImpl(db)
     }
 
     @After
@@ -140,7 +137,6 @@ internal class AdditionalFieldLocalDataSourceTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 7L,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.RADIO,
                         name = "radio_field_new",
                         label = "New radio field"
@@ -166,7 +162,6 @@ internal class AdditionalFieldLocalDataSourceTest {
                 AdditionalFieldWithValues(
                     additionalField = AdditionalField(
                         id = 6L,
-                        module = "occtax",
                         fieldType = AdditionalField.FieldType.NOMENCLATURE,
                         name = "statut_bio_field",
                         label = "STATUT_BIO field"
@@ -218,29 +213,29 @@ internal class AdditionalFieldLocalDataSourceTest {
         return listOf(
             Dataset(
                 id = 1,
-                module = "occtax",
                 name = "Contact aléatoire tous règnes confondus",
                 description = "Observations aléatoires de la faune, de la flore ou de la fonge",
                 active = true,
                 createdAt = Date.from(Instant.parse("2016-10-28T08:15:00Z")),
+                updatedAt = null,
                 100
             ),
             Dataset(
                 id = 17,
-                module = "occtax",
                 name = "Jeu de données personnel de Auger Ariane",
                 description = "Jeu de données personnel de Auger Ariane",
                 active = true,
                 createdAt = Date.from(Instant.parse("2020-03-28T10:00:00Z")),
+                updatedAt = null,
                 100
             ),
             Dataset(
                 id = 30,
-                module = "occtax",
                 name = "Observation opportuniste aléatoire tout règne confondu",
                 description = "Observation opportuniste aléatoire tout règne confondu",
                 active = true,
                 createdAt = Date.from(Instant.parse("2022-11-19T12:00:00Z")),
+                updatedAt = null,
                 100
             )
         ).also {
@@ -275,7 +270,6 @@ internal class AdditionalFieldLocalDataSourceTest {
             AdditionalFieldWithValues(
                 additionalField = AdditionalField(
                     id = 1,
-                    module = "occtax",
                     fieldType = AdditionalField.FieldType.TEXT,
                     name = "text_field",
                     label = "Text field"
@@ -292,7 +286,6 @@ internal class AdditionalFieldLocalDataSourceTest {
             AdditionalFieldWithValues(
                 additionalField = AdditionalField(
                     id = 2,
-                    module = "occtax",
                     fieldType = AdditionalField.FieldType.CHECKBOX,
                     name = "checkbox_field",
                     label = "Checkbox field"
@@ -321,7 +314,6 @@ internal class AdditionalFieldLocalDataSourceTest {
             AdditionalFieldWithValues(
                 additionalField = AdditionalField(
                     id = 3,
-                    module = "occtax",
                     fieldType = AdditionalField.FieldType.SELECT,
                     name = "select_field",
                     label = "Select field"
@@ -347,7 +339,6 @@ internal class AdditionalFieldLocalDataSourceTest {
             AdditionalFieldWithValues(
                 additionalField = AdditionalField(
                     id = 4,
-                    module = "occtax",
                     fieldType = AdditionalField.FieldType.RADIO,
                     name = "radio_field",
                     label = "Radio field"
@@ -375,7 +366,6 @@ internal class AdditionalFieldLocalDataSourceTest {
             AdditionalFieldWithValues(
                 additionalField = AdditionalField(
                     id = 5L,
-                    module = "occtax",
                     fieldType = AdditionalField.FieldType.NOMENCLATURE,
                     name = "eta_bio_field",
                     label = "ETA_BIO field"
@@ -397,8 +387,7 @@ internal class AdditionalFieldLocalDataSourceTest {
                     it.datasetIds.map { datasetId ->
                         AdditionalFieldDataset(
                             additionalFieldId = it.additionalField.id,
-                            datasetId = datasetId,
-                            module = "occtax"
+                            datasetId = datasetId
                         )
                     }
                 }
