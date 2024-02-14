@@ -84,9 +84,12 @@ class TaxonAreaTest {
             every { cursor.getColumnIndex(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getLong(1) } returns 10
+        every { cursor.isNull(1) } returns false
         every { cursor.getString(2) } returns "red"
         every { cursor.getInt(3) } returns 3
+        every { cursor.isNull(3) } returns false
         every { cursor.getLong(4) } returns 1477642500000
         every { cursor.isNull(4) } returns false
 
@@ -135,10 +138,15 @@ class TaxonAreaTest {
             }
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getLong(1) } returns 10
+        every { cursor.isNull(1) } returns false
         every { cursor.getString(2) } returns null
+        every { cursor.isNull(2) } returns false
         every { cursor.getInt(3) } returns 0
+        every { cursor.isNull(3) } returns false
         every { cursor.getLong(4) } returns 0
+        every { cursor.isNull(4) } returns false
 
         // when getting a TaxonArea instance from Cursor
         val taxonArea = fromCursor(cursor)

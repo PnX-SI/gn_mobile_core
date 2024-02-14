@@ -113,6 +113,7 @@ class TaxonTest {
             every { cursor.getColumnIndex(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "taxon_01"
         every { cursor.getString(2) } returns "Animalia"
         every { cursor.getString(3) } returns "Ascidies"
@@ -164,6 +165,7 @@ class TaxonTest {
             }
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "taxon_01"
         every { cursor.getString(2) } returns "Animalia"
         every { cursor.getString(3) } returns "Ascidies"

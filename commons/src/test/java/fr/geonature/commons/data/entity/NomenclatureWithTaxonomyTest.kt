@@ -135,14 +135,18 @@ class NomenclatureWithTaxonomyTest {
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "SGR"
         every { cursor.getString(2) } returns "label"
         every { cursor.getLong(3) } returns 2
+        every { cursor.isNull(3) } returns false
         every { cursor.getString(4) } returns "SN"
         every { cursor.getString(5) } returns "1234:002"
         every { cursor.getString(6) } returns "label"
         every { cursor.getLong(7) } returns 1234
+        every { cursor.isNull(7) } returns false
         every { cursor.getLong(8) } returns 2
+        every { cursor.isNull(8) } returns false
         every { cursor.getString(9) } returns "Animalia"
         every { cursor.getString(10) } returns "Ascidies"
 
@@ -185,13 +189,16 @@ class NomenclatureWithTaxonomyTest {
             }
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "SGR"
         every { cursor.getString(2) } returns "label"
         every { cursor.getLong(3) } returns 2
+        every { cursor.isNull(3) } returns false
         every { cursor.getString(4) } returns "SN"
         every { cursor.getString(5) } returns "1234:002"
         every { cursor.getString(6) } returns "label"
         every { cursor.getLong(7) } returns 1234
+        every { cursor.isNull(7) } returns false
 
         // when getting a nomenclature with taxonomy instance from Cursor
         val nomenclatureWithTaxonomy = fromCursor(cursor)
