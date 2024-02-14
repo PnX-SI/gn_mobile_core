@@ -58,6 +58,7 @@ class InputObserverTest {
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "lastname"
         every { cursor.getString(2) } returns "firstname"
 
@@ -83,6 +84,7 @@ class InputObserverTest {
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns null
         every { cursor.getString(2) } returns null
 

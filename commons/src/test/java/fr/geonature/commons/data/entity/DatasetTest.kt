@@ -72,14 +72,17 @@ class DatasetTest {
             every { cursor.getColumnIndex(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "Dataset #1"
         every { cursor.getString(2) } returns "description"
         every { cursor.getInt(3) } returns 1
+        every { cursor.isNull(3) } returns false
         every { cursor.getLong(4) } returns 1477642500000
         every { cursor.isNull(4) } returns false
         every { cursor.getLongOrNull(5) } returns null
         every { cursor.isNull(5) } returns true
         every { cursor.getLong(6) } returns 100
+        every { cursor.isNull(6) } returns false
 
         // when getting a dataset instance from Cursor
         val dataset = fromCursor(cursor)

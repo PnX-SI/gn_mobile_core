@@ -60,10 +60,12 @@ class NomenclatureTest {
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 2
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "SN"
         every { cursor.getString(2) } returns "1234:002"
         every { cursor.getString(3) } returns "label"
         every { cursor.getLong(4) } returns 1234
+        every { cursor.isNull(4) } returns false
 
         // when getting a nomenclature instance from Cursor
         val nomenclature = fromCursor(cursor)

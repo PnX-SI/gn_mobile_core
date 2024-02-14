@@ -139,15 +139,19 @@ class TaxonWithAreaTest {
             every { cursor.getColumnIndex(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "taxon_01"
         every { cursor.getString(2) } returns "Animalia"
         every { cursor.getString(3) } returns "Ascidies"
         every { cursor.getString(4) } returns "taxon_01_common"
         every { cursor.getString(5) } returns "desc"
         every { cursor.getLong(6) } returns 1234
+        every { cursor.isNull(6) } returns false
         every { cursor.getLong(7) } returns 10
+        every { cursor.isNull(7) } returns false
         every { cursor.getString(8) } returns "red"
         every { cursor.getInt(9) } returns 3
+        every { cursor.isNull(9) } returns false
         every { cursor.getLong(10) } returns 1477642500000
         every { cursor.isNull(10) } returns false
 
@@ -194,6 +198,7 @@ class TaxonWithAreaTest {
             }
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "taxon_01"
         every { cursor.getString(2) } returns "Animalia"
         every { cursor.getString(3) } returns "Ascidies"
@@ -237,6 +242,7 @@ class TaxonWithAreaTest {
             }
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "taxon_01"
         every { cursor.getString(2) } returns "Animalia"
         every { cursor.getString(3) } returns "Ascidies"

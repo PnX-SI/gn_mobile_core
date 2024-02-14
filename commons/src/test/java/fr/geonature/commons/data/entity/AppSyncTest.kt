@@ -82,6 +82,7 @@ class AppSyncTest {
         every { cursor.getLong(2) } returns 1477642500000
         every { cursor.isNull(2) } returns false
         every { cursor.getInt(3) } returns 3
+        every { cursor.isNull(3) } returns false
 
         // when getting AppSync instance from Cursor
         val appSync = AppSync.fromCursor(cursor)

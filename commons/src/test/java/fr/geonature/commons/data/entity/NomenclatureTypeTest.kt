@@ -57,6 +57,7 @@ class NomenclatureTypeTest {
         }
 
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "SGR"
         every { cursor.getString(2) } returns "label"
 
