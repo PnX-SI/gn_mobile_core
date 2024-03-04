@@ -638,8 +638,6 @@ class DataSyncUseCase @Inject constructor(
             var page = 1
             var hasErrors = false
 
-            val validTaxaIds = mutableSetOf<Long>()
-
             if (!hasLocalData || lastUpdatedDate == null || taxaLastUpdatedDate == null || taxaLastUpdatedDate.after(lastUpdatedDate)) {
                 Logger.info { "synchronize taxa..." }
 
@@ -680,34 +678,21 @@ class DataSyncUseCase @Inject constructor(
                     val taxa = taxrefListResult.items
                         .asSequence()
                         .map { taxRef ->
-                            // check if this taxon as a valid taxonomy definition
-                            if (taxRef.kingdom.isNullOrBlank() || taxRef.group.isNullOrBlank()) {
-                                Logger.warn { "invalid taxon with ID '${taxRef.id}' found: no taxonomy defined" }
-
-                                return@map null
-                            }
-
                             Taxon(
                                 id = taxRef.id,
                                 name = taxRef.name.trim(),
                                 taxonomy = Taxonomy(
-                                    taxRef.kingdom,
-                                    taxRef.group
+                                    taxRef.kingdom ?: Taxonomy.ANY,
+                                    taxRef.group ?: Taxonomy.ANY
                                 ),
                                 commonName = taxRef.commonName?.trim(),
                                 description = taxRef.fullName?.trim()
                             )
                         }
-                        .filterNotNull()
-                        .onEach {
-                            validTaxaIds.add(it.id)
-                        }
                         .toList()
-                        .toTypedArray()
 
                     val taxaList = taxrefListResult.items
                         .asSequence()
-                        .filter { taxRef -> validTaxaIds.any { it == taxRef.id } }
                         .flatMap { taxRef ->
                             (taxRef.list
                                 ?: emptyList()).map {
@@ -718,15 +703,14 @@ class DataSyncUseCase @Inject constructor(
                             }
                         }
                         .toList()
-                        .toTypedArray()
 
                     runCatching {
                         database
                             .taxonDao()
-                            .insert(*taxa)
+                            .insertAll(taxa)
                         database
                             .taxonListDao()
-                            .insert(*taxaList)
+                            .insertAll(taxaList)
                     }.onFailure {
                         Logger.warn(it) { "failed to update taxa (page: $page)" }
                         hasErrors = true
@@ -751,14 +735,7 @@ class DataSyncUseCase @Inject constructor(
 
                 updateTaxaLastUpdatedDate()
 
-                delay(1000)
-            } else {
-                validTaxaIds.addAll(runCatching {
-                    database
-                        .taxonDao()
-                        .findAll()
-                        .map { it.id }
-                }.getOrDefault(emptyList()))
+                delay(500)
             }
 
             if (withAdditionalData && codeAreaType?.isNotBlank() == true) {
@@ -809,7 +786,6 @@ class DataSyncUseCase @Inject constructor(
 
                     val taxonAreas = taxrefAreasResponse
                         .asSequence()
-                        .filter { taxrefArea -> validTaxaIds.any { it == taxrefArea.taxrefId } }
                         .map {
                             TaxonArea(
                                 it.taxrefId,
@@ -820,12 +796,11 @@ class DataSyncUseCase @Inject constructor(
                             )
                         }
                         .toList()
-                        .toTypedArray()
 
                     runCatching {
                         database
                             .taxonAreaDao()
-                            .insert(*taxonAreas)
+                            .insertAll(taxonAreas)
                     }.onFailure { Logger.warn(it) { "failed to update taxa with areas (page: $page)" } }
 
                     Logger.info { "updating ${taxonAreas.size} taxa with areas from page $page" }
