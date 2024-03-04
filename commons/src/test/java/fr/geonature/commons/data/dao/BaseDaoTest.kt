@@ -229,6 +229,9 @@ class BaseDaoTest {
         override fun insert(vararg entity: InvalidEntity) {
         }
 
+        override fun insertAll(entities: Iterable<InvalidEntity>) {
+        }
+
         override fun insertOrIgnore(vararg entity: InvalidEntity) {
         }
 

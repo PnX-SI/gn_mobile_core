@@ -60,6 +60,14 @@ abstract class BaseDao<T> {
     abstract fun insert(vararg entity: T)
 
     /**
+     * Insert an array of objects in database (Replace strategy on conflict).
+     *
+     * @param entities the objects to be inserted.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract fun insertAll(entities: Iterable<T>)
+
+    /**
      * Insert an array of objects in database (Ignore strategy on conflict).
      *
      * @param entity the objects to be inserted.

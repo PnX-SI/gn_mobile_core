@@ -134,7 +134,7 @@ class DataSyncWorker @AssistedInject constructor(
             }
             ?: Result.failure()
 
-        Logger.info { "local data synchronization ${if (result is Result.Success) "successfully finished" else "finished with failed tasks"} in ${Date().time - startTime.time}ms" }
+        Logger.info { "local data synchronization ${if (result is Result.Success) "successfully finished" else "finished with failed tasks"} in ${(Date().time - startTime.time).toDuration(DurationUnit.MILLISECONDS)}" }
 
         if (result is Result.Success) {
             NotificationManagerCompat
