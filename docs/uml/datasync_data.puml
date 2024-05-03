@@ -8,108 +8,82 @@ skinparam backgroundColor transparent
 title **Data synchronization workflow**
 
 participant "datasync" as datasync << module >>
-participant "GeoNature" as gn
+participant "//GeoNature//" as gn
 
 activate datasync
 
-ref over datasync, gn : Check for login
+datasync -> datasync : check for //GeoNature// server URLs
 
 group Fetch GeoNature data
 
     group Dataset
-        datasync -> gn ++ : **GET** ""/api/meta/datasets""
-        gn -> datasync -- : **200**: ""[Dataset]""
+        datasync -> gn ++ : <font color="goldenrod">**POST**</font> ""/api/meta/datasets""
+        note left
+            <code>
+            {
+                "create": <module_name>
+            }
+            </code>
+        end note
+        gn -> datasync -- : <font color=green">**200**</font>: ""[Dataset]""
         note right of datasync
             **""Dataset"":**
+            <code>
             {
                 "id_dataset": <dataset ID>,
                 "dataset_name": <name>,
                 "dataset_desc": <description>,
                 "active": <Boolean>,
                 "meta_create_date": <Date>,
-                "modules": {
-                        "module_path": <String>
-                }[]
+                "id_taxa_list": <list ID>
             }
+            </code>
         end note
+
         datasync -> datasync : update //dataset// table
     end
 
     group Observers
-        datasync -> gn ++ : **GET** ""/api/users/menu/:observers_list_id""
+        datasync -> gn ++ : <font color="green">**GET**</font> ""/api/users/menu/:observers_list_id""
         note right of datasync
             ""observers_list_id"" from settings
         end note
-        gn -> datasync -- : **200**: ""[User]""
+        gn -> datasync -- : <font color=green">**200**</font>: ""[User]""
         note right of datasync
             **""User"":**
+            <code>
             {
                 "id_role": <user ID>,
                 "nom_role": <lastname>,
                 "prenom_role": <firstnane>
             }
+            </code>
         end note
+
         datasync -> datasync : update //observers// table
     end
 
     group Taxonomy
-        datasync -> gn ++ : **GET** ""/api/taxref/regnewithgroupe2""
-        gn -> datasync -- : **200**: ""[Taxonomy]""
+        datasync -> gn ++ : <font color="green">**GET**</font> ""/api/taxref/regnewithgroupe2""
+        gn -> datasync -- : <font color=green">**200**</font>: ""[Taxonomy]""
         note right of datasync
             **""Taxonomy"":**
+            <code>
             {
                 <kingdom>: <group>[]
             }
+            </code>
         end note
+
         datasync -> datasync : update //taxonomy// table
     end
 
-    group Taxa
-        loop while response is not empty\nand response size matches ""page_size"" from settings
-            datasync -> gn ++ : **GET** ""/api/taxref/allnamebylist/:taxa_list_id""
-            note right of datasync
-                ""taxa_list_id"" from settings
-            end note
-            gn -> datasync -- : **200**: ""[Taxref]""
-            note right of datasync
-                **""Taxref"":**
-                {
-                    "cd_nom": <taxon ID>,
-                    "lb_nom": <name>,
-                    "nom_vern": <common name>,
-                    "nom_valide": <full name>,
-                    "regne": <kingdom>,
-                    "group2_inpn": <group>,
-                    "search_name": <String>
-                }
-            end note
-            datasync -> datasync : update //taxa// table
-        end
-        loop while response is not empty\nand response size matches ""page_size"" from settings
-            datasync -> gn ++ : **GET** ""/api/synthese/color_taxon?:code_area_type""
-            note right of datasync
-                ""code_area_type"" from settings
-            end note
-            gn -> datasync -- : **200**: ""[TaxrefArea]""
-            note right of datasync
-                **""TaxrefArea"":**
-                {
-                    "cd_nom": <taxon ID>,
-                    "id_area": <area ID>,
-                    "color": <String>,
-                    "nb_obs": <number of observers>,
-                    "last_date": <last updated at>
-                }
-            end note
-            datasync -> datasync : update //taxa_area// table
-        end
-    end
-
     group Nomenclature
-        datasync -> gn ++ : **GET** ""/api/nomenclatures/nomenclatures/taxonomy""
-        gn -> datasync -- : **200**: ""[NomenclatureType]""
+        datasync -> gn ++ : <font color="green">**GET**</font> ""/api/nomenclatures/nomenclatures/taxonomy""
+        gn -> datasync -- : <font color=green">**200**</font>: ""[NomenclatureType]""
         note right of datasync
             **""NomenclatureType"":**
+            <code>
             {
                 "id_type": <nomenclature type ID>,
                 "mnemonique": <mnemonic code>,
@@ -125,25 +99,147 @@ group Fetch GeoNature data
                     }[],
                 }[],
             }
+            </code>
         end note
 
-        datasync -> gn ++ : **GET** ""/api/:module/defaultNomenclatures""
+        datasync -> gn ++ : <font color="green">**GET**</font> ""/api/:module/defaultNomenclatures""
         note right of datasync
             ""module"" from settings
         end note
 
-        gn -> datasync -- : **200**: ""[DefaultNomenclature]""
+        gn -> datasync -- : <font color=green">**200**</font>: ""[DefaultNomenclature]""
         note right of datasync
             **""DefaultNomenclature"":**
+            <code>
             {
                 <mnemonic code>: <nomenclature ID>
             }
+            </code>
         end note
 
-        datasync -> datasync : update //nomenclature_types//  table
+        datasync -> datasync : update //nomenclature_types// table
         datasync -> datasync : update //nomenclatures// table
-        datasync -> datasync : update //nomenclatures_taxonomy//  table
-        datasync -> datasync : update //default_nomenclatures//  table
+        datasync -> datasync : update //nomenclatures_taxonomy// table
+        datasync -> datasync : update //default_nomenclatures// table
+    end
+
+    group Taxa
+        datasync -> datasync : get the last synchronized date
+        datasync -> gn ++ : <font color="green">**GET**</font> ""/api/taxref/version""
+
+        gn -> datasync -- : <font color=green">**200**</font>: ""TaxrefVersion""
+        note right of datasync
+            **""TaxrefVersion"":**
+            <code>
+            {
+                "update_date": <Date>
+            }
+            </code>
+        end note
+
+        datasync -> datasync : check if we have local data
+
+        alt no local data or\nlast synchronized date is not defined or\nlocal data version is outdated from taxa version from //GeoNature//
+            datasync -> datasync : delete all taxa from local database
+
+            loop while response is not empty\nand response size matches ""page_size"" from settings
+                datasync -> gn ++ : <font color="green">**GET**</font> ""/api/taxref?limit=:page_size&offset=:page""
+                note right of datasync
+                    ""page_size"" from settings (default: 10000)
+                    ""page"": the current "page"
+                end note
+                gn -> datasync -- : <font color=green">**200**</font>: ""Taxref""
+                note right of datasync
+                    **""Taxref"":**
+                    <code>
+                    {
+                        "items": [
+                        {
+                            "cd_nom": <taxon ID>,
+                            "lb_nom": <name>,
+                            "nom_valide": <full name>,
+                            "nom_vern": <common name>,
+                            "nom_complet": <description>,
+                            "regne": <kingdom>,
+                            "group2_inpn": <group>,
+                            "listes": <Long>[]
+                           }
+                        ],
+                        "total": <Int>,
+                        "limit": <Int>,
+                        "page": <Int>
+                    }
+                    </code>
+                end note
+
+                datasync -> datasync : update //taxa// table
+                datasync -> datasync : update //taxa_list// table
+            end
+
+            datasync -> datasync : update the last synchronized date
+        end
+
+        alt with additionnal data\nand ""sync.code_area_type"" from settings is defined
+            loop while response is not empty\nand response size matches ""page_size"" from settings
+                datasync -> gn ++ : <font color="green">**GET**</font> ""/api/synthese/color_taxon?code_area_type=:code_area_type&limit=:page_size&offset=:page""
+                note right of datasync
+                    ""code_area_type"" from settings
+                    ""page_size"" from settings (default: 10000)
+                    ""page"": the current "page"
+                end note
+                gn -> datasync -- : <font color=green">**200**</font>: ""[TaxrefArea]""
+                note right of datasync
+                    **""TaxrefArea"":**
+                    <code>
+                    {
+                        "cd_nom": <taxon ID>,
+                        "id_area": <area ID>,
+                        "color": <String>,
+                        "nb_obs": <number of observers>,
+                        "last_date": <last updated at>
+                    }
+                    </code>
+                end note
+
+                datasync -> datasync : update //taxa_area// table
+            end
+        end
+
+    end
+
+    group Additional fields
+        alt ""nomenclature.additional_fields"" from settings is defined
+            datasync -> gn ++ : <font color="green">**GET**</font> """/api/gn_commons/additional_fields?module_name=:module""
+            gn -> datasync -- : <font color=green">**200**</font>: ""[AdditionalField]""
+            note right of datasync
+                **""AdditionalField"":**
+                <code>
+                {
+                    "id_field": <additional field ID>,
+                    "datasets": <Dataset>[],
+                    "objects": {
+                        "code_object": <String>
+                    }[],
+                    "modules": {
+                        "module_path": <String>
+                    }[],
+                    "type_widget": {
+                        "widget_name": <String>
+                    },
+                    "field_name": <String>,
+                    "field_label": <String>,
+                    "field_values": <FieldValue>[],
+                    "code_nomenclature_type": <String>
+                }
+                </code>
+            end note
+
+            datasync -> datasync : delete all existing additional fields and its relative
+            datasync -> datasync : update //additional_fields_dataset// table
+            datasync -> datasync : update //additional_field_nomenclatures// table
+            datasync -> datasync : update //code_objects// table
+            datasync -> datasync : update //field_values// table
+        end
     end
 
 end
