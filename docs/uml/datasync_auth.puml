@@ -8,16 +8,26 @@ skinparam backgroundColor transparent
 title **Authentication**
 
 participant "datasync" as datasync << module >>
-participant "GeoNature" as gn
+participant "//GeoNature//" as gn
 
 activate datasync
 
 group Check for login
-    datasync -> datasync : Set login and password
-    datasync -> gn ++ : **POST** ""/api/auth/login""
-    gn -> datasync -- : **200**: ""AuthLogin""
+    datasync -> datasync : set login and password
+    datasync -> gn ++ : <font color="goldenrod">**POST**</font> ""/api/auth/login""
+     note left
+        <code>
+        {
+            "login": <user login>,
+            "password": <user password>,
+            "id_application": <sync.gn_application_id from settings>
+        }
+        </code>
+    end note
+    gn -> datasync -- : <font color=green">**200**</font>: ""AuthLogin""
     note left
         **""AuthLogin"":**
+        </code>
         {
             "user": {
                 "id_application": <number>,
@@ -26,9 +36,10 @@ group Check for login
             },
             "expires": <Date>
         }
+        </code>
     end note
 
-    datasync -> datasync : Set cookie
+    datasync -> datasync : set cookie
 end
 
 @enduml

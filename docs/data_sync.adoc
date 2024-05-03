@@ -1,4 +1,4 @@
-= Data synchronization workflow
+= Local data synchronization workflow
 :authors: Sebastien Grimault
 :source-highlighter: pygments
 :pygments-style: github
@@ -20,7 +20,7 @@ This document describe the data synchronization worflow within *_datasync_* modu
 
 == Check for update
 
-image::{gitplant}/datasync_update.puml[Check for update]
+image::{gitplant}/datasync_app_update.puml[Check for update]
 
 == Authentication
 
@@ -30,6 +30,3 @@ image::{gitplant}/datasync_auth.puml[Authentication]
 
 image::{gitplant}/datasync_data.puml[Data synchronization workflow]
 
-== Synchronize local inputs
-
-image::{gitplant}/datasync_inputs.puml[Inputs synchronization workflow]

@@ -19,19 +19,22 @@ See [IGeoNatureService](./src/main/java/fr/geonature/datasync/api/IGeoNatureServ
 and [ITaxHubService](./src/main/java/fr/geonature/datasync/api/ITaxHubService.kt) interfaces
 definition about GeoNature and TaxHub APIs endpoints consumed:
 
-| Route                                       | Method | Description                                                      |
-|---------------------------------------------|--------|------------------------------------------------------------------|
-| `/api/auth/login`                           | `POST` | Performs authentication.                                         |
-| `/api/{module}/releve`                      | `POST` | Send observer's input to given GeoNature module (e.g. `occtax`). |
-| `/api/meta/datasets`                        | `GET`  | Fetch datasets.                                                  |
-| `/api/users/menu/{id}`                      | `GET`  | Fetch observers.                                                 |
-| `/api/synthese/color_taxon`                 | `GET`  | Fetch additional data for taxa.                                  |
-| `/api/nomenclatures/nomenclatures/taxonomy` | `GET`  | Fetch the nomenclature.                                          |
-| `/api/{module}/defaultNomenclatures`        | `GET`  | Fetch default nomenclature values.                               |
-| `/api/gn_commons/t_mobile_apps`             | `GET`  | Fetch available applications.                                    |
-| `/api/taxref/regnewithgroupe2`              | `GET`  | Fetch taxonomic ranks.                                           |
-| `/api/taxref`                               | `GET`  | Fetch taxa.                                                      |
-| `/api/taxref/version`                       | `GET`  | Fetch the current version of the taxa database.                  |
+| Route                                                      | Method | Description                                          |
+|------------------------------------------------------------|--------|------------------------------------------------------|
+| `/api/auth/login`                                          | `POST` | Performs authentication.                             |
+| `/api/gn_commons/t_mobile_apps`                            | `GET`  | Fetch available applications with its configuration. |
+| `/api/meta/datasets`                                       | `POST` | Fetch datasets.                                      |
+| `/api/users/menu/{{observers_list_id}}`                    | `GET`  | Fetch observers.                                     |
+| `/api/taxref/regnewithgroupe2`                             | `GET`  | Fetch taxonomic ranks.                               |
+| `/api/nomenclatures/nomenclatures/taxonomy`                | `GET`  | Fetch the nomenclature.                              |
+| `/api/{{module}}/defaultNomenclatures`                     | `GET`  | Fetch default nomenclature values.                   |
+| `/api/taxref/version`                                      | `GET`  | Fetch the current version of the taxa database.      |
+| `/api/taxref`                                              | `GET`  | Fetch all taxa.                                      |
+| `/api/synthese/color_taxon`                                | `GET`  | Fetch additional data for taxa.                      |
+| `/api/gn_commons/additional_fields?module_name={{module}}` | `GET`  | Fetch additional fields.                             |
+
+A [Postman collection](https://github.com/PnX-SI/gn_mobile_core/blob/develop/docs/postman/gn_mobile_core.postman_collection.json)
+is available showing all the routes consumed by this module.
 
 ## Settings
 
