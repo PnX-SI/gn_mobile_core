@@ -126,6 +126,7 @@ class AdditionalFieldJsonReader {
                         fieldName,
                         fieldLabel
                     ),
+                    datasetIds = datasetIds,
                     nomenclatureTypeMnemonic = nomenclatureType,
                     codeObjects = objects.map { codeObject ->
                         CodeObject(
