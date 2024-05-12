@@ -1,10 +1,7 @@
 package fr.geonature.datasync.sync.usecase
 
 import android.app.Application
-import android.content.SharedPreferences
 import android.text.TextUtils
-import androidx.core.content.edit
-import androidx.preference.PreferenceManager.getDefaultSharedPreferences
 import androidx.room.withTransaction
 import androidx.work.WorkInfo
 import fr.geonature.commons.data.GeoNatureModuleName
@@ -14,12 +11,8 @@ import fr.geonature.commons.data.entity.InputObserver
 import fr.geonature.commons.data.entity.Nomenclature
 import fr.geonature.commons.data.entity.NomenclatureTaxonomy
 import fr.geonature.commons.data.entity.NomenclatureType
-import fr.geonature.commons.data.entity.Taxon
-import fr.geonature.commons.data.entity.TaxonArea
-import fr.geonature.commons.data.entity.TaxonList
 import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.interactor.BaseFlowUseCase
-import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.error.BaseApiException
@@ -27,10 +20,10 @@ import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.ServerStatus
-import fr.geonature.datasync.sync.SynchronizeAdditionalFieldsRepository
 import fr.geonature.datasync.sync.io.DatasetJsonReader
 import fr.geonature.datasync.sync.io.TaxonomyJsonReader
-import fr.geonature.datasync.sync.repository.ISynchronizeLocalDataRepository
+import fr.geonature.datasync.sync.repository.ISynchronizeAdditionalFieldsRepository
+import fr.geonature.datasync.sync.repository.ISynchronizeTaxaRepository
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +33,6 @@ import org.json.JSONObject
 import org.tinylog.Logger
 import retrofit2.await
 import java.io.BufferedReader
-import java.util.Date
 import javax.inject.Inject
 
 /**
@@ -53,10 +45,9 @@ class DataSyncUseCase @Inject constructor(
     @GeoNatureModuleName private val moduleName: String,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
     private val database: LocalDatabase,
-    @SynchronizeAdditionalFieldsRepository private val synchronizeAdditionalFieldsRepository: ISynchronizeLocalDataRepository
+    private val synchronizeTaxaRepository: ISynchronizeTaxaRepository,
+    private val synchronizeAdditionalFieldsRepository: ISynchronizeAdditionalFieldsRepository
 ) : BaseFlowUseCase<DataSyncStatus, DataSyncUseCase.Params>() {
-
-    private val sharedPreferences: SharedPreferences = getDefaultSharedPreferences(application)
 
     override suspend fun run(params: Params): Flow<DataSyncStatus> =
         channelFlow {
@@ -91,10 +82,13 @@ class DataSyncUseCase @Inject constructor(
                         it
                     )
                 }
-                synchronizeTaxa(
-                    params.codeAreaType,
-                    params.pageSize,
-                    params.withAdditionalData
+
+                synchronizeTaxaRepository(
+                    ISynchronizeTaxaRepository.Params(
+                        params.withAdditionalData,
+                        params.codeAreaType,
+                        params.pageSize
+                    )
                 ).collect {
                     sendOrThrow(
                         this,
@@ -103,7 +97,7 @@ class DataSyncUseCase @Inject constructor(
                 }
 
                 if (params.withAdditionalFields) {
-                    synchronizeAdditionalFieldsRepository().collect {
+                    synchronizeAdditionalFieldsRepository(Unit).collect {
                         sendOrThrow(
                             this,
                             it
@@ -607,211 +601,6 @@ class DataSyncUseCase @Inject constructor(
             }
         }
 
-    private suspend fun synchronizeTaxa(
-        codeAreaType: String?,
-        pageSize: Int,
-        withAdditionalData: Boolean = true
-    ): Flow<DataSyncStatus> =
-        flow {
-            val lastUpdatedDate = getTaxaLastUpdatedDate()?.also {
-                Logger.info { "taxa last synchronization date: ${it.toIsoDateString()}" }
-            }
-            val taxaLastUpdatedDate = runCatching {
-                geoNatureAPIClient
-                    .getTaxrefVersion()
-                    .await()
-            }
-                .onFailure {
-                    Logger.warn { "failed to get taxa last updated date from GeoNature..." }
-                }
-                .getOrNull()?.updatedAt?.also {
-                    Logger.info { "taxa last synchronization date from remote: ${it.toIsoDateString()}" }
-                }
-            val hasLocalData = runCatching {
-                !database
-                    .taxonDao()
-                    .isEmpty()
-            }.getOrDefault(false)
-
-            var hasNext: Boolean
-            var offset = 0
-            var page = 1
-            var hasErrors = false
-
-            if (!hasLocalData || lastUpdatedDate == null || taxaLastUpdatedDate == null || taxaLastUpdatedDate.after(lastUpdatedDate)) {
-                Logger.info { "synchronize taxa..." }
-
-                runCatching {
-                    database
-                        .taxonDao()
-                        .deleteAll()
-                }.onFailure { Logger.warn(it) { "failed to deleting existing taxa" } }
-
-                // fetch all taxa from paginated list
-                do {
-                    val taxrefListResult = runCatching {
-                        geoNatureAPIClient
-                            .getTaxref(
-                                pageSize,
-                                page
-                            )
-                            .await()
-                    }
-                        .onFailure {
-                            Logger.warn { "taxa synchronization finished with errors" }
-                            hasErrors = true
-                            emit(
-                                onFailure(
-                                    it,
-                                    application.getString(R.string.sync_data_taxa_with_errors)
-                                )
-                            )
-                        }
-                        .getOrNull()
-                        ?: return@flow
-
-                    if (taxrefListResult.items.isEmpty()) {
-                        hasNext = false
-                        continue
-                    }
-
-                    val taxa = taxrefListResult.items
-                        .asSequence()
-                        .map { taxRef ->
-                            Taxon(
-                                id = taxRef.id,
-                                name = taxRef.name.trim(),
-                                taxonomy = Taxonomy(
-                                    taxRef.kingdom ?: Taxonomy.ANY,
-                                    taxRef.group ?: Taxonomy.ANY
-                                ),
-                                commonName = taxRef.commonName?.trim(),
-                                description = taxRef.fullName?.trim()
-                            )
-                        }
-                        .toList()
-
-                    val taxaList = taxrefListResult.items
-                        .asSequence()
-                        .flatMap { taxRef ->
-                            (taxRef.list
-                                ?: emptyList()).map {
-                                TaxonList(
-                                    taxRef.id,
-                                    it
-                                )
-                            }
-                        }
-                        .toList()
-
-                    runCatching {
-                        database
-                            .taxonDao()
-                            .insertAll(taxa)
-                        database
-                            .taxonListDao()
-                            .insertAll(taxaList)
-                    }.onFailure {
-                        Logger.warn(it) { "failed to update taxa (page: $page)" }
-                        hasErrors = true
-                    }
-
-                    Logger.info { "taxa to update: ${offset + taxa.size}" }
-
-                    emit(
-                        DataSyncStatus(
-                            state = WorkInfo.State.SUCCEEDED,
-                            syncMessage = application.getString(
-                                R.string.sync_data_taxa,
-                                (offset + taxa.size)
-                            )
-                        )
-                    )
-
-                    offset += pageSize
-                    page++
-                    hasNext = taxrefListResult.items.size == pageSize
-                } while (hasNext && !hasErrors)
-
-                updateTaxaLastUpdatedDate()
-
-                delay(500)
-            }
-
-            if (withAdditionalData && codeAreaType?.isNotBlank() == true) {
-                Logger.info { "synchronize taxa additional data..." }
-
-                offset = 0
-                page = 1
-
-                // fetch all taxa areas from paginated list
-                do {
-                    val taxrefAreasResponse = runCatching {
-                        geoNatureAPIClient
-                            .getTaxrefAreas(
-                                codeAreaType,
-                                pageSize,
-                                page
-                            )
-                            .await()
-                    }
-                        .onFailure {
-                            Logger.warn { "taxa by area synchronization finished with errors" }
-                            emit(
-                                onFailure(
-                                    it,
-                                    application.getString(R.string.sync_data_taxa_areas_with_errors)
-                                )
-                            )
-                        }
-                        .getOrNull()
-                        ?: return@flow
-
-                    if (taxrefAreasResponse.isEmpty()) {
-                        hasNext = false
-                        continue
-                    }
-
-                    Logger.info { "found ${taxrefAreasResponse.size} taxa with areas from page $page" }
-
-                    emit(
-                        DataSyncStatus(
-                            state = WorkInfo.State.SUCCEEDED,
-                            syncMessage = application.getString(
-                                R.string.sync_data_taxa_areas,
-                                (offset + taxrefAreasResponse.size)
-                            )
-                        )
-                    )
-
-                    val taxonAreas = taxrefAreasResponse
-                        .asSequence()
-                        .map {
-                            TaxonArea(
-                                it.taxrefId,
-                                it.areaId,
-                                it.color,
-                                it.numberOfObservers,
-                                it.lastUpdatedAt
-                            )
-                        }
-                        .toList()
-
-                    runCatching {
-                        database
-                            .taxonAreaDao()
-                            .insertAll(taxonAreas)
-                    }.onFailure { Logger.warn(it) { "failed to update taxa with areas (page: $page)" } }
-
-                    Logger.info { "updating ${taxonAreas.size} taxa with areas from page $page" }
-
-                    offset += pageSize
-                    page++
-                    hasNext = taxrefAreasResponse.size == pageSize
-                } while (hasNext)
-            }
-        }
-
     private fun onFailure(
         throwable: Throwable,
         errorMessage: String? = null
@@ -858,25 +647,6 @@ class DataSyncUseCase @Inject constructor(
         }
     }
 
-    private fun getTaxaLastUpdatedDate(): Date? {
-        return this.sharedPreferences
-            .getLong(
-                KEY_SYNC_TAXA_LAST_UPDATED_AT,
-                -1L
-            )
-            .takeUnless { it == -1L }
-            ?.let { Date(it) }
-    }
-
-    private fun updateTaxaLastUpdatedDate() {
-        this.sharedPreferences.edit {
-            putLong(
-                KEY_SYNC_TAXA_LAST_UPDATED_AT,
-                Date().time
-            )
-        }
-    }
-
     data class Params(
         val withAdditionalData: Boolean = true,
         val withAdditionalFields: Boolean = false,
@@ -884,8 +654,4 @@ class DataSyncUseCase @Inject constructor(
         val codeAreaType: String?,
         val pageSize: Int = DataSyncSettings.Builder.DEFAULT_PAGE_SIZE
     )
-
-    companion object {
-        private const val KEY_SYNC_TAXA_LAST_UPDATED_AT = "key_sync_taxa_last_updated_at"
-    }
 }

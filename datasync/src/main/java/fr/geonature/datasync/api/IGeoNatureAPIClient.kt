@@ -8,6 +8,7 @@ import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.TaxrefArea
+import fr.geonature.datasync.api.model.TaxrefListListResult
 import fr.geonature.datasync.api.model.TaxrefListResult
 import fr.geonature.datasync.api.model.TaxrefVersion
 import fr.geonature.datasync.api.model.User
@@ -96,11 +97,14 @@ interface IGeoNatureAPIClient {
 
     fun getUsers(menuId: Int): Call<List<User>>
 
+    fun getTaxrefList(): Call<TaxrefListListResult>
+
     fun getTaxonomyRanks(): Call<ResponseBody>
 
     fun getTaxref(
         limit: Int? = null,
         page: Int? = null,
+        list: List<Long>? = null
     ): Call<TaxrefListResult>
 
     fun getTaxrefAreas(

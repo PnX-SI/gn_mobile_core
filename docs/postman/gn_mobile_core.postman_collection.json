@@ -305,13 +305,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json;charset=UTF-8"
+								"value": "application/json;charset=UTF-8",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/json",
+								"type": "text"
 							}
 						],
 						"url": {
@@ -473,13 +473,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json;charset=UTF-8"
+								"value": "application/json;charset=UTF-8",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/json",
+								"type": "text"
 							}
 						],
 						"url": {
@@ -506,6 +506,24 @@
 					"response": []
 				},
 				{
+					"name": "/api/biblistes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{taxHubServerUrl}}/api/biblistes",
+							"host": [
+								"{{taxHubServerUrl}}"
+							],
+							"path": [
+								"api",
+								"biblistes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "/api/synthese/color_taxon",
 					"protocolProfileBehavior": {
 						"disableCookies": true
@@ -515,13 +533,13 @@
 						"header": [
 							{
 								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json;charset=UTF-8"
+								"value": "application/json;charset=UTF-8",
+								"type": "text"
 							},
 							{
 								"key": "Accept",
-								"type": "text",
-								"value": "application/json"
+								"value": "application/json",
+								"type": "text"
 							}
 						],
 						"url": {
@@ -1224,8 +1242,8 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"name": "Content-Type",
 						"value": "application/json",
+						"name": "Content-Type",
 						"type": "text"
 					},
 					{
@@ -1319,18 +1337,45 @@
 			"response": []
 		},
 		{
-			"name": "/api/biblistes",
+			"name": "/api/taxref?id_liste=&fields=",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=UTF-8"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
 				"url": {
-					"raw": "{{taxHubServerUrl}}/api/biblistes",
+					"raw": "{{taxHubServerUrl}}/api/taxref?limit=1000&offset=0&id_liste=105,107&fields=cd_nom,listes",
 					"host": [
 						"{{taxHubServerUrl}}"
 					],
 					"path": [
 						"api",
-						"biblistes"
+						"taxref"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "1000"
+						},
+						{
+							"key": "offset",
+							"value": "0"
+						},
+						{
+							"key": "id_liste",
+							"value": "105,107"
+						},
+						{
+							"key": "fields",
+							"value": "cd_nom,listes"
+						}
 					]
 				}
 			},
