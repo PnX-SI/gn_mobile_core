@@ -210,6 +210,7 @@ internal class AdditionalFieldJsonReaderTest {
                         name = "select_multiple",
                         label = "test select multiple"
                     ),
+                    datasetIds = listOf(8),
                     codeObjects = listOf(
                         CodeObject(
                             additionalFieldId = 13,
