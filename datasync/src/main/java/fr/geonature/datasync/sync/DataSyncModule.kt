@@ -7,16 +7,15 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import fr.geonature.commons.data.GeoNatureModuleName
+import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.dao.AppSyncDao
 import fr.geonature.commons.features.nomenclature.data.IAdditionalFieldLocalDataSource
 import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.datasync.sync.repository.ISynchronizeLocalDataRepository
+import fr.geonature.datasync.sync.repository.ISynchronizeAdditionalFieldsRepository
+import fr.geonature.datasync.sync.repository.ISynchronizeTaxaRepository
 import fr.geonature.datasync.sync.repository.SynchronizeAdditionalFieldsRepositoryImpl
-import javax.inject.Qualifier
+import fr.geonature.datasync.sync.repository.SynchronizeTaxaRepositoryImpl
 import javax.inject.Singleton
-
-@Qualifier
-annotation class SynchronizeAdditionalFieldsRepository
 
 /**
  * Data synchronization module.
@@ -29,13 +28,26 @@ object DataSyncModule {
 
     @Singleton
     @Provides
-    @SynchronizeAdditionalFieldsRepository
+    fun provideSynchronizeTaxaRepository(
+        @ApplicationContext appContext: Context,
+        geoNatureAPIClient: IGeoNatureAPIClient,
+        database: LocalDatabase
+    ): ISynchronizeTaxaRepository {
+        return SynchronizeTaxaRepositoryImpl(
+            appContext,
+            geoNatureAPIClient,
+            database
+        )
+    }
+
+    @Singleton
+    @Provides
     fun provideSynchronizeAdditionalFieldsRepository(
         @ApplicationContext appContext: Context,
         @GeoNatureModuleName moduleName: String,
         additionalFieldLocalDataSource: IAdditionalFieldLocalDataSource,
         geoNatureAPIClient: IGeoNatureAPIClient,
-    ): ISynchronizeLocalDataRepository {
+    ): ISynchronizeAdditionalFieldsRepository {
         return SynchronizeAdditionalFieldsRepositoryImpl(
             appContext,
             moduleName,

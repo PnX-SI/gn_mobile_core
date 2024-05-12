@@ -14,7 +14,12 @@ import retrofit2.await
 import java.io.BufferedReader
 
 /**
- * Implementation of [ISynchronizeLocalDataRepository] to synchronize additional fields.
+ * Default repository interface to synchronize additional fields.
+ */
+interface ISynchronizeAdditionalFieldsRepository : ISynchronizeLocalDataRepository<Unit>
+
+/**
+ * Implementation of [ISynchronizeAdditionalFieldsRepository] to synchronize additional fields.
  *
  * @author S. Grimault
  */
@@ -22,54 +27,58 @@ class SynchronizeAdditionalFieldsRepositoryImpl(
     private val context: Context,
     private val moduleName: String,
     private val additionalFieldLocalDataSource: IAdditionalFieldLocalDataSource,
-    private val geoNatureAPIClient: IGeoNatureAPIClient,
-) : ISynchronizeLocalDataRepository {
+    private val geoNatureAPIClient: IGeoNatureAPIClient
+) : ISynchronizeAdditionalFieldsRepository {
 
-    override suspend fun invoke(): Flow<DataSyncStatus> = flow {
-        Logger.info { "synchronize additional fields..." }
+    override suspend fun invoke(params: Unit): Flow<DataSyncStatus> =
+        flow {
+            Logger.info { "synchronize additional fields..." }
 
-        val additionalFieldJsonReader = AdditionalFieldJsonReader()
+            val additionalFieldJsonReader = AdditionalFieldJsonReader()
 
-        val additionalFields = runCatching {
-            geoNatureAPIClient.getAdditionalFields(moduleName.uppercase())
-                .await()
-                .let {
-                    additionalFieldJsonReader.read(
-                        it.byteStream()
-                            .bufferedReader()
-                            .use(BufferedReader::readText)
+            val additionalFields = runCatching {
+                geoNatureAPIClient
+                    .getAdditionalFields(moduleName.uppercase())
+                    .await()
+                    .let {
+                        additionalFieldJsonReader.read(
+                            it
+                                .byteStream()
+                                .bufferedReader()
+                                .use(BufferedReader::readText)
+                        )
+                    }
+            }
+                .onFailure { Logger.warn { it.message } }
+                .getOrDefault(emptyList())
+
+            if (additionalFields.isEmpty()) {
+                emit(DataSyncStatus(state = WorkInfo.State.SUCCEEDED))
+
+                return@flow
+            }
+
+            Logger.info { "${additionalFields.size} additional field(s) found" }
+
+            runCatching {
+                additionalFieldLocalDataSource.updateAdditionalFields(*additionalFields.toTypedArray())
+            }.onFailure {
+                emit(
+                    DataSyncStatus(
+                        state = WorkInfo.State.FAILED,
+                        syncMessage = context.getString(R.string.sync_data_additional_fields_error)
                     )
-                }
-        }.onFailure { Logger.warn { it.message } }
-            .getOrDefault(emptyList())
+                )
+            }
 
-        if (additionalFields.isEmpty()) {
-            emit(DataSyncStatus(state = WorkInfo.State.SUCCEEDED))
-
-            return@flow
-        }
-
-        Logger.info { "${additionalFields.size} additional field(s) found" }
-
-        runCatching {
-            additionalFieldLocalDataSource.updateAdditionalFields(*additionalFields.toTypedArray())
-        }.onFailure {
             emit(
                 DataSyncStatus(
-                    state = WorkInfo.State.FAILED,
-                    syncMessage = context.getString(R.string.sync_data_additional_fields_error)
+                    state = WorkInfo.State.SUCCEEDED,
+                    syncMessage = context.getString(
+                        R.string.sync_data_additional_fields,
+                        additionalFields.size
+                    )
                 )
             )
         }
-
-        emit(
-            DataSyncStatus(
-                state = WorkInfo.State.SUCCEEDED,
-                syncMessage = context.getString(
-                    R.string.sync_data_additional_fields,
-                    additionalFields.size
-                )
-            )
-        )
-    }
 }

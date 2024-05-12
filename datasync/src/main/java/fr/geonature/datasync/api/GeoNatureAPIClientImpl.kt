@@ -8,6 +8,7 @@ import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
 import fr.geonature.datasync.api.model.TaxrefArea
+import fr.geonature.datasync.api.model.TaxrefListListResult
 import fr.geonature.datasync.api.model.TaxrefListResult
 import fr.geonature.datasync.api.model.TaxrefVersion
 import fr.geonature.datasync.api.model.User
@@ -139,6 +140,13 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         return geoNatureService.getUsers(menuId)
     }
 
+    override fun getTaxrefList(): Call<TaxrefListListResult> {
+        val taxHubService = taxHubService
+            ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
+
+        return taxHubService.getTaxrefList()
+    }
+
     override fun getTaxonomyRanks(): Call<ResponseBody> {
         val taxHubService = taxHubService
             ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
@@ -148,14 +156,16 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
 
     override fun getTaxref(
         limit: Int?,
-        page: Int?
+        page: Int?,
+        list: List<Long>?
     ): Call<TaxrefListResult> {
         val taxHubService = taxHubService
             ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
 
         return taxHubService.getTaxref(
             limit,
-            page
+            page,
+            list?.joinToString(",")
         )
     }
 
