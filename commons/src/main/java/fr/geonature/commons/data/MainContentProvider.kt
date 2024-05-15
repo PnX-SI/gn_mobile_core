@@ -253,7 +253,7 @@ class MainContentProvider : ContentProvider() {
                 uri
             )
 
-            TAXA, TAXA_LIST_ID, TAXA_AREA_ID -> taxaQuery(
+            TAXA, TAXA_LIST_ID, TAXA_AREA_ID, TAXA_LIST_AREA_ID -> taxaQuery(
                 appContext,
                 uri,
                 selection,
