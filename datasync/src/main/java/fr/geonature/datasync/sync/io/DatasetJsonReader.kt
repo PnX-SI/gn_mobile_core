@@ -121,9 +121,7 @@ class DatasetJsonReader {
                 "active" -> active = reader.nextBoolean()
                 "meta_create_date" -> createdAt = toDate(reader.nextString())
                 "meta_update_date" -> updatedAt = toDate(reader.nextStringOrNull())
-                "id_taxa_list" -> taxaListId = reader
-                    .nextLongOrNull()
-                    ?.coerceAtLeast(0L)
+                "id_taxa_list" -> taxaListId = reader.nextLongOrNull()
 
                 else -> reader.skipValue()
             }
