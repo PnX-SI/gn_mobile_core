@@ -5,12 +5,12 @@ import com.google.gson.annotations.SerializedName
 /**
  * Authenticated user.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class AuthUser(
     id: Long,
     lastname: String,
-    firstname: String,
+    firstname: String?,
 
     @SerializedName("id_application")
     val applicationId: Int,

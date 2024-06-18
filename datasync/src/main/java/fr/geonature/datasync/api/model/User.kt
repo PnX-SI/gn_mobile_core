@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 /**
  * GeoNature User definition.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 open class User(
     @SerializedName("id_role")
@@ -15,7 +15,7 @@ open class User(
     val lastname: String,
 
     @SerializedName("prenom_role")
-    val firstname: String
+    val firstname: String?
 ) {
 
     override fun equals(other: Any?): Boolean {

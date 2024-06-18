@@ -112,8 +112,8 @@ class AuthManagerImpl(
                 (if (response.isSuccessful) response
                     .body()
                     ?.let {
-                        if (it.user.login.isBlank() || it.user.lastname.isBlank() || it.user.firstname.isBlank()) {
-                            Logger.warn { "invalid user: ${if (it.user.login.isBlank()) "missing 'login' attribute" else if (it.user.lastname.isBlank()) "missing 'lastname' attribute" else "missing 'firstname' attribute"}" }
+                        if (it.user.login.isBlank() || it.user.lastname.isBlank()) {
+                            Logger.warn { "invalid user: ${if (it.user.login.isBlank()) "missing 'login' attribute" else "missing 'lastname' attribute"}" }
                             Either.Left(AuthFailure.InvalidUserFailure)
                         } else Either.Right(it)
                     }
