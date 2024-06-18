@@ -101,7 +101,7 @@ class AuthLoginJsonReader {
 
         reader.endObject()
 
-        if (id == null || lastname.isNullOrBlank() || firstname.isNullOrBlank() || applicationId == null || organismId == null || login.isNullOrBlank()) {
+        if (id == null || lastname.isNullOrBlank() || applicationId == null || organismId == null || login.isNullOrBlank()) {
             return null
         }
 
