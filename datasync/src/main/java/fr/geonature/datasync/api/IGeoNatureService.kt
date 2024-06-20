@@ -72,7 +72,7 @@ interface IGeoNatureService {
     ): Call<List<User>>
 
     @Headers("Accept: application/json")
-    @GET("api/synthese/color_taxon")
+    @GET("api/synthese/color_taxon?orderby=cd_nom")
     fun getTaxrefAreas(
         @Query("code_area_type") codeAreaType: String? = null,
         @Query("limit") limit: Int? = null,
