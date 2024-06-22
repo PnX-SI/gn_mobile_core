@@ -18,7 +18,7 @@ data class DataSyncSettings(
     val taxHubServerUrl: String,
     val applicationId: Int = 0,
     val usersListId: Int = 0,
-    val taxrefListId: Int = 0,
+    val taxrefListId: Int = -1,
     val codeAreaType: String? = null,
     val pageSize: Int = Builder.DEFAULT_PAGE_SIZE,
     val dataSyncPeriodicity: Duration? = Builder.DEFAULT_DATA_SYNC_PERIODICITY,
@@ -87,7 +87,7 @@ data class DataSyncSettings(
         /**
          * GeoNature selected taxa list ID.
          */
-        private var taxrefListId: Int = 0
+        private var taxrefListId: Int = -1
 
         /**
          * GeoNature selected area type.
