@@ -348,32 +348,52 @@ abstract class AbstractTaxon : Parcelable {
                         COLUMN_NAME,
                         tableAlias
                     )
-                } = '$escapedQueryString' OR ${
+                } = '$escapedQueryString' COLLATE NOCASE OR ${
                     getColumnAlias(
                         COLUMN_NAME_COMMON,
                         tableAlias
                     )
-                } = '$escapedQueryString') THEN 1 WHEN (${
+                } = '$escapedQueryString' COLLATE NOCASE) THEN 1 WHEN (${
                     getColumnAlias(
                         COLUMN_NAME,
                         tableAlias
                     )
-                } LIKE '%$escapedQueryString%' OR ${
+                } LIKE '$escapedQueryString%' COLLATE NOCASE OR ${
                     getColumnAlias(
                         COLUMN_NAME_COMMON,
                         tableAlias
                     )
-                } LIKE '%$escapedQueryString%') THEN 2 WHEN (${
+                } LIKE '$escapedQueryString%' COLLATE NOCASE) THEN 2 WHEN (${
                     getColumnAlias(
                         COLUMN_NAME,
                         tableAlias
                     )
-                } GLOB '$normalizedQueryString' OR ${
+                } LIKE '%$escapedQueryString%' COLLATE NOCASE OR ${
                     getColumnAlias(
                         COLUMN_NAME_COMMON,
                         tableAlias
                     )
-                } GLOB '$normalizedQueryString') THEN 3 ELSE 4 END)"
+                } LIKE '%$escapedQueryString%' COLLATE NOCASE) THEN 3 WHEN (${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString' COLLATE NOCASE OR ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString' COLLATE NOCASE) THEN 4 ELSE 5 END), ${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } COLLATE NOCASE, ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )
+                } COLLATE NOCASE"
             )
 
             return this

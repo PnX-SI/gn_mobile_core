@@ -159,6 +159,7 @@ class TaxonTest {
                     every { cursor.getColumnIndexOrThrow(c.second) } returns -1
                     every { cursor.getColumnIndex(c.second) } returns -1
                 }
+
                 else -> {
                     every { cursor.getColumnIndexOrThrow(c.second) } returns index
                 }
@@ -218,6 +219,7 @@ class TaxonTest {
                     every { cursor.getColumnIndexOrThrow(c.second) } returns -1
                     every { cursor.getColumnIndex(c.second) } returns -1
                 }
+
                 else -> {
                     every { cursor.getColumnIndexOrThrow(c.second) }.throws(IllegalArgumentException())
                 }
@@ -442,7 +444,7 @@ class TaxonTest {
             .build()
 
         assertEquals(
-            "(CASE WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} = 'frelon d''' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} = 'frelon d''') THEN 1" + " WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE '%frelon d''%' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE '%frelon d''%') THEN 2" + " WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB '*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*' OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB '*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*') THEN 3" + " ELSE 4 END)",
+            "(CASE WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} = 'frelon d''' COLLATE NOCASE OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} = 'frelon d''' COLLATE NOCASE) THEN 1 WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE 'frelon d''%' COLLATE NOCASE OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE 'frelon d''%' COLLATE NOCASE) THEN 2 WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} LIKE '%frelon d''%' COLLATE NOCASE OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} LIKE '%frelon d''%' COLLATE NOCASE) THEN 3 WHEN (${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB '*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*' COLLATE NOCASE OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB '*[fF][rR][eéèëêẽEÉÈËÊẼ][lL][oóòöôõõOÓÒÖÔÕ][nñNÑ] [dD]['']*' COLLATE NOCASE) THEN 4" + " ELSE 5 END), ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} COLLATE NOCASE, ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} COLLATE NOCASE",
             orderByName
         )
     }
