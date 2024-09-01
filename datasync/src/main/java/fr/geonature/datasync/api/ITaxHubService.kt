@@ -25,7 +25,7 @@ interface ITaxHubService {
     fun getTaxonomyRanks(): Call<ResponseBody>
 
     @Headers("Accept: application/json")
-    @GET("api/taxref?orderby=cd_nom")
+    @GET("api/taxref?orderby=cd_nom&fields=listes")
     fun getTaxref(
         @Query("limit") limit: Int? = null,
         @Query("page") page: Int? = null,
