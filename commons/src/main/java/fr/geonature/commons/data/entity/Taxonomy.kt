@@ -95,15 +95,11 @@ class Taxonomy : Parcelable {
         const val ANY = "any"
 
         private val sanitizeValue: (String?) -> String = { value ->
-            if (value.isNullOrEmpty() || arrayOf(
-                    "autre",
-                    "all"
-                ).any {
+            if (value.isNullOrEmpty() || arrayOf("all").any {
                     value
                         .lowercase(Locale.ROOT)
                         .startsWith(it)
-                }
-            ) ANY
+                }) ANY
             else value
         }
 
