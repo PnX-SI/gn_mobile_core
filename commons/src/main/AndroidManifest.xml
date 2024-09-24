@@ -3,14 +3,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="fr.geonature.sync.permission.READ" />
-    <uses-permission android:name="fr.geonature.sync.permission.WRITE" />
+    <uses-permission android:name="${applicationId}.provider.permission.READ" />
+    <uses-permission android:name="${applicationId}.provider.permission.WRITE" />
 
     <permission
-        android:name="fr.geonature.sync.permission.READ"
+        android:name="${applicationId}.provider.permission.READ"
         android:protectionLevel="signature" />
     <permission
-        android:name="fr.geonature.sync.permission.WRITE"
+        android:name="${applicationId}.provider.permission.WRITE"
         android:protectionLevel="signature" />
 
 </manifest>
