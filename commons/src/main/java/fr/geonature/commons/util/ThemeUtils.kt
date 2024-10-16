@@ -3,7 +3,6 @@ package fr.geonature.commons.util
 import android.content.Context
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
-import fr.geonature.commons.R
 
 /**
  * Helper class about application theme.
@@ -16,7 +15,7 @@ object ThemeUtils {
     fun getPrimaryColor(context: Context): Int {
         return getColor(
             context,
-            R.attr.colorPrimary
+            androidx.appcompat.R.attr.colorPrimary
         )
     }
 
@@ -24,7 +23,7 @@ object ThemeUtils {
     fun getPrimaryDarkColor(context: Context): Int {
         return getColor(
             context,
-            R.attr.colorPrimaryDark
+            androidx.appcompat.R.attr.colorPrimaryDark
         )
     }
 
@@ -32,7 +31,7 @@ object ThemeUtils {
     fun getAccentColor(context: Context): Int {
         return getColor(
             context,
-            R.attr.colorAccent
+            androidx.appcompat.R.attr.colorAccent
         )
     }
 
@@ -40,7 +39,7 @@ object ThemeUtils {
     fun getErrorColor(context: Context): Int {
         return getColor(
             context,
-            R.attr.colorError
+            androidx.appcompat.R.attr.colorError
         )
     }
 

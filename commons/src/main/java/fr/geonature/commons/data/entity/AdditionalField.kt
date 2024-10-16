@@ -94,7 +94,7 @@ data class AdditionalField(
     tableName = AdditionalFieldDataset.TABLE_NAME,
     primaryKeys = [
         AdditionalFieldDataset.COLUMN_ADDITIONAL_FIELD_ID,
-        AdditionalFieldDataset.COLUMN_DATASET_ID
+        AdditionalFieldDataset.COLUMN_DATASET_ID,
     ],
     indices = [
         Index(
@@ -145,6 +145,14 @@ data class AdditionalFieldDataset(
     primaryKeys = [
         AdditionalFieldNomenclature.COLUMN_ADDITIONAL_FIELD_ID,
         AdditionalFieldNomenclature.COLUMN_NOMENCLATURE_TYPE_MNEMONIC,
+    ],
+    indices = [
+        Index(
+            value = [AdditionalFieldNomenclature.COLUMN_ADDITIONAL_FIELD_ID]
+        ),
+        Index(
+            value = [AdditionalFieldNomenclature.COLUMN_NOMENCLATURE_TYPE_MNEMONIC]
+        ),
     ],
     foreignKeys = [
         ForeignKey(
