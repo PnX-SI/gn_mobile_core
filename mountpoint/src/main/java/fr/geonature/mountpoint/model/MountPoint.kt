@@ -1,9 +1,7 @@
 package fr.geonature.mountpoint.model
 
-import android.os.Build
 import android.os.Environment
 import android.os.Parcelable
-import androidx.annotation.RequiresApi
 import fr.geonature.mountpoint.util.DeviceUtils
 import kotlinx.parcelize.Parcelize
 import java.io.File
@@ -25,7 +23,7 @@ data class MountPoint(
 
     fun getStorageState(): String {
 
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP) if (DeviceUtils.isPostLollipop) {
+        if (DeviceUtils.isPostLollipop) {
             return Environment.getExternalStorageState(mountPath)
         }
 

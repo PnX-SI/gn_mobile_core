@@ -3,6 +3,7 @@ package fr.geonature.commons.data.entity
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import fr.geonature.compat.os.readParcelableCompat
 
 /**
  * Describes a default nomenclature item with nomenclature type from given module.
@@ -30,7 +31,7 @@ class DefaultNomenclatureWithType : DefaultNomenclature {
     )
 
     private constructor(source: Parcel) : super(source) {
-        nomenclatureWithType = source.readParcelable(Nomenclature::class.java.classLoader)
+        nomenclatureWithType = source.readParcelableCompat()
     }
 
     override fun equals(other: Any?): Boolean {

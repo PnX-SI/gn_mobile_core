@@ -16,7 +16,6 @@ import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.AuthLoginError
 import fr.geonature.datasync.api.model.AuthUser
 import fr.geonature.datasync.auth.error.AuthFailure
-import io.mockk.Called
 import io.mockk.MockKAnnotations.init
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -169,9 +168,8 @@ class AuthManagerTest {
 
             // then
             assertTrue(auth.isLeft)
-            auth.fold({ assertTrue(it is Failure.NetworkFailure) },
-                {})
-            verify { geoNatureAPIClient.authLogin(any()) wasNot Called }
+            auth.fold({ assertTrue(it is Failure.NetworkFailure) }, {})
+            verify(exactly = 0) { geoNatureAPIClient.authLogin(any()) }
         }
 
     @Test
