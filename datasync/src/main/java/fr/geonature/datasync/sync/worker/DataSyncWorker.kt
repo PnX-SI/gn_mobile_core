@@ -3,6 +3,7 @@ package fr.geonature.datasync.sync.worker
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -186,35 +187,48 @@ class DataSyncWorker @AssistedInject constructor(
             return
         }
 
-        setForeground(
-            ForegroundInfo(
-                notificationId,
-                NotificationCompat
-                    .Builder(
+        NotificationCompat
+            .Builder(
+                applicationContext,
+                notificationChannelId
+            )
+            .setAutoCancel(true)
+            .setContentTitle(applicationContext.getText(R.string.notification_data_synchronization_title))
+            .setContentText(contentText)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    applicationContext,
+                    0,
+                    Intent(
                         applicationContext,
-                        notificationChannelId
-                    )
-                    .setAutoCancel(true)
-                    .setContentTitle(applicationContext.getText(R.string.notification_data_synchronization_title))
-                    .setContentText(contentText)
-                    .setContentIntent(
-                        PendingIntent.getActivity(
-                            applicationContext,
-                            0,
-                            Intent(
-                                applicationContext,
-                                componentClassIntentOrDefault
-                            ).apply {
-                                flags =
-                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            },
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                        componentClassIntentOrDefault
+                    ).apply {
+                        flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    },
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                )
+            )
+            .setSmallIcon(R.drawable.ic_sync)
+            .build()
+            .also {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    setForeground(
+                        ForegroundInfo(
+                            notificationId,
+                            it,
+                            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                         )
                     )
-                    .setSmallIcon(R.drawable.ic_sync)
-                    .build()
-            )
-        )
+                } else {
+                    setForeground(
+                        ForegroundInfo(
+                            notificationId,
+                            it
+                        )
+                    )
+                }
+            }
     }
 
     private fun workData(

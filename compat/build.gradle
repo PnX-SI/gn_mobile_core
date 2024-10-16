@@ -1,18 +1,27 @@
 plugins {
-    id 'com.android.library'
-    id 'kotlin-parcelize'
-    id 'org.jetbrains.kotlin.android'
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 version = "0.0.1"
 
 android {
     namespace 'fr.geonature.compat'
-    compileSdk 33
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
 
     defaultConfig {
-        minSdk 19
-        targetSdk 33
+        compileSdk 34
+        minSdkVersion 19
+        targetSdkVersion 34
         versionCode updateVersionCode(project.name)
         versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -25,13 +34,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
 
     testOptions {
         unitTests {
@@ -41,8 +43,9 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // Testing dependencies
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.robolectric:robolectric:4.9.2'
+    testImplementation libs.junit
+    testImplementation libs.robolectric
 }

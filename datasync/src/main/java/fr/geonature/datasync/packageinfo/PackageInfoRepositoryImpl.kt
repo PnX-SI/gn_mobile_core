@@ -98,6 +98,7 @@ class PackageInfoRepositoryImpl(
         return allPackageInfos[packageName]
     }
 
+    @Deprecated("use directly getInputsToSynchronize() from PackageInfo")
     override suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput> {
         return packageInfo.getInputsToSynchronize(applicationContext)
     }

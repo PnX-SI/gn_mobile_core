@@ -1,30 +1,29 @@
 plugins {
-    id 'com.android.library'
-    id 'dagger.hilt.android.plugin'
-    id 'kotlin-kapt'
-    id 'kotlin-parcelize'
-    id 'org.jetbrains.kotlin.android'
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.kapt)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.android)
 }
 
 version = "1.4.6"
 
 android {
     namespace 'fr.geonature.commons'
-    compileSdkVersion 33
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
+        compileSdk 34
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode updateVersionCode(project.name)
         versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -50,34 +49,34 @@ dependencies {
     api project(':compat')
     api project(':mountpoint')
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
-    implementation 'androidx.preference:preference-ktx:1.2.1'
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.preference.ktx
 
     // Room
-    api "androidx.room:room-runtime:$room_version"
-    api "androidx.room:room-ktx:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
+    api libs.androidx.room.runtime
+    api libs.androidx.room.ktx
+    kapt libs.androidx.room.compiler
 
     // Hilt dependencies
-    implementation "com.google.dagger:hilt-android:$hilt_version"
-    kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
+    implementation libs.hilt.android
+    kapt libs.hilt.android.compiler
 
     // Logging
-    implementation "org.tinylog:tinylog-api-kotlin:$tinylog_version"
-    runtimeOnly "org.tinylog:tinylog-impl:$tinylog_version"
+    implementation libs.tinylog.api.kotlin
+    runtimeOnly libs.tinylog.impl
 
     // Testing dependencies
-    testImplementation 'androidx.arch.core:core-testing:2.2.0'
-    testImplementation 'androidx.test:core:1.5.0'
-    testImplementation 'androidx.test.ext:junit-ktx:1.1.5'
-    testImplementation "com.google.dagger:hilt-android-testing:$hilt_version"
-    kaptTest "com.google.dagger:hilt-android-compiler:$hilt_version"
-    testImplementation 'io.mockk:mockk:1.13.4'
-    testImplementation 'io.mockk:mockk-agent-jvm:1.13.4'
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1'
-    testImplementation 'org.robolectric:robolectric:4.9.2'
-    testImplementation "org.tinylog:slf4j-tinylog:$tinylog_version"
+    testImplementation libs.androidx.core.testing
+    testImplementation libs.androidx.core
+    testImplementation libs.androidx.junit.ktx
+    testImplementation libs.hilt.android.testing
+    kaptTest libs.hilt.android.compiler
+    testImplementation libs.mockk
+    testImplementation libs.mockk.agent.jvm
+    testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.robolectric
+    testImplementation libs.slf4j.tinylog
 }

@@ -1,28 +1,28 @@
 plugins {
-    id 'com.android.library'
-    id 'dagger.hilt.android.plugin'
-    id 'kotlin-kapt'
-    id 'org.jetbrains.kotlin.android'
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.kapt)
+    alias(libs.plugins.kotlin.android)
 }
 
 version = "0.6.2"
 
 android {
     namespace 'fr.geonature.datasync'
-    compileSdk 33
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
-        minSdk 21
-        targetSdk 33
+        compileSdk 34
+        minSdkVersion 21
+        targetSdkVersion 34
         versionCode updateVersionCode(project.name)
         versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -48,36 +48,36 @@ dependencies {
 
     implementation project(':commons')
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
-    implementation 'androidx.preference:preference-ktx:1.2.1'
-    implementation 'androidx.work:work-runtime-ktx:2.8.1'
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.preference.ktx
+    implementation libs.androidx.work.runtime.ktx
+    implementation libs.material
 
     // Hilt dependencies
-    implementation "androidx.hilt:hilt-work:$androidx_hilt_version"
-    implementation "com.google.dagger:hilt-android:$hilt_version"
-    kapt "androidx.hilt:hilt-compiler:$androidx_hilt_version"
-    kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
+    implementation libs.androidx.hilt.work
+    implementation libs.hilt.android
+    kapt libs.androidx.hilt.compiler
+    kapt libs.hilt.android.compiler
 
     // Logging
-    implementation "org.tinylog:tinylog-api-kotlin:$tinylog_version"
-    runtimeOnly "org.tinylog:tinylog-impl:$tinylog_version"
+    implementation libs.tinylog.api.kotlin
+    runtimeOnly libs.tinylog.impl
 
     // Networking dependencies
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
-    api "com.squareup.retrofit2:converter-gson:$retrofit_version"
-    api "com.squareup.retrofit2:retrofit:$retrofit_version"
+    implementation libs.logging.interceptor
+    api libs.converter.gson
+    api libs.retrofit
 
     // Testing dependencies
-    testImplementation 'androidx.arch.core:core-testing:2.2.0'
-    testImplementation 'androidx.test:core:1.5.0'
-    testImplementation 'io.mockk:mockk:1.13.4'
-    testImplementation 'io.mockk:mockk-agent-jvm:1.13.4'
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1'
-    testImplementation 'org.robolectric:robolectric:4.9.2'
-    testImplementation "org.tinylog:slf4j-tinylog:$tinylog_version"
+    testImplementation libs.androidx.core.testing
+    testImplementation libs.androidx.core
+    testImplementation libs.mockk
+    testImplementation libs.mockk.agent.jvm
+    testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.robolectric
+    testImplementation libs.slf4j.tinylog
 }
