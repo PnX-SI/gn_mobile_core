@@ -1,18 +1,17 @@
 package fr.geonature.datasync.auth
 
-import android.app.Application
 import android.text.TextUtils
 import androidx.annotation.StringRes
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.commons.error.Failure
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.auth.error.AuthFailure
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,11 +21,7 @@ import javax.inject.Inject
  * @author S. Grimault
  */
 @HiltViewModel
-class AuthLoginViewModel @Inject constructor(
-    application: Application,
-    private val authManager: IAuthManager,
-    geoNatureAPIClient: IGeoNatureAPIClient
-) : AndroidViewModel(application) {
+class AuthLoginViewModel @Inject constructor(private val authManager: IAuthManager) : ViewModel() {
 
     private val _loginFormState = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginFormState
@@ -34,18 +29,7 @@ class AuthLoginViewModel @Inject constructor(
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
-    val isLoggedIn: LiveData<Boolean> = authManager.isLoggedIn
-
-    init {
-        if (!geoNatureAPIClient.checkSettings()) {
-            _loginResult.value = LoginResult(error = R.string.login_failed_server_url_configuration)
-            _loginFormState.value = LoginFormState(
-                isValid = false,
-                usernameError = null,
-                passwordError = null
-            )
-        }
-    }
+    val isLoggedIn: LiveData<AuthLogin?> = authManager.isLoggedIn
 
     fun checkAuthLogin(): LiveData<AuthLogin?> {
         val authLoginLiveData = MutableLiveData<AuthLogin?>()
@@ -75,16 +59,23 @@ class AuthLoginViewModel @Inject constructor(
                     is GeoNatureMissingConfigurationFailure -> {
                         LoginResult(error = R.string.login_failed_server_url_configuration)
                     }
-                    is AuthFailure -> {
+
+                    is AuthFailure.AuthLoginFailure -> {
                         when (it.authLoginError.type) {
                             "login" -> LoginResult(error = R.string.login_failed_login)
                             "password" -> LoginResult(error = R.string.login_failed_password)
                             else -> LoginResult(error = R.string.login_failed)
                         }
                     }
+
+                    is AuthFailure.InvalidUserFailure -> {
+                        LoginResult(error = R.string.login_failed_invalid_user)
+                    }
+
                     is Failure.NetworkFailure -> {
                         LoginResult(error = R.string.error_network_lost)
                     }
+
                     else -> LoginResult(error = R.string.login_failed)
                 }
             },

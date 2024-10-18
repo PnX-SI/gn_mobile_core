@@ -27,6 +27,15 @@ class ProviderHelperTest {
         )
 
         assertEquals(
+            "content://$authority/taxa",
+            buildUri(
+                authority,
+                "taxa",
+                ""
+            ).toString()
+        )
+
+        assertEquals(
             "content://$authority/taxa/123",
             buildUri(
                 authority,

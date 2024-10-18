@@ -2,9 +2,9 @@
 
 GeoNature Android mobile application to synchronize data from a GeoNature instance.
 
-Used by Occtax-mobile (https://github.com/PnX-SI/gn_mobile_occtax).
+Used by [Occtax-mobile](https://github.com/PnX-SI/gn_mobile_occtax).
 
 ## Documentation
 
-- Settings details: https://github.com/PnX-SI/gn_mobile_core/tree/master/sync
-- Development: https://github.com/PnX-SI/gn_mobile_core/tree/master/docs
+- Settings details: https://github.com/PnX-SI/gn_mobile_core/tree/develop/datasync
+- Development: https://github.com/PnX-SI/gn_mobile_core/tree/develop/docs

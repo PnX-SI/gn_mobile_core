@@ -1,29 +1,41 @@
 package fr.geonature.mountpoint.model
 
+import android.app.Application
 import android.os.Parcel
+import androidx.test.core.app.ApplicationProvider
+import kotlinx.parcelize.parcelableCreator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.File
 
 /**
  * Unit tests about [MountPoint].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class MountPointTest {
 
+    private lateinit var application: Application
+
+    @Before
+    fun setUp() {
+        application = ApplicationProvider.getApplicationContext()
+    }
+
     @Test
-    fun testCompareTo() {
+    fun `should compare with another MountPoint`() {
         // given two MountPoint of same type
         val mountPoint1 = MountPoint(
-            "/storage1",
+            File(application.filesDir, "f1/").apply { mkdirs() },
             MountPoint.StorageType.INTERNAL
         )
         val mountPoint2 = MountPoint(
-            "/storage2",
+            File(application.filesDir, "f2/").apply { mkdirs() },
             MountPoint.StorageType.INTERNAL
         )
 
@@ -33,18 +45,20 @@ class MountPointTest {
 
         // given an identical MountPoint of same type
         val mountPoint2a = MountPoint(
-            "/storage2",
+            File(application.filesDir, "f2/").apply { mkdirs() },
             MountPoint.StorageType.INTERNAL
         )
 
         assertEquals(
             0,
-            mountPoint2.compareTo(mountPoint2a).toLong()
+            mountPoint2
+                .compareTo(mountPoint2a)
+                .toLong()
         )
 
         // given another MountPoint of different type
         val mountPoint3 = MountPoint(
-            "/mnt/sdcard1",
+            File(application.filesDir, "f1/").apply { mkdirs() },
             MountPoint.StorageType.EXTERNAL
         )
 
@@ -54,7 +68,7 @@ class MountPointTest {
 
         // given another MountPoint of different type
         val mountPoint4 = MountPoint(
-            "/another",
+            File(application.filesDir, "f1/").apply { mkdirs() },
             MountPoint.StorageType.USB
         )
 
@@ -66,10 +80,10 @@ class MountPointTest {
     }
 
     @Test
-    fun testParcelable() {
+    fun `should create MountPoint from Parcelable`() {
         // given MountPoint
         val mountPoint = MountPoint(
-            "/storage1",
+            File(application.filesDir, "f1/").apply { mkdirs() },
             MountPoint.StorageType.INTERNAL
         )
 
@@ -86,7 +100,7 @@ class MountPointTest {
         // then
         assertEquals(
             mountPoint,
-            MountPoint.CREATOR.createFromParcel(parcel)
+            parcelableCreator<MountPoint>().createFromParcel(parcel)
         )
     }
 }

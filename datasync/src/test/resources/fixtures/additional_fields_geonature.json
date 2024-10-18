@@ -1,0 +1,517 @@
+[
+  {
+    "additional_attributes": null,
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "Test champs",
+    "field_name": "test_add",
+    "field_order": null,
+    "field_values": null,
+    "id_field": 2,
+    "id_list": null,
+    "id_widget": 4,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_RELEVE",
+        "description_object": "Repr\u00e9sente la table pr_occtax.t_releves_occtax",
+        "id_object": 4
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 4,
+      "widget_name": "text"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {},
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "exemple select",
+    "field_name": "exemple select",
+    "field_order": null,
+    "field_values": [
+      "test1",
+      "test2"
+    ],
+    "id_field": 6,
+    "id_list": null,
+    "id_widget": 1,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_RELEVE",
+        "description_object": "Repr\u00e9sente la table pr_occtax.t_releves_occtax",
+        "id_object": 4
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 1,
+      "widget_name": "select"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {},
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "Test radio",
+    "field_name": "test_radio",
+    "field_order": null,
+    "field_values": [
+      "Oui",
+      "Non"
+    ],
+    "id_field": 9,
+    "id_list": null,
+    "id_widget": 6,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_RELEVE",
+        "description_object": "Repr\u00e9sente la table pr_occtax.t_releves_occtax",
+        "id_object": 4
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 6,
+      "widget_name": "radio"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {},
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "Test checkbox",
+    "field_name": "test_checkbox",
+    "field_order": null,
+    "field_values": [
+      "check1",
+      "check2"
+    ],
+    "id_field": 10,
+    "id_list": null,
+    "id_widget": 2,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_RELEVE",
+        "description_object": "Repr\u00e9sente la table pr_occtax.t_releves_occtax",
+        "id_object": 4
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 2,
+      "widget_name": "checkbox"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {
+      "cd_nomenclatures": [
+        "VENT_2"
+      ]
+    },
+    "api": null,
+    "bib_nomenclature_type": {
+      "definition_de": null,
+      "definition_default": "vent (protoc\u00f4le de suivi POPAmphibien)",
+      "definition_en": null,
+      "definition_es": null,
+      "definition_fr": "vent (protoc\u00f4le de suivi POPAmphibien)",
+      "definition_it": null,
+      "id_type": 139,
+      "label_de": null,
+      "label_default": "Vent",
+      "label_en": null,
+      "label_es": null,
+      "label_fr": "Vent",
+      "label_it": null,
+      "meta_create_date": "2022-01-20 23:05:46.077850",
+      "meta_update_date": null,
+      "mnemonique": "VENT",
+      "source": "monitoring",
+      "statut": "Validation en cours"
+    },
+    "code_nomenclature_type": "VENT",
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "Test nomenclature",
+    "field_name": "test nomenclature",
+    "field_order": null,
+    "field_values": {},
+    "id_field": 8,
+    "id_list": null,
+    "id_widget": 3,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_RELEVE",
+        "description_object": "Repr\u00e9sente la table pr_occtax.t_releves_occtax",
+        "id_object": 4
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 3,
+      "widget_name": "nomenclature"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {},
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "Radio test 2",
+    "field_name": "radio_test2",
+    "field_order": null,
+    "field_values": [
+      true,
+      false
+    ],
+    "id_field": 12,
+    "id_list": null,
+    "id_widget": 6,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_RELEVE",
+        "description_object": "Repr\u00e9sente la table pr_occtax.t_releves_occtax",
+        "id_object": 4
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 6,
+      "widget_name": "radio"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {},
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "Test bool radio",
+    "field_name": "bool_radio",
+    "field_order": null,
+    "field_values": [
+      "truc",
+      "bidule"
+    ],
+    "id_field": 11,
+    "id_list": null,
+    "id_widget": 6,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_RELEVE",
+        "description_object": "Repr\u00e9sente la table pr_occtax.t_releves_occtax",
+        "id_object": 4
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 6,
+      "widget_name": "radio"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {},
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [
+      {
+        "active": true,
+        "bbox_east": null,
+        "bbox_north": null,
+        "bbox_south": null,
+        "bbox_west": null,
+        "dataset_desc": "Some dataset",
+        "dataset_name": "Some dataset",
+        "dataset_shortname": "Some dataset",
+        "id_acquisition_framework": 5,
+        "id_dataset": 8,
+        "id_digitizer": null,
+        "id_nomenclature_collecting_method": 396,
+        "id_nomenclature_data_origin": 76,
+        "id_nomenclature_data_type": 323,
+        "id_nomenclature_dataset_objectif": 408,
+        "id_nomenclature_resource_type": 321,
+        "id_nomenclature_source_status": 73,
+        "id_taxa_list": null,
+        "keywords": null,
+        "marine_domain": true,
+        "meta_create_date": "2022-01-17 21:37:13.240141",
+        "meta_update_date": null,
+        "terrestrial_domain": true,
+        "unique_dataset_id": "9c0b61d4-ffeb-11ee-83af-ef5cde3fc7e5",
+        "validable": true
+      }
+    ],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "test select multiple",
+    "field_name": "select_multiple",
+    "field_order": null,
+    "field_values": [
+      {
+        "label": "val 01",
+        "value": "val1"
+      },
+      {
+        "label": "val 02",
+        "value": "val2"
+      },
+      {
+        "label": "val 03",
+        "value": "val3"
+      },
+      {
+        "label": "val 04",
+        "value": "val4"
+      }
+    ],
+    "id_field": 13,
+    "id_list": null,
+    "id_widget": 10,
+    "modules": [
+      {
+        "active_backend": true,
+        "active_frontend": true,
+        "id_module": 4,
+        "meta_create_date": "2021-12-01 17:38:29.087265",
+        "meta_update_date": "2023-04-05 10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_comment": null,
+        "module_desc": null,
+        "module_doc_url": null,
+        "module_external_url": null,
+        "module_group": null,
+        "module_label": "OccTax",
+        "module_order": null,
+        "module_path": "occtax",
+        "module_picto": "fa-map-marker",
+        "module_target": "_self",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_DENOMBREMENT",
+        "description_object": "Représente la table pr_occtax.cor_counting_occtax",
+        "id_object": 6
+      }
+    ],
+    "quantitative": false,
+    "required": false,
+    "type_widget": {
+      "id_widget": 10,
+      "widget_name": "multiselect"
+    },
+    "unity": null
+  }
+]

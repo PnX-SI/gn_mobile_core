@@ -62,10 +62,10 @@ class Taxonomy : Parcelable {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeString(kingdom)
             it.writeString(group)
         }
@@ -95,15 +95,11 @@ class Taxonomy : Parcelable {
         const val ANY = "any"
 
         private val sanitizeValue: (String?) -> String = { value ->
-            if (value == null || value.isEmpty() || arrayOf(
-                    "autre",
-                    "all"
-                ).any {
+            if (value.isNullOrEmpty() || arrayOf("all").any {
                     value
                         .lowercase(Locale.ROOT)
                         .startsWith(it)
-                }
-            ) ANY
+                }) ANY
             else value
         }
 

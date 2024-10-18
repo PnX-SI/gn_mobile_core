@@ -1,15 +1,16 @@
 package fr.geonature.commons.data.entity
 
 import android.database.Cursor
-import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
+import kotlinx.parcelize.Parcelize
 import org.tinylog.Logger
 import java.util.Date
 
@@ -19,75 +20,47 @@ import java.util.Date
  * @author S. Grimault
  */
 @Entity(
-    tableName = Dataset.TABLE_NAME,
-    primaryKeys = [Dataset.COLUMN_ID, Dataset.COLUMN_MODULE]
+    tableName = Dataset.TABLE_NAME
 )
 @TypeConverters(Converters::class)
+@Parcelize
 data class Dataset(
 
     /**
      * The unique ID of this dataset.
      */
-    @ColumnInfo(name = COLUMN_ID)
-    var id: Long,
-
-    /**
-     * The related module of this dataset.
-     */
-    @ColumnInfo(name = COLUMN_MODULE)
-    var module: String,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = COLUMN_ID) val id: Long,
 
     /**
      * The name of the dataset.
      */
-    @ColumnInfo(name = COLUMN_NAME)
-    var name: String,
+    @ColumnInfo(name = COLUMN_NAME) val name: String,
 
     /**
      * The description of the dataset.
      */
-    @ColumnInfo(name = COLUMN_DESCRIPTION)
-    var description: String?,
+    @ColumnInfo(name = COLUMN_DESCRIPTION) val description: String?,
 
     /**
      * Whether this dataset is active or not.
      */
-    @ColumnInfo(name = COLUMN_ACTIVE)
-    var active: Boolean = false,
+    @ColumnInfo(name = COLUMN_ACTIVE) val active: Boolean = false,
 
     /**
      * The creation date of this dataset.
      */
-    @ColumnInfo(name = COLUMN_CREATED_AT)
-    var createdAt: Date?
+    @ColumnInfo(name = COLUMN_CREATED_AT) val createdAt: Date,
+
+    /**
+     * The updated date of this dataset.
+     */
+    @ColumnInfo(name = COLUMN_UPDATED_AT) val updatedAt: Date?,
+
+    /**
+     * The taxa list id of this dataset.
+     */
+    @ColumnInfo(name = COLUMN_TAXA_LIST_ID) val taxaListId: Long?
 ) : Parcelable {
-
-    private constructor(source: Parcel) : this(
-        source.readLong(),
-        source.readString()!!,
-        source.readString()!!,
-        source.readString(),
-        source.readByte() == 1.toByte(),
-        source.readSerializable() as Date
-    )
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    override fun writeToParcel(
-        dest: Parcel?,
-        flags: Int
-    ) {
-        dest?.also {
-            it.writeLong(id)
-            it.writeString(module)
-            it.writeString(name)
-            it.writeString(description)
-            it.writeByte((if (active) 1 else 0).toByte()) // as boolean value
-            it.writeSerializable(createdAt)
-        }
-    }
 
     companion object {
 
@@ -101,11 +74,12 @@ data class Dataset(
          */
         const val COLUMN_ID = BaseColumns._ID
 
-        const val COLUMN_MODULE = "module"
         const val COLUMN_NAME = "name"
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_ACTIVE = "active"
         const val COLUMN_CREATED_AT = "created_at"
+        const val COLUMN_UPDATED_AT = "updated_at"
+        const val COLUMN_TAXA_LIST_ID = "taxa_list_id"
 
         /**
          * Gets the default projection.
@@ -114,10 +88,6 @@ data class Dataset(
             return arrayOf(
                 column(
                     COLUMN_ID,
-                    tableAlias
-                ),
-                column(
-                    COLUMN_MODULE,
                     tableAlias
                 ),
                 column(
@@ -134,6 +104,14 @@ data class Dataset(
                 ),
                 column(
                     COLUMN_CREATED_AT,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_UPDATED_AT,
+                    tableAlias
+                ),
+                column(
+                    COLUMN_TAXA_LIST_ID,
                     tableAlias
                 )
             )
@@ -180,14 +158,6 @@ data class Dataset(
                     requireNotNull(
                         cursor.get(
                             getColumnAlias(
-                                COLUMN_MODULE,
-                                tableAlias
-                            )
-                        )
-                    ),
-                    requireNotNull(
-                        cursor.get(
-                            getColumnAlias(
                                 COLUMN_NAME,
                                 tableAlias
                             )
@@ -208,9 +178,23 @@ data class Dataset(
                             false
                         )
                     ),
+                    requireNotNull(
+                        cursor.get(
+                            getColumnAlias(
+                                COLUMN_CREATED_AT,
+                                tableAlias
+                            )
+                        )
+                    ),
                     cursor.get(
                         getColumnAlias(
-                            COLUMN_CREATED_AT,
+                            COLUMN_UPDATED_AT,
+                            tableAlias
+                        )
+                    ),
+                    cursor.get(
+                        getColumnAlias(
+                            COLUMN_TAXA_LIST_ID,
                             tableAlias
                         )
                     )
@@ -221,18 +205,6 @@ data class Dataset(
                 }
 
                 null
-            }
-        }
-
-        @JvmField
-        val CREATOR: Parcelable.Creator<Dataset> = object : Parcelable.Creator<Dataset> {
-
-            override fun createFromParcel(source: Parcel): Dataset {
-                return Dataset(source)
-            }
-
-            override fun newArray(size: Int): Array<Dataset?> {
-                return arrayOfNulls(size)
             }
         }
     }

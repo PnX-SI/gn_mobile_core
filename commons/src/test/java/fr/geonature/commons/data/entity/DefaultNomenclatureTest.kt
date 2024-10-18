@@ -54,7 +54,9 @@ class DefaultNomenclatureTest {
         }
 
         every { cursor.getString(0) } returns "occtax"
+        every { cursor.isNull(0) } returns false
         every { cursor.getLong(1) } returns 1234
+        every { cursor.isNull(1) } returns false
 
         // when getting a DefaultNomenclature instance from Cursor
         val defaultNomenclature = DefaultNomenclature.fromCursor(cursor)

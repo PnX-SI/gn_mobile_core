@@ -63,10 +63,10 @@ open class DefaultNomenclature(
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeString(module)
             it.writeLong(nomenclatureId)
         }

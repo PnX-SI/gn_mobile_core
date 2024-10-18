@@ -3,7 +3,7 @@ package fr.geonature.commons.data.helper
 /**
  * Helper about entity objects.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 object EntityHelper {
 

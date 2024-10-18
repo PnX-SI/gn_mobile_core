@@ -6,7 +6,7 @@
         <attr name="underlinePageIndicatorStyle" format="reference" />
     </declare-styleable>
 
-    <declare-styleable name="UnderlinePageIndicator">
+    <declare-styleable name="UnderlinePagerIndicator">
         <!-- color of the selected line that represents the current selected page -->
         <attr name="selectedColor" format="color" />
     </declare-styleable>

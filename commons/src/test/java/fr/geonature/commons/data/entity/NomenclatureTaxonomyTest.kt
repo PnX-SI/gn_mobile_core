@@ -59,6 +59,7 @@ class NomenclatureTaxonomyTest {
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
         }
         every { cursor.getLong(0) } returns 1234
+        every { cursor.isNull(0) } returns false
         every { cursor.getString(1) } returns "Animalia"
         every { cursor.getString(2) } returns "Ascidies"
 

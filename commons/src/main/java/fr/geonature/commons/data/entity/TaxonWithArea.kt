@@ -3,6 +3,7 @@ package fr.geonature.commons.data.entity
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import fr.geonature.commons.data.helper.sqlEscape
 
 /**
  * Describes a taxon with area.
@@ -19,15 +20,13 @@ class TaxonWithArea : AbstractTaxon {
         taxonomy: Taxonomy,
         commonName: String? = null,
         description: String? = null,
-        rank: String? = null,
         taxonArea: TaxonArea?
     ) : super(
         id,
         name,
         taxonomy,
         commonName,
-        description,
-        rank
+        description
     ) {
         this.taxonArea = taxonArea
     }
@@ -37,8 +36,7 @@ class TaxonWithArea : AbstractTaxon {
         taxon.name,
         taxon.taxonomy,
         taxon.commonName,
-        taxon.description,
-        taxon.rank
+        taxon.description
     )
 
     private constructor(source: Parcel) : super(source) {
@@ -50,9 +48,7 @@ class TaxonWithArea : AbstractTaxon {
         if (other !is TaxonWithArea) return false
         if (!super.equals(other)) return false
 
-        if (taxonArea != other.taxonArea) return false
-
-        return true
+        return taxonArea == other.taxonArea
     }
 
     override fun hashCode(): Int {
@@ -63,7 +59,7 @@ class TaxonWithArea : AbstractTaxon {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
         super.writeToParcel(
@@ -71,7 +67,7 @@ class TaxonWithArea : AbstractTaxon {
             flags
         )
 
-        dest?.writeParcelable(
+        dest.writeParcelable(
             taxonArea,
             flags
         )
@@ -144,7 +140,7 @@ class TaxonWithArea : AbstractTaxon {
                         TaxonArea.TABLE_NAME
                     )
                     } IN (${color.filter { it != "none" }
-                        .joinToString(", ") { "'$it'" }})${color.find { it == "none" }
+                        .joinToString(", ") { "'${it.sqlEscape()}'" }})${color.find { it == "none" }
                         ?.let {
                             " OR (${
                                 getColumnAlias(

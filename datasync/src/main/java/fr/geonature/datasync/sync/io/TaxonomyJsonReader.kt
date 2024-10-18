@@ -143,7 +143,7 @@ class TaxonomyJsonReader {
                             else -> groupCompare
                         }
                     } else {
-                        groupCompare
+                        0
                     }
                 }
             }

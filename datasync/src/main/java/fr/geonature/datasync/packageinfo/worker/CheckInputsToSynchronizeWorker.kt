@@ -1,9 +1,12 @@
 package fr.geonature.datasync.packageinfo.worker
 
+import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
@@ -16,8 +19,8 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.geonature.datasync.R
-import fr.geonature.datasync.auth.worker.CheckAuthLoginWorker
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
+import fr.geonature.datasync.sync.worker.DataSyncWorker
 import org.tinylog.Logger
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -55,13 +58,21 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
                 .getString(KEY_INTENT_CLASS_NAME)
                 ?.also {
                     if (inputsToSynchronize > 0) {
+                        if (ActivityCompat.checkSelfPermission(
+                                applicationContext,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            return@also
+                        }
+
                         notify(
                             SYNC_NOTIFICATION_ID,
                             NotificationCompat
                                 .Builder(
                                     applicationContext,
                                     inputData.getString(KEY_NOTIFICATION_CHANNEL_ID)
-                                        ?: CheckAuthLoginWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION
+                                        ?: DataSyncWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION
                                 )
                                 .setContentTitle(applicationContext.getText(R.string.notification_inputs_to_synchronize_title))
                                 .setContentText(
@@ -111,12 +122,12 @@ class CheckInputsToSynchronizeWorker @AssistedInject constructor(
         fun enqueueUniquePeriodicWork(
             context: Context,
             notificationComponentClassIntent: Class<*>,
-            notificationChannelId: String = CheckAuthLoginWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
+            notificationChannelId: String = DataSyncWorker.DEFAULT_CHANNEL_DATA_SYNCHRONIZATION,
             repeatInterval: Duration = 15.toDuration(DurationUnit.MINUTES)
         ) {
             getInstance(context).enqueueUniquePeriodicWork(
                 CHECK_INPUTS_TO_SYNC_WORKER,
-                ExistingPeriodicWorkPolicy.REPLACE,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(repeatInterval.toJavaDuration())
                     .addTag(CHECK_INPUTS_TO_SYNC_WORKER_TAG)
                     .setInputData(

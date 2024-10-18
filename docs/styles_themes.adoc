@@ -97,3 +97,23 @@ Then, we can edit each `strings.xml` file and keep only the node containing the 
 Gradle will simply merge the default resources (`src/main/res`) with the resources of the variant
 selected during the build. So you don't need to keep everything copied to the variant but just take
 the resources we want to replace.
+
+== Application ID
+
+Changing the app name doesn't prevent conflicts with other Occtax applications. If you think your users may install and use your application alongside another Occtax applications, you may want to change it's ID in the `occtax/build.gradle` file, so that the terminal can understand it's a distinct application.
+
+[source,gradle]
+----
+android {
+    // ...
+    defaultConfig {
+        applicationId "fr.geonature.myocctax"
+        // ...
+    }
+    // ...
+}
+----
+
+Be aware that if you do so, your application will be treated by the user's terminal as a different app from any previous version. Opening the new apk will not launch an update of the existing app, but the installation of a new one. To obtain the new version, users will have to fully uninstall the previous version before. Therefore, it is preferable to make this change before you release your application.
+
+Changing the ID also changes the repository where the application files are located (settings, local db). Don't forget to set the `gn_commons.t_mobile_apps.package` field accordingly in your GeoNature instance.

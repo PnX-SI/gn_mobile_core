@@ -10,6 +10,7 @@
     <string name="login_failed">Echec lors de l\'authentification</string>
     <string name="login_failed_login">Utilisateur inconnu</string>
     <string name="login_failed_password">Mot de passe invalide</string>
+    <string name="login_failed_invalid_user">Utilisateur invalide, veuillez contacter votre administrateur.</string>
     <string name="login_failed_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
     <string name="login_success">Authentification réussie</string>
 
@@ -30,27 +31,26 @@
     <string name="sync_error_server_error">Erreur serveur</string>
     <string name="sync_error_server_not_connected">Non connecté</string>
     <string name="sync_error_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
-    <string name="sync_data_dataset">Synchronisation des jeux de données : %1$d</string>
-    <string name="sync_data_dataset_error">Synchronisation des jeux de données : échec</string>
-    <string name="sync_data_observers">Synchronisation des observateurs : %1$d</string>
-    <string name="sync_data_observers_error">Synchronisation des observateurs : échec</string>
-    <string name="sync_data_taxonomy_ranks">Synchronisation des rangs taxonomiques : %1$d</string>
-    <string name="sync_data_taxonomy_ranks_error">Synchronisation des rangs taxonomiques : échec</string>
-    <string name="sync_data_nomenclature_type">Synchronisation des types de nomenclature : %1$d</string>
-    <string name="sync_data_nomenclature_type_error">Synchronisation des types de nomenclature : échec</string>
-    <string name="sync_data_nomenclature">Synchronisation de la nomenclature : %1$d</string>
-    <string name="sync_data_nomenclature_default">Synchronisation des valeurs par défaut de la nomenclature : %1$d</string>
-    <string name="sync_data_nomenclature_default_error">Synchronisation des valeurs par défaut de la nomenclature : échec</string>
-    <string name="sync_data_taxa">Synchronisation des taxons : %1$d</string>
+    <string name="sync_data_dataset">Jeux de données : %1$d</string>
+    <string name="sync_data_dataset_error">Jeux de données : échec</string>
+    <string name="sync_data_observers">Observateurs : %1$d</string>
+    <string name="sync_data_observers_error">Observateurs : échec</string>
+    <string name="sync_data_taxonomy_ranks">Rangs taxonomiques : %1$d</string>
+    <string name="sync_data_taxonomy_ranks_error">Rangs taxonomiques : échec</string>
+    <string name="sync_data_nomenclature_type">Types de nomenclature : %1$d</string>
+    <string name="sync_data_nomenclature_type_error">Types de nomenclature : échec</string>
+    <string name="sync_data_nomenclature">Nomenclature : %1$d</string>
+    <string name="sync_data_nomenclature_error">Nomenclature : échec</string>
+    <string name="sync_data_nomenclature_default">Valeurs par défaut de la nomenclature : %1$d</string>
+    <string name="sync_data_nomenclature_default_error">Valeurs par défaut de la nomenclature : échec</string>
+    <string name="sync_data_taxa">Taxons : %1$d</string>
     <string name="sync_data_taxa_with_errors">Synchronisation des taxons terminée avec des erreurs</string>
-    <string name="sync_data_taxa_orphaned_deleting">Suppression des taxons orphelins…</string>
-    <plurals name="sync_data_taxa_orphaned_deleted">
-        <item quantity="one">%d taxon orphelin supprimé</item>
-        <item quantity="other">%d taxons orphelins supprimés</item>
-        <item quantity="many">%d taxons orphelins supprimés</item>
-    </plurals>
-    <string name="sync_data_taxa_areas">Synchronisation des unités géographiques : %1$d</string>
+    <string name="sync_data_taxa_list">Liste des taxons: %1$d</string>
+    <string name="sync_data_taxa_list_with_errors">Synchronisation des listes de taxons terminée avec des erreurs</string>
+    <string name="sync_data_taxa_areas">Unités géographiques : %1$d</string>
     <string name="sync_data_taxa_areas_with_errors">Synchronisation des unités géographiques terminée avec des erreurs</string>
+    <string name="sync_data_additional_fields">Champs additionnels : %1$d</string>
+    <string name="sync_data_additional_fields_error">Champs additionnels : échec</string>
     <string name="sync_data_succeeded">Terminée.</string>
 
     <string name="notification_data_synchronization_title">Synchronisation des données…</string>

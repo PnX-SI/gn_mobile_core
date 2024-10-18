@@ -51,6 +51,7 @@
         android:layout_marginTop="@dimen/text_margin"
         android:layout_marginEnd="24dp"
         android:hint="@string/login_password_hint"
+        app:endIconMode="password_toggle"
         app:errorEnabled="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

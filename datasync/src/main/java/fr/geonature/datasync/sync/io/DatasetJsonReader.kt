@@ -1,17 +1,18 @@
 package fr.geonature.datasync.sync.io
 
 import android.util.JsonReader
+import android.util.JsonToken
 import android.util.MalformedJsonException
 import fr.geonature.commons.data.entity.Dataset
+import fr.geonature.commons.util.nextLongOrNull
+import fr.geonature.commons.util.nextStringOrNull
 import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 
 /**
  * Default `JsonReader` about reading a `JSON` stream and build the corresponding [Dataset].
@@ -56,16 +57,29 @@ class DatasetJsonReader {
         val dataset = mutableListOf<Dataset>()
 
         val jsonReader = JsonReader(reader)
-        jsonReader.beginObject()
 
-        while (jsonReader.hasNext()) {
-            when (jsonReader.nextName()) {
-                "data" -> dataset.addAll(readDatasetAsArray(jsonReader))
-                else -> jsonReader.skipValue()
+        when (jsonReader.peek()) {
+            JsonToken.BEGIN_ARRAY -> {
+                dataset.addAll(readDatasetAsArray(jsonReader))
+            }
+
+            JsonToken.BEGIN_OBJECT -> {
+                jsonReader.beginObject()
+
+                while (jsonReader.hasNext()) {
+                    when (jsonReader.nextName()) {
+                        "data" -> dataset.addAll(readDatasetAsArray(jsonReader))
+                        else -> jsonReader.skipValue()
+                    }
+                }
+
+                jsonReader.endObject()
+            }
+
+            else -> {
+                jsonReader.skipValue()
             }
         }
-
-        jsonReader.endObject()
 
         jsonReader.close()
 
@@ -78,7 +92,9 @@ class DatasetJsonReader {
         reader.beginArray()
 
         while (reader.hasNext()) {
-            dataset.addAll(readDataset(reader))
+            readDataset(reader)?.also {
+                dataset.add(it)
+            }
         }
 
         reader.endArray()
@@ -86,7 +102,7 @@ class DatasetJsonReader {
         return dataset
     }
 
-    private fun readDataset(reader: JsonReader): List<Dataset> {
+    private fun readDataset(reader: JsonReader): Dataset? {
         reader.beginObject()
 
         var id: Long? = null
@@ -94,7 +110,8 @@ class DatasetJsonReader {
         var description: String? = null
         var active = false
         var createdAt: Date? = null
-        val modules = mutableListOf<String>()
+        var updatedAt: Date? = null
+        var taxaListId: Long? = null
 
         while (reader.hasNext()) {
             when (reader.nextName()) {
@@ -103,82 +120,45 @@ class DatasetJsonReader {
                 "dataset_desc" -> description = reader.nextString()
                 "active" -> active = reader.nextBoolean()
                 "meta_create_date" -> createdAt = toDate(reader.nextString())
-                "modules" -> modules.addAll(readDatasetModules(reader))
+                "meta_update_date" -> updatedAt = toDate(reader.nextStringOrNull())
+                "id_taxa_list" -> taxaListId = reader.nextLongOrNull()
+
                 else -> reader.skipValue()
             }
         }
 
         reader.endObject()
 
-        if (id == null || name.isNullOrBlank() || description.isNullOrBlank() || createdAt == null || modules.isEmpty()) {
-            return emptyList()
+        if (id == null || name.isNullOrBlank() || description.isNullOrBlank() || createdAt == null) {
+            return null
         }
 
-        return modules
-            .asSequence()
-            .distinct()
-            .map {
-                Dataset(
-                    id,
-                    it,
-                    name,
-                    description,
-                    active,
-                    createdAt
-                )
-            }
-            .toList()
-    }
-
-    private fun readDatasetModules(reader: JsonReader): List<String> {
-        val modules = mutableListOf<String>()
-
-        reader.beginArray()
-
-        while (reader.hasNext()) {
-            readDatasetModule(reader)?.also {
-                modules.add(it)
-            }
-        }
-
-        reader.endArray()
-
-        return modules.toList()
-    }
-
-    private fun readDatasetModule(reader: JsonReader): String? {
-        var module: String? = null
-
-        reader.beginObject()
-
-        while (reader.hasNext()) {
-            when (reader.nextName()) {
-                "module_path" -> module = reader
-                    .nextString()
-                    .lowercase(Locale.ROOT)
-                else -> reader.skipValue()
-            }
-        }
-
-        reader.endObject()
-
-        return module
+        return Dataset(
+            id,
+            name,
+            description,
+            active,
+            createdAt,
+            updatedAt,
+            taxaListId
+        )
     }
 
     internal fun toDate(str: String?): Date? {
         if (str.isNullOrBlank()) return null
 
-        val sdf = SimpleDateFormat(
-            "yyyy-MM-dd HH:mm:ss",
-            Locale.getDefault()
-        ).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
+        return runCatching {
+            SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss",
+                Locale.getDefault()
+            ).parse(str)
         }
-
-        return try {
-            sdf.parse(str)
-        } catch (pe: ParseException) {
-            null
-        }
+            .recoverCatching {
+                SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).parse(str)
+            }
+            .getOrNull()
     }
 }

@@ -29,7 +29,7 @@ class DatasetJsonReaderTest {
     }
 
     @Test
-    fun testReadFromInvalidJsonString() {
+    fun `should read from invalid JSON string`() {
         // when read an invalid JSON
         val dataset = datasetJsonReader.read("")
 
@@ -39,7 +39,7 @@ class DatasetJsonReaderTest {
     }
 
     @Test
-    fun testReadEmptyDataset() {
+    fun `should read empty dataset`() {
         // when read an empty JSON
         var dataset = datasetJsonReader.read("{}")
 
@@ -56,9 +56,9 @@ class DatasetJsonReaderTest {
     }
 
     @Test
-    fun testRead() {
+    fun `should read dataset from valid JSON object string`() {
         // given an input file to read
-        val json = getFixture("metadataset_geonature.json")
+        val json = getFixture("dataset_geonature.json")
 
         // when parsing this file
         val dataset = datasetJsonReader.read(json)
@@ -69,27 +69,56 @@ class DatasetJsonReaderTest {
             arrayOf(
                 Dataset(
                     18L,
-                    "occtax",
                     "Dataset #1",
                     "Description of Dataset #1",
                     true,
-                    datasetJsonReader.toDate("2019-10-30 22:32:16.591174")
+                    datasetJsonReader.toDate("2019-10-30T22:32:16.591174")!!,
+                    null,
+                    100
                 ),
                 Dataset(
                     19L,
-                    "occtax",
                     "Dataset #2",
                     "Description of Dataset #2",
                     false,
-                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")
+                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")!!,
+                    datasetJsonReader.toDate("2020-10-28T08:15:00.000000"),
+                    null,
+                )
+            ),
+            dataset.toTypedArray()
+        )
+    }
+
+    @Test
+    fun `should read dataset from valid JSON array string`() {
+        // given an input file to read
+        val json = getFixture("dataset_list_geonature.json")
+
+        // when parsing this file
+        val dataset = datasetJsonReader.read(json)
+
+        // then
+        assertNotNull(dataset)
+        assertArrayEquals(
+            arrayOf(
+                Dataset(
+                    18L,
+                    "Dataset #1",
+                    "Description of Dataset #1",
+                    true,
+                    datasetJsonReader.toDate("2019-10-30T22:32:16.591174")!!,
+                    null,
+                    100
                 ),
                 Dataset(
                     19L,
-                    "occhab",
                     "Dataset #2",
                     "Description of Dataset #2",
                     false,
-                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")
+                    datasetJsonReader.toDate("2019-11-13 10:08:47.762240")!!,
+                    datasetJsonReader.toDate("2020-10-28T08:15:00.000000"),
+                    null,
                 )
             ),
             dataset.toTypedArray()
