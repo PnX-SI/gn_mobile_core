@@ -18,14 +18,20 @@ object ProviderHelper {
         resource: String,
         vararg path: String
     ): Uri {
-
         val baseUri = Uri.parse("content://$authority/$resource")
 
         return if (path.isEmpty()) baseUri
-        else withAppendedPath(baseUri,
-            path
-                .asSequence()
-                .filter { it.isNotBlank() }
-                .joinToString("/"))
+        else path
+            .asSequence()
+            .filter { it.isNotBlank() }
+            .joinToString("/")
+            .takeIf { it.isNotBlank() }
+            ?.let {
+                withAppendedPath(
+                    baseUri,
+                    it
+                )
+            }
+            ?: baseUri
     }
 }

@@ -9,8 +9,8 @@
         android:id="@+id/previousButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="2dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="2dp"
         android:text="@string/button_pager_previous"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -22,8 +22,8 @@
         android:id="@+id/nextButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="4dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="4dp"
         android:enabled="false"
         android:text="@string/button_pager_next"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -40,21 +40,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <fr.geonature.viewpager.ui.UnderlinePageIndicator
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/divider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <fr.geonature.viewpager.ui.UnderlinePagerIndicator
         android:id="@+id/indicator"
         android:layout_width="match_parent"
         android:layout_height="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <fr.geonature.viewpager.ui.EnablePagingViewPager
-        android:id="@+id/pager"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/divider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/indicator" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

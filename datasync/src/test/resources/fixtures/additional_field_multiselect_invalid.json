@@ -1,0 +1,91 @@
+{
+  "additional_attributes": {},
+  "api": null,
+  "bib_nomenclature_type": null,
+  "code_nomenclature_type": null,
+  "datasets": [],
+  "default_value": null,
+  "description": null,
+  "exportable": true,
+  "field_label": "Test multiselect",
+  "field_name": "test_multi_select",
+  "field_order": null,
+  "field_values": [
+    {
+      "key": "Câblage",
+      "value": "cablage"
+    },
+    {
+      "key": "Point d'eau",
+      "value": "point_eau"
+    },
+    {
+      "key": "Clôture",
+      "value": "Clôture"
+    },
+    {
+      "key": "Groupe isolé d'arbres",
+      "value": "Groupe isolé d'arbres"
+    },
+    {
+      "key": "Ecobuage",
+      "value": "Ecobuage"
+    },
+    {
+      "key": "Bâti",
+      "value": "Bâti"
+    },
+    {
+      "key": "Falaise",
+      "value": "Falaise"
+    },
+    {
+      "key": "Autres",
+      "value": "Autres"
+    },
+    {
+      "no_such_key": "invalid_key",
+      "so_such_value": "invalid value"
+    }
+  ],
+  "id_field": 7,
+  "id_list": null,
+  "id_widget": 10,
+  "modules": [
+    {
+      "active_backend": true,
+      "active_frontend": true,
+      "id_module": 4,
+      "meta_create_date": "2021-12-01 17:38:29.087265",
+      "meta_update_date": "2023-04-05 10:26:00.068290",
+      "module_code": "OCCTAX",
+      "module_comment": null,
+      "module_desc": null,
+      "module_doc_url": null,
+      "module_external_url": null,
+      "module_group": null,
+      "module_label": "OccTax",
+      "module_order": null,
+      "module_path": "occtax",
+      "module_picto": "fa-map-marker",
+      "module_target": "_self",
+      "ng_module": "occtax",
+      "type": "base"
+    }
+  ],
+  "multiselect": null,
+  "objects": [
+    {
+      "code_object": "OCCTAX_RELEVE",
+      "description_object": "Représente la table pr_occtax.t_releves_occtax",
+      "id_object": 4
+    }
+  ],
+  "quantitative": false,
+  "required": false,
+  "type_widget": {
+    "id_widget": 10,
+    "widget_name": "multiselect"
+  },
+  "unity": null
+}

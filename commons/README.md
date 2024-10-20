@@ -21,11 +21,11 @@ The authority of this content provider is `<application package>.provider`.
 **Base URI:** `content://<application package>.provider`
 
 | URI                                                | Parameters                              | Description                                                                            |
-| -------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
+|----------------------------------------------------|-----------------------------------------|----------------------------------------------------------------------------------------|
 | **\<Base URI\>**/app_sync/\*                       | String                                  | Fetch synchronization status by application package ID (e.g. `fr.geonature.occtax`)    |
-| **\<Base URI\>**/dataset/\*                        | String                                  | Fetch all dataset from given module (e.g. `occtax`)                                    |
-| **\<Base URI\>**/dataset/\*/active                 | String                                  | Fetch all active dataset from given module (e.g. `occtax`)                             |
-| **\<Base URI\>**/dataset/\*/#                      | String, Number                          | Fetch dataset by ID from given module (e.g. `occtax`)                                  |
+| **\<Base URI\>**/dataset                           | String                                  | Fetch all dataset                                                                      |
+| **\<Base URI\>**/dataset/active                    | String                                  | Fetch all active dataset                                                               |
+| **\<Base URI\>**/dataset/#                         | Number                                  | Fetch dataset by ID                                                                    |
 | **\<Base URI\>**/observers                         | n/a                                     | Fetch all registered observers                                                         |
 | **\<Base URI\>**/observers/\*                      | String (list of comma separated values) | Fetch all registered observers matching a list of IDs                                  |
 | **\<Base URI\>**/observers/#                       | Number                                  | Fetch an observer by ID                                                                |
@@ -33,7 +33,9 @@ The authority of this content provider is `<application package>.provider`.
 | **\<Base URI\>**/taxonomy/\*                       | String                                  | Fetch taxonomy matching a given kingdom                                                |
 | **\<Base URI\>**/taxonomy/\*/\*                    | String, String                          | Fetch taxonomy matching a given kingdom and group                                      |
 | **\<Base URI\>**/taxa                              | n/a                                     | Fetch all taxa                                                                         |
+| **\<Base URI\>**/taxa/list/#                       | Number                                  | Fetch all taxa matching a given list ID                                                |
 | **\<Base URI\>**/taxa/area/#                       | Number                                  | Fetch all taxa matching a given area ID                                                |
+| **\<Base URI\>**/taxa/list/#/area/#                | Number, Number                          | Fetch all taxa matching a given list ID and area ID                                    |
 | **\<Base URI\>**/taxa/#                            | Number                                  | Fetch a taxon by ID                                                                    |
 | **\<Base URI\>**/taxa/#/area/#                     | Number, Number                          | Fetch a taxon by ID matching a given area ID                                           |
 | **\<Base URI\>**/nomenclature_types                | n/a                                     | Fetch all nomenclature types                                                           |

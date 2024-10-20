@@ -7,7 +7,7 @@ import org.junit.Test
 /**
  * Unit tests about [EntityHelper].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 class EntityHelperTest {
 

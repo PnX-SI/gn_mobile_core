@@ -29,6 +29,7 @@ import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
+import org.tinylog.Logger
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -74,17 +75,17 @@ class MainContentProvider : ContentProvider() {
             )
             addURI(
                 authority,
-                "${Dataset.TABLE_NAME}/*",
+                Dataset.TABLE_NAME,
                 DATASET
             )
             addURI(
                 authority,
-                "${Dataset.TABLE_NAME}/*/active",
+                "${Dataset.TABLE_NAME}/active",
                 DATASET_ACTIVE
             )
             addURI(
                 authority,
-                "${Dataset.TABLE_NAME}/*/#",
+                "${Dataset.TABLE_NAME}/#",
                 DATASET_ID
             )
             addURI(
@@ -124,8 +125,18 @@ class MainContentProvider : ContentProvider() {
             )
             addURI(
                 authority,
+                "${Taxon.TABLE_NAME}/list/#",
+                TAXA_LIST_ID
+            )
+            addURI(
+                authority,
                 "${Taxon.TABLE_NAME}/area/#",
-                TAXA_AREA
+                TAXA_AREA_ID
+            )
+            addURI(
+                authority,
+                "${Taxon.TABLE_NAME}/list/#/area/#",
+                TAXA_LIST_AREA_ID
             )
             addURI(
                 authority,
@@ -184,7 +195,7 @@ class MainContentProvider : ContentProvider() {
             DATASET_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${Dataset.TABLE_NAME}"
             INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$authority.${InputObserver.TABLE_NAME}"
             INPUT_OBSERVER_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${InputObserver.TABLE_NAME}"
-            TAXA, TAXA_AREA -> "$VND_TYPE_DIR_PREFIX/$authority.${Taxon.TABLE_NAME}"
+            TAXA, TAXA_LIST_ID, TAXA_AREA_ID, TAXA_LIST_AREA_ID -> "$VND_TYPE_DIR_PREFIX/$authority.${Taxon.TABLE_NAME}"
             TAXON_ID, TAXON_AREA_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${Taxon.TABLE_NAME}"
             TAXONOMY, TAXONOMY_KINGDOM -> "$VND_TYPE_DIR_PREFIX/$authority.${Taxonomy.TABLE_NAME}"
             TAXONOMY_KINGDOM_GROUP -> "$VND_TYPE_ITEM_PREFIX/$authority.${Taxonomy.TABLE_NAME}"
@@ -210,61 +221,67 @@ class MainContentProvider : ContentProvider() {
                 appContext,
                 uri
             )
+
             DATASET, DATASET_ACTIVE -> datasetQuery(
                 appContext,
                 uri
             )
+
             DATASET_ID -> datasetByIdQuery(
                 appContext,
                 uri
             )
+
             INPUT_OBSERVERS -> inputObserversQuery(
                 appContext,
                 selection,
                 selectionArgs
             )
+
             INPUT_OBSERVERS_IDS -> inputObserversByIdsQuery(
                 appContext,
                 uri
             )
+
             INPUT_OBSERVER_ID -> inputObserverByIdQuery(
                 appContext,
                 uri
             )
+
             TAXONOMY, TAXONOMY_KINGDOM, TAXONOMY_KINGDOM_GROUP -> taxonomyQuery(
                 appContext,
                 uri
             )
-            TAXA -> taxaQuery(
-                appContext,
-                selection,
-                selectionArgs,
-                sortOrder
-            )
-            TAXON_ID -> taxonByIdQuery(
-                appContext,
-                uri
-            )
-            TAXA_AREA -> taxaWithAreaQuery(
+
+            TAXA, TAXA_LIST_ID, TAXA_AREA_ID, TAXA_LIST_AREA_ID -> taxaQuery(
                 appContext,
                 uri,
                 selection,
                 selectionArgs,
                 sortOrder
             )
+
+            TAXON_ID -> taxonByIdQuery(
+                appContext,
+                uri
+            )
+
             TAXON_AREA_ID -> taxonWithAreaByIdQuery(
                 appContext,
                 uri
             )
+
             NOMENCLATURE_TYPES -> nomenclatureTypesQuery(appContext)
             NOMENCLATURE_TYPES_DEFAULT -> defaultNomenclaturesByModule(
                 appContext,
                 uri
             )
+
             NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM, NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP -> nomenclaturesWithTaxonomyQuery(
                 appContext,
                 uri
             )
+
             else -> throw IllegalArgumentException("Unknown URI (query): $uri")
         }
     }
@@ -301,6 +318,7 @@ class MainContentProvider : ContentProvider() {
                     ParcelFileDescriptor.MODE_READ_ONLY
                 )
             }
+
             INPUT_ID -> {
                 val packageId = uri.pathSegments
                     .drop(uri.pathSegments.indexOf("inputs") + 1)
@@ -328,6 +346,7 @@ class MainContentProvider : ContentProvider() {
                     ParcelFileDescriptor.MODE_READ_ONLY
                 )
             }
+
             else -> throw IllegalArgumentException("Unknown URI (openFile): $uri")
         }
     }
@@ -350,6 +369,7 @@ class MainContentProvider : ContentProvider() {
                     values
                 )
             }
+
             else -> throw IllegalArgumentException("Unknown URI (insert): $uri")
         }
     }
@@ -382,16 +402,10 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-
         val onlyActive = uri.lastPathSegment == "active"
 
         return getDatasetDao(context)
             .QB()
-            .whereModule(module)
             .also {
                 if (onlyActive) {
                     it.whereActive()
@@ -404,14 +418,8 @@ class MainContentProvider : ContentProvider() {
         context: Context,
         uri: Uri
     ): Cursor {
-        val module = uri.pathSegments
-            .drop(uri.pathSegments.indexOf(Dataset.TABLE_NAME) + 1)
-            .take(1)
-            .firstOrNull()
-
         return getDatasetDao(context)
             .QB()
-            .whereModule(module)
             .whereId(uri.lastPathSegment?.toLongOrNull())
             .cursor()
     }
@@ -484,6 +492,7 @@ class MainContentProvider : ContentProvider() {
                         lastPathSegments[0],
                         lastPathSegments[1]
                     )
+
                     else -> return@also
                 }
             }
@@ -492,12 +501,57 @@ class MainContentProvider : ContentProvider() {
 
     private fun taxaQuery(
         context: Context,
+        uri: Uri,
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor {
-        return getTaxonDao(context)
-            .QB()
+        val uriRegex = "/${Taxon.TABLE_NAME}(/list/\\d+)?(/area/\\d+)?".toRegex()
+
+        val mathResult = uri.path
+            ?.takeIf { uriRegex.matches(it) }
+            ?.let { uriRegex.find(it) }
+            ?: run {
+                Logger.warn { "invalid taxa URI: '$uri', fetch all taxa..." }
+
+                return getTaxonDao(context)
+                    .QB()
+                    .whereSelection(
+                        selection,
+                        arrayOf(
+                            *selectionArgs
+                                ?: emptyArray()
+                        )
+                    )
+                    .also {
+                        if (sortOrder.isNullOrEmpty()) {
+                            return@also
+                        }
+
+                        (it as TaxonDao.QB).orderBy(sortOrder)
+                    }
+                    .cursor()
+            }
+
+        val qb = getTaxonDao(context).QB()
+
+        mathResult.groupValues
+            .drop(1)
+            .filterNot { it.isBlank() }
+            .forEach {
+                val id = it
+                    .substringAfterLast("/")
+                    .toLongOrNull()
+
+                with(it) {
+                    when {
+                        startsWith("/list") -> qb.withListId(id)
+                        startsWith("/area") -> qb.withArea(id)
+                    }
+                }
+            }
+
+        return qb
             .whereSelection(
                 selection,
                 arrayOf(
@@ -522,35 +576,6 @@ class MainContentProvider : ContentProvider() {
         return getTaxonDao(context)
             .QB()
             .whereId(uri.lastPathSegment?.toLongOrNull())
-            .cursor()
-    }
-
-    private fun taxaWithAreaQuery(
-        context: Context,
-        uri: Uri,
-        selection: String?,
-        selectionArgs: Array<String>?,
-        sortOrder: String?
-    ): Cursor {
-        val filterOnArea = uri.lastPathSegment?.toLongOrNull()
-
-        return getTaxonDao(context)
-            .QB()
-            .withArea(filterOnArea)
-            .whereSelection(
-                selection,
-                arrayOf(
-                    *selectionArgs
-                        ?: emptyArray()
-                )
-            )
-            .also {
-                if (sortOrder.isNullOrEmpty()) {
-                    return@also
-                }
-
-                (it as TaxonDao.QB).orderBy(sortOrder)
-            }
             .cursor()
     }
 
@@ -701,8 +726,10 @@ class MainContentProvider : ContentProvider() {
         const val TAXONOMY_KINGDOM_GROUP = 32
         const val TAXA = 40
         const val TAXON_ID = 41
-        const val TAXA_AREA = 42
-        const val TAXON_AREA_ID = 43
+        const val TAXA_LIST_ID = 42
+        const val TAXA_AREA_ID = 43
+        const val TAXA_LIST_AREA_ID = 44
+        const val TAXON_AREA_ID = 45
         const val NOMENCLATURE_TYPES = 50
         const val NOMENCLATURE_TYPES_DEFAULT = 51
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 52

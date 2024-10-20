@@ -14,7 +14,6 @@ import fr.geonature.datasync.packageinfo.error.PackageInfoNotFoundFromRemoteFail
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.settings.IDataSyncSettingsRepository
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
-import io.mockk.Called
 import io.mockk.MockKAnnotations.init
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -134,7 +133,7 @@ class GetAppSettingsFromRemoteUseCaseTest {
         assertTrue(response.fold(::identity) {} is Failure.NetworkFailure)
 
         coVerify(exactly = 0) { packageInfoRepository.updateAppSettings(any()) }
-        coVerify { dataSyncSettingsRepository.getDataSyncSettings() wasNot Called }
+        coVerify(exactly = 0) { dataSyncSettingsRepository.getDataSyncSettings() }
     }
 
     @Test
@@ -150,7 +149,7 @@ class GetAppSettingsFromRemoteUseCaseTest {
             assertTrue(response.fold(::identity) {} is Failure.ServerFailure)
 
             coVerify(exactly = 0) { packageInfoRepository.updateAppSettings(any()) }
-            coVerify { dataSyncSettingsRepository.getDataSyncSettings() wasNot Called }
+            coVerify(exactly = 0) { dataSyncSettingsRepository.getDataSyncSettings() }
         }
 
     @Test
@@ -178,7 +177,7 @@ class GetAppSettingsFromRemoteUseCaseTest {
                 response.fold(::identity) {})
 
             coVerify(exactly = 0) { packageInfoRepository.updateAppSettings(any()) }
-            coVerify { dataSyncSettingsRepository.getDataSyncSettings() wasNot Called }
+            coVerify(exactly = 0) { dataSyncSettingsRepository.getDataSyncSettings() }
         }
 
     @Test

@@ -14,7 +14,7 @@ import org.robolectric.RobolectricTestRunner
 /**
  * Unit tests about [MountPointUtils].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
 @RunWith(RobolectricTestRunner::class)
 class MountPointUtilsTest {

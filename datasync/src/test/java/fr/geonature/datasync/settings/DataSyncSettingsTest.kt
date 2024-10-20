@@ -214,7 +214,7 @@ class DataSyncSettingsTest {
                 taxrefListId = 100,
                 codeAreaType = "M10",
                 pageSize = DataSyncSettings.Builder.DEFAULT_PAGE_SIZE,
-                dataSyncPeriodicity = 15.toDuration(DurationUnit.MINUTES)
+                dataSyncPeriodicity = DataSyncSettings.Builder.DEFAULT_DATA_SYNC_PERIODICITY
             ),
             DataSyncSettings
                 .Builder()
@@ -240,7 +240,7 @@ class DataSyncSettingsTest {
                 taxrefListId = 100,
                 codeAreaType = "M10",
                 pageSize = DataSyncSettings.Builder.DEFAULT_PAGE_SIZE,
-                dataSyncPeriodicity = 15.toDuration(DurationUnit.MINUTES)
+                dataSyncPeriodicity = DataSyncSettings.Builder.DEFAULT_DATA_SYNC_PERIODICITY
             ),
             DataSyncSettings
                 .Builder()

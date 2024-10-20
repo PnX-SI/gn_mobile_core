@@ -1,30 +1,29 @@
 package fr.geonature.datasync.api
 
-import com.google.gson.GsonBuilder
+import android.webkit.MimeTypeMap
+import fr.geonature.datasync.api.error.MissingConfigurationException
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.DatasetQuery
+import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
-import fr.geonature.datasync.api.model.Taxref
 import fr.geonature.datasync.api.model.TaxrefArea
+import fr.geonature.datasync.api.model.TaxrefListListResult
+import fr.geonature.datasync.api.model.TaxrefListResult
+import fr.geonature.datasync.api.model.TaxrefVersion
 import fr.geonature.datasync.api.model.User
 import fr.geonature.datasync.auth.ICookieManager
-import okhttp3.Cookie
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
-import okhttp3.logging.HttpLoggingInterceptor
-import org.json.JSONObject
 import org.tinylog.Logger
 import retrofit2.Call
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
+import java.io.File
 
 /**
- * GeoNature API client.
+ * Default implementation of _GeoNature_ API client.
  *
  * @author S. Grimault
  */
@@ -37,9 +36,9 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
 
     override fun getBaseUrls(): IGeoNatureAPIClient.ServerUrls {
         val geoNatureBaseUrl = geoNatureBaseUrl
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
         val taxHubBaseUrl = taxHubBaseUrl
-            ?: throw IllegalStateException("missing TaxHub base URL")
+            ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
 
         return IGeoNatureAPIClient.ServerUrls(
             geoNatureBaseUrl,
@@ -54,6 +53,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
             this.geoNatureBaseUrl = url.geoNatureBaseUrl
             geoNatureService = createServiceClient(
                 url.geoNatureBaseUrl,
+                cookieManager,
                 IGeoNatureService::class.java
             )
         }
@@ -62,6 +62,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
             this.taxHubBaseUrl = url.taxHubBaseUrl
             taxHubService = createServiceClient(
                 url.taxHubBaseUrl,
+                cookieManager,
                 ITaxHubService::class.java
             )
         }
@@ -69,7 +70,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
 
     override fun authLogin(authCredentials: AuthCredentials): Call<AuthLogin> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.authLogin(authCredentials)
     }
@@ -78,165 +79,161 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         cookieManager.clearCookie()
     }
 
-    override fun sendInput(
-        module: String,
-        input: JSONObject
-    ): Call<ResponseBody> {
+    override fun sendMediaFile(
+        mediaType: Long,
+        tableLocation: Long,
+        author: String,
+        titleEn: String?,
+        titleFr: String?,
+        descriptionEn: String?,
+        descriptionFr: String?,
+        mediaFile: File
+    ): Call<Media> {
         val geoNatureService = geoNatureService
             ?: throw IllegalStateException("missing GeoNature base URL")
 
-        return geoNatureService.sendInput(
-            module,
-            input
-                .toString()
-                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        return geoNatureService.sendMediaFile(
+            mediaType,
+            tableLocation,
+            author.toRequestBody(),
+            titleEn?.toRequestBody(),
+            titleFr?.toRequestBody(),
+            descriptionEn?.toRequestBody(),
+            descriptionFr?.toRequestBody(),
+            MultipartBody.Part.createFormData(
+                "file",
+                mediaFile.name,
+                mediaFile.asRequestBody((mediaFile
+                    .toURI()
+                    .toURL()
+                    .openConnection().contentType
+                    ?: mediaFile.extension
+                        .takeIf { it.isNotEmpty() }
+                        ?.let {
+                            MimeTypeMap
+                                .getSingleton()
+                                .getMimeTypeFromExtension(it)
+                        })?.toMediaTypeOrNull()
+                ),
+            ),
         )
     }
 
-    override fun getMetaDatasets(): Call<ResponseBody> {
+    override fun deleteMediaFile(mediaId: Int): Call<ResponseBody> {
         val geoNatureService = geoNatureService
             ?: throw IllegalStateException("missing GeoNature base URL")
 
-        return geoNatureService.getMetaDatasets()
+        return geoNatureService.deleteMediaFile(mediaId)
+    }
+
+    override fun getMetaDatasets(query: DatasetQuery): Call<ResponseBody> {
+        val geoNatureService = geoNatureService
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
+
+        return geoNatureService.getMetaDatasets(query)
     }
 
     override fun getUsers(menuId: Int): Call<List<User>> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getUsers(menuId)
     }
 
+    override fun getTaxrefList(): Call<TaxrefListListResult> {
+        val taxHubService = taxHubService
+            ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
+
+        return taxHubService.getTaxrefList()
+    }
+
     override fun getTaxonomyRanks(): Call<ResponseBody> {
         val taxHubService = taxHubService
-            ?: throw IllegalStateException("missing TaxHub base URL")
+            ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
 
         return taxHubService.getTaxonomyRanks()
     }
 
     override fun getTaxref(
-        listId: Int,
         limit: Int?,
-        offset: Int?
-    ): Call<List<Taxref>> {
+        page: Int?,
+        list: List<Long>?
+    ): Call<TaxrefListResult> {
         val taxHubService = taxHubService
-            ?: throw IllegalStateException("missing TaxHub base URL")
+            ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
 
         return taxHubService.getTaxref(
-            listId,
             limit,
-            offset
+            page,
+            list?.joinToString(",")
         )
     }
 
     override fun getTaxrefAreas(
         codeAreaType: String?,
         limit: Int?,
-        offset: Int?
+        page: Int?
     ): Call<List<TaxrefArea>> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getTaxrefAreas(
             codeAreaType,
             limit,
-            offset
+            page
         )
+    }
+
+    override fun getTaxrefVersion(): Call<TaxrefVersion> {
+        val taxHubService = taxHubService
+            ?: throw MissingConfigurationException.MissingTaxHubBaseURLException
+
+        return taxHubService.getTaxrefVersion()
     }
 
     override fun getNomenclatures(): Call<List<NomenclatureType>> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getNomenclatures()
     }
 
     override fun getDefaultNomenclaturesValues(module: String): Call<ResponseBody> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getDefaultNomenclaturesValues(module)
     }
 
     override fun getApplications(): Call<ResponseBody> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getApplications()
     }
 
-    override fun downloadPackage(url: String): Call<ResponseBody> {
+    override fun getIdTableLocation(): Call<Long> {
         val geoNatureService = geoNatureService
             ?: throw IllegalStateException("missing GeoNature base URL")
+
+        return geoNatureService.getIdTableLocation()
+    }
+
+    override fun getAdditionalFields(module: String): Call<ResponseBody> {
+        val geoNatureService = geoNatureService
+            ?: throw IllegalStateException("missing GeoNature base URL")
+
+        return geoNatureService.getAdditionalFields(module)
+    }
+
+    override fun downloadPackage(url: String): Call<ResponseBody> {
+        val geoNatureService = geoNatureService
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.downloadPackage(url)
     }
 
     override fun checkSettings(): Boolean {
         return geoNatureService != null && taxHubService != null
-    }
-
-    private fun <T> createServiceClient(
-        baseUrl: String,
-        service: Class<T>
-    ): T {
-        return Retrofit
-            .Builder()
-            .baseUrl("${baseUrl(baseUrl)}/")
-            .client(
-                OkHttpClient
-                    .Builder()
-                    .cookieJar(object : CookieJar {
-                        override fun saveFromResponse(
-                            url: HttpUrl,
-                            cookies: List<Cookie>
-                        ) {
-                            cookies
-                                .firstOrNull()
-                                ?.also {
-                                    cookieManager.cookie = it
-                                }
-                        }
-
-                        override fun loadForRequest(url: HttpUrl): MutableList<Cookie> {
-                            return cookieManager.cookie?.let {
-                                mutableListOf(it)
-                            }
-                                ?: mutableListOf()
-                        }
-                    })
-                    .connectTimeout(
-                        120,
-                        TimeUnit.SECONDS
-                    )
-                    .readTimeout(
-                        120,
-                        TimeUnit.SECONDS
-                    )
-                    .writeTimeout(
-                        120,
-                        TimeUnit.SECONDS
-                    )
-                    .cache(null)
-                    .addInterceptor(HttpLoggingInterceptor { Logger.info { it } }.apply {
-                        level = HttpLoggingInterceptor.Level.BASIC
-                        redactHeader("Authorization")
-                        redactHeader("Cookie")
-                    })
-                    .build()
-            )
-            .addConverterFactory(
-                GsonConverterFactory.create(
-                    GsonBuilder()
-                        .setDateFormat("yyyy-MM-dd HH:mm:ss")
-                        .create()
-                )
-            )
-            .build()
-            .create(service)
-    }
-
-    private val baseUrl: (String) -> String = { url ->
-        url.also { if (it.endsWith('/')) it.dropLast(1) }
     }
 }

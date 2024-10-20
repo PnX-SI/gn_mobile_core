@@ -1,60 +1,28 @@
 package fr.geonature.mountpoint.model
 
 import android.os.Environment
-import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
-import fr.geonature.mountpoint.BuildConfig
 import fr.geonature.mountpoint.util.DeviceUtils
+import kotlinx.parcelize.Parcelize
 import java.io.File
-import java.io.IOException
 
 /**
  * Describes a mount point storage.
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-class MountPoint :
-    Parcelable,
-    Comparable<MountPoint> {
-
-    val mountPath: File
+@Parcelize
+data class MountPoint(
+    val mountPath: File,
     val storageType: StorageType
+) : Parcelable, Comparable<MountPoint> {
 
-    constructor(
-        mountPath: String,
-        storageType: StorageType
-    ) {
-        var resolvedMountPath: String
-
-        try {
-            resolvedMountPath = File(mountPath).canonicalPath
-
-            if (BuildConfig.DEBUG) {
-                Log.d(
-                    TAG,
-                    "MountPoint: '$mountPath', canonical path: '$resolvedMountPath'"
-                )
-            }
-        } catch (ioe: IOException) {
-            resolvedMountPath = mountPath
-
-            Log.w(
-                TAG,
-                "MountPoint: failed to get the canonical path of '$mountPath'"
-            )
-        }
-
-        this.mountPath = File(resolvedMountPath)
-        this.storageType = storageType
-    }
-
-    private constructor(source: Parcel) {
-        this.mountPath = source.readSerializable() as File
-        this.storageType = source.readSerializable() as StorageType
+    init {
+        require(mountPath.isDirectory)
     }
 
     fun getStorageState(): String {
+
         if (DeviceUtils.isPostLollipop) {
             return Environment.getExternalStorageState(mountPath)
         }
@@ -68,18 +36,6 @@ class MountPoint :
         }
 
         return storageState
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    override fun writeToParcel(
-        dest: Parcel,
-        flags: Int
-    ) {
-        dest.writeSerializable(mountPath)
-        dest.writeSerializable(storageType)
     }
 
     override fun compareTo(other: MountPoint): Int {
@@ -113,7 +69,7 @@ class MountPoint :
     /**
      * Describes a storage type.
      *
-     * @author [S. Grimault](mailto:sebastien.grimault@makina-corpus.com)
+     * @author S. Grimault
      */
     enum class StorageType {
 
@@ -131,22 +87,5 @@ class MountPoint :
          * USB storage.
          */
         USB
-    }
-
-    companion object {
-
-        private val TAG = MountPoint::class.java.name
-
-        @JvmField
-        val CREATOR: Parcelable.Creator<MountPoint> = object : Parcelable.Creator<MountPoint> {
-
-            override fun createFromParcel(source: Parcel): MountPoint {
-                return MountPoint(source)
-            }
-
-            override fun newArray(size: Int): Array<MountPoint?> {
-                return arrayOfNulls(size)
-            }
-        }
     }
 }

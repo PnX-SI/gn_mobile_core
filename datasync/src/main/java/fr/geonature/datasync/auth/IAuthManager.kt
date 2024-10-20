@@ -1,8 +1,8 @@
 package fr.geonature.datasync.auth
 
 import androidx.lifecycle.LiveData
-import fr.geonature.commons.fp.Either
 import fr.geonature.commons.error.Failure
+import fr.geonature.commons.fp.Either
 import fr.geonature.datasync.api.model.AuthLogin
 
 /**
@@ -15,7 +15,7 @@ interface IAuthManager {
     /**
      * Check if the current session is still valid.
      */
-    val isLoggedIn: LiveData<Boolean>
+    val isLoggedIn: LiveData<AuthLogin?>
 
     /**
      * Gets the logged in user.

@@ -5,13 +5,16 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations.map
+import androidx.lifecycle.liveData
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.await
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.geonature.commons.interactor.BaseResultUseCase
 import fr.geonature.datasync.settings.DataSyncSettings
+import fr.geonature.datasync.sync.usecase.HasLocalDataUseCase
 import fr.geonature.datasync.sync.worker.DataSyncWorker
 import kotlinx.coroutines.launch
 import org.tinylog.Logger
@@ -28,7 +31,8 @@ import kotlin.time.Duration
 @HiltViewModel
 class DataSyncViewModel @Inject constructor(
     application: Application,
-    dataSyncManager: IDataSyncManager
+    dataSyncManager: IDataSyncManager,
+    private val hasLocalDataUseCase: HasLocalDataUseCase
 ) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
@@ -49,55 +53,74 @@ class DataSyncViewModel @Inject constructor(
     private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)
     val isSyncRunning: LiveData<Boolean> = _isSyncRunning
 
-    fun observeDataSyncStatus(): LiveData<DataSyncStatus?> {
-        return map(workManager.getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)) { workInfoList ->
-            if (workInfoList == null || workInfoList.isEmpty()) {
-                currentSyncWorkerId = null
-                return@map null
-            }
+    fun hasLocalData(): LiveData<Boolean> =
+        liveData {
+            hasLocalDataUseCase
+                .run(BaseResultUseCase.None())
+                .fold(
+                    onSuccess = {
+                        Logger.debug { "has local data: $it" }
 
-            val workInfo = workInfoList.firstOrNull { it.id == currentSyncWorkerId }
-                ?: workInfoList.firstOrNull { it.state == WorkInfo.State.RUNNING }
-
-            // no work info is running: abort
-            if (workInfo == null) {
-                currentSyncWorkerId = null
-                return@map null
-            }
-
-            // this is a new work info: set the current worker
-            if (workInfo.id != currentSyncWorkerId) {
-                currentSyncWorkerId = workInfo.id
-            }
-
-            val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
-                DataSyncWorker.KEY_SERVER_STATUS,
-                workInfo.outputData.getInt(
-                    DataSyncWorker.KEY_SERVER_STATUS,
-                    ServerStatus.OK.ordinal
+                        emit(true)
+                    },
+                    onFailure = {
+                        emit(false)
+                    },
                 )
-            )]
-
-            // this work info is not scheduled or not running: the current worker is done
-            if (workInfo.state !in arrayListOf(
-                    WorkInfo.State.ENQUEUED,
-                    WorkInfo.State.RUNNING
-                )
-            ) {
-                currentSyncWorkerId = null
-            }
-
-            DataSyncStatus(
-                workInfo.state,
-                workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
-                    ?: workInfo.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
-                serverStatus
-            )
         }
+
+    fun observeDataSyncStatus(): LiveData<DataSyncStatus?> {
+        return workManager
+            .getWorkInfosByTagLiveData(DataSyncWorker.DATA_SYNC_WORKER_TAG)
+            .map { workInfoList ->
+                if (workInfoList == null || workInfoList.isEmpty()) {
+                    currentSyncWorkerId = null
+                    return@map null
+                }
+
+                val workInfo = workInfoList.firstOrNull { it.id == currentSyncWorkerId }
+                    ?: workInfoList.firstOrNull { it.state == WorkInfo.State.RUNNING }
+
+                // no work info is running: abort
+                if (workInfo == null) {
+                    currentSyncWorkerId = null
+                    return@map null
+                }
+
+                // this is a new work info: set the current worker
+                if (workInfo.id != currentSyncWorkerId) {
+                    currentSyncWorkerId = workInfo.id
+                }
+
+                val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
+                    DataSyncWorker.KEY_SERVER_STATUS,
+                    workInfo.outputData.getInt(
+                        DataSyncWorker.KEY_SERVER_STATUS,
+                        ServerStatus.OK.ordinal
+                    )
+                )]
+
+                // this work info is not scheduled or not running: the current worker is done
+                if (workInfo.state !in arrayListOf(
+                        WorkInfo.State.ENQUEUED,
+                        WorkInfo.State.RUNNING
+                    )
+                ) {
+                    currentSyncWorkerId = null
+                }
+
+                DataSyncStatus(
+                    workInfo.state,
+                    workInfo.progress.getString(DataSyncWorker.KEY_SYNC_MESSAGE)
+                        ?: workInfo.outputData.getString(DataSyncWorker.KEY_SYNC_MESSAGE),
+                    serverStatus
+                )
+            }
     }
 
     fun startSync(
         dataSyncSettings: DataSyncSettings,
+        withAdditionalFields: Boolean = false,
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
@@ -106,6 +129,7 @@ class DataSyncViewModel @Inject constructor(
         currentSyncWorkerId = DataSyncWorker.enqueueUniqueWork(
             getApplication(),
             dataSyncSettings,
+            withAdditionalFields,
             notificationComponentClassIntent,
             notificationChannelId
         )
@@ -113,6 +137,7 @@ class DataSyncViewModel @Inject constructor(
 
     fun configurePeriodicSync(
         appSettings: DataSyncSettings,
+        withAdditionalFields: Boolean = false,
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
@@ -155,6 +180,7 @@ class DataSyncViewModel @Inject constructor(
                     appSettings,
                     dataSyncPeriodicity,
                     withAdditionalData = true,
+                    withAdditionalFields,
                     notificationComponentClassIntent,
                     notificationChannelId
                 )
@@ -162,6 +188,7 @@ class DataSyncViewModel @Inject constructor(
                     appSettings,
                     essentialDataSyncPeriodicity,
                     withAdditionalData = false,
+                    withAdditionalFields,
                     notificationComponentClassIntent,
                     notificationChannelId
                 )
@@ -180,6 +207,7 @@ class DataSyncViewModel @Inject constructor(
                         appSettings,
                         it,
                         withAdditionalData = true,
+                        withAdditionalFields = false,
                         notificationComponentClassIntent,
                         notificationChannelId
                     )
@@ -198,6 +226,7 @@ class DataSyncViewModel @Inject constructor(
         dataSyncSettings: DataSyncSettings,
         repeatInterval: Duration,
         withAdditionalData: Boolean = true,
+        withAdditionalFields: Boolean = false,
         notificationComponentClassIntent: Class<*>,
         notificationChannelId: String
     ) {
@@ -207,6 +236,7 @@ class DataSyncViewModel @Inject constructor(
             getApplication(),
             dataSyncSettings,
             withAdditionalData,
+            withAdditionalFields,
             notificationComponentClassIntent,
             notificationChannelId,
             repeatInterval

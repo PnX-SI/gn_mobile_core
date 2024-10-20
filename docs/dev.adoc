@@ -2,8 +2,36 @@
 
 == Prerequisites
 
-* http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html[JDK 8] or https://openjdk.java.net/install[OpenJDK 8]
-* https://developer.android.com/studio#command-tools[Android SDK] or https://developer.android.com/studio#downloads[Android Studio]
+* https://www.oracle.com/fr/java/technologies/javase/jdk11-archive-downloads.html[JDK 11] or https://jdk.java.net/archive/[OpenJDK 11]
+* https://developer.android.com/studio#command-line-tools-only[Android SDK with command line tools] or https://developer.android.com/studio#android-studio-downloads[Android Studio]
+
+== Presentation
+
+The project is organized around 3 distinct git repositories:
+
+* https://github.com/PnX-SI/gn_mobile_core[gn_mobile_core], this current repository which carries "common" and transverse modules (the initial idea was to mutualize common bricks between potentially several applications relying on GeoNature APIs).
+* https://github.com/PnX-SI/gn_mobile_maps[gn_mobile_maps], a "generic" cartographic module that has no functional dependency on the "Occtax" application. This module is based on the https://github.com/osmdroid/osmdroid[osmdroid] Android library.
+* https://github.com/PnX-SI/gn_mobile_occtax[gn_mobile_occtax], the functional module for the "Occtax" application, supported by the national parks. This module is based on the two above-mentioned modules via git sub-modules.
+
+== Getting started
+
+We need to clone at least the git repository of the "Occtax" module:
+
+[source,bash]
+----
+git clone git@github.com:PnX-SI/gn_mobile_occtax.git
+cd gn_mobile_occtax
+git checkout develop
+----
+
+As it relies on https://git-scm.com/book/en/v2/Git-Tools-Submodules[git submodules], we also need to retrieve them with the following command:
+
+[source,bash]
+----
+git submodule update --init --recursive
+----
+
+Symbolic links are automatically resolved.
 
 == Full Build
 

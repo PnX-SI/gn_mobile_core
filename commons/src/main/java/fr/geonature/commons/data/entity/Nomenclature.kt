@@ -7,7 +7,6 @@ import android.provider.BaseColumns
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
@@ -24,28 +23,25 @@ import org.tinylog.Logger
         entity = NomenclatureType::class,
         parentColumns = [NomenclatureType.COLUMN_ID],
         childColumns = [Nomenclature.COLUMN_TYPE_ID],
-        onDelete = CASCADE
+        onDelete = ForeignKey.CASCADE
     )]
 )
 open class Nomenclature(
     /**
      * The unique ID of this nomenclature.
      */
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = COLUMN_ID)
-    var id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = COLUMN_ID) var id: Long,
 
-    @ColumnInfo(name = COLUMN_CODE)
-    var code: String,
+    @ColumnInfo(name = COLUMN_CODE) var code: String,
 
-    @ColumnInfo(name = COLUMN_HIERARCHY)
-    var hierarchy: String,
-    
-    @ColumnInfo(name = COLUMN_DEFAULT_LABEL)
-    var defaultLabel: String,
+    @ColumnInfo(name = COLUMN_HIERARCHY) var hierarchy: String,
 
-    @ColumnInfo(name = COLUMN_TYPE_ID, index = true)
-    var typeId: Long
+    @ColumnInfo(name = COLUMN_DEFAULT_LABEL) var defaultLabel: String,
+
+    @ColumnInfo(
+        name = COLUMN_TYPE_ID,
+        index = true
+    ) var typeId: Long
 ) : Parcelable {
 
     internal constructor(source: Parcel) : this(
@@ -79,15 +75,19 @@ open class Nomenclature(
         return result
     }
 
+    override fun toString(): String {
+        return "Nomenclature(id=$id, code='$code', hierarchy='$hierarchy', defaultLabel='$defaultLabel', typeId=$typeId)"
+    }
+
     override fun describeContents(): Int {
         return 0
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeLong(id)
             it.writeString(code)
             it.writeString(hierarchy)

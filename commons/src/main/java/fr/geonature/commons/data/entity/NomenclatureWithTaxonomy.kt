@@ -3,6 +3,7 @@ package fr.geonature.commons.data.entity
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import fr.geonature.compat.os.readParcelableCompat
 
 /**
  * Describes a nomenclature item with taxonomy.
@@ -23,7 +24,7 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
     )
 
     internal constructor(source: Parcel) : super(source) {
-        taxonony = source.readParcelable(Taxonomy::class.java.classLoader)
+        taxonony = source.readParcelableCompat()
     }
 
     override fun equals(other: Any?): Boolean {
@@ -44,7 +45,7 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
         super.writeToParcel(
@@ -52,7 +53,7 @@ class NomenclatureWithTaxonomy : NomenclatureWithType {
             flags
         )
 
-        dest?.writeParcelable(
+        dest.writeParcelable(
             taxonony,
             flags
         )

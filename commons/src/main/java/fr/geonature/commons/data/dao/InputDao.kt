@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import fr.geonature.commons.data.helper.ProviderHelper.buildUri
-import fr.geonature.commons.input.AbstractInput
 import fr.geonature.commons.util.getInputsFolder
 import fr.geonature.mountpoint.util.FileUtils
 import org.json.JSONObject
@@ -14,17 +13,17 @@ import java.io.File
 import java.io.FileWriter
 
 /**
- * Data access object for [AbstractInput].
+ * Data access object for observation records.
  *
  * @author S. Grimault
  */
 class InputDao(private val context: Context) {
 
     /**
-     * Exports `ContentValues` as [AbstractInput] to `JSON` file.
+     * Exports `ContentValues` as observation record to `JSON` file.
      *
      * @param authority content provider authority on which to export input
-     * @param values a set of column_name/value pairs as [AbstractInput] to save
+     * @param values a set of column_name/value pairs as observation record to save
      *
      * @return The URI to the `JSON` file
      */

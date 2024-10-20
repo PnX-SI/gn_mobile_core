@@ -26,3 +26,11 @@ fun <L : LiveData<Failure>> LifecycleOwner.onFailure(
     this,
     Observer(body)
 )
+
+fun <L : LiveData<Throwable>> LifecycleOwner.onError(
+    liveData: L,
+    body: (Throwable) -> Unit
+) = liveData.observe(
+    this,
+    Observer(body)
+)

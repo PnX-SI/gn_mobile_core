@@ -7,6 +7,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
+import fr.geonature.commons.data.helper.sqlEscape
+import fr.geonature.commons.data.helper.sqlNormalize
+import fr.geonature.compat.os.readParcelableCompat
 
 /**
  * Base taxon.
@@ -42,33 +45,24 @@ abstract class AbstractTaxon : Parcelable {
     @ColumnInfo(name = COLUMN_DESCRIPTION)
     var description: String?
 
-    /**
-     * The rank description of the taxon.
-     */
-    @ColumnInfo(name = COLUMN_RANK)
-    var rank: String?
-
     constructor(
         id: Long,
         name: String,
         taxonomy: Taxonomy,
         commonName: String? = null,
-        description: String? = null,
-        rank: String? = null
+        description: String? = null
     ) {
         this.id = id
         this.name = name
         this.taxonomy = taxonomy
         this.commonName = commonName
         this.description = description
-        this.rank = rank
     }
 
     constructor(source: Parcel) : this(
         source.readLong(),
         source.readString()!!,
-        source.readParcelable(Taxonomy::class.java.classLoader)!!,
-        source.readString(),
+        source.readParcelableCompat<Taxonomy>()!!,
         source.readString(),
         source.readString()
     )
@@ -82,7 +76,6 @@ abstract class AbstractTaxon : Parcelable {
         if (taxonomy != other.taxonomy) return false
         if (commonName != other.commonName) return false
         if (description != other.description) return false
-        if (rank != other.rank) return false
 
         return true
     }
@@ -91,9 +84,10 @@ abstract class AbstractTaxon : Parcelable {
         var result = id.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + taxonomy.hashCode()
-        result = 31 * result + (commonName?.hashCode() ?: 0)
-        result = 31 * result + (description?.hashCode() ?: 0)
-        result = 31 * result + (rank?.hashCode() ?: 0)
+        result = 31 * result + (commonName?.hashCode()
+            ?: 0)
+        result = 31 * result + (description?.hashCode()
+            ?: 0)
 
         return result
     }
@@ -103,10 +97,10 @@ abstract class AbstractTaxon : Parcelable {
     }
 
     override fun writeToParcel(
-        dest: Parcel?,
+        dest: Parcel,
         flags: Int
     ) {
-        dest?.also {
+        dest.also {
             it.writeLong(id)
             it.writeString(name)
             it.writeParcelable(
@@ -115,7 +109,6 @@ abstract class AbstractTaxon : Parcelable {
             )
             it.writeString(commonName)
             it.writeString(description)
-            it.writeString(rank)
         }
     }
 
@@ -129,7 +122,6 @@ abstract class AbstractTaxon : Parcelable {
         const val COLUMN_NAME = "name"
         const val COLUMN_NAME_COMMON = "name_common"
         const val COLUMN_DESCRIPTION = "description"
-        const val COLUMN_RANK = "rank"
 
         /**
          * Gets the default projection.
@@ -151,10 +143,6 @@ abstract class AbstractTaxon : Parcelable {
                 ),
                 column(
                     COLUMN_DESCRIPTION,
-                    tableAlias
-                ),
-                column(
-                    COLUMN_RANK,
                     tableAlias
                 )
             )
@@ -185,39 +173,35 @@ abstract class AbstractTaxon : Parcelable {
          *
          * @return this
          */
-        fun byNameOrDescriptionOrRank(queryString: String?): Filter {
+        fun byNameOrDescription(queryString: String?): Filter {
             if (queryString.isNullOrBlank()) {
                 return this
             }
+
+            val normalizedQueryString = queryString.sqlNormalize()
 
             this.wheres.add(
                 Pair(
                     "(${
                         getColumnAlias(
-                        COLUMN_NAME,
-                        tableAlias
-                    )
-                    } LIKE ? OR ${
+                            COLUMN_NAME,
+                            tableAlias
+                        )
+                    } GLOB ? OR ${
                         getColumnAlias(
-                        COLUMN_NAME_COMMON,
-                        tableAlias
-                    )
-                    } LIKE ? OR ${
+                            COLUMN_NAME_COMMON,
+                            tableAlias
+                        )
+                    } GLOB ? OR ${
                         getColumnAlias(
-                        COLUMN_DESCRIPTION,
-                        tableAlias
-                    )
-                    } LIKE ? OR ${
-                        getColumnAlias(
-                        COLUMN_RANK,
-                        tableAlias
-                    )
-                    } LIKE ?)",
+                            COLUMN_DESCRIPTION,
+                            tableAlias
+                        )
+                    } GLOB ?)",
                     arrayOf(
-                        "%$queryString%",
-                        "%$queryString%",
-                        "%$queryString%",
-                        "%$queryString%"
+                        normalizedQueryString,
+                        normalizedQueryString,
+                        normalizedQueryString
                     )
                 )
             )
@@ -253,8 +237,8 @@ abstract class AbstractTaxon : Parcelable {
                         )
                     } = ?))",
                     arrayOf(
-                        taxonomy.kingdom,
-                        taxonomy.group
+                        taxonomy.kingdom.sqlEscape(),
+                        taxonomy.group.sqlEscape()
                     )
                 )
             )
@@ -276,7 +260,7 @@ abstract class AbstractTaxon : Parcelable {
                             tableAlias
                         )
                     } = ?)",
-                    arrayOf(kingdom)
+                    arrayOf(kingdom.sqlEscape())
                 )
             )
 
@@ -290,7 +274,8 @@ abstract class AbstractTaxon : Parcelable {
             val bindArgs = mutableListOf<Any?>()
 
             val whereClauses = this.wheres.joinToString(" AND ") { pair ->
-                pair.second?.toList()
+                pair.second
+                    ?.toList()
                     ?.also { bindArgs.addAll(it) }
                 pair.first
             }
@@ -306,13 +291,13 @@ abstract class AbstractTaxon : Parcelable {
      * Order by query builder.
      */
     open class OrderBy(internal val tableAlias: String) {
-        private val orderBy = mutableSetOf<Pair<String, SQLiteSelectQueryBuilder.OrderingTerm>>()
+        private val orderBy = mutableSetOf<String>()
 
         /**
          * Adds an ORDER BY statement.
          *
          * @param columnName The selected column name on which to apply order clause.
-         * @param orderingTerm The ordering sort order (default: `ASC`).
+         * @param orderingTerm The ordering sort order (default: [SQLiteSelectQueryBuilder.OrderingTerm.ASC]).
          *
          * @return this
          */
@@ -321,41 +306,94 @@ abstract class AbstractTaxon : Parcelable {
             orderingTerm: SQLiteSelectQueryBuilder.OrderingTerm = SQLiteSelectQueryBuilder.OrderingTerm.ASC
         ): OrderBy {
             this.orderBy.add(
-                Pair(
+                "${
                     getColumnAlias(
                         columnName,
                         tableAlias
-                    ),
-                    orderingTerm
-                )
+                    )
+                } ${orderingTerm.name}"
             )
 
             return this
         }
 
         /**
-         * Adds an ORDER BY statement on 'name_common' column and on 'name' column as default if 'name_common' column is null.
+         * Adds an ORDER BY statement on 'name_common' column and on 'name' column from given any
+         * query string. The default sort order is [SQLiteSelectQueryBuilder.OrderingTerm.ASC].
          *
-         * @param orderingTerm The ordering sort order (default: `ASC`).
+         * @param queryString The query string.
          *
          * @return this
          */
-        fun byCommonName(orderingTerm: SQLiteSelectQueryBuilder.OrderingTerm = SQLiteSelectQueryBuilder.OrderingTerm.ASC): OrderBy {
+        fun byName(queryString: String? = null): OrderBy {
+            if (queryString.isNullOrBlank()) {
+                this.orderBy.add(
+                    "${
+                        getColumnAlias(
+                            COLUMN_NAME,
+                            tableAlias
+                        )
+                    } ${SQLiteSelectQueryBuilder.OrderingTerm.ASC.name}"
+                )
+
+                return this
+            }
+
+            val escapedQueryString = queryString.sqlEscape()
+            val normalizedQueryString = queryString.sqlNormalize()
+
             this.orderBy.add(
-                Pair(
-                    "COALESCE(${
-                        getColumnAlias(
-                        COLUMN_NAME_COMMON,
-                        tableAlias
-                    )
-                    }, ${
-                        getColumnAlias(
+                "(CASE WHEN (${
+                    getColumnAlias(
                         COLUMN_NAME,
                         tableAlias
                     )
-                    })",
-                    orderingTerm
-                )
+                } = '$escapedQueryString' COLLATE NOCASE OR ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )
+                } = '$escapedQueryString' COLLATE NOCASE) THEN 1 WHEN (${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } LIKE '$escapedQueryString%' COLLATE NOCASE OR ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )
+                } LIKE '$escapedQueryString%' COLLATE NOCASE) THEN 2 WHEN (${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } LIKE '%$escapedQueryString%' COLLATE NOCASE OR ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )
+                } LIKE '%$escapedQueryString%' COLLATE NOCASE) THEN 3 WHEN (${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString' COLLATE NOCASE OR ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString' COLLATE NOCASE) THEN 4 ELSE 5 END), ${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } COLLATE NOCASE, ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        tableAlias
+                    )
+                } COLLATE NOCASE"
             )
 
             return this
@@ -369,7 +407,7 @@ abstract class AbstractTaxon : Parcelable {
                 return null
             }
 
-            return this.orderBy.joinToString(", ") { pair -> "${pair.first} ${pair.second.name}" }
+            return this.orderBy.joinToString(", ")
         }
     }
 }

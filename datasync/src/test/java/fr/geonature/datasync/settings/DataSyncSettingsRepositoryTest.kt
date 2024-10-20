@@ -27,7 +27,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Unit tests about [IDataSyncSettingsRepository].
@@ -36,7 +35,6 @@ import org.robolectric.annotation.Config
  */
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE)
 class DataSyncSettingsRepositoryTest {
 
     @get:Rule

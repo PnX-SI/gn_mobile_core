@@ -51,7 +51,7 @@ class TaxonomyTest {
     }
 
     @Test
-    fun testSanitizeValues() {
+    fun `should sanitize values`() {
         assertEquals(
             Taxonomy(
                 ANY,
@@ -97,8 +97,8 @@ class TaxonomyTest {
 
         assertEquals(
             Taxonomy(
-                ANY,
-                ANY
+                "Autre",
+                "Autre"
             ),
             Taxonomy(
                 "Autre",
@@ -108,8 +108,8 @@ class TaxonomyTest {
 
         assertEquals(
             Taxonomy(
-                ANY,
-                ANY
+                "Autres",
+                "Autres"
             ),
             Taxonomy(
                 "Autres",
@@ -119,8 +119,8 @@ class TaxonomyTest {
 
         assertEquals(
             Taxonomy(
-                ANY,
-                ANY
+                "autres",
+                "autre"
             ),
             Taxonomy(
                 "autres",
@@ -130,8 +130,8 @@ class TaxonomyTest {
 
         assertEquals(
             Taxonomy(
-                ANY,
-                ANY
+                "AUTRES",
+                "AUTRE"
             ),
             Taxonomy(
                 "AUTRES",
@@ -142,7 +142,7 @@ class TaxonomyTest {
         assertEquals(
             Taxonomy(
                 "Animalia",
-                ANY
+                "autre"
             ),
             Taxonomy(
                 "Animalia",

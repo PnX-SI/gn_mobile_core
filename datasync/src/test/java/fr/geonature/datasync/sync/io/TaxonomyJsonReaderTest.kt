@@ -83,6 +83,7 @@ class TaxonomyJsonReaderTest {
         )
         assertArrayEquals(arrayOf(
             Taxonomy.ANY,
+            "Autres",
             "Lichens"
         ),
             taxonomy
