@@ -10,6 +10,11 @@ import fr.geonature.commons.features.dataset.error.DatasetException
  * @author S. Grimault
  */
 class DatasetLocalDataSourceImpl(private val datasetDao: DatasetDao) : IDatasetLocalDataSource {
+
+    override suspend fun getAllDatasets(): List<Dataset> {
+        return datasetDao.findAll()
+    }
+
     override suspend fun findDatasetById(datasetId: Long): Dataset {
         return datasetDao.findById(datasetId)
             ?: throw DatasetException.NoDatasetFoundException(datasetId)

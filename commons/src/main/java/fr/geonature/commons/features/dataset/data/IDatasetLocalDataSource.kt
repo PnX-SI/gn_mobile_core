@@ -11,6 +11,13 @@ import fr.geonature.commons.features.dataset.error.DatasetException
 interface IDatasetLocalDataSource {
 
     /**
+     * Gets all [Dataset].
+     *
+     * @return a list of [Dataset]
+     */
+    suspend fun getAllDatasets(): List<Dataset>
+
+    /**
      * Finds [Dataset] matching given taxon ID.
      *
      * @param datasetId the [Dataset] identifier to find

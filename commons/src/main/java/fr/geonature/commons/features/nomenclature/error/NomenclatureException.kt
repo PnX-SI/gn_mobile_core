@@ -18,7 +18,7 @@ sealed class NomenclatureException(
     /**
      * Failure about no [NomenclatureType] found locally.
      */
-    object NoNomenclatureTypeFoundException : NomenclatureException()
+     object NoNomenclatureTypeFoundException : NomenclatureException()
 
     /**
      * Failure about no [Nomenclature] found from given mnemonic.
