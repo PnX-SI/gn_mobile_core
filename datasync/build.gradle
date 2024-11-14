@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
-version = "0.6.2"
+version = "0.6.3"
 
 android {
     namespace 'fr.geonature.datasync'

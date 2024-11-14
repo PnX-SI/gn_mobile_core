@@ -2,6 +2,7 @@ package fr.geonature.datasync.sync.repository
 
 import android.content.Context
 import androidx.work.WorkInfo
+import fr.geonature.commons.features.dataset.data.IDatasetLocalDataSource
 import fr.geonature.commons.features.nomenclature.data.IAdditionalFieldLocalDataSource
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.IGeoNatureAPIClient
@@ -26,6 +27,7 @@ interface ISynchronizeAdditionalFieldsRepository : ISynchronizeLocalDataReposito
 class SynchronizeAdditionalFieldsRepositoryImpl(
     private val context: Context,
     private val moduleName: String,
+    private val datasetLocalDataSource: IDatasetLocalDataSource,
     private val additionalFieldLocalDataSource: IAdditionalFieldLocalDataSource,
     private val geoNatureAPIClient: IGeoNatureAPIClient
 ) : ISynchronizeAdditionalFieldsRepository {
@@ -58,10 +60,24 @@ class SynchronizeAdditionalFieldsRepositoryImpl(
                 return@flow
             }
 
-            Logger.info { "${additionalFields.size} additional field(s) found" }
+            Logger.info { "${additionalFields.size} additional field(s) found from API" }
+
+            // keep only additional fields with valid datasets
+            val datasetIds = datasetLocalDataSource
+                .getAllDatasets()
+                .map { it.id }
+            val validAdditionalFields = additionalFields.mapNotNull {
+                if (it.datasetIds.isEmpty()) it
+                else it.datasetIds
+                    .filter { id -> datasetIds.contains(id) }
+                    .takeIf { ids -> ids.isNotEmpty() }
+                    ?.let { ids -> it.copy(datasetIds = ids) }
+            }
+
+            Logger.info { "updating ${validAdditionalFields.size} valid additional field(s)..." }
 
             runCatching {
-                additionalFieldLocalDataSource.updateAdditionalFields(*additionalFields.toTypedArray())
+                additionalFieldLocalDataSource.updateAdditionalFields(*validAdditionalFields.toTypedArray())
             }.onFailure {
                 emit(
                     DataSyncStatus(
@@ -76,7 +92,7 @@ class SynchronizeAdditionalFieldsRepositoryImpl(
                     state = WorkInfo.State.SUCCEEDED,
                     syncMessage = context.getString(
                         R.string.sync_data_additional_fields,
-                        additionalFields.size
+                        validAdditionalFields.size
                     )
                 )
             )

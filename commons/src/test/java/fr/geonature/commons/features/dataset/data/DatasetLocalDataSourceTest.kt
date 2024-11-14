@@ -64,6 +64,19 @@ class DatasetLocalDataSourceTest {
     }
 
     @Test
+    fun `should find all dataset`() =
+        runTest {
+            val expectedDataset = initializeDataset()
+
+            val datasets = datasetLocalDataSource.getAllDatasets()
+
+            assertEquals(
+                expectedDataset,
+                datasets
+            )
+        }
+
+    @Test
     fun `should find dataset matching given ID`() =
         runTest {
             val expectedDataset = initializeDataset()

@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import fr.geonature.commons.data.GeoNatureModuleName
 import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.dao.AppSyncDao
+import fr.geonature.commons.features.dataset.data.IDatasetLocalDataSource
 import fr.geonature.commons.features.nomenclature.data.IAdditionalFieldLocalDataSource
 import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.sync.repository.ISynchronizeAdditionalFieldsRepository
@@ -45,12 +46,14 @@ object DataSyncModule {
     fun provideSynchronizeAdditionalFieldsRepository(
         @ApplicationContext appContext: Context,
         @GeoNatureModuleName moduleName: String,
+        datasetLocalDataSource: IDatasetLocalDataSource,
         additionalFieldLocalDataSource: IAdditionalFieldLocalDataSource,
         geoNatureAPIClient: IGeoNatureAPIClient,
     ): ISynchronizeAdditionalFieldsRepository {
         return SynchronizeAdditionalFieldsRepositoryImpl(
             appContext,
             moduleName,
+            datasetLocalDataSource,
             additionalFieldLocalDataSource,
             geoNatureAPIClient
         )
