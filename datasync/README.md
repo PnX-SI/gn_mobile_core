@@ -44,7 +44,7 @@ Module settings can be loaded from JSON as follow:
 {
   "sync": {
     "geonature_url": "https://demo.geonature/geonature",
-    "taxhub_url": "https://demo.geonature/taxhub",
+    "taxhub_url": "https://demo.geonature.fr/geonature/api/taxhub",
     "gn_application_id": 3,
     "observers_list_id": 1,
     "taxa_list_id": 100,
@@ -59,7 +59,7 @@ or
 ```json
 {
   "geonature_url": "https://demo.geonature/geonature",
-  "taxhub_url": "https://demo.geonature/taxhub",
+  "taxhub_url": "https://demo.geonature.fr/geonature/api/taxhub",
   "gn_application_id": 3,
   "observers_list_id": 1,
   "taxa_list_id": 100,
