@@ -36,6 +36,22 @@ fun JSONObject.toMap(): Map<String, *> =
         }
 
 /**
+ * Returns the int value of the next token and consuming it.
+ * If the next token is not a int value returns `null`.
+ */
+fun JsonReader.nextIntOrNull(): Int? {
+    return when (peek()) {
+        NUMBER -> {
+            nextInt()
+        }
+        else -> {
+            skipValue()
+            null
+        }
+    }
+}
+
+/**
  * Returns the long value of the next token and consuming it.
  * If the next token is not a long value returns `null`.
  */
