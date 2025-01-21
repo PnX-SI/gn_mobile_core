@@ -51,6 +51,11 @@ data class AdditionalField(
      * The description of this additional field.
      */
     @ColumnInfo(name = COLUMN_FIELD_DESCRIPTION) val description: String? = null,
+
+    /**
+     * The display order of this additional field.
+     */
+    @ColumnInfo(name = COLUMN_FIELD_ORDER) val order: Int? = null
 ) : Parcelable {
 
     enum class FieldType(val type: String) {
@@ -82,6 +87,7 @@ data class AdditionalField(
         const val COLUMN_FIELD_NAME = "name"
         const val COLUMN_FIELD_LABEL = "label"
         const val COLUMN_FIELD_DESCRIPTION = "description"
+        const val COLUMN_FIELD_ORDER = "order"
     }
 }
 

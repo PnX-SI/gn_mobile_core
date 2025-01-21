@@ -69,6 +69,84 @@ class JsonHelperTest {
     }
 
     @Test
+    fun `should read int value from JSON property`() {
+        val jsonReader = JsonReader(StringReader("{\"key\":8}"))
+        var value: Int? = null
+
+        jsonReader.beginObject()
+
+        while (jsonReader.hasNext()) {
+            when (jsonReader.nextName()) {
+                "key" -> value = jsonReader.nextIntOrNull()
+            }
+        }
+
+        jsonReader.endObject()
+
+        assertEquals(
+            8,
+            value
+        )
+    }
+
+    @Test
+    fun `should read null int value from JSON property with null value`() {
+        val jsonReader = JsonReader(StringReader("{\"key\":null}"))
+        var value: Int? = null
+
+        jsonReader.beginObject()
+
+        while (jsonReader.hasNext()) {
+            when (jsonReader.nextName()) {
+                "key" -> value = jsonReader.nextIntOrNull()
+            }
+        }
+
+        jsonReader.endObject()
+
+        assertNull(value)
+    }
+
+    @Test
+    fun `should read long value from JSON property`() {
+        val jsonReader = JsonReader(StringReader("{\"key\":8}"))
+        var value: Long? = null
+
+        jsonReader.beginObject()
+
+        while (jsonReader.hasNext()) {
+            when (jsonReader.nextName()) {
+                "key" -> value = jsonReader.nextLongOrNull()
+            }
+        }
+
+        jsonReader.endObject()
+
+        assertEquals(
+            8L,
+            value
+        )
+    }
+
+    @Test
+    fun `should read null long value from JSON property with null value`() {
+        val jsonReader = JsonReader(StringReader("{\"key\":null}"))
+        var value: Long? = null
+
+        jsonReader.beginObject()
+
+        while (jsonReader.hasNext()) {
+            when (jsonReader.nextName()) {
+                "key" -> value = jsonReader.nextLongOrNull()
+            }
+        }
+
+        jsonReader.endObject()
+
+        assertNull(value)
+    }
+
+    @Test
     fun `should read string value from JSON property`() {
         val jsonReader = JsonReader(StringReader("{\"key\":\"value\"}"))
         var value: String? = null

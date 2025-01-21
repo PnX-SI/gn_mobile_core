@@ -57,7 +57,9 @@ internal class AdditionalFieldJsonReaderTest {
                         id = 2,
                         fieldType = AdditionalField.FieldType.TEXT,
                         name = "test_add",
-                        label = "Test champs"
+                        label = "Test champs",
+                        description = "Some description",
+                        order = 8
                     ),
                     codeObjects = listOf(
                         CodeObject(

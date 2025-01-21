@@ -6,12 +6,12 @@ import fr.geonature.commons.data.entity.AdditionalField
 import fr.geonature.commons.data.entity.AdditionalFieldWithValues
 import fr.geonature.commons.data.entity.CodeObject
 import fr.geonature.commons.data.entity.FieldValue
+import fr.geonature.commons.util.nextIntOrNull
 import fr.geonature.commons.util.nextStringOrNull
 import org.tinylog.Logger
 import java.io.IOException
 import java.io.Reader
 import java.io.StringReader
-import java.util.Locale
 
 /**
  * Default `JsonReader` about reading a `JSON` stream and build the corresponding [AdditionalFieldWithValues]
@@ -44,10 +44,10 @@ class AdditionalFieldJsonReader {
      */
     fun read(reader: Reader): List<AdditionalFieldWithValues> {
         val jsonReader = JsonReader(reader)
-        val observationRecord = readAdditionalFieldValuesAsList(jsonReader)
+        val additionalFieldWithValues = readAdditionalFieldValuesAsList(jsonReader)
         jsonReader.close()
 
-        return observationRecord
+        return additionalFieldWithValues
     }
 
     private fun readAdditionalFieldValuesAsList(reader: JsonReader): List<AdditionalFieldWithValues> {
@@ -63,7 +63,9 @@ class AdditionalFieldJsonReader {
                 while (reader.hasNext()) {
                     when (reader.peek()) {
                         JsonToken.BEGIN_OBJECT -> {
-                            additionalFieldWithValuesList.addAll(readAdditionalFieldValues(reader))
+                            readAdditionalFieldValues(reader)?.also {
+                                additionalFieldWithValuesList.add(it)
+                            }
                         }
 
                         else -> reader.skipValue()
@@ -74,7 +76,8 @@ class AdditionalFieldJsonReader {
             }
 
             JsonToken.BEGIN_OBJECT -> {
-                readAdditionalFieldValues(reader)
+                readAdditionalFieldValues(reader)?.let { listOf(it) }
+                    ?: emptyList()
             }
 
             else -> {
@@ -84,16 +87,17 @@ class AdditionalFieldJsonReader {
         }
     }
 
-    private fun readAdditionalFieldValues(reader: JsonReader): List<AdditionalFieldWithValues> {
+    private fun readAdditionalFieldValues(reader: JsonReader): AdditionalFieldWithValues? {
         reader.beginObject()
 
         var id: Long? = null
         val datasetIds = mutableListOf<Long>()
         val objects = mutableListOf<String>()
-        val modules = mutableListOf<String>()
         var fieldType: AdditionalField.FieldType? = null
         var fieldName: String? = null
         var fieldLabel: String? = null
+        var fieldDescription: String? = null
+        var fieldOrder: Int? = null
         val fieldValues = mutableListOf<Pair<String, String?>>()
         var nomenclatureType: String? = null
 
@@ -102,10 +106,11 @@ class AdditionalFieldJsonReader {
                 "id_field" -> id = reader.nextLong()
                 "datasets" -> datasetIds.addAll(readDatasetIds(reader))
                 "objects" -> objects.addAll(readObjects(reader))
-                "modules" -> modules.addAll(readModules(reader))
                 "type_widget" -> fieldType = readFieldType(reader)
                 "field_name" -> fieldName = reader.nextStringOrNull()
                 "field_label" -> fieldLabel = reader.nextStringOrNull()
+                "description" -> fieldDescription = reader.nextStringOrNull()
+                "field_order" -> fieldOrder = reader.nextIntOrNull()
                 "field_values" -> fieldValues.addAll(readFieldValues(reader))
                 "code_nomenclature_type" -> nomenclatureType = reader.nextStringOrNull()
                 else -> reader.skipValue()
@@ -114,35 +119,33 @@ class AdditionalFieldJsonReader {
 
         reader.endObject()
 
-        if (id == null || fieldType == null || fieldName.isNullOrBlank() || fieldLabel.isNullOrBlank()) return emptyList()
+        if (id == null || fieldType == null || fieldName.isNullOrBlank() || fieldLabel.isNullOrBlank()) return null
 
-        return modules
-            .distinct()
-            .map { module ->
-                AdditionalFieldWithValues(
-                    additionalField = AdditionalField(
-                        id,
-                        fieldType,
-                        fieldName,
-                        fieldLabel
-                    ),
-                    datasetIds = datasetIds,
-                    nomenclatureTypeMnemonic = nomenclatureType,
-                    codeObjects = objects.map { codeObject ->
-                        CodeObject(
-                            id,
-                            codeObject
-                        )
-                    },
-                    values = fieldValues.map {
-                        FieldValue(
-                            id,
-                            it.first,
-                            it.second
-                        )
-                    },
+        return AdditionalFieldWithValues(
+            additionalField = AdditionalField(
+                id = id,
+                fieldType = fieldType,
+                name = fieldName,
+                label = fieldLabel,
+                description = fieldDescription,
+                order = fieldOrder
+            ),
+            datasetIds = datasetIds,
+            nomenclatureTypeMnemonic = nomenclatureType,
+            codeObjects = objects.map { codeObject ->
+                CodeObject(
+                    id,
+                    codeObject
                 )
-            }
+            },
+            values = fieldValues.map {
+                FieldValue(
+                    id,
+                    it.first,
+                    it.second
+                )
+            },
+        )
     }
 
     private fun readDatasetIds(reader: JsonReader): List<Long> {
@@ -211,42 +214,6 @@ class AdditionalFieldJsonReader {
         return codeObject
     }
 
-    private fun readModules(reader: JsonReader): List<String> {
-        val modules = mutableListOf<String>()
-
-        reader.beginArray()
-
-        while (reader.hasNext()) {
-            readModule(reader)?.also {
-                modules.add(it)
-            }
-        }
-
-        reader.endArray()
-
-        return modules
-    }
-
-    private fun readModule(reader: JsonReader): String? {
-        var module: String? = null
-
-        reader.beginObject()
-
-        while (reader.hasNext()) {
-            when (reader.nextName()) {
-                "module_path" -> module = reader
-                    .nextString()
-                    .lowercase(Locale.ROOT)
-
-                else -> reader.skipValue()
-            }
-        }
-
-        reader.endObject()
-
-        return module
-    }
-
     private fun readFieldType(reader: JsonReader): AdditionalField.FieldType? {
         var fieldType: AdditionalField.FieldType? = null
 
@@ -258,11 +225,9 @@ class AdditionalFieldJsonReader {
                     .nextStringOrNull()
                     ?.let { widgetName ->
                         runCatching {
-                            AdditionalField.FieldType
-                                .values()
-                                .first { it.type == widgetName }
+                            AdditionalField.FieldType.entries.first { it.type == widgetName }
                         }
-                            .onFailure { Logger.warn { "unknown widget '$it'" } }
+                            .onFailure { Logger.warn { "unknown widget '$widgetName'" } }
                             .getOrNull()
                     }
 
