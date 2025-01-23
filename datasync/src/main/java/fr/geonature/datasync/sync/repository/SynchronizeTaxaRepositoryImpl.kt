@@ -247,6 +247,13 @@ class SynchronizeTaxaRepositoryImpl(
             var offset = 0
             var page = 1
 
+
+            // fetch all valid taxa IDs already synchronized
+            val validTaxaIds = database
+                .taxonDao()
+                .findAllIds()
+                .associateWith { it }
+
             // fetch all taxa areas from paginated list
             do {
                 val taxrefAreasResponse = runCatching {
@@ -290,6 +297,8 @@ class SynchronizeTaxaRepositoryImpl(
 
                 val taxonAreas = taxrefAreasResponse
                     .asSequence()
+                    // keep only valid taxon with area
+                    .filter { taxrefArea -> validTaxaIds.containsKey(taxrefArea.taxrefId) }
                     .map {
                         TaxonArea(
                             it.taxrefId,

@@ -64,6 +64,20 @@ class TaxonDaoTest {
     }
 
     @Test
+    fun `should find all taxa IDs`() =
+        runTest {
+            initializeTaxonomy()
+            val expectedTaxa = initializeTaxa()
+
+            val ids = taxonDao.findAllIds()
+
+            assertEquals(
+                expectedTaxa.map { it.id },
+                ids
+            )
+        }
+
+    @Test
     fun `should insert and find taxon matching given ID`() =
         runTest {
             initializeTaxonomy()

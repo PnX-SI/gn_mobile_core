@@ -18,6 +18,13 @@ import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 abstract class TaxonDao : BaseDao<Taxon>() {
 
     @Query(
+        """SELECT t.${AbstractTaxon.COLUMN_ID}
+            FROM ${Taxon.TABLE_NAME} t
+        """
+    )
+    abstract suspend fun findAllIds(): List<Long>
+
+    @Query(
         """SELECT t.*
             FROM ${Taxon.TABLE_NAME} t
             WHERE t.${AbstractTaxon.COLUMN_ID} = :taxonId
