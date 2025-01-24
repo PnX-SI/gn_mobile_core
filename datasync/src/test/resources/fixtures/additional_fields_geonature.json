@@ -46,7 +46,7 @@
       }
     ],
     "quantitative": false,
-    "required": false,
+    "required": true,
     "type_widget": {
       "id_widget": 4,
       "widget_name": "text"
@@ -511,6 +511,58 @@
     "type_widget": {
       "id_widget": 10,
       "widget_name": "multiselect"
+    },
+    "unity": null
+  },
+  {
+    "additional_attributes": {},
+    "api": null,
+    "bib_nomenclature_type": null,
+    "code_nomenclature_type": null,
+    "datasets": [],
+    "default_value": null,
+    "description": null,
+    "exportable": true,
+    "field_label": "As checkbox",
+    "field_name": "as_checkbox_den",
+    "field_order": null,
+    "field_values": [
+      {
+        "label": "k1",
+        "value": 1
+      },
+      {
+        "label": "k2",
+        "value": 2
+      }
+    ],
+    "id_field": 42,
+    "id_list": null,
+    "modules": [
+      {
+        "id_module": 4,
+        "meta_create_date": "2021-12-01T17:38:29.087265",
+        "meta_update_date": "2023-04-05T10:26:00.068290",
+        "module_code": "OCCTAX",
+        "module_label": "OccTax",
+        "module_path": "occtax",
+        "ng_module": "occtax",
+        "type": "base"
+      }
+    ],
+    "multiselect": null,
+    "objects": [
+      {
+        "code_object": "OCCTAX_DENOMBREMENT",
+        "description_object": "Représente la table pr_occtax.cor_counting_occtax",
+        "id_object": 6
+      }
+    ],
+    "quantitative": false,
+    "required": true,
+    "type_widget": {
+      "id_widget": 2,
+      "widget_name": "checkbox"
     },
     "unity": null
   }

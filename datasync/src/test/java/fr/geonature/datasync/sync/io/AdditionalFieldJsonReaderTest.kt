@@ -59,6 +59,7 @@ internal class AdditionalFieldJsonReaderTest {
                         name = "test_add",
                         label = "Test champs",
                         description = "Some description",
+                        mandatory = true,
                         order = 8
                     ),
                     codeObjects = listOf(
@@ -241,7 +242,34 @@ internal class AdditionalFieldJsonReaderTest {
                             label = "val 04"
                         )
                     )
-                )
+                ),
+                AdditionalFieldWithValues(
+                    additionalField = AdditionalField(
+                        id = 42,
+                        fieldType = AdditionalField.FieldType.CHECKBOX,
+                        name = "as_checkbox_den",
+                        label = "As checkbox",
+                        mandatory = true
+                    ),
+                    codeObjects = listOf(
+                        CodeObject(
+                            additionalFieldId = 42,
+                            key = "OCCTAX_DENOMBREMENT"
+                        )
+                    ),
+                    values = listOf(
+                        FieldValue(
+                            additionalFieldId = 42,
+                            value = "1",
+                            label = "k1"
+                        ),
+                        FieldValue(
+                            additionalFieldId = 42,
+                            value = "2",
+                            label = "k2"
+                        )
+                    )
+                ),
             ),
             additionalFieldWithValues
         )

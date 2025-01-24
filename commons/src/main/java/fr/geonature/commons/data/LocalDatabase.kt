@@ -56,7 +56,7 @@ import fr.geonature.commons.data.entity.Taxonomy
         CodeObject::class,
         FieldValue::class,
     ],
-    version = 24,
+    version = 25,
     exportSchema = false
 )
 abstract class LocalDatabase : RoomDatabase() {
