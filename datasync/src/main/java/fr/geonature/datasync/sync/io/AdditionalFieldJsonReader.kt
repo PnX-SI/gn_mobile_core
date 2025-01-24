@@ -6,6 +6,7 @@ import fr.geonature.commons.data.entity.AdditionalField
 import fr.geonature.commons.data.entity.AdditionalFieldWithValues
 import fr.geonature.commons.data.entity.CodeObject
 import fr.geonature.commons.data.entity.FieldValue
+import fr.geonature.commons.util.nextBooleanOrElse
 import fr.geonature.commons.util.nextIntOrNull
 import fr.geonature.commons.util.nextStringOrNull
 import org.tinylog.Logger
@@ -97,6 +98,7 @@ class AdditionalFieldJsonReader {
         var fieldName: String? = null
         var fieldLabel: String? = null
         var fieldDescription: String? = null
+        var fieldMandatory = false
         var fieldOrder: Int? = null
         val fieldValues = mutableListOf<Pair<String, String?>>()
         var nomenclatureType: String? = null
@@ -110,6 +112,7 @@ class AdditionalFieldJsonReader {
                 "field_name" -> fieldName = reader.nextStringOrNull()
                 "field_label" -> fieldLabel = reader.nextStringOrNull()
                 "description" -> fieldDescription = reader.nextStringOrNull()
+                "required" -> fieldMandatory = reader.nextBooleanOrElse { false }
                 "field_order" -> fieldOrder = reader.nextIntOrNull()
                 "field_values" -> fieldValues.addAll(readFieldValues(reader))
                 "code_nomenclature_type" -> nomenclatureType = reader.nextStringOrNull()
@@ -128,6 +131,7 @@ class AdditionalFieldJsonReader {
                 name = fieldName,
                 label = fieldLabel,
                 description = fieldDescription,
+                mandatory = fieldMandatory,
                 order = fieldOrder
             ),
             datasetIds = datasetIds,
@@ -292,7 +296,22 @@ class AdditionalFieldJsonReader {
 
         while (reader.hasNext()) {
             when (reader.nextName()) {
-                "value" -> value = reader.nextStringOrNull()
+                "value" -> value = when (reader.peek()) {
+                    JsonToken.BOOLEAN -> reader
+                        .nextBoolean()
+                        .toString()
+
+                    JsonToken.NUMBER -> reader
+                        .nextLong()
+                        .toString()
+
+                    JsonToken.STRING -> reader.nextString()
+                    else -> {
+                        reader.skipValue()
+                        null
+                    }
+                }
+
                 "label" -> label = reader.nextStringOrNull()
                 else -> reader.skipValue()
             }

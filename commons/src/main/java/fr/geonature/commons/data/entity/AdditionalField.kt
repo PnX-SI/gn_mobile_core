@@ -53,6 +53,11 @@ data class AdditionalField(
     @ColumnInfo(name = COLUMN_FIELD_DESCRIPTION) val description: String? = null,
 
     /**
+     * Whether this additional field is mandatory or not (default: `false`)
+     */
+    @ColumnInfo(name = COLUMN_FIELD_MANDATORY) val mandatory: Boolean = false,
+
+    /**
      * The display order of this additional field.
      */
     @ColumnInfo(name = COLUMN_FIELD_ORDER) val order: Int? = null
@@ -87,6 +92,7 @@ data class AdditionalField(
         const val COLUMN_FIELD_NAME = "name"
         const val COLUMN_FIELD_LABEL = "label"
         const val COLUMN_FIELD_DESCRIPTION = "description"
+        const val COLUMN_FIELD_MANDATORY = "mandatory"
         const val COLUMN_FIELD_ORDER = "order"
     }
 }
