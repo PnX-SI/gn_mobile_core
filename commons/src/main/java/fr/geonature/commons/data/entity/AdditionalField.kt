@@ -60,7 +60,12 @@ data class AdditionalField(
     /**
      * The display order of this additional field.
      */
-    @ColumnInfo(name = COLUMN_FIELD_ORDER) val order: Int? = null
+    @ColumnInfo(name = COLUMN_FIELD_ORDER) val order: Int? = null,
+
+    /**
+     * The default value of this additional field (may be `null`).
+     */
+    @ColumnInfo(name = COLUMN_FIELD_DEFAULT_VALUE) val defaultValue: String? = null
 ) : Parcelable {
 
     enum class FieldType(val type: String) {
@@ -94,6 +99,7 @@ data class AdditionalField(
         const val COLUMN_FIELD_DESCRIPTION = "description"
         const val COLUMN_FIELD_MANDATORY = "mandatory"
         const val COLUMN_FIELD_ORDER = "order"
+        const val COLUMN_FIELD_DEFAULT_VALUE = "default_value"
     }
 }
 
