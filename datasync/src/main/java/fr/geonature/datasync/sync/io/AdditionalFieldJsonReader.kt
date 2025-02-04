@@ -100,6 +100,7 @@ class AdditionalFieldJsonReader {
         var fieldDescription: String? = null
         var fieldMandatory = false
         var fieldOrder: Int? = null
+        var fieldDefaultValue: String? = null
         val fieldValues = mutableListOf<Pair<String, String?>>()
         var nomenclatureType: String? = null
 
@@ -114,6 +115,7 @@ class AdditionalFieldJsonReader {
                 "description" -> fieldDescription = reader.nextStringOrNull()
                 "required" -> fieldMandatory = reader.nextBooleanOrElse { false }
                 "field_order" -> fieldOrder = reader.nextIntOrNull()
+                "default_value" -> fieldDefaultValue = readDefaultValueAsString(reader)
                 "field_values" -> fieldValues.addAll(readFieldValues(reader))
                 "code_nomenclature_type" -> nomenclatureType = reader.nextStringOrNull()
                 else -> reader.skipValue()
@@ -132,7 +134,8 @@ class AdditionalFieldJsonReader {
                 label = fieldLabel,
                 description = fieldDescription,
                 mandatory = fieldMandatory,
-                order = fieldOrder
+                order = fieldOrder,
+                defaultValue = fieldDefaultValue
             ),
             datasetIds = datasetIds,
             nomenclatureTypeMnemonic = nomenclatureType,
@@ -242,6 +245,24 @@ class AdditionalFieldJsonReader {
         reader.endObject()
 
         return fieldType
+    }
+
+    private fun readDefaultValueAsString(reader: JsonReader): String? {
+        return when (reader.peek()) {
+            JsonToken.BOOLEAN -> reader
+                .nextBoolean()
+                .toString()
+
+            JsonToken.NUMBER -> reader
+                .nextLong()
+                .toString()
+
+            JsonToken.STRING -> reader.nextString()
+            else -> {
+                reader.skipValue()
+                null
+            }
+        }
     }
 
     private fun readFieldValues(reader: JsonReader): List<Pair<String, String?>> {

@@ -60,7 +60,8 @@ internal class AdditionalFieldJsonReaderTest {
                         label = "Test champs",
                         description = "Some description",
                         mandatory = true,
-                        order = 8
+                        order = 8,
+                        defaultValue = "default value"
                     ),
                     codeObjects = listOf(
                         CodeObject(
@@ -163,7 +164,8 @@ internal class AdditionalFieldJsonReaderTest {
                         id = 12,
                         fieldType = AdditionalField.FieldType.RADIO,
                         name = "radio_test2",
-                        label = "Radio test 2"
+                        label = "Radio test 2",
+                        defaultValue = "false"
                     ),
                     codeObjects = listOf(
                         CodeObject(
@@ -267,6 +269,23 @@ internal class AdditionalFieldJsonReaderTest {
                             additionalFieldId = 42,
                             value = "2",
                             label = "k2"
+                        )
+                    )
+                ),
+                AdditionalFieldWithValues(
+                    additionalField = AdditionalField(
+                        id = 43,
+                        fieldType = AdditionalField.FieldType.NUMBER,
+                        name = "as_number",
+                        label = "As number",
+                        mandatory = false,
+                        order = 2,
+                        defaultValue = "8"
+                    ),
+                    codeObjects = listOf(
+                        CodeObject(
+                            additionalFieldId = 43,
+                            key = "OCCTAX_OCCURENCE"
                         )
                     )
                 ),
