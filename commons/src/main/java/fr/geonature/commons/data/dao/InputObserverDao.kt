@@ -1,6 +1,7 @@
 package fr.geonature.commons.data.dao
 
 import androidx.room.Dao
+import androidx.room.Query
 import fr.geonature.commons.data.entity.InputObserver
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.ASC
@@ -14,12 +15,24 @@ import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder.OrderingTerm.AS
 abstract class InputObserverDao : BaseDao<InputObserver>() {
 
     /**
+     * Fetches all [InputObserver]s matching the given IDs.
+     */
+    @Query(
+        """SELECT d.*
+            FROM ${InputObserver.TABLE_NAME} d
+            WHERE d.${InputObserver.COLUMN_ID} IN (:inputObserverId)
+        """
+    )
+    abstract suspend fun findByIds(vararg inputObserverId: Long): List<InputObserver>
+
+    /**
      * Internal query builder for [InputObserver].
      */
     inner class QB : BaseDao<InputObserver>.QB() {
 
         init {
-            selectQueryBuilder.columns(*InputObserver.defaultProjection())
+            selectQueryBuilder
+                .columns(*InputObserver.defaultProjection())
                 .orderBy(
                     column(
                         InputObserver.COLUMN_LASTNAME,
@@ -40,10 +53,12 @@ abstract class InputObserverDao : BaseDao<InputObserver>() {
 
         fun whereIdsIn(vararg id: Long): QB {
             selectQueryBuilder.where(
-                "${column(
-                    InputObserver.COLUMN_ID,
-                    entityTableName
-                ).second} IN (${id.joinToString(",")})"
+                "${
+                    column(
+                        InputObserver.COLUMN_ID,
+                        entityTableName
+                    ).second
+                } IN (${id.joinToString(",")})"
             )
 
             return this
@@ -51,10 +66,12 @@ abstract class InputObserverDao : BaseDao<InputObserver>() {
 
         fun whereId(id: Long?): QB {
             selectQueryBuilder.where(
-                "${column(
-                    InputObserver.COLUMN_ID,
-                    entityTableName
-                ).second} = ?",
+                "${
+                    column(
+                        InputObserver.COLUMN_ID,
+                        entityTableName
+                    ).second
+                } = ?",
                 id
             )
 

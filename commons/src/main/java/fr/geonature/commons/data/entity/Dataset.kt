@@ -39,7 +39,7 @@ data class Dataset(
     /**
      * The description of the dataset.
      */
-    @ColumnInfo(name = COLUMN_DESCRIPTION) val description: String?,
+    @ColumnInfo(name = COLUMN_DESCRIPTION) val description: String? = null,
 
     /**
      * Whether this dataset is active or not.
@@ -49,17 +49,17 @@ data class Dataset(
     /**
      * The creation date of this dataset.
      */
-    @ColumnInfo(name = COLUMN_CREATED_AT) val createdAt: Date,
+    @ColumnInfo(name = COLUMN_CREATED_AT) val createdAt: Date = Date(),
 
     /**
      * The updated date of this dataset.
      */
-    @ColumnInfo(name = COLUMN_UPDATED_AT) val updatedAt: Date?,
+    @ColumnInfo(name = COLUMN_UPDATED_AT) val updatedAt: Date? = null,
 
     /**
      * The taxa list id of this dataset.
      */
-    @ColumnInfo(name = COLUMN_TAXA_LIST_ID) val taxaListId: Long?
+    @ColumnInfo(name = COLUMN_TAXA_LIST_ID) val taxaListId: Long? = null
 ) : Parcelable {
 
     companion object {

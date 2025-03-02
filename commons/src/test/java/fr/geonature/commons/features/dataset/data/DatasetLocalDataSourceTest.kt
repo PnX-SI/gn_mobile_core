@@ -81,10 +81,10 @@ class DatasetLocalDataSourceTest {
         runTest {
             val expectedDataset = initializeDataset()
 
-            val dataset = datasetLocalDataSource.findDatasetById(17L)
+            val dataset = datasetLocalDataSource.findDatasetById(7L)
 
             assertEquals(
-                expectedDataset.first { it.id == 17L },
+                expectedDataset.first { it.id == 7L },
                 dataset
             )
         }
@@ -116,9 +116,9 @@ class DatasetLocalDataSourceTest {
                 100
             ),
             Dataset(
-                id = 17,
-                name = "Jeu de données personnel de Auger Ariane",
-                description = "Jeu de données personnel de Auger Ariane",
+                id = 7,
+                name = "Ablettes du PNE",
+                description = "Observations d'ablettes par le PNE",
                 active = true,
                 createdAt = Date.from(Instant.parse("2020-03-28T10:00:00Z")),
                 null,
