@@ -30,12 +30,12 @@ data class InputObserver(
     /**
      * The last name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_LASTNAME) var lastname: String?,
+    @ColumnInfo(name = COLUMN_LASTNAME) var lastname: String? = null,
 
     /**
      * The first name of the input observer.
      */
-    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String?
+    @ColumnInfo(name = COLUMN_FIRSTNAME) var firstname: String? = null
 ) : Parcelable {
 
     private constructor(source: Parcel) : this(
