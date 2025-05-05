@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -551,6 +552,16 @@ class MainContentProvider : ContentProvider() {
                 }
             }
 
+        uri
+            .getQueryParameter("search")
+            ?.also {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    qb.whereNameOrDescriptionMatch(it)
+                } else {
+                    qb.whereNameOrDescription(it)
+                }
+            }
+
         return qb
             .whereSelection(
                 selection,
@@ -561,6 +572,13 @@ class MainContentProvider : ContentProvider() {
             )
             .also {
                 if (sortOrder.isNullOrEmpty()) {
+                    return@also
+                }
+
+                if (uri
+                        .getQueryParameter("search")
+                        ?.isNotEmpty() == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                ) {
                     return@also
                 }
 

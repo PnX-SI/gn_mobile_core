@@ -1,13 +1,20 @@
 package fr.geonature.commons.data.dao
 
+import androidx.annotation.RequiresApi
 import androidx.room.Dao
 import androidx.room.Query
 import fr.geonature.commons.data.entity.AbstractTaxon
+import fr.geonature.commons.data.entity.AbstractTaxon.Companion.COLUMN_DESCRIPTION
+import fr.geonature.commons.data.entity.AbstractTaxon.Companion.COLUMN_NAME
+import fr.geonature.commons.data.entity.AbstractTaxon.Companion.COLUMN_NAME_COMMON
+import fr.geonature.commons.data.entity.AbstractTaxon.Companion.getColumnAlias
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
+import fr.geonature.commons.data.entity.TaxonFts
 import fr.geonature.commons.data.entity.TaxonList
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
+import fr.geonature.commons.data.helper.sqlNormalize
 
 /**
  * Data access object for [Taxon].
@@ -66,6 +73,9 @@ abstract class TaxonDao : BaseDao<Taxon>() {
             selectQueryBuilder.columns(*Taxon.defaultProjection())
         }
 
+        /**
+         * Filter by taxa list ID.
+         */
         fun withListId(listId: Long?): QB {
             if (listId == null) return this
 
@@ -97,6 +107,9 @@ abstract class TaxonDao : BaseDao<Taxon>() {
             return this
         }
 
+        /**
+         * Adds taxa area matching area ID.
+         */
         fun withArea(id: Long?): QB {
             if (id == null) return this
 
@@ -127,6 +140,98 @@ abstract class TaxonDao : BaseDao<Taxon>() {
             return this
         }
 
+        /**
+         * Filter by name or description using where clause.
+         *
+         * @return this
+         */
+        fun whereNameOrDescription(queryString: String?): QB {
+            if (queryString.isNullOrBlank()) {
+                return this
+            }
+
+            val normalizedQueryString = queryString.sqlNormalize()
+
+            selectQueryBuilder.andWhere(
+                "(${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        Taxon.TABLE_NAME
+                    )
+                } GLOB ? OR ${
+                    getColumnAlias(
+                        COLUMN_NAME_COMMON,
+                        Taxon.TABLE_NAME
+                    )
+                } GLOB ? OR ${
+                    getColumnAlias(
+                        COLUMN_DESCRIPTION,
+                        Taxon.TABLE_NAME
+                    )
+                } GLOB ?)",
+                *arrayOf(
+                    normalizedQueryString,
+                    normalizedQueryString,
+                    normalizedQueryString
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Full-text search by name or description.
+         *
+         * @return this
+         */
+        @RequiresApi(api = 30)
+        fun whereNameOrDescriptionMatch(queryString: String?): QB {
+            if (queryString.isNullOrBlank()) {
+                return this
+            }
+
+            selectQueryBuilder
+                .join(
+                    joinOperator = SQLiteSelectQueryBuilder.JoinOperator.DEFAULT,
+                    tableName = TaxonFts.TABLE_NAME,
+                    joinConstraint = "${
+                        column(
+                            AbstractTaxon.COLUMN_ID,
+                            TaxonFts.TABLE_NAME
+                        ).first
+                    } = ${
+                        column(
+                            AbstractTaxon.COLUMN_ID,
+                            entityTableName
+                        ).second
+                    }",
+                    alias = TaxonFts.TABLE_NAME
+                )
+                .andWhere(
+                    "${TaxonFts.TABLE_NAME} MATCH ?",
+                    queryString.let {
+                        if (arrayOf(
+                                "*",
+                                "^",
+                                "AND",
+                                "OR",
+                                "NOT"
+                            ).any { p -> it.contains(p) }
+                        ) {
+                            it
+                        } else {
+                            it
+                                .split("\\s".toRegex())
+                                .joinToString(" ") { t -> "*$t*" }
+                        }
+                    })
+
+            return this
+        }
+
+        /**
+         * Filter by taxon ID.
+         */
         fun whereId(id: Long?): QB {
             selectQueryBuilder.where(
                 "${
