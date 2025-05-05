@@ -348,7 +348,7 @@ class SQLiteSelectQueryBuilder private constructor(private val tables: MutableSe
                 "\n"
             )
 
-        Logger.debug { "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }}" }
+        Logger.debug { "sql:\n$sql\nargs: ${bindArgs.map { if (it is String) "'$it'" else it }.joinToString(", ")}" }
 
         return SimpleSQLiteQuery(
             sql,

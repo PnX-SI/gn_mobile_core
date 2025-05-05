@@ -169,47 +169,6 @@ abstract class AbstractTaxon : Parcelable {
         internal val wheres = mutableListOf<Pair<String, Array<*>?>>()
 
         /**
-         * Filter by name or description.
-         *
-         * @return this
-         */
-        fun byNameOrDescription(queryString: String?): Filter {
-            if (queryString.isNullOrBlank()) {
-                return this
-            }
-
-            val normalizedQueryString = queryString.sqlNormalize()
-
-            this.wheres.add(
-                Pair(
-                    "(${
-                        getColumnAlias(
-                            COLUMN_NAME,
-                            tableAlias
-                        )
-                    } GLOB ? OR ${
-                        getColumnAlias(
-                            COLUMN_NAME_COMMON,
-                            tableAlias
-                        )
-                    } GLOB ? OR ${
-                        getColumnAlias(
-                            COLUMN_DESCRIPTION,
-                            tableAlias
-                        )
-                    } GLOB ?)",
-                    arrayOf(
-                        normalizedQueryString,
-                        normalizedQueryString,
-                        normalizedQueryString
-                    )
-                )
-            )
-
-            return this
-        }
-
-        /**
          * Filter by taxonomy.
          *
          * @return this

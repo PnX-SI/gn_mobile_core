@@ -44,6 +44,7 @@ import fr.geonature.commons.data.entity.Taxonomy
         InputObserver::class,
         Taxonomy::class,
         Taxon::class,
+        // TaxonFts::class,
         TaxonArea::class,
         TaxonList::class,
         NomenclatureType::class,
@@ -56,7 +57,7 @@ import fr.geonature.commons.data.entity.Taxonomy
         CodeObject::class,
         FieldValue::class,
     ],
-    version = 26,
+    version = 27,
     exportSchema = false
 )
 abstract class LocalDatabase : RoomDatabase() {

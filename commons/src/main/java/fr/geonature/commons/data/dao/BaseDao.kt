@@ -139,5 +139,9 @@ abstract class BaseDao<T> {
         fun cursor(): Cursor {
             return query(selectQueryBuilder.build())
         }
+
+        fun supportSQLiteQuery(): SupportSQLiteQuery {
+            return selectQueryBuilder.build()
+        }
     }
 }

@@ -1,7 +1,10 @@
 package fr.geonature.commons.data
 
 import android.content.Context
+import android.os.Build
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -85,6 +88,7 @@ object DatabaseModule {
                 localDatabase.absolutePath
             )
             .fallbackToDestructiveMigration()
+            .addCallback(onCreateTaxaFtsCallback)
             .build()
     }
 
@@ -198,5 +202,89 @@ object DatabaseModule {
     @Provides
     fun provideFieldValueDao(database: LocalDatabase): FieldValueDao {
         return database.fieldValueDao()
+    }
+}
+
+val onCreateTaxaFtsCallback = object : RoomDatabase.Callback() {
+    override fun onOpen(db: SupportSQLiteDatabase) {
+        super.onOpen(db)
+
+        // use FTS4 with 'unicode61' as tokenizer and remove diacritics=2 only for API 30+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val hasFTSTables = db
+                .query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='taxa_fts'")
+                .let {
+                    if (!it.moveToFirst()) {
+                        it.close()
+                        false
+                    } else {
+                        val hasFTSTables = it.getInt(0) > 0
+                        it.close()
+                        hasFTSTables
+                    }
+                }
+
+            if (!hasFTSTables) {
+                Logger.info { "creating FTS tables..." }
+            }
+
+            db.execSQL(
+                """
+                CREATE VIRTUAL TABLE IF NOT EXISTS `taxa_fts`
+                USING FTS4(
+                    `_id` INTEGER NOT NULL,
+                    `name` TEXT NOT NULL,
+                    `name_common` TEXT,
+                    `description` TEXT,
+                    `kingdom` TEXT NOT NULL,
+                    `group` TEXT NOT NULL,
+                    tokenize=unicode61
+                    `remove_diacritics=2`,
+                    content=`taxa`
+                )""".trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TRIGGER IF NOT EXISTS
+                    room_fts_content_sync_taxa_fts_BEFORE_UPDATE BEFORE UPDATE ON `taxa`
+                    BEGIN
+                        DELETE FROM `taxa_fts` WHERE `docid`=OLD.`rowid`;
+                    END
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TRIGGER IF NOT EXISTS
+                    room_fts_content_sync_taxa_fts_BEFORE_DELETE BEFORE DELETE ON `taxa`
+                    BEGIN
+                        DELETE FROM `taxa_fts` WHERE `docid`=OLD.`rowid`;
+                    END
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TRIGGER IF NOT EXISTS
+                    room_fts_content_sync_taxa_fts_AFTER_UPDATE AFTER UPDATE ON `taxa`
+                    BEGIN
+                        INSERT INTO `taxa_fts`(`docid`, `_id`, `name`, `name_common`, `description`, `kingdom`, `group`)
+                        VALUES (NEW.`rowid`, NEW.`_id`, NEW.`name`, NEW.`name_common`, NEW.`description`, NEW.`kingdom`, NEW.`group`);
+                    END
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TRIGGER IF NOT EXISTS
+                    room_fts_content_sync_taxa_fts_AFTER_INSERT AFTER INSERT ON `taxa`
+                    BEGIN
+                        INSERT INTO `taxa_fts`(`docid`, `_id`, `name`, `name_common`, `description`, `kingdom`, `group`)
+                        VALUES (NEW.`rowid`, NEW.`_id`, NEW.`name`, NEW.`name_common`, NEW.`description`, NEW.`kingdom`, NEW.`group`);
+                    END
+                """.trimIndent()
+            )
+
+            if (!hasFTSTables) {
+                Logger.info { "FTS tables successfully created" }
+            }
+        }
     }
 }

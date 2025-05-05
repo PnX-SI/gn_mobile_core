@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
-version = "1.4.8"
+version = "1.5.0"
 
 android {
     namespace 'fr.geonature.commons'
@@ -27,6 +27,12 @@ android {
         versionCode updateVersionCode(project.name)
         versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/build/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
@@ -76,6 +82,7 @@ dependencies {
     testImplementation libs.mockk
     testImplementation libs.mockk.agent.jvm
     testImplementation libs.junit
+    testImplementation libs.kotlin.reflect
     testImplementation libs.kotlinx.coroutines.test
     testImplementation libs.robolectric
     testImplementation libs.slf4j.tinylog

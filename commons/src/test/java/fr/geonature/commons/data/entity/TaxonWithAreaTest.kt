@@ -391,31 +391,6 @@ class TaxonWithAreaTest {
     }
 
     @Test
-    fun `should build filter by name or description from simple query string with area colors`() {
-        val taxonFilterByNameAndAreaColors = (TaxonWithArea
-            .Filter()
-            .byNameOrDescription("as") as TaxonWithArea.Filter)
-            .byAreaColors(
-                "red",
-                "grey'"
-            )
-            .build()
-
-        assertEquals(
-            "(${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_NAME_COMMON} GLOB ? OR ${Taxon.TABLE_NAME}_${AbstractTaxon.COLUMN_DESCRIPTION} GLOB ?) AND (${TaxonArea.TABLE_NAME}_${TaxonArea.COLUMN_COLOR} IN ('red', 'grey'''))",
-            taxonFilterByNameAndAreaColors.first
-        )
-        assertArrayEquals(
-            arrayOf(
-                "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "*[aáàäâãAÁÀÄÂÃ][sS]*",
-                "*[aáàäâãAÁÀÄÂÃ][sS]*"
-            ),
-            taxonFilterByNameAndAreaColors.second
-        )
-    }
-
-    @Test
     fun `should build filter with only area colors`() {
         val taxonFilterByAreaColors = TaxonWithArea
             .Filter()
