@@ -61,7 +61,7 @@ class DataSyncViewModel @Inject constructor(
                     onSuccess = {
                         Logger.debug { "has local data: $it" }
 
-                        emit(true)
+                        emit(it)
                     },
                     onFailure = {
                         emit(false)
@@ -92,7 +92,7 @@ class DataSyncViewModel @Inject constructor(
                     currentSyncWorkerId = workInfo.id
                 }
 
-                val serverStatus = ServerStatus.values()[workInfo.progress.getInt(
+                val serverStatus = ServerStatus.entries[workInfo.progress.getInt(
                     DataSyncWorker.KEY_SERVER_STATUS,
                     workInfo.outputData.getInt(
                         DataSyncWorker.KEY_SERVER_STATUS,
