@@ -6,6 +6,7 @@ import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
 import fr.geonature.datasync.R
+import fr.geonature.datasync.api.error.BaseApiException
 import fr.geonature.datasync.packageinfo.error.NoPackageInfoFoundFromRemoteFailure
 import fr.geonature.datasync.packageinfo.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
@@ -35,6 +36,7 @@ class PackageInfoRepositoryImpl(
             },
             onFailure = {
                 when (it) {
+                    is BaseApiException.NotFoundException -> Left(NoPackageInfoFoundFromRemoteFailure)
                     is UnknownHostException -> Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_server_unreachable)))
                     is IOException -> Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_network_lost)))
                     else -> Left(Failure.ServerFailure)
