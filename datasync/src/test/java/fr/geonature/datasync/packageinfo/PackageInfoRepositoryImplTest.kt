@@ -6,6 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.identity
 import fr.geonature.commons.fp.orNull
+import fr.geonature.datasync.api.error.BaseApiException
+import fr.geonature.datasync.packageinfo.error.NoPackageInfoFoundFromRemoteFailure
 import io.mockk.MockKAnnotations.init
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
@@ -122,6 +124,19 @@ class PackageInfoRepositoryTest {
             // then
             assertTrue(response.isLeft)
             assertTrue(response.fold(::identity) {} is Failure.ServerFailure)
+        }
+
+    @Test
+    fun `should return NoPackageInfoFoundFromRemoteFailure if nothing was found from remote`() =
+        runTest {
+            coEvery { availablePackageInfoDataSource.getAll() } throws (BaseApiException.NotFoundException())
+
+            // when fetching available applications from data source
+            val response = packageInfoRepository.getAvailableApplications()
+
+            // then
+            assertTrue(response.isLeft)
+            assertTrue(response.fold(::identity) {} is NoPackageInfoFoundFromRemoteFailure)
         }
 
     @Test
