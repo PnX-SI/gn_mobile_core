@@ -1,9 +1,13 @@
 package fr.geonature.commons.util
 
+import android.os.Build
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -17,6 +21,8 @@ import java.util.Date
  *
  * @author S. Grimault
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.O])
 class DateHelperTest {
 
     @Test
@@ -27,24 +33,53 @@ class DateHelperTest {
 
         val isoDateTime = toDate("2016-10-28T08:15:00Z")
         assertNotNull(isoDateTime)
-        assertEquals("2016-10-28T08:15:00",
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").let {
-                it.format(isoDateTime!!)
-            })
+        assertEquals(
+            "2016-10-28T08:15:00",
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(isoDateTime!!)
+        )
 
         val isoDate = toDate("2016-10-28")
         assertNotNull(isoDate)
-        assertEquals("2016-10-28",
-            SimpleDateFormat("yyyy-MM-dd").let {
-                it.format(isoDate!!)
-            })
+        assertEquals(
+            "2016-10-28",
+            SimpleDateFormat("yyyy-MM-dd").format(isoDate!!)
+        )
 
         val hourOnlyDate = toDate("08:15")
         assertNotNull(hourOnlyDate)
-        assertEquals("08:15",
-            SimpleDateFormat("HH:mm").let {
-                it.format(hourOnlyDate!!)
-            })
+        assertEquals(
+            "08:15",
+            SimpleDateFormat("HH:mm").format(hourOnlyDate!!)
+        )
+    }
+
+    @Config(sdk = [Build.VERSION_CODES.LOLLIPOP])
+    @Test
+    fun `should parse date string to Date using Lollipop API`() {
+        assertNull(toDate(null))
+        assertNull(toDate(""))
+        assertNull(toDate("no_such_valid_date"))
+
+        val isoDateTime = toDate("2016-10-28T08:15:00Z")
+        assertNotNull(isoDateTime)
+        assertEquals(
+            "2016-10-28T08:15:00",
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(isoDateTime!!)
+        )
+
+        val isoDate = toDate("2016-10-28")
+        assertNotNull(isoDate)
+        assertEquals(
+            "2016-10-28",
+            SimpleDateFormat("yyyy-MM-dd").format(isoDate!!)
+        )
+
+        val hourOnlyDate = toDate("08:15")
+        assertNotNull(hourOnlyDate)
+        assertEquals(
+            "08:15",
+            SimpleDateFormat("HH:mm").format(hourOnlyDate!!)
+        )
     }
 
     @Test
@@ -73,10 +108,12 @@ class DateHelperTest {
     fun `should parse time string to local date`() {
         val now = LocalDateTime.now(ZoneId.systemDefault())
 
-        val localDateTime = LocalTime.parse(
-            "08:15",
-            DateTimeFormatter.ISO_TIME
-        ).atDate(now.toLocalDate())
+        val localDateTime = LocalTime
+            .parse(
+                "08:15",
+                DateTimeFormatter.ISO_TIME
+            )
+            .atDate(now.toLocalDate())
 
         val date = Date.from(
             localDateTime
@@ -86,7 +123,8 @@ class DateHelperTest {
 
         assertEquals(
             "08:15",
-            date.format("HH:mm"))
+            date.format("HH:mm")
+        )
     }
 
     @Test
