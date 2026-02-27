@@ -62,6 +62,7 @@
 
     <string name="error_network_lost">You are not connected to the Internet</string>
     <string name="error_server_unreachable">Unable to join GeoNature server</string>
+    <string name="error_server_ssl">Unable to join GeoNature server (SSL error)</string>
     <string name="error_settings_undefined">Unable to load settings</string>
     <string name="error_settings_not_found">Unable to load settings \'%1$s\'</string>
 

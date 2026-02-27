@@ -63,6 +63,7 @@
 
     <string name="error_network_lost">Vous n\'êtes pas connecté à Internet</string>
     <string name="error_server_unreachable">Impossible de joindre le serveur GeoNature</string>
+    <string name="error_server_ssl">Impossible d\'établir une connexion sécurisée avec le serveur GeoNature</string>
     <string name="error_settings_undefined">Erreur lors du chargement des paramètres</string>
     <string name="error_settings_not_found">Erreur lors du chargement des paramètres \'%1$s\'</string>
 
