@@ -7,6 +7,7 @@ import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.identity
 import fr.geonature.commons.fp.orNull
 import fr.geonature.datasync.api.error.BaseApiException
+import fr.geonature.datasync.api.error.NetworkException
 import fr.geonature.datasync.packageinfo.error.NoPackageInfoFoundFromRemoteFailure
 import io.mockk.MockKAnnotations.init
 import io.mockk.coEvery
@@ -25,7 +26,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import retrofit2.HttpException
 import retrofit2.Response
-import java.io.IOException
 
 /**
  * Unit tests about [IPackageInfoRepository].
@@ -98,7 +98,7 @@ class PackageInfoRepositoryTest {
     @Test
     fun `should return NetworkFailure if not connected while fetching a list of available applications`() =
         runTest {
-            coEvery { availablePackageInfoDataSource.getAll() } throws (IOException("network failure"))
+            coEvery { availablePackageInfoDataSource.getAll() } throws (NetworkException("network failure"))
 
             // when fetching available applications from data source
             val response = packageInfoRepository.getAvailableApplications()

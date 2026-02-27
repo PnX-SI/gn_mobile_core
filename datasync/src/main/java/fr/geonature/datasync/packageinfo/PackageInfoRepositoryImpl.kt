@@ -7,13 +7,14 @@ import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.error.BaseApiException
+import fr.geonature.datasync.api.error.NetworkException
 import fr.geonature.datasync.packageinfo.error.NoPackageInfoFoundFromRemoteFailure
 import fr.geonature.datasync.packageinfo.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import org.tinylog.Logger
-import java.io.IOException
 import java.net.UnknownHostException
+import javax.net.ssl.SSLHandshakeException
 
 /**
  * Default implementation of [IPackageInfoRepository].
@@ -36,9 +37,10 @@ class PackageInfoRepositoryImpl(
             },
             onFailure = {
                 when (it) {
-                    is BaseApiException.NotFoundException -> Left(NoPackageInfoFoundFromRemoteFailure)
+                    is NetworkException -> Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_network_lost)))
                     is UnknownHostException -> Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_server_unreachable)))
-                    is IOException -> Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_network_lost)))
+                    is SSLHandshakeException -> Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_server_ssl)))
+                    is BaseApiException.NotFoundException -> Left(NoPackageInfoFoundFromRemoteFailure)
                     else -> Left(Failure.ServerFailure)
                 }
             },
