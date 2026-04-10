@@ -17,39 +17,71 @@ class CookieManagerImpl(applicationContext: Context) : ICookieManager {
 
     override var cookie: Cookie? = null
         get() {
-            return preferenceManager
-                .getString(
-                    KEY_PREFERENCE_COOKIE,
-                    null
-                )
-                ?.let { CookieHelper.deserialize(it) }
+            return cookies.firstOrNull()
         }
         set(value) {
             field = value
 
             if (value == null) {
-                preferenceManager
-                    .edit()
-                    .remove(KEY_PREFERENCE_COOKIE)
-                    .apply()
-
+                cookies = emptyList()
                 return
             }
 
+            cookies = listOf(value)
+        }
+
+    override var cookies: List<Cookie>
+        get() {
+            return preferenceManager
+                .getString(
+                    KEY_PREFERENCE_COOKIES,
+                    null
+                )
+                ?.split(KEY_COOKIE_SEPARATOR)
+                ?.mapNotNull {
+                    runCatching { CookieHelper.deserialize(it) }.getOrNull()
+                }
+                ?: emptyList()
+        }
+        set(value) {
             preferenceManager
                 .edit()
-                .putString(
-                    KEY_PREFERENCE_COOKIE,
-                    CookieHelper.serialize(value)
-                )
+                .apply {
+                    if (value.isEmpty()) {
+                        remove(KEY_PREFERENCE_COOKIES)
+                    } else {
+                        putString(
+                            KEY_PREFERENCE_COOKIES,
+                            value.joinToString(KEY_COOKIE_SEPARATOR) { CookieHelper.serialize(it) }
+                        )
+                    }
+                }
+                .apply()
+        }
+
+    override var accessToken: String?
+        get() = preferenceManager.getString(KEY_PREFERENCE_ACCESS_TOKEN, null)
+        set(value) {
+            preferenceManager
+                .edit()
+                .apply {
+                    if (value.isNullOrBlank()) {
+                        remove(KEY_PREFERENCE_ACCESS_TOKEN)
+                    } else {
+                        putString(KEY_PREFERENCE_ACCESS_TOKEN, value)
+                    }
+                }
                 .apply()
         }
 
     override fun clearCookie() {
         cookie = null
+        accessToken = null
     }
 
     companion object {
-        private const val KEY_PREFERENCE_COOKIE = "key_preference_cookie"
+        private const val KEY_PREFERENCE_COOKIES = "key_preference_cookies"
+        private const val KEY_PREFERENCE_ACCESS_TOKEN = "key_preference_access_token"
+        private const val KEY_COOKIE_SEPARATOR = ","
     }
 }

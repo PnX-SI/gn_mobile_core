@@ -36,12 +36,14 @@ object AuthModule {
     fun provideAuthManager(
         @ApplicationContext appContext: Context,
         geoNatureAPIClient: IGeoNatureAPIClient,
-        networkHandler: NetworkHandler
+        networkHandler: NetworkHandler,
+        cookieManager: ICookieManager
     ): IAuthManager {
         return AuthManagerImpl(
             appContext,
             geoNatureAPIClient,
-            networkHandler
+            networkHandler,
+            cookieManager
         )
     }
 }

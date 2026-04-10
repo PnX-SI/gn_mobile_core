@@ -106,6 +106,13 @@ class DataSyncSettingsJsonReader(private val fromExistingDataSyncSettings: DataS
             var taxHubServerUrl: String? = null
             var essentialDataSyncPeriodicity: String? = null
             var dataSyncPeriodicity: String? = null
+            var authMode: String? = null
+            var keycloakProviderId: String? = null
+            var keycloakLoginPath: String? = null
+            var keycloakAuthorizePath: String? = null
+            var keycloakCurrentUserPath: String? = null
+            var keycloakRedirectUri: String? = null
+            var keycloakMobileLoginPath: String? = null
 
             when (jsonReader.peek()) {
                 BEGIN_OBJECT -> {
@@ -126,6 +133,22 @@ class DataSyncSettingsJsonReader(private val fromExistingDataSyncSettings: DataS
                             "taxa_list_id" -> builder.taxrefListId(jsonReader.nextInt())
                             "code_area_type" -> builder.codeAreaType(jsonReader.nextStringOrNull())
                             "page_size" -> builder.pageSize(jsonReader.nextInt())
+                            "auth_mode" -> authMode = jsonReader.nextStringOrNull()
+                            "keycloak" -> {
+                                jsonReader.beginObject()
+                                while (jsonReader.hasNext()) {
+                                    when (jsonReader.nextName()) {
+                                        "provider_id" -> keycloakProviderId = jsonReader.nextStringOrNull()
+                                        "login_path" -> keycloakLoginPath = jsonReader.nextStringOrNull()
+                                        "authorize_path" -> keycloakAuthorizePath = jsonReader.nextStringOrNull()
+                                        "current_user_path" -> keycloakCurrentUserPath = jsonReader.nextStringOrNull()
+                                        "redirect_uri" -> keycloakRedirectUri = jsonReader.nextStringOrNull()
+                                        "mobile_login_path" -> keycloakMobileLoginPath = jsonReader.nextStringOrNull()
+                                        else -> jsonReader.skipValue()
+                                    }
+                                }
+                                jsonReader.endObject()
+                            }
                             "sync_periodicity_data_essential" -> essentialDataSyncPeriodicity =
                                 jsonReader.nextStringOrNull()
 
@@ -157,6 +180,16 @@ class DataSyncSettingsJsonReader(private val fromExistingDataSyncSettings: DataS
                     essentialDataSyncPeriodicity = essentialDataSyncPeriodicity
                 )
             }
+
+            builder.authMode(authMode)
+            builder.keycloak(
+                providerId = keycloakProviderId,
+                loginPath = keycloakLoginPath,
+                authorizePath = keycloakAuthorizePath,
+                currentUserPath = keycloakCurrentUserPath,
+                redirectUri = keycloakRedirectUri,
+                mobileLoginPath = keycloakMobileLoginPath
+            )
 
             builder.build()
         }

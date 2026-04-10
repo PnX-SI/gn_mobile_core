@@ -2,6 +2,8 @@ package fr.geonature.datasync.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.webkit.CookieManager
+import android.webkit.WebStorage
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -18,6 +20,7 @@ import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.api.model.AuthLoginError
+import fr.geonature.datasync.api.model.AuthMobileKeycloakRequest
 import fr.geonature.datasync.auth.error.AuthFailure
 import fr.geonature.datasync.auth.io.AuthLoginJsonReader
 import fr.geonature.datasync.auth.io.AuthLoginJsonWriter
@@ -38,6 +41,7 @@ class AuthManagerImpl(
     private val applicationContext: Context,
     private val geoNatureAPIClient: IGeoNatureAPIClient,
     private val networkHandler: NetworkHandler,
+    private val cookieManager: ICookieManager,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IAuthManager {
 
@@ -131,37 +135,93 @@ class AuthManagerImpl(
         val authLogin = authLoginResponse.orNull()
             ?: return authLoginResponse
 
-        val authLoginAsJson =
-            withContext(Dispatchers.Default) { authLoginJsonWriter.write(authLogin) }
+        return persistAuthLogin(authLogin, authLoginResponse)
+    }
 
-        if (authLoginAsJson.isNullOrBlank()) {
-            this@AuthManagerImpl.authLogin = null
-            return Either.Left<Failure>(Failure.ServerFailure)
+    override suspend fun loginFromCurrentSession(): Either<Failure, AuthLogin> {
+        if (!networkHandler.isNetworkAvailable()) {
+            return Either.Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_network_lost)))
         }
 
-        Logger.info { "successfully authenticated, login expiration date: ${authLogin.expires}" }
-
-        this.authLogin = authLogin
-
-        notificationManager.cancel(DataSyncWorker.AUTH_NOTIFICATION_ID)
-
-        return withContext(Dispatchers.Default) {
-            preferenceManager
-                .edit()
-                .putString(
-                    KEY_PREFERENCE_AUTH_LOGIN,
-                    authLoginAsJson
-                )
-                .commit()
-                .let {
-                    authLoginResponse
+        val authLoginResponse = withContext(IO) {
+            runCatching {
+                geoNatureAPIClient
+                    .getCurrentUser()
+                    .execute()
+            }.fold(
+                onSuccess = { response: Response<AuthLogin> ->
+                    if (response.isSuccessful) {
+                        response.body()?.let { Either.Right(it) }
+                    } else {
+                        Either.Left(Failure.ServerFailure)
+                    } ?: Either.Left(Failure.ServerFailure)
+                },
+                onFailure = { exception: Throwable ->
+                    Either.Left(if (exception is IllegalArgumentException) GeoNatureMissingConfigurationFailure else Failure.ServerFailure)
                 }
+            )
         }
+
+        val authLogin = authLoginResponse.orNull()
+            ?: return authLoginResponse
+
+        return persistAuthLogin(authLogin, authLoginResponse)
+    }
+
+    override suspend fun loginWithKeycloakCode(
+        providerId: String,
+        code: String,
+        codeVerifier: String,
+        redirectUri: String,
+        applicationId: Int
+    ): Either<Failure, AuthLogin> {
+        if (!networkHandler.isNetworkAvailable()) {
+            return Either.Left(Failure.NetworkFailure(applicationContext.getString(R.string.error_network_lost)))
+        }
+
+        val authLoginResponse = withContext(IO) {
+            runCatching {
+                geoNatureAPIClient
+                    .authMobileKeycloakLogin(
+                        AuthMobileKeycloakRequest(
+                            providerId = providerId,
+                            code = code,
+                            codeVerifier = codeVerifier,
+                            redirectUri = redirectUri,
+                            applicationId = applicationId
+                        )
+                    )
+                    .execute()
+            }.fold(
+                onSuccess = { response ->
+                    if (response.isSuccessful) {
+                        response.body()?.let { Either.Right(it) } ?: Either.Left(Failure.ServerFailure)
+                    } else {
+                        Either.Left(Failure.ServerFailure)
+                    }
+                },
+                onFailure = { exception ->
+                    Either.Left(if (exception is IllegalArgumentException) GeoNatureMissingConfigurationFailure else Failure.ServerFailure)
+                }
+            )
+        }
+
+        val authLogin = authLoginResponse.orNull()
+            ?: return authLoginResponse
+
+        return persistAuthLogin(authLogin, authLoginResponse)
     }
 
     override suspend fun logout() =
         withContext(dispatcher) {
             geoNatureAPIClient.logout()
+            CookieManager
+                .getInstance()
+                .also {
+                    it.removeAllCookies(null)
+                    it.flush()
+                }
+            WebStorage.getInstance().deleteAllData()
             preferenceManager
                 .edit()
                 .remove(KEY_PREFERENCE_AUTH_LOGIN)
@@ -190,4 +250,37 @@ class AuthManagerImpl(
     companion object {
         private const val KEY_PREFERENCE_AUTH_LOGIN = "key_preference_auth_login"
     }
+
+    private suspend fun persistAuthLogin(
+        authLogin: AuthLogin,
+        authLoginResponse: Either<Failure, AuthLogin>
+    ): Either<Failure, AuthLogin> {
+        val authLoginAsJson =
+            withContext(Dispatchers.Default) { authLoginJsonWriter.write(authLogin) }
+
+        if (authLoginAsJson.isNullOrBlank()) {
+            this@AuthManagerImpl.authLogin = null
+            return Either.Left(Failure.ServerFailure)
+        }
+
+        Logger.info { "successfully authenticated, login expiration date: ${authLogin.expires}" }
+
+        this.authLogin = authLogin
+        cookieManager.accessToken = authLogin.token
+        notificationManager.cancel(DataSyncWorker.AUTH_NOTIFICATION_ID)
+
+        return withContext(Dispatchers.Default) {
+            preferenceManager
+                .edit()
+                .putString(
+                    KEY_PREFERENCE_AUTH_LOGIN,
+                    authLoginAsJson
+                )
+                .commit()
+                .let {
+                    authLoginResponse
+                }
+        }
+    }
+
 }

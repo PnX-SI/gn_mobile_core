@@ -8,6 +8,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +23,7 @@ import fr.geonature.commons.util.afterTextChanged
 import fr.geonature.datasync.R
 import fr.geonature.datasync.auth.AuthLoginViewModel
 import fr.geonature.datasync.settings.DataSyncSettings
+import fr.geonature.datasync.settings.DataSyncSettings.AuthMode
 import fr.geonature.datasync.settings.DataSyncSettingsViewModel
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
 
@@ -43,6 +45,46 @@ class LoginActivity : AppCompatActivity() {
     private var editTextPassword: TextInputLayout? = null
     private var buttonLogin: Button? = null
     private var progress: ProgressBar? = null
+    private var isAwaitingLoginResult = false
+    private val keycloakLoginLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode != RESULT_OK) {
+                progress?.visibility = View.GONE
+                isAwaitingLoginResult = false
+                return@registerForActivityResult
+            }
+
+            val dataSyncSettings = dataSyncSettings
+            if (dataSyncSettings == null) {
+                progress?.visibility = View.GONE
+                isAwaitingLoginResult = false
+                showToast(R.string.login_failed)
+                return@registerForActivityResult
+            }
+            val payload = it.data
+            val providerId = payload?.getStringExtra(KeycloakLoginActivity.EXTRA_PROVIDER_ID)
+                ?: (dataSyncSettings.keycloakProviderId ?: "keycloak")
+            val code = payload?.getStringExtra(KeycloakLoginActivity.EXTRA_AUTH_CODE)
+            val codeVerifier = payload?.getStringExtra(KeycloakLoginActivity.EXTRA_CODE_VERIFIER)
+            val redirectUri = payload?.getStringExtra(KeycloakLoginActivity.EXTRA_REDIRECT_URI)
+                ?: dataSyncSettings.keycloakRedirectUri
+                ?: "${applicationContext.packageName}://auth/callback"
+            if (code.isNullOrBlank() || codeVerifier.isNullOrBlank()) {
+                progress?.visibility = View.GONE
+                isAwaitingLoginResult = false
+                showToast(R.string.login_failed)
+                return@registerForActivityResult
+            }
+
+            isAwaitingLoginResult = true
+            authLoginViewModel.loginWithKeycloakCode(
+                providerId = providerId,
+                code = code,
+                codeVerifier = codeVerifier,
+                redirectUri = redirectUri,
+                applicationId = dataSyncSettings.applicationId
+            )
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +95,11 @@ class LoginActivity : AppCompatActivity() {
             loginFormState.observe(this@LoginActivity) {
                 val loginState = it
                     ?: return@observe
+                val authMode = dataSyncSettings?.authMode ?: AuthMode.GEONATURE
+                if (authMode == AuthMode.KEYCLOAK) {
+                    buttonLogin?.isEnabled = dataSyncSettings != null
+                    return@observe
+                }
 
                 // disable login button unless both username / password is valid
                 buttonLogin?.isEnabled = loginState.isValid && dataSyncSettings != null
@@ -67,6 +114,10 @@ class LoginActivity : AppCompatActivity() {
                 val loginResult = it
                     ?: return@observe
 
+                if (!isAwaitingLoginResult) {
+                    return@observe
+                }
+                isAwaitingLoginResult = false
                 progress?.visibility = View.GONE
 
                 if (loginResult.hasError()) {
@@ -157,6 +208,7 @@ class LoginActivity : AppCompatActivity() {
                 },
                     { dataSyncSettingsLoaded ->
                         dataSyncSettings = dataSyncSettingsLoaded
+                        updateLoginUi(dataSyncSettingsLoaded)
                     })
             }
     }
@@ -168,14 +220,40 @@ class LoginActivity : AppCompatActivity() {
         val dataSyncSettings = dataSyncSettings
             ?: return
 
+        if (dataSyncSettings.authMode == AuthMode.KEYCLOAK) {
+            progress?.visibility = View.VISIBLE
+            isAwaitingLoginResult = true
+            keycloakLoginLauncher.launch(
+                KeycloakLoginActivity.newIntent(
+                    this,
+                    dataSyncSettings
+                )
+            )
+            return
+        }
+
         editTextPassword?.also {
             hideSoftKeyboard(it)
         }
         progress?.visibility = View.VISIBLE
+        isAwaitingLoginResult = true
 
         authLoginViewModel.login(username,
             password,
             dataSyncSettings.applicationId)
+    }
+
+    private fun updateLoginUi(dataSyncSettings: DataSyncSettings) {
+        val isKeycloakLogin = dataSyncSettings.authMode == AuthMode.KEYCLOAK
+        editTextUsername?.visibility = if (isKeycloakLogin) View.GONE else View.VISIBLE
+        editTextPassword?.visibility = if (isKeycloakLogin) View.GONE else View.VISIBLE
+        buttonLogin?.apply {
+            text =
+                if (isKeycloakLogin) getString(R.string.login_action_sign_in_with_keycloak) else getString(
+                    R.string.login_action_sign_in
+                )
+            isEnabled = if (isKeycloakLogin) true else isEnabled
+        }
     }
 
     private fun showToast(

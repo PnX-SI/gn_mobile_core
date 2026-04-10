@@ -2,6 +2,7 @@ package fr.geonature.datasync.api
 
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.AuthMobileKeycloakRequest
 import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
@@ -38,6 +39,22 @@ interface IGeoNatureService {
     fun authLogin(
         @Body authCredentials: AuthCredentials
     ): Call<AuthLogin>
+
+    @Headers(
+        "Accept: application/json",
+        "Content-Type: application/json;charset=UTF-8"
+    )
+    @POST("api/auth/mobile/keycloak")
+    fun authMobileKeycloakLogin(
+        @Body payload: AuthMobileKeycloakRequest
+    ): Call<AuthLogin>
+
+    @Headers("Accept: application/json")
+    @GET("api/auth/get_current_user")
+    fun getCurrentUser(): Call<AuthLogin>
+
+    @GET("api/auth/logout")
+    fun logout(): Call<ResponseBody>
 
     @Headers(
         "Accept: application/json, text/plain, */*"

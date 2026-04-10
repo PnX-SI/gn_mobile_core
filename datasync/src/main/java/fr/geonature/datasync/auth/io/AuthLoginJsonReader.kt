@@ -53,6 +53,7 @@ class AuthLoginJsonReader {
 
     private fun readAuthLogin(reader: JsonReader): AuthLogin? {
         var authUser: AuthUser? = null
+        var token: String? = null
         var expires: Date? = null
 
         reader.beginObject()
@@ -60,6 +61,7 @@ class AuthLoginJsonReader {
         while (reader.hasNext()) {
             when (reader.nextName()) {
                 "user" -> authUser = readAuthUser(reader)
+                "token" -> token = reader.nextString()
                 "expires" -> expires = toDate(reader.nextString())
                 else -> reader.skipValue()
             }
@@ -73,6 +75,7 @@ class AuthLoginJsonReader {
 
         return AuthLogin(
             authUser,
+            token,
             expires
         )
     }
