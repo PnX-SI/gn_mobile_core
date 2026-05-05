@@ -5,6 +5,7 @@ import android.os.Parcel
 import androidx.core.database.getLongOrNull
 import fr.geonature.commons.data.entity.Dataset.Companion.defaultProjection
 import fr.geonature.commons.data.entity.Dataset.Companion.fromCursor
+import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 import io.mockk.MockKAnnotations.init
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -65,7 +66,7 @@ class DatasetTest {
     }
 
     @Test
-    fun testCreateFromCompleteCursor() {
+    fun `should create dataset from complete cursor`() {
         // given a mocked Cursor
         defaultProjection().forEachIndexed { index, c ->
             every { cursor.getColumnIndexOrThrow(c.second) } returns index
@@ -104,7 +105,7 @@ class DatasetTest {
     }
 
     @Test
-    fun testCreateFromClosedCursor() {
+    fun `should return a null dataset from closed cursor`() {
         // given a mocked Cursor
         every { cursor.isClosed } returns true
 
@@ -146,7 +147,7 @@ class DatasetTest {
     }
 
     @Test
-    fun testDefaultProjection() {
+    fun `should build default projection`() {
         assertArrayEquals(
             arrayOf(
                 Pair(
@@ -179,6 +180,52 @@ class DatasetTest {
                 )
             ),
             defaultProjection()
+        )
+    }
+
+    @Test
+    fun `should build filter by name or description from simple query string`() {
+        val filterByName = Dataset
+            .Filter()
+            .byNameOrDescription("some dataset")
+            .build()
+
+        assertEquals(
+            "(${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME} GLOB ? OR ${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION} GLOB ?)",
+            filterByName.first
+        )
+        assertArrayEquals(
+            arrayOf(
+                "*[sS][oóòöôõõOÓÒÖÔÕ][mM][eéèëêẽEÉÈËÊẼ] [dD][aáàäâãAÁÀÄÂÃ][tT][aáàäâãAÁÀÄÂÃ][sS][eéèëêẽEÉÈËÊẼ][tT]*",
+                "*[sS][oóòöôõõOÓÒÖÔÕ][mM][eéèëêẽEÉÈËÊẼ] [dD][aáàäâãAÁÀÄÂÃ][tT][aáàäâãAÁÀÄÂÃ][sS][eéèëêẽEÉÈËÊẼ][tT]*"
+            ),
+            filterByName.second
+        )
+    }
+
+    @Test
+    fun `should build order by name with no query string`() {
+        val orderByName = Dataset
+            .OrderBy()
+            .byNameOrDescription()
+            .build()
+
+        assertEquals(
+            "${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME} ${SQLiteSelectQueryBuilder.OrderingTerm.ASC.name}",
+            orderByName
+        )
+    }
+
+    @Test
+    fun `should build order by name or description with query string`() {
+        val orderByName = Dataset
+            .OrderBy()
+            .byNameOrDescription("some dataset")
+            .build()
+
+        assertEquals(
+            "(CASE WHEN (${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME} = 'some dataset' OR ${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION} = 'some dataset') THEN 1" + " WHEN (${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME} LIKE '%some dataset%' OR ${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION} LIKE '%some dataset%') THEN 2" + " WHEN (${Dataset.TABLE_NAME}_${Dataset.COLUMN_NAME} GLOB '*[sS][oóòöôõõOÓÒÖÔÕ][mM][eéèëêẽEÉÈËÊẼ] [dD][aáàäâãAÁÀÄÂÃ][tT][aáàäâãAÁÀÄÂÃ][sS][eéèëêẽEÉÈËÊẼ][tT]*' OR ${Dataset.TABLE_NAME}_${Dataset.COLUMN_DESCRIPTION} GLOB '*[sS][oóòöôõõOÓÒÖÔÕ][mM][eéèëêẽEÉÈËÊẼ] [dD][aáàäâãAÁÀÄÂÃ][tT][aáàäâãAÁÀÄÂÃ][sS][eéèëêẽEÉÈËÊẼ][tT]*') THEN 3" + " ELSE 4 END)",
+            orderByName
         )
     }
 }
