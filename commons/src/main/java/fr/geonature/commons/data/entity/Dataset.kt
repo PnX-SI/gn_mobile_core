@@ -9,7 +9,10 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import fr.geonature.commons.data.helper.Converters
 import fr.geonature.commons.data.helper.EntityHelper.column
+import fr.geonature.commons.data.helper.SQLiteSelectQueryBuilder
 import fr.geonature.commons.data.helper.get
+import fr.geonature.commons.data.helper.sqlEscape
+import fr.geonature.commons.data.helper.sqlNormalize
 import kotlinx.parcelize.Parcelize
 import org.tinylog.Logger
 import java.util.Date
@@ -206,6 +209,147 @@ data class Dataset(
 
                 null
             }
+        }
+    }
+
+    /**
+     * Filter query builder.
+     */
+    open class Filter(private val tableAlias: String = TABLE_NAME) {
+        private val wheres = mutableListOf<Pair<String, Array<*>?>>()
+
+        /**
+         * Filter by name or description.
+         *
+         * @return this
+         */
+        fun byNameOrDescription(queryString: String?): Filter {
+            if (queryString.isNullOrBlank()) {
+                return this
+            }
+
+            val normalizedQueryString = queryString.sqlNormalize()
+
+            this.wheres.add(
+                Pair(
+                    "(${
+                        getColumnAlias(
+                            COLUMN_NAME,
+                            tableAlias
+                        )
+                    } GLOB ? OR ${
+                        getColumnAlias(
+                            COLUMN_DESCRIPTION,
+                            tableAlias
+                        )
+                    } GLOB ?)",
+                    arrayOf(
+                        normalizedQueryString,
+                        normalizedQueryString
+                    )
+                )
+            )
+
+            return this
+        }
+
+        /**
+         * Builds the WHERE clause as selection for this filter.
+         */
+        fun build(): Pair<String, Array<Any?>> {
+            val bindArgs = mutableListOf<Any?>()
+
+            val whereClauses = this.wheres.joinToString(" AND ") { pair ->
+                pair.second
+                    ?.toList()
+                    ?.also { bindArgs.addAll(it) }
+                pair.first
+            }
+
+            return Pair(
+                whereClauses,
+                bindArgs.toTypedArray()
+            )
+        }
+    }
+
+    /**
+     * Order by query builder.
+     */
+    open class OrderBy(private val tableAlias: String = TABLE_NAME) {
+        private val orderBy = mutableSetOf<String>()
+
+        /**
+         * Adds an ORDER BY statement on 'name' column  from given any query string.
+         * The default sort order is [SQLiteSelectQueryBuilder.OrderingTerm.ASC].
+         *
+         * @param queryString The query string.
+         *
+         * @return this
+         */
+        fun byNameOrDescription(queryString: String? = null): OrderBy {
+            if (queryString.isNullOrBlank()) {
+                this.orderBy.add(
+                    "${
+                        getColumnAlias(
+                            COLUMN_NAME,
+                            tableAlias
+                        )
+                    } ${SQLiteSelectQueryBuilder.OrderingTerm.ASC.name}"
+                )
+
+                return this
+            }
+
+            val escapedQueryString = queryString.sqlEscape()
+            val normalizedQueryString = queryString.sqlNormalize()
+
+            this.orderBy.add(
+                "(CASE WHEN (${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } = '$escapedQueryString' OR ${
+                    getColumnAlias(
+                        COLUMN_DESCRIPTION,
+                        tableAlias
+                    )
+                } = '$escapedQueryString') THEN 1 WHEN (${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } LIKE '%$escapedQueryString%' OR ${
+                    getColumnAlias(
+                        COLUMN_DESCRIPTION,
+                        tableAlias
+                    )
+                } LIKE '%$escapedQueryString%') THEN 2 WHEN (${
+                    getColumnAlias(
+                        COLUMN_NAME,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString' OR ${
+                    getColumnAlias(
+                        COLUMN_DESCRIPTION,
+                        tableAlias
+                    )
+                } GLOB '$normalizedQueryString') THEN 3 ELSE 4 END)"
+            )
+
+            return this
+        }
+
+        /**
+         * Builds the ORDER BY clause.
+         */
+        fun build(): String? {
+            if (this.orderBy.isEmpty()) {
+                return null
+            }
+
+            return this.orderBy.joinToString(", ")
         }
     }
 }

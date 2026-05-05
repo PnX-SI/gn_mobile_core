@@ -225,7 +225,9 @@ class MainContentProvider : ContentProvider() {
 
             DATASET, DATASET_ACTIVE -> datasetQuery(
                 appContext,
-                uri
+                uri,
+                selection,
+                selectionArgs
             )
 
             DATASET_ID -> datasetByIdQuery(
@@ -401,7 +403,9 @@ class MainContentProvider : ContentProvider() {
 
     private fun datasetQuery(
         context: Context,
-        uri: Uri
+        uri: Uri,
+        selection: String?,
+        selectionArgs: Array<String>?
     ): Cursor {
         val onlyActive = uri.lastPathSegment == "active"
 
@@ -412,6 +416,13 @@ class MainContentProvider : ContentProvider() {
                     it.whereActive()
                 }
             }
+            .whereSelection(
+                selection,
+                arrayOf(
+                    *selectionArgs
+                        ?: emptyArray()
+                )
+            )
             .cursor()
     }
 
