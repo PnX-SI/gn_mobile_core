@@ -16,7 +16,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.SocketException
 import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -114,7 +113,6 @@ fun <T> createServiceClient(
                         throw when (throwable) {
                             is SocketException,
                             is SocketTimeoutException,
-                            is UnknownHostException,
                             is ConnectionShutdownException,
                             -> NetworkException(throwable.message)
 
