@@ -4,6 +4,7 @@ import android.webkit.MimeTypeMap
 import fr.geonature.datasync.api.error.MissingConfigurationException
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.AuthMobileKeycloakRequest
 import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
@@ -75,7 +76,26 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         return geoNatureService.authLogin(authCredentials)
     }
 
+    override fun authMobileKeycloakLogin(payload: AuthMobileKeycloakRequest): Call<AuthLogin> {
+        val geoNatureService = geoNatureService
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
+
+        return geoNatureService.authMobileKeycloakLogin(payload)
+    }
+
+    override fun getCurrentUser(): Call<AuthLogin> {
+        val geoNatureService = geoNatureService
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
+
+        return geoNatureService.getCurrentUser()
+    }
+
     override fun logout() {
+        runCatching {
+            geoNatureService?.logout()?.execute()
+        }.onFailure {
+            Logger.warn(it)
+        }
         cookieManager.clearCookie()
     }
 

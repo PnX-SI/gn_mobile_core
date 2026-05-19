@@ -32,6 +32,19 @@ interface IAuthManager {
     ): Either<Failure, AuthLogin>
 
     /**
+     * Uses current backend session (e.g. after SSO flow) to retrieve logged user details.
+     */
+    suspend fun loginFromCurrentSession(): Either<Failure, AuthLogin>
+
+    suspend fun loginWithKeycloakCode(
+        providerId: String,
+        code: String,
+        codeVerifier: String,
+        redirectUri: String,
+        applicationId: Int
+    ): Either<Failure, AuthLogin>
+
+    /**
      * Clears the current session.
      */
     suspend fun logout(): Boolean

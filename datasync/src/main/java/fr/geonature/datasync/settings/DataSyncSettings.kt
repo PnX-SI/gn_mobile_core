@@ -8,6 +8,12 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+private fun readAuthModeFromParcel(parcel: Parcel): DataSyncSettings.AuthMode {
+    return runCatching {
+        DataSyncSettings.AuthMode.valueOf(parcel.readString().orEmpty().uppercase())
+    }.getOrElse { DataSyncSettings.AuthMode.GEONATURE }
+}
+
 /**
  * Default settings for synchronization module.
  *
@@ -22,8 +28,20 @@ data class DataSyncSettings(
     val codeAreaType: String? = null,
     val pageSize: Int = Builder.DEFAULT_PAGE_SIZE,
     val dataSyncPeriodicity: Duration? = Builder.DEFAULT_DATA_SYNC_PERIODICITY,
-    val essentialDataSyncPeriodicity: Duration? = null
+    val essentialDataSyncPeriodicity: Duration? = null,
+    val authMode: AuthMode = AuthMode.GEONATURE,
+    val keycloakProviderId: String? = null,
+    val keycloakLoginPath: String? = null,
+    val keycloakAuthorizePath: String? = null,
+    val keycloakCurrentUserPath: String? = null,
+    val keycloakRedirectUri: String? = null,
+    val keycloakMobileLoginPath: String? = null
 ) : Parcelable {
+
+    enum class AuthMode {
+        GEONATURE,
+        KEYCLOAK
+    }
 
     private constructor(parcel: Parcel) : this(
         parcel.readString()!!,
@@ -38,7 +56,14 @@ data class DataSyncSettings(
             ?.parseAsDuration(),
         parcel
             .readString()
-            ?.parseAsDuration()
+            ?.parseAsDuration(),
+        readAuthModeFromParcel(parcel),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString()
     )
 
     override fun writeToParcel(
@@ -55,6 +80,13 @@ data class DataSyncSettings(
             writeInt(pageSize)
             writeString(dataSyncPeriodicity?.toIsoString())
             writeString(essentialDataSyncPeriodicity?.toIsoString())
+            writeString(authMode.name.lowercase())
+            writeString(keycloakProviderId)
+            writeString(keycloakLoginPath)
+            writeString(keycloakAuthorizePath)
+            writeString(keycloakCurrentUserPath)
+            writeString(keycloakRedirectUri)
+            writeString(keycloakMobileLoginPath)
         }
     }
 
@@ -112,6 +144,41 @@ data class DataSyncSettings(
         private var essentialDataSyncPeriodicity: Duration? = null
 
         /**
+         * Authentication mode (default: GeoNature login/password flow).
+         */
+        private var authMode: AuthMode = AuthMode.GEONATURE
+
+        /**
+         * Keycloak provider id (e.g. "keycloak").
+         */
+        private var keycloakProviderId: String? = null
+
+        /**
+         * Keycloak provider login path (e.g. "api/auth/login/{provider_id}").
+         */
+        private var keycloakLoginPath: String? = null
+
+        /**
+         * Keycloak provider authorize callback path (e.g. "api/auth/authorize/{provider_id}").
+         */
+        private var keycloakAuthorizePath: String? = null
+
+        /**
+         * Keycloak current user path (e.g. "api/auth/get_current_user").
+         */
+        private var keycloakCurrentUserPath: String? = null
+
+        /**
+         * Mobile redirect URI registered in Keycloak.
+         */
+        private var keycloakRedirectUri: String? = null
+
+        /**
+         * GeoNature mobile endpoint for keycloak code exchange.
+         */
+        private var keycloakMobileLoginPath: String? = null
+
+        /**
          * Makes a copy of given [DataSyncSettings].
          */
         fun from(dataSyncSettings: DataSyncSettings?) =
@@ -127,6 +194,13 @@ data class DataSyncSettings(
                 pageSize = dataSyncSettings.pageSize
                 dataSyncPeriodicity = dataSyncSettings.dataSyncPeriodicity
                 essentialDataSyncPeriodicity = dataSyncSettings.essentialDataSyncPeriodicity
+                authMode = dataSyncSettings.authMode
+                keycloakProviderId = dataSyncSettings.keycloakProviderId
+                keycloakLoginPath = dataSyncSettings.keycloakLoginPath
+                keycloakAuthorizePath = dataSyncSettings.keycloakAuthorizePath
+                keycloakCurrentUserPath = dataSyncSettings.keycloakCurrentUserPath
+                keycloakRedirectUri = dataSyncSettings.keycloakRedirectUri
+                keycloakMobileLoginPath = dataSyncSettings.keycloakMobileLoginPath
             }
 
         /**
@@ -277,6 +351,37 @@ data class DataSyncSettings(
             }
 
         /**
+         * Sets authentication mode.
+         */
+        fun authMode(authMode: String? = null) =
+            apply {
+                this.authMode = when (authMode?.trim()?.lowercase()) {
+                    "keycloak" -> AuthMode.KEYCLOAK
+                    else -> AuthMode.GEONATURE
+                }
+            }
+
+        /**
+         * Sets Keycloak settings.
+         */
+        fun keycloak(
+            providerId: String? = null,
+            loginPath: String? = null,
+            authorizePath: String? = null,
+            currentUserPath: String? = null,
+            redirectUri: String? = null,
+            mobileLoginPath: String? = null
+        ) =
+            apply {
+                keycloakProviderId = providerId?.takeIf { it.isNotBlank() }
+                keycloakLoginPath = loginPath?.takeIf { it.isNotBlank() }
+                keycloakAuthorizePath = authorizePath?.takeIf { it.isNotBlank() }
+                keycloakCurrentUserPath = currentUserPath?.takeIf { it.isNotBlank() }
+                keycloakRedirectUri = redirectUri?.takeIf { it.isNotBlank() }
+                keycloakMobileLoginPath = mobileLoginPath?.takeIf { it.isNotBlank() }
+            }
+
+        /**
          * Builds a new instance of [DataSyncSettings].
          */
         fun build(): DataSyncSettings {
@@ -293,7 +398,14 @@ data class DataSyncSettings(
                 codeAreaType,
                 pageSize,
                 dataSyncPeriodicity,
-                essentialDataSyncPeriodicity
+                essentialDataSyncPeriodicity,
+                authMode,
+                keycloakProviderId,
+                keycloakLoginPath,
+                keycloakAuthorizePath,
+                keycloakCurrentUserPath,
+                keycloakRedirectUri,
+                keycloakMobileLoginPath
             )
         }
 

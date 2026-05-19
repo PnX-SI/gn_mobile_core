@@ -4,6 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.datasync.api.model.AuthCredentials
 import fr.geonature.datasync.api.model.AuthLogin
+import fr.geonature.datasync.api.model.AuthMobileKeycloakRequest
 import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.api.model.Media
 import fr.geonature.datasync.api.model.NomenclatureType
@@ -74,6 +75,9 @@ interface IGeoNatureAPIClient {
     fun setBaseUrls(url: ServerUrls)
 
     fun authLogin(authCredentials: AuthCredentials): Call<AuthLogin>
+    fun authMobileKeycloakLogin(payload: AuthMobileKeycloakRequest): Call<AuthLogin>
+
+    fun getCurrentUser(): Call<AuthLogin>
 
     /**
      * Performs logout.

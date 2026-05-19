@@ -4,6 +4,7 @@
     <string name="login_login_hint">Identifiant</string>
     <string name="login_password_hint">Mot de passe</string>
     <string name="login_action_sign_in">Se connecter</string>
+    <string name="login_action_sign_in_with_keycloak">Se connecter</string>
 
     <string name="login_form_username_invalid">Identifiant invalide</string>
     <string name="login_form_password_invalid">Mot de passe invalide</string>

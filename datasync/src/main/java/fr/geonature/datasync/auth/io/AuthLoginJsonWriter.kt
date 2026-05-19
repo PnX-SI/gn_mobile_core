@@ -96,6 +96,10 @@ class AuthLoginJsonWriter {
             writer,
             authLogin.user
         )
+        if (!authLogin.token.isNullOrBlank()) {
+            writer.name("token")
+                .value(authLogin.token)
+        }
         writer.name("expires")
             .value(authLogin.expires.toIsoDateString())
 

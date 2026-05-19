@@ -9,6 +9,8 @@ import okhttp3.Cookie
  */
 interface ICookieManager {
     var cookie: Cookie?
+    var cookies: List<Cookie>
+    var accessToken: String?
 
     fun clearCookie()
 }

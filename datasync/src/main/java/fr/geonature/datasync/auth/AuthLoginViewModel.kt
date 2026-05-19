@@ -85,6 +85,66 @@ class AuthLoginViewModel @Inject constructor(private val authManager: IAuthManag
         }
     }
 
+    fun loginFromCurrentSession() {
+        viewModelScope.launch {
+            val authLogin = authManager.loginFromCurrentSession()
+            _loginResult.value = authLogin.fold(
+                {
+                    when (it) {
+                        is GeoNatureMissingConfigurationFailure -> {
+                            LoginResult(error = R.string.login_failed_server_url_configuration)
+                        }
+
+                        is Failure.NetworkFailure -> {
+                            LoginResult(error = R.string.error_network_lost)
+                        }
+
+                        else -> LoginResult(error = R.string.login_failed)
+                    }
+                },
+                {
+                    LoginResult(success = it)
+                }
+            )
+        }
+    }
+
+    fun loginWithKeycloakCode(
+        providerId: String,
+        code: String,
+        codeVerifier: String,
+        redirectUri: String,
+        applicationId: Int
+    ) {
+        viewModelScope.launch {
+            val authLogin = authManager.loginWithKeycloakCode(
+                providerId = providerId,
+                code = code,
+                codeVerifier = codeVerifier,
+                redirectUri = redirectUri,
+                applicationId = applicationId
+            )
+            _loginResult.value = authLogin.fold(
+                {
+                    when (it) {
+                        is GeoNatureMissingConfigurationFailure -> {
+                            LoginResult(error = R.string.login_failed_server_url_configuration)
+                        }
+
+                        is Failure.NetworkFailure -> {
+                            LoginResult(error = R.string.error_network_lost)
+                        }
+
+                        else -> LoginResult(error = R.string.login_failed)
+                    }
+                },
+                {
+                    LoginResult(success = it)
+                }
+            )
+        }
+    }
+
     fun loginDataChanged(
         username: String,
         password: String

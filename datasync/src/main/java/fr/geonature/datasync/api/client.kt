@@ -41,18 +41,26 @@ fun <T> createServiceClient(
                     url: HttpUrl,
                     cookies: List<Cookie>
                 ) {
-                    cookies
-                        .firstOrNull()
-                        ?.also {
-                            cookieManager.cookie = it
+                    if (cookies.isEmpty()) return
+
+                    val current = cookieManager.cookies.toMutableList()
+                    cookies.forEach { incoming ->
+                        val index = current.indexOfFirst {
+                            it.name == incoming.name && it.domain == incoming.domain && it.path == incoming.path
                         }
+                        if (index >= 0) {
+                            current[index] = incoming
+                        } else {
+                            current.add(incoming)
+                        }
+                    }
+                    cookieManager.cookies = current
                 }
 
                 override fun loadForRequest(url: HttpUrl): MutableList<Cookie> {
-                    return cookieManager.cookie?.let {
-                        mutableListOf(it)
-                    }
-                        ?: mutableListOf()
+                    return cookieManager.cookies
+                        .filter { cookie -> cookie.matches(url) }
+                        .toMutableList()
                 }
             })
             .connectTimeout(
@@ -73,6 +81,19 @@ fun <T> createServiceClient(
                 redactHeader("Authorization")
                 redactHeader("Cookie")
             })
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val token = cookieManager.accessToken
+                if (token.isNullOrBlank() || original.header("Authorization") != null) {
+                    chain.proceed(original)
+                } else {
+                    chain.proceed(
+                        original.newBuilder()
+                            .header("Authorization", "Bearer $token")
+                            .build()
+                    )
+                }
+            }
             // handle network/api errors globally through dedicated interceptor
             .addInterceptor {
                 val request = it.request()

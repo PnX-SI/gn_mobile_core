@@ -11,6 +11,8 @@ import java.util.Date
 data class AuthLogin(
     @SerializedName("user")
     val user: AuthUser,
+    @SerializedName("token")
+    val token: String? = null,
     @SerializedName("expires")
     val expires: Date
 )
