@@ -61,16 +61,10 @@ class DataSyncViewModel @Inject constructor(
                     return@map null
                 }
 
-                if (workInfo.state !in arrayOf(
-                        WorkInfo.State.RUNNING,
-                        WorkInfo.State.ENQUEUED
-                    )
-                ) {
-                    _isSyncRunning.postValue(false)
-                    return@map null
-                }
-
-                _isSyncRunning.postValue(true)
+                _isSyncRunning.postValue(workInfo.state in arrayOf(
+                    WorkInfo.State.RUNNING,
+                    WorkInfo.State.ENQUEUED
+                ))
 
                 val serverStatus = ServerStatus.entries[workInfo.progress.getInt(
                     DataSyncWorker.KEY_SERVER_STATUS,
