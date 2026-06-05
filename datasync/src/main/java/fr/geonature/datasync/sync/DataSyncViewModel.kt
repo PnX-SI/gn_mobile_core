@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.geonature.commons.interactor.BaseResultUseCase
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.usecase.HasLocalDataUseCase
+import fr.geonature.datasync.sync.usecase.PurgeLocalDataUseCase
 import fr.geonature.datasync.sync.worker.DataSyncWorker
 import kotlinx.coroutines.launch
 import org.tinylog.Logger
@@ -30,18 +31,12 @@ import kotlin.time.Duration
 @HiltViewModel
 class DataSyncViewModel @Inject constructor(
     application: Application,
-    dataSyncManager: IDataSyncManager,
-    private val hasLocalDataUseCase: HasLocalDataUseCase
+    private val dataSyncManager: IDataSyncManager,
+    private val hasLocalDataUseCase: HasLocalDataUseCase,
+    private val purgeLocalDataUseCase: PurgeLocalDataUseCase
 ) : AndroidViewModel(application) {
 
     private val workManager: WorkManager = WorkManager.getInstance(getApplication())
-
-    init {
-        dataSyncManager.getLastSynchronizedDate()
-    }
-
-    val lastSynchronizedDate: LiveData<Pair<IDataSyncManager.SyncState, Date?>> =
-        dataSyncManager.lastSynchronizedDate
 
     /**
      * Observes the current data sync status directly from WorkManager, without any internal
@@ -85,6 +80,10 @@ class DataSyncViewModel @Inject constructor(
     private val _isSyncRunning: MutableLiveData<Boolean> = MutableLiveData(false)
     val isSyncRunning: LiveData<Boolean> = _isSyncRunning
 
+    fun getLastSynchronizedDate(): Pair<IDataSyncManager.SyncState, Date?> {
+        return dataSyncManager.getLastSynchronizedDate()
+    }
+
     fun hasLocalData(): LiveData<Boolean> =
         liveData {
             hasLocalDataUseCase
@@ -100,6 +99,21 @@ class DataSyncViewModel @Inject constructor(
                     },
                 )
         }
+
+    fun purgeLocalData(purgeDatabase: Boolean = true): LiveData<Boolean> = liveData {
+        Logger.info { "purging local data${if (purgeDatabase) " and clear database" else ""}..." }
+        purgeLocalDataUseCase.run(PurgeLocalDataUseCase.Params(purgeDatabase))
+            .fold(
+                onSuccess = {
+                    Logger.info { "local data purged successfully" }
+                    emit(it)
+                },
+                onFailure = {
+                    Logger.error(it) { "failed to purge local data" }
+                    emit(false)
+                },
+            )
+    }
 
     fun startSync(
         dataSyncSettings: DataSyncSettings,
@@ -127,7 +141,7 @@ class DataSyncViewModel @Inject constructor(
         viewModelScope.launch {
             val alreadyRunning = workManager
                 .getWorkInfosByTag(DataSyncWorker.DATA_SYNC_WORKER_TAG)
-                .await()
+                .get()
                 .any { it.state == WorkInfo.State.RUNNING }
 
             if (alreadyRunning) {
