@@ -1,8 +1,10 @@
 package fr.geonature.commons.data.dao
 
+import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.sqlite.db.SimpleSQLiteQuery
 import fr.geonature.commons.data.entity.AbstractTaxon
 import fr.geonature.commons.data.entity.AbstractTaxon.Companion.COLUMN_DESCRIPTION
 import fr.geonature.commons.data.entity.AbstractTaxon.Companion.COLUMN_NAME
@@ -23,6 +25,14 @@ import fr.geonature.commons.data.helper.sqlNormalize
  */
 @Dao
 abstract class TaxonDao : BaseDao<Taxon>() {
+
+    override fun deleteAll() {
+        super.deleteAll()
+
+        if (Build.VERSION.SDK_INT >= 30) {
+            query(SimpleSQLiteQuery("DELETE FROM ${TaxonFts.TABLE_NAME}")).moveToFirst()
+        }
+    }
 
     @Query(
         """SELECT t.${AbstractTaxon.COLUMN_ID}

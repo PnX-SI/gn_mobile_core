@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.MatrixCursor
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import fr.geonature.commons.data.entity.AppSync
 import fr.geonature.commons.data.helper.Converters.dateToTimestamp
@@ -45,15 +46,23 @@ class AppSyncDao(context: Context) {
         val now = Date()
 
         this.sharedPreferences
-            .edit()
-            .putLong(
-                buildLastSynchronizedDatePreferenceKey(complete),
-                dateToTimestamp(now)
-                    ?: -1L
-            )
-            .apply()
+            .edit(commit = true) {
+                putLong(
+                    buildLastSynchronizedDatePreferenceKey(complete),
+                    dateToTimestamp(now)
+                        ?: -1L
+                )
+            }
 
         return now
+    }
+
+    fun clearLastSynchronizedDate() {
+        this.sharedPreferences
+            .edit(commit = true) {
+                remove(buildLastSynchronizedDatePreferenceKey(complete = false))
+                remove(buildLastSynchronizedDatePreferenceKey())
+            }
     }
 
     fun getLastSynchronizedDate(): Date? {

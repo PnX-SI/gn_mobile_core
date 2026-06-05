@@ -88,8 +88,9 @@ abstract class BaseDao<T> {
     /**
      * Delete all items from the given entity table.
      */
-    fun deleteAll() {
+    open fun deleteAll() {
         query(SimpleSQLiteQuery("DELETE FROM $entityTableName")).moveToFirst()
+        query(SimpleSQLiteQuery("UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE name = '$entityTableName'")).moveToFirst();
     }
 
     /**

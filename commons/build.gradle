@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
-version = "1.5.1"
+version = "1.5.2"
 
 android {
     namespace 'fr.geonature.commons'
