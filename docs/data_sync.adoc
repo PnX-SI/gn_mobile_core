@@ -16,7 +16,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-This document describe the data synchronization worflow within *_datasync_* module.
+This document describes the data synchronization workflow within *_datasync_* module.
 
 == Check for update
 

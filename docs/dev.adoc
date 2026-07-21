@@ -11,7 +11,7 @@ The project is organized around 3 distinct git repositories:
 
 * https://github.com/PnX-SI/gn_mobile_core[gn_mobile_core], this current repository which carries "common" and transverse modules (the initial idea was to mutualize common bricks between potentially several applications relying on GeoNature APIs).
 * https://github.com/PnX-SI/gn_mobile_maps[gn_mobile_maps], a "generic" cartographic module that has no functional dependency on the "Occtax" application. This module is based on the https://github.com/osmdroid/osmdroid[osmdroid] Android library.
-* https://github.com/PnX-SI/gn_mobile_occtax[gn_mobile_occtax], the functional module for the "Occtax" application, supported by the national parks. This module is based on the two above-mentioned modules via git sub-modules.
+* https://github.com/PnX-SI/gn_mobile_occtax[gn_mobile_occtax], the functional module for the "Occtax" application, supported by the national parks. This module is based on the two above-mentioned modules via git submodules.
 
 == Getting started
 
