@@ -1,23 +1,20 @@
 # DataSync module
 
-Authenticate GeoNature user.
+* Authenticate _GeoNature_ user.
+* Synchronize local database through _GeoNature_ APIs:
+  * Users (i.e. Observers)
+  * Taxa (with additional data like "color" by areas and taxonomy)
+  * Dataset
+  * Nomenclature
 
-Synchronize local database through GeoNature APIs:
+* Synchronize observers inputs from synchronized apps (e.g. "Occtax").
+* Manage available applications registered from _GeoNature_ and installed ones.
 
-- Users (i.e. Observers)
-- Taxa (with additional data like "color" by areas and taxonomy)
-- Dataset
-- Nomenclature
-
-Synchronize observers inputs from synchronized apps (e.g. "Occtax").
-
-Manage available applications registered from GeoNature and installed ones.
-
-## GeoNature APIs
+## _GeoNature_ APIs
 
 See [IGeoNatureService](./src/main/java/fr/geonature/datasync/api/IGeoNatureService.kt)
 and [ITaxHubService](./src/main/java/fr/geonature/datasync/api/ITaxHubService.kt) interfaces
-definition about GeoNature and TaxHub APIs endpoints consumed:
+definition about _GeoNature_ and _TaxHub_ APIs endpoints consumed:
 
 | Route                                                      | Method | Description                                          |
 |------------------------------------------------------------|--------|------------------------------------------------------|
@@ -33,12 +30,12 @@ definition about GeoNature and TaxHub APIs endpoints consumed:
 | `/api/synthese/color_taxon`                                | `GET`  | Fetch additional data for taxa.                      |
 | `/api/gn_commons/additional_fields?module_name={{module}}` | `GET`  | Fetch additional fields.                             |
 
-A [Postman collection](https://github.com/PnX-SI/gn_mobile_core/blob/develop/docs/postman/gn_mobile_core.postman_collection.json)
+A [Postman collection](../docs/postman/gn_mobile_core.postman_collection.json)
 is available showing all the routes consumed by this module.
 
 ## Settings
 
-Module settings can be loaded from JSON as follow:
+Module settings can be loaded from JSON as follows:
 
 ```json
 {
@@ -54,7 +51,7 @@ Module settings can be loaded from JSON as follow:
 }
 ```
 
-or
+or as inlined:
 
 ```json
 {
@@ -95,8 +92,8 @@ This distinction between these two parameters is necessary because a full synchr
 data can be potentially time-consuming, especially on the part of the taxon data related to a
 geographical area.
 
-The expected format describing a periodic synchronization must following the pattern `DdHhMmSs`
-where `d`, `h`, `m`, `s` represents the time unit of the duration.
+The expected format describing a periodic synchronization must follow the pattern `DdHhMmSs` where
+`d`, `h`, `m`, `s` represents the time unit of the duration.
 Each part (duration value and its time unit) of the duration is optional. A time unit represents
 time durations at a given unit of granularity:
 
@@ -122,5 +119,5 @@ these parameters are set, `sync_periodicity_data` parameter should be greater th
 A full build can be executed with the following command:
 
 ```
-../gradlew clean assembleDebug
+./gradlew clean assembleDebug
 ```

@@ -9,8 +9,8 @@ import dagger.hilt.components.SingletonComponent
 import fr.geonature.commons.data.ContentProviderAuthority
 import fr.geonature.commons.data.helper.ProviderHelper.buildUri
 import fr.geonature.mountpoint.model.MountPoint
-import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.mountpoint.util.FileUtils.getRootFolder
+import fr.geonature.mountpoint.util.getFile
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -44,13 +44,10 @@ object DataSyncSettingsModule {
         @AppSettingsFilename appSettingsFilename: String
     ): IDataSyncSettingsDataSource {
         return DataSyncSettingsFileDataSourceImpl(
-            getFile(
-                getRootFolder(
-                    appContext,
-                    MountPoint.StorageType.INTERNAL
-                ),
-                appSettingsFilename
-            )
+            getRootFolder(
+                appContext,
+                MountPoint.StorageType.INTERNAL
+            ).getFile(appSettingsFilename)
         )
     }
 

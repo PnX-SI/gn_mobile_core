@@ -53,12 +53,13 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     api project(':compat')
-    api project(':mountpoint')
 
     implementation libs.androidx.appcompat
     implementation libs.androidx.lifecycle.livedata.ktx
     implementation libs.androidx.lifecycle.viewmodel.ktx
     implementation libs.androidx.preference.ktx
+
+    implementation libs.gn.mountpoint
 
     // Room
     api libs.androidx.room.runtime

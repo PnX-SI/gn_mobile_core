@@ -4,8 +4,8 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import fr.geonature.datasync.packageinfo.PackageInfo
 import fr.geonature.mountpoint.model.MountPoint
-import fr.geonature.mountpoint.util.FileUtils.getFile
 import fr.geonature.mountpoint.util.FileUtils.getRootFolder
+import fr.geonature.mountpoint.util.getFile
 import org.tinylog.Logger
 import java.io.FileWriter
 import java.io.IOException
@@ -33,10 +33,7 @@ class AppSettingsJsonWriter(
             MountPoint.StorageType.INTERNAL
         ).also { it.mkdirs() }
 
-        val appSettingsFile = getFile(
-            appRootFolder,
-            appSettingsFilename
-        )
+        val appSettingsFile = appRootFolder.getFile(appSettingsFilename)
         val writer = FileWriter(appSettingsFile)
 
         GsonBuilder()

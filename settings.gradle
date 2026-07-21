@@ -11,13 +11,28 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+def localProperties = new Properties().tap {
+    if (file("local.properties").exists()) {
+        it.load(file("local.properties").newInputStream())
+    }
+}
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/PnX-SI/gn_mobile_maps")
+            credentials {
+                username = localProperties.get("gpr.user") ?: System.getenv("USERNAME")
+                password = localProperties.get("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
     }
 }
 
 rootProject.name = "GeoNature Android core libraries"
-include ':commons', ':compat', ':datasync', ':mountpoint', ':viewpager'
+include ':commons', ':compat', ':datasync', ':viewpager'

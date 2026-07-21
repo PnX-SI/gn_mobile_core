@@ -3,6 +3,7 @@ package fr.geonature.commons.util
 import android.content.Context
 import fr.geonature.mountpoint.model.MountPoint
 import fr.geonature.mountpoint.util.FileUtils
+import fr.geonature.mountpoint.util.getFile
 import java.io.File
 
 /**
@@ -26,14 +27,11 @@ fun FileUtils.getInputsFolder(
     packageId: String? = null
 ): File {
 
-    return getFile(
-        getRootFolder(
-            context,
-            MountPoint.StorageType.INTERNAL,
-            packageId
-        ),
-        "inputs"
-    )
+    return getRootFolder(
+        context,
+        MountPoint.StorageType.INTERNAL,
+        packageId
+    ).getFile("inputs")
 }
 
 /**
@@ -49,11 +47,8 @@ fun FileUtils.getDatabaseFolder(
     storageType: MountPoint.StorageType
 ): File {
 
-    return getFile(
-        getRootFolder(
-            context,
-            storageType
-        ),
-        "databases"
-    )
+    return getRootFolder(
+        context,
+        storageType
+    ).getFile("databases")
 }
