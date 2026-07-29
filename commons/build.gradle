@@ -1,9 +1,9 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.dagger.hilt.android)
-    alias(libs.plugins.kapt)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 version = "1.5.2"
@@ -64,11 +64,11 @@ dependencies {
     // Room
     api libs.androidx.room.runtime
     api libs.androidx.room.ktx
-    kapt libs.androidx.room.compiler
+    ksp libs.androidx.room.compiler
 
     // Hilt dependencies
     implementation libs.hilt.android
-    kapt libs.hilt.android.compiler
+    ksp libs.hilt.android.compiler
 
     // Logging
     implementation libs.tinylog.api.kotlin
@@ -79,7 +79,7 @@ dependencies {
     testImplementation libs.androidx.core
     testImplementation libs.androidx.junit.ktx
     testImplementation libs.hilt.android.testing
-    kaptTest libs.hilt.android.compiler
+    kspTest libs.hilt.android.compiler
     testImplementation libs.mockk
     testImplementation libs.mockk.agent.jvm
     testImplementation libs.junit
