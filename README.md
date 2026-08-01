@@ -45,7 +45,7 @@ dependencyResolutionManagement {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/PnX-SI/gn_mobile_maps")
+            url = uri("https://maven.pkg.github.com/PnX-SI/gn_mobile_core")
             credentials {
                 username = localProperties.getProperty("gpr.user") ?: System.getenv("USERNAME")
                 password = localProperties.getProperty("gpr.key") ?: System.getenv("TOKEN")
@@ -62,7 +62,7 @@ dependencyResolutionManagement {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/PnX-SI/gn_mobile_maps")
+            url = uri("https://maven.pkg.github.com/PnX-SI/gn_mobile_core")
             credentials {
                 username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("USERNAME")
                 password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("TOKEN")
@@ -80,7 +80,10 @@ Add the following dependency to your module's `build.gradle` (or `build.gradle.k
 
 ```groovy
 dependencies {
-    implementation 'fr.geonature:mountpoint:<version>'
+    implementation 'fr.geonature:commons:<version>'
+    implementation 'fr.geonature:compat:<version>'
+    implementation 'fr.geonature:datasync:<version>'
+    implementation 'fr.geonature:viewpager:<version>'
 }
 ```
 
@@ -88,6 +91,39 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("fr.geonature:mountpoint:<version>")
+    implementation("fr.geonature:commons:<version>")
+    implementation("fr.geonature:compat:<version>")
+    implementation("fr.geonature:datasync:<version>")
+    implementation("fr.geonature:viewpager:<version>")
 }
 ```
+
+---
+
+## Configure GitHub Packages Access
+
+To publish or consume packages from GitHub Packages, we need to authenticate using a Personal Access
+Token (PAT).
+1. **Generate a Personal Access Token (PAT):**
+    * Go to GitHub Settings > Developer settings > Personal access tokens > Tokens (classic).
+    * Generate a new token with the `write:packages` (for publishing) and `read:packages` (for downloading)
+      scopes.
+2. **Configure Gradle:**
+    * Add your GitHub username and the generated token to your global `local.properties` file (located
+      at `~/local.properties`):
+    ```
+    gpr.user=YOUR_GITHUB_USERNAME
+    gpr.key=YOUR_PERSONAL_ACCESS_TOKEN
+    ```
+
+## Publish Android Libraries
+
+Once authenticated, we can publish the library modules to the GitHub Package Registry.
+Run the following command in the terminal:
+
+```bash
+./gradlew clean assembleRelease publish
+```
+
+This command will build the release version of all libraries (`commons`, `compat`, `datasync`, `viewpager`)
+and upload the artifacts (AARs, POMs) to the configured repository.

@@ -25,10 +25,8 @@ import fr.geonature.commons.data.dao.TaxonAreaDao
 import fr.geonature.commons.data.dao.TaxonDao
 import fr.geonature.commons.data.dao.TaxonomyDao
 import fr.geonature.commons.data.entity.AppSync
-import fr.geonature.commons.util.getDatabaseFolder
-import fr.geonature.mountpoint.model.MountPoint
-import fr.geonature.mountpoint.util.FileUtils
-import fr.geonature.mountpoint.util.getFile
+import fr.geonature.commons.util.getFile
+import fr.geonature.commons.util.getPrimaryExternalStorage
 import org.tinylog.Logger
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -59,10 +57,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext appContext: Context): LocalDatabase {
-        val localDatabase =  FileUtils.getDatabaseFolder(
-            appContext,
-            MountPoint.StorageType.INTERNAL
-        ).getFile("data.db")
+        val localDatabase = appContext
+            .getPrimaryExternalStorage()
+            .getFile(
+                "databases",
+                "data.db"
+            )
 
         Logger.info { "loading local database '${localDatabase.absolutePath}'..." }
 

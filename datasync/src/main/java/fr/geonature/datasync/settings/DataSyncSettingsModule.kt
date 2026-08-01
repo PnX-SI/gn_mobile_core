@@ -8,9 +8,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import fr.geonature.commons.data.ContentProviderAuthority
 import fr.geonature.commons.data.helper.ProviderHelper.buildUri
-import fr.geonature.mountpoint.model.MountPoint
-import fr.geonature.mountpoint.util.FileUtils.getRootFolder
-import fr.geonature.mountpoint.util.getFile
+import fr.geonature.commons.util.getFile
+import fr.geonature.commons.util.getPrimaryExternalStorage
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -44,10 +43,9 @@ object DataSyncSettingsModule {
         @AppSettingsFilename appSettingsFilename: String
     ): IDataSyncSettingsDataSource {
         return DataSyncSettingsFileDataSourceImpl(
-            getRootFolder(
-                appContext,
-                MountPoint.StorageType.INTERNAL
-            ).getFile(appSettingsFilename)
+            appContext
+                .getPrimaryExternalStorage()
+                .getFile(appSettingsFilename)
         )
     }
 

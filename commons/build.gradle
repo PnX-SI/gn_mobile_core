@@ -24,8 +24,6 @@ android {
         compileSdk 34
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode updateVersionCode(project.name)
-        versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -47,6 +45,10 @@ android {
             includeAndroidResources = true
         }
     }
+
+    publishing {
+        singleVariant("release")
+    }
 }
 
 dependencies {
@@ -58,8 +60,6 @@ dependencies {
     implementation libs.androidx.lifecycle.livedata.ktx
     implementation libs.androidx.lifecycle.viewmodel.ktx
     implementation libs.androidx.preference.ktx
-
-    implementation libs.gn.mountpoint
 
     // Room
     api libs.androidx.room.runtime

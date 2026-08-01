@@ -25,7 +25,6 @@ import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.geonature.datasync.R
-import fr.geonature.datasync.packageinfo.worker.CheckInputsToSynchronizeWorker
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.IDataSyncManager
@@ -213,7 +212,7 @@ class DataSyncWorker @AssistedInject constructor(
                         flags =
                             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     },
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                    PendingIntent.FLAG_IMMUTABLE
                 )
             )
             .setSmallIcon(R.drawable.ic_sync)
@@ -325,7 +324,7 @@ class DataSyncWorker @AssistedInject constructor(
             getInstance(context).enqueueUniquePeriodicWork(
                 if (withAdditionalData) DATA_SYNC_WORKER_PERIODIC else DATA_SYNC_WORKER_PERIODIC_ESSENTIAL,
                 ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(repeatInterval.toJavaDuration())
+                PeriodicWorkRequestBuilder<DataSyncWorker>(repeatInterval.toJavaDuration())
                     .addTag(DATA_SYNC_WORKER_TAG)
                     .setConstraints(
                         Constraints

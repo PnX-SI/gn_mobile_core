@@ -2,7 +2,6 @@ package fr.geonature.commons.util
 
 import android.content.Context
 import android.os.Environment
-import fr.geonature.mountpoint.util.getFile
 import java.io.File
 
 /**
