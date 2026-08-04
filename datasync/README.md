@@ -67,17 +67,17 @@ or as inlined:
 
 ### Parameters description
 
-| Parameter                         | UI      | Description                                          | Default value |
-|-----------------------------------|---------|------------------------------------------------------|---------------|
-| `geonature_url`                   | &#9745; | GeoNature URL                                        |               |
-| `taxhub_url`                      | &#9744; | TaxHub URL                                           |               |
-| `gn_application_id`               | &#9744; | GeoNature application ID in UsersHub                 |               |
-| `observers_list_id`               | &#9744; | GeoNature selected observer list ID in UsersHub      |               |
-| `taxa_list_id`                    | &#9744; | GeoNature selected taxa list ID                      |               |
-| `code_area_type`                  | &#9744; | GeoNature selected area type                         |               |
-| `page_size`                       | &#9744; | Default page size while fetching paginated values    | 10000         |
-| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity | null          |
-| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity       | 7d            |
+| Parameter                         | UI      | Description                                            | Default value |
+|-----------------------------------|---------|--------------------------------------------------------|---------------|
+| `geonature_url`                   | &#9745; | _GeoNature_ URL                                        |               |
+| `taxhub_url`                      | &#9744; | _TaxHub_ URL                                           |               |
+| `gn_application_id`               | &#9744; | _GeoNature_ application ID in _UsersHub_               |               |
+| `observers_list_id`               | &#9744; | _GeoNature_ selected observer list ID in _UsersHub_    |               |
+| `taxa_list_id`                    | &#9744; | _GeoNature_ selected taxa list ID                      |               |
+| `code_area_type`                  | &#9744; | _GeoNature_ selected area type                         |               |
+| `page_size`                       | &#9744; | Default page size while fetching paginated values      | 10000         |
+| `sync_periodicity_data_essential` | &#9744; | Configure essential data synchronization periodicity   | null          |
+| `sync_periodicity_data`           | &#9744; | Configure all data synchronization periodicity         | 7d            |
 
 ### Data synchronization periodicity
 
@@ -85,7 +85,7 @@ Data synchronization can be done manually through app interface. By default, the
 synchronization is done every 7 days involving the whole data.
 If one of these parameters are set (`sync_periodicity_data_essential` or `sync_periodicity_data`),
 data synchronization is also made automatically according to these parameters.
-The `sync_periodicity_data` parameter implies a full synchronization of the data from GeoNature
+The `sync_periodicity_data` parameter implies a full synchronization of the data from _GeoNature_
 while the `sync_periodicity_data_essential` parameter concerns only the essential data without the
 taxon data related to a geographical area.
 This distinction between these two parameters is necessary because a full synchronization of the
