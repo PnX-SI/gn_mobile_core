@@ -29,7 +29,7 @@ fun <T> createServiceClient(
     service: Class<T>,
     vararg interceptor: Interceptor,
 ): T {
-    val logger = Logger.tag(service.name)
+    Logger.debug { "create HTTP client for '${service.name}'" }
 
     return Retrofit
         .Builder()
@@ -68,7 +68,7 @@ fun <T> createServiceClient(
                 TimeUnit.SECONDS
             )
             .cache(null)
-            .addInterceptor(HttpLoggingInterceptor { logger.info { it } }.apply {
+            .addInterceptor(HttpLoggingInterceptor { Logger.info { it } }.apply {
                 level = HttpLoggingInterceptor.Level.BASIC
                 redactHeader("Authorization")
                 redactHeader("Cookie")

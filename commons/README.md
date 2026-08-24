@@ -1,8 +1,6 @@
 # Commons module
 
-Manage local inputs.
-
-Manage local database:
+Manage local database with data coming from a _GeoNature_ instance:
 
 - Users (i.e. Observers)
 - Taxa (with additional data like "color" by areas and taxonomy)
@@ -22,7 +20,6 @@ The authority of this content provider is `<application package>.provider`.
 
 | URI                                                | Parameters                              | Description                                                                            |
 |----------------------------------------------------|-----------------------------------------|----------------------------------------------------------------------------------------|
-| **\<Base URI\>**/app_sync/\*                       | String                                  | Fetch synchronization status by application package ID (e.g. `fr.geonature.occtax`)    |
 | **\<Base URI\>**/dataset                           | String                                  | Fetch all dataset                                                                      |
 | **\<Base URI\>**/dataset/active                    | String                                  | Fetch all active dataset                                                               |
 | **\<Base URI\>**/dataset/#                         | Number                                  | Fetch dataset by ID                                                                    |
@@ -42,6 +39,3 @@ The authority of this content provider is `<application package>.provider`.
 | **\<Base URI\>**/nomenclature_types/\*/default     | String                                  | Fetch all default nomenclature definitions from given module (e.g. `occtax`)           |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*    | String, String                          | Fetch all nomenclature definitions from given type, matching a given kingdom           |
 | **\<Base URI\>**/nomenclature_types/\*/items/\*/\* | String, String, String                  | Fetch all nomenclature definitions from given type, matching a given kingdom and group |
-| **\<Base URI\>**/settings/\*                       | String                                  | Fetch app settings JSON file                                                           |
-| **\<Base URI\>**/inputs/\*/#                       | String, Number                          | Get input as JSON file from given package ID (e.g. `fr.geonature.occtax`)              |
-| **\<Base URI\>**/inputs/export                     | ContentValues                           | Export input data to JSON file                                                         |

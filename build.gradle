@@ -3,64 +3,107 @@
 plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.dagger.hilt.android) apply false
+    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.dokka.javadoc) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.parcelize) apply false
-    alias(libs.plugins.kapt) apply false
-    // TODO: Dagger’s KSP support is currently in alpha, see: https://dagger.dev/dev-guide/ksp
-    // alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.maven.publish)
 }
 
 tasks.register('clean', Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }
 
-private File loadVersionPropertiesFile(String moduleName) {
-    def versionPropsFile = file("$moduleName/version.properties")
-
-    println "reading '${versionPropsFile.name}' for module '$moduleName' ..."
-
-    if (!versionPropsFile.exists()) {
-        versionPropsFile.createNewFile()
+def localProperties = new Properties().tap {
+    if (file("local.properties").exists()) {
+        it.load(file("local.properties").newInputStream())
     }
-
-    return versionPropsFile
 }
 
-@SuppressWarnings("unused")
-int updateVersionCode(moduleName) {
-    File propertiesFile = loadVersionPropertiesFile(moduleName)
+subprojects {
+    apply plugin: "maven-publish"
+    apply plugin: "org.jetbrains.dokka"
+    apply plugin: "org.jetbrains.dokka-javadoc"
 
-    Properties versionProperties = new Properties()
-    versionProperties.load(new FileInputStream(propertiesFile))
+    afterEvaluate {
+        if (!it.plugins.hasPlugin("com.android.library")) return
 
-    int versionCode = Integer.parseInt(versionProperties.getProperty('VERSION_CODE', '0').toString()).intValue() + 1
+        dokka {
+            dokkaSourceSets {
+                configureEach {
+                    if (name == "debug") suppress = true
+                }
+            }
+        }
 
-    versionProperties['VERSION_CODE'] = versionCode.toString()
-    versionProperties.store(propertiesFile.newWriter(), null)
+        tasks.register('androidSourcesJar', Jar) {
+            getArchiveClassifier().set('sources')
+            from android.sourceSets.main.java.source
+        }
 
-    println "version code: $versionCode"
+        tasks.register('dokkaJavadocJar', Jar) {
+            dependsOn dokkaGeneratePublicationJavadoc
+            getArchiveClassifier().set('javadoc')
+            from dokkaGeneratePublicationJavadoc.outputDirectory
+        }
+        tasks.register('dokkaHtmlJar', Jar) {
+            dependsOn dokkaGeneratePublicationHtml
+            getArchiveClassifier().set('html-doc')
+            from dokkaGeneratePublicationHtml.outputDirectory
+        }
 
-    return versionCode
-}
+        artifacts {
+            archives androidSourcesJar
+            archives dokkaJavadocJar
+            archives dokkaHtmlJar
+        }
 
-@SuppressWarnings("unused")
-def readKeystoreProperties(moduleName) {
-    def propertiesFile = rootProject.file('keystore.properties')
-    def configName = 'release'
+        publishing {
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/PnX-SI/gn_mobile_core")
+                    credentials {
+                        username = localProperties.get("gpr.user") ?: System.getenv("USERNAME")
+                        password = localProperties.get("gpr.key") ?: System.getenv("TOKEN")
+                    }
+                }
+            }
+            publications {
+                gpr(MavenPublication) {
+                    afterEvaluate {
+                        from components.release
+                    }
+                    artifact androidSourcesJar
+                    artifact dokkaJavadocJar
+                    artifact dokkaHtmlJar
+                    groupId = 'fr.geonature'
+                    artifactId = project.name
+                    version = project.findProperty('version') ?: '0.0.1'
 
-    println "reading '${propertiesFile.absolutePath}' for module '$moduleName' ..."
+                    pom {
+                        name = 'GeoNature Android core libraries'
+                        description = 'Some libraries for GeoNature Android applications'
+                        url = 'https://github.com/PnX-SI/gn_mobile_core'
 
-    Project moduleProject = project.project(moduleName)
+                        licenses {
+                            license {
+                                name = 'GNU General Public License version 3.0'
+                                url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+                            }
+                        }
 
-    if (propertiesFile.exists() && moduleProject.hasProperty("android") && moduleProject.android.signingConfigs.hasProperty(configName)) {
-        def props = new Properties()
-        props.load(new FileInputStream(propertiesFile))
-
-        moduleProject.android.signingConfigs[configName].storeFile = file(props['STORE_FILE'])
-        moduleProject.android.signingConfigs[configName].storePassword = props['STORE_PASSWORD']
-        moduleProject.android.signingConfigs[configName].keyAlias = props['KEY_ALIAS']
-        moduleProject.android.signingConfigs[configName].keyPassword = props['KEY_PASSWORD']
-
-        println 'done'
+                        developers {
+                            developer {
+                                id = 'sgrimault'
+                                name = 'Sebastien GRIMAULT'
+                                email = 'sebastien.grimault@gmail.com'
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

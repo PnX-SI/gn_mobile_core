@@ -54,11 +54,6 @@
     <string name="sync_data_succeeded">Done.</string>
 
     <string name="notification_data_synchronization_title">Synchronize data…</string>
-    <string name="notification_inputs_to_synchronize_title">Inputs to synchronize</string>
-    <plurals name="notification_inputs_to_synchronize_description">
-        <item quantity="one">One input is ready to synchronize</item>
-        <item quantity="other">%d inputs are ready to synchronize</item>
-    </plurals>
 
     <string name="error_network_lost">You are not connected to the Internet</string>
     <string name="error_server_unreachable">Unable to join GeoNature server</string>

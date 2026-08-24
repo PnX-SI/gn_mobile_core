@@ -17,6 +17,9 @@ interface IDataSyncManager {
 
     fun updateLastSynchronizedDate(complete: Boolean = true)
 
+    /**
+     * The last data synchronization date (or `null` if never done).
+     */
     fun getLastSynchronizedDate(): Pair<SyncState, Date?>
 
     enum class SyncState {

@@ -5,6 +5,8 @@ import android.content.Context
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
+import fr.geonature.commons.util.getFile
+import fr.geonature.commons.util.getPrimaryExternalStorage
 import fr.geonature.datasync.R
 import fr.geonature.datasync.api.error.BaseApiException
 import fr.geonature.datasync.api.error.NetworkException
@@ -102,20 +104,22 @@ class PackageInfoRepositoryImpl(
         return allPackageInfos[packageName]
     }
 
-    @Deprecated("use directly getInputsToSynchronize() from PackageInfo")
-    override suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput> {
-        return packageInfo.getInputsToSynchronize(applicationContext)
-    }
-
     override suspend fun updateAppSettings(packageInfo: PackageInfo) =
         withContext(IO) {
             Logger.info { "updating settings for '${packageInfo.packageName}'..." }
 
             val result = runCatching {
-                AppSettingsJsonWriter(
-                    applicationContext,
-                    appSettingsFilename
-                ).write(packageInfo)
+                applicationContext
+                    .getPrimaryExternalStorage()
+                    .getFile(appSettingsFilename)
+                    .also { Logger.info { "updating app settings '${it.absolutePath}'..." } }
+                    .bufferedWriter()
+                    .use { writer ->
+                        writer.write(AppSettingsJsonWriter().write(packageInfo))
+                        writer.flush()
+                        writer.close()
+                        Logger.info { "app settings successfully updated for '${packageInfo.packageName}'" }
+                    }
             }
 
             if (result.isFailure) {

@@ -1,43 +1,28 @@
 package fr.geonature.datasync.packageinfo.io
 
-import android.content.Context
 import com.google.gson.GsonBuilder
 import fr.geonature.datasync.packageinfo.PackageInfo
-import fr.geonature.mountpoint.model.MountPoint
-import fr.geonature.mountpoint.util.FileUtils.getFile
-import fr.geonature.mountpoint.util.FileUtils.getRootFolder
+import fr.geonature.datasync.packageinfo.error.PackageInfoException
 import org.tinylog.Logger
-import java.io.FileWriter
 import java.io.IOException
+import java.io.StringWriter
 
 /**
  * Default `JsonWriter` about writing app settings as `JSON` from given [PackageInfo].
  *
- * @author [S. Grimault](mailto:sebastien.grimault@gmail.com)
+ * @author S. Grimault
  */
-class AppSettingsJsonWriter(
-    private val context: Context,
-    private val appSettingsFilename: String
-) {
+class AppSettingsJsonWriter {
 
     @Throws(IOException::class)
-    fun write(packageInfo: PackageInfo) {
+    fun write(packageInfo: PackageInfo): String {
         if (packageInfo.settings == null) {
             Logger.warn { "undefined app settings to update from '${packageInfo.packageName}'" }
 
-            return
+            throw PackageInfoException.MissingSettingsException(packageInfo.packageName)
         }
 
-        val appRootFolder = getRootFolder(
-            context,
-            MountPoint.StorageType.INTERNAL
-        ).also { it.mkdirs() }
-
-        val appSettingsFile = getFile(
-            appRootFolder,
-            appSettingsFilename
-        )
-        val writer = FileWriter(appSettingsFile)
+        val writer = StringWriter()
 
         GsonBuilder()
             .setPrettyPrinting()
@@ -49,6 +34,6 @@ class AppSettingsJsonWriter(
         writer.flush()
         writer.close()
 
-        Logger.info { "updating app settings '${appSettingsFile.absolutePath}'" }
+        return writer.toString()
     }
 }

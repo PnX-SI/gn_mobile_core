@@ -21,21 +21,21 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager.getInstance
 import androidx.work.WorkerParameters
-import androidx.work.await
 import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.geonature.datasync.R
-import fr.geonature.datasync.packageinfo.worker.CheckInputsToSynchronizeWorker
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.IDataSyncManager
 import fr.geonature.datasync.sync.ServerStatus
 import fr.geonature.datasync.sync.usecase.DataSyncUseCase
 import fr.geonature.datasync.ui.login.LoginActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
 import org.tinylog.Logger
 import java.util.Date
 import java.util.UUID
@@ -65,10 +65,12 @@ class DataSyncWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val startTime = Date()
 
-        val alreadyRunning = workManager
-            .getWorkInfosByTag(DATA_SYNC_WORKER_TAG)
-            .await()
-            .any { it.id != id && it.state == WorkInfo.State.RUNNING }
+        val alreadyRunning = withContext(Dispatchers.IO) {
+            workManager
+                .getWorkInfosByTag(DATA_SYNC_WORKER_TAG)
+                .get()
+                .any { it.id != id && it.state == WorkInfo.State.RUNNING }
+        }
 
         if (alreadyRunning) {
             Logger.warn { "already running: abort" }
@@ -79,7 +81,7 @@ class DataSyncWorker @AssistedInject constructor(
         setProgress(workData(applicationContext.getString(R.string.sync_start_synchronization)))
         sendNotification(applicationContext.getString(R.string.sync_start_synchronization))
 
-        val result = dataSyncUseCase
+        val finalSyncStatus = dataSyncUseCase
             .run(
                 DataSyncUseCase.Params(
                     withAdditionalData = inputData.getBoolean(
@@ -120,6 +122,8 @@ class DataSyncWorker @AssistedInject constructor(
                 Logger.warn { it.message }
             }
             .lastOrNull()
+
+        val result = finalSyncStatus
             ?.let {
                 if (it.state == WorkInfo.State.SUCCEEDED) Result.success(
                     workData(
@@ -135,9 +139,11 @@ class DataSyncWorker @AssistedInject constructor(
             }
             ?: Result.failure()
 
-        Logger.info { "local data synchronization ${if (result is Result.Success) "successfully finished" else "finished with failed tasks"} in ${(Date().time - startTime.time).toDuration(DurationUnit.MILLISECONDS)}" }
+        val isSuccess = finalSyncStatus?.state == WorkInfo.State.SUCCEEDED
 
-        if (result is Result.Success) {
+        Logger.info { "local data synchronization ${if (isSuccess) "successfully finished" else "finished with failed tasks"} in ${(Date().time - startTime.time).toDuration(DurationUnit.MILLISECONDS)}" }
+
+        if (isSuccess) {
             NotificationManagerCompat
                 .from(applicationContext)
                 .cancel(SYNC_NOTIFICATION_ID)
@@ -206,7 +212,7 @@ class DataSyncWorker @AssistedInject constructor(
                         flags =
                             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     },
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                    PendingIntent.FLAG_IMMUTABLE
                 )
             )
             .setSmallIcon(R.drawable.ic_sync)
@@ -318,7 +324,7 @@ class DataSyncWorker @AssistedInject constructor(
             getInstance(context).enqueueUniquePeriodicWork(
                 if (withAdditionalData) DATA_SYNC_WORKER_PERIODIC else DATA_SYNC_WORKER_PERIODIC_ESSENTIAL,
                 ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                PeriodicWorkRequestBuilder<CheckInputsToSynchronizeWorker>(repeatInterval.toJavaDuration())
+                PeriodicWorkRequestBuilder<DataSyncWorker>(repeatInterval.toJavaDuration())
                     .addTag(DATA_SYNC_WORKER_TAG)
                     .setConstraints(
                         Constraints

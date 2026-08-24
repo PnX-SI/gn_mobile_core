@@ -4,6 +4,7 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import fr.geonature.commons.data.helper.sqlEscape
+import fr.geonature.compat.os.readParcelableCompat
 
 /**
  * Describes a taxon with area.
@@ -40,7 +41,7 @@ class TaxonWithArea : AbstractTaxon {
     )
 
     private constructor(source: Parcel) : super(source) {
-        taxonArea = source.readParcelable(TaxonArea::class.java.classLoader)
+        taxonArea = source.readParcelableCompat()
     }
 
     override fun equals(other: Any?): Boolean {

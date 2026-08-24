@@ -1,11 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.dagger.hilt.android)
-    alias(libs.plugins.kapt)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
-version = "0.6.5"
+version = "0.6.6"
 
 android {
     namespace 'fr.geonature.datasync'
@@ -21,10 +21,8 @@ android {
 
     defaultConfig {
         compileSdk 34
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
-        versionCode updateVersionCode(project.name)
-        versionName version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
@@ -40,6 +38,10 @@ android {
         unitTests {
             includeAndroidResources = true
         }
+    }
+
+    publishing {
+        singleVariant("release")
     }
 }
 
@@ -59,8 +61,8 @@ dependencies {
     // Hilt dependencies
     implementation libs.androidx.hilt.work
     implementation libs.hilt.android
-    kapt libs.androidx.hilt.compiler
-    kapt libs.hilt.android.compiler
+    ksp libs.androidx.hilt.compiler
+    ksp libs.hilt.android.compiler
 
     // Logging
     implementation libs.tinylog.api.kotlin

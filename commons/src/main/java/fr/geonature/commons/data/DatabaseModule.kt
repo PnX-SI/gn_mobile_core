@@ -24,23 +24,9 @@ import fr.geonature.commons.data.dao.NomenclatureTypeDao
 import fr.geonature.commons.data.dao.TaxonAreaDao
 import fr.geonature.commons.data.dao.TaxonDao
 import fr.geonature.commons.data.dao.TaxonomyDao
-import fr.geonature.commons.data.entity.AdditionalField
-import fr.geonature.commons.data.entity.AdditionalFieldDataset
 import fr.geonature.commons.data.entity.AppSync
-import fr.geonature.commons.data.entity.CodeObject
-import fr.geonature.commons.data.entity.Dataset
-import fr.geonature.commons.data.entity.DefaultNomenclature
-import fr.geonature.commons.data.entity.FieldValue
-import fr.geonature.commons.data.entity.InputObserver
-import fr.geonature.commons.data.entity.Nomenclature
-import fr.geonature.commons.data.entity.NomenclatureTaxonomy
-import fr.geonature.commons.data.entity.NomenclatureType
-import fr.geonature.commons.data.entity.Taxon
-import fr.geonature.commons.data.entity.TaxonArea
-import fr.geonature.commons.data.entity.Taxonomy
-import fr.geonature.commons.util.getDatabaseFolder
-import fr.geonature.mountpoint.model.MountPoint
-import fr.geonature.mountpoint.util.FileUtils
+import fr.geonature.commons.util.getFile
+import fr.geonature.commons.util.getPrimaryExternalStorage
 import org.tinylog.Logger
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -71,13 +57,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext appContext: Context): LocalDatabase {
-        val localDatabase = FileUtils.getFile(
-            FileUtils.getDatabaseFolder(
-                appContext,
-                MountPoint.StorageType.INTERNAL
-            ),
-            "data.db"
-        )
+        val localDatabase = appContext
+            .getPrimaryExternalStorage()
+            .getFile(
+                "databases",
+                "data.db"
+            )
 
         Logger.info { "loading local database '${localDatabase.absolutePath}'..." }
 
@@ -101,7 +86,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [Dataset.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.Dataset.TABLE_NAME] table.
      */
     @Provides
     fun provideDatasetDao(database: LocalDatabase): DatasetDao {
@@ -109,7 +94,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [InputObserver.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.InputObserver.TABLE_NAME] table.
      */
     @Provides
     fun provideInputObserverDao(database: LocalDatabase): InputObserverDao {
@@ -117,7 +102,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [Taxonomy.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.Taxonomy.TABLE_NAME] table.
      */
     @Provides
     fun provideTaxonomyDao(database: LocalDatabase): TaxonomyDao {
@@ -125,7 +110,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [Taxon.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.Taxon.TABLE_NAME] table.
      */
     @Provides
     fun provideTaxonDao(database: LocalDatabase): TaxonDao {
@@ -133,7 +118,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [TaxonArea.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.TaxonArea.TABLE_NAME] table.
      */
     @Provides
     fun provideTaxonAreaDao(database: LocalDatabase): TaxonAreaDao {
@@ -141,7 +126,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [NomenclatureType.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.NomenclatureType.TABLE_NAME] table.
      */
     @Provides
     fun provideNomenclatureTypeDao(database: LocalDatabase): NomenclatureTypeDao {
@@ -149,7 +134,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [Nomenclature.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.Nomenclature.TABLE_NAME] table.
      */
     @Provides
     fun provideNomenclatureDao(database: LocalDatabase): NomenclatureDao {
@@ -157,7 +142,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [NomenclatureTaxonomy.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.NomenclatureTaxonomy.TABLE_NAME] table.
      */
     @Provides
     fun provideNomenclatureTaxonomyDao(database: LocalDatabase): NomenclatureTaxonomyDao {
@@ -165,7 +150,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [DefaultNomenclature.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.DefaultNomenclature.TABLE_NAME] table.
      */
     @Provides
     fun provideDefaultNomenclatureDao(database: LocalDatabase): DefaultNomenclatureDao {
@@ -173,7 +158,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [AdditionalField.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.AdditionalField.TABLE_NAME] table.
      */
     @Provides
     fun provideAdditionalFieldDao(database: LocalDatabase): AdditionalFieldDao {
@@ -181,7 +166,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [AdditionalFieldDataset.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.AdditionalFieldDataset.TABLE_NAME] table.
      */
     @Provides
     fun provideAdditionalFieldDatasetDao(database: LocalDatabase): AdditionalFieldDatasetDao {
@@ -189,7 +174,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [CodeObject.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.CodeObject.TABLE_NAME] table.
      */
     @Provides
     fun provideCodeObjectDao(database: LocalDatabase): CodeObjectDao {
@@ -197,7 +182,7 @@ object DatabaseModule {
     }
 
     /**
-     * @return The DAO for the [FieldValue.TABLE_NAME] table.
+     * @return The DAO for the [fr.geonature.commons.data.entity.FieldValue.TABLE_NAME] table.
      */
     @Provides
     fun provideFieldValueDao(database: LocalDatabase): FieldValueDao {

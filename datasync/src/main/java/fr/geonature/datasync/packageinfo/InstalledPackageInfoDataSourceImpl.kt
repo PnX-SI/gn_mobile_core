@@ -28,7 +28,8 @@ class InstalledPackageInfoDataSourceImpl(private val applicationContext: Context
                 val packageInfoFromPackageManager = pm.getPackageInfo(it.packageName,
                     PackageManager.GET_META_DATA)
 
-                @Suppress("DEPRECATION") PackageInfo(it.packageName,
+                @Suppress("DEPRECATION") PackageInfo(
+                    it.packageName,
                     pm
                         .getApplicationLabel(it)
                         .toString(),
@@ -38,10 +39,12 @@ class InstalledPackageInfoDataSourceImpl(private val applicationContext: Context
                     packageInfoFromPackageManager.versionName,
                     null,
                     pm.getApplicationIcon(it.packageName),
-                    pm.getLaunchIntentForPackage(it.packageName)).apply {
-                    inputsStatus = AppPackageInputsStatus(it.packageName,
-                        WorkInfo.State.ENQUEUED,
-                        getInputsToSynchronize(applicationContext).size)
+                    pm.getLaunchIntentForPackage(it.packageName)
+                ).apply {
+                    inputsStatus = AppPackageInputsStatus(
+                        it.packageName,
+                        WorkInfo.State.ENQUEUED
+                    )
                 }
             }
             .toList()

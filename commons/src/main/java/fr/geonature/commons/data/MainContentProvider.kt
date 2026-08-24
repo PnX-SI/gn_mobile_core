@@ -7,14 +7,11 @@ import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
-import android.os.ParcelFileDescriptor
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors.fromApplication
 import dagger.hilt.components.SingletonComponent
-import fr.geonature.commons.data.dao.AppSyncDao
 import fr.geonature.commons.data.dao.DatasetDao
-import fr.geonature.commons.data.dao.InputDao
 import fr.geonature.commons.data.dao.InputObserverDao
 import fr.geonature.commons.data.dao.NomenclatureDao
 import fr.geonature.commons.data.dao.NomenclatureTypeDao
@@ -28,11 +25,7 @@ import fr.geonature.commons.data.entity.Nomenclature
 import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.Taxonomy
-import fr.geonature.mountpoint.model.MountPoint
-import fr.geonature.mountpoint.util.FileUtils
 import org.tinylog.Logger
-import java.io.File
-import java.io.FileNotFoundException
 
 /**
  * Default ContentProvider implementation.
@@ -44,7 +37,6 @@ class MainContentProvider : ContentProvider() {
     @InstallIn(SingletonComponent::class)
     @EntryPoint
     interface MainContentProviderEntryPoint {
-        fun appSyncDao(): AppSyncDao
         fun datasetDao(): DatasetDao
         fun inputObserverDao(): InputObserverDao
         fun taxonomyDao(): TaxonomyDao
@@ -169,21 +161,6 @@ class MainContentProvider : ContentProvider() {
                 "${NomenclatureType.TABLE_NAME}/*/items/*/*",
                 NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP
             )
-            addURI(
-                authority,
-                "settings/*",
-                SETTINGS
-            )
-            addURI(
-                authority,
-                "inputs/export",
-                INPUTS_EXPORT
-            )
-            addURI(
-                authority,
-                "inputs/*/#",
-                INPUT_ID
-            )
         }
 
         return true
@@ -191,7 +168,6 @@ class MainContentProvider : ContentProvider() {
 
     override fun getType(uri: Uri): String {
         return when (uriMatcher.match(uri)) {
-            APP_SYNC_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${AppSync.TABLE_NAME}"
             DATASET, DATASET_ACTIVE -> "$VND_TYPE_DIR_PREFIX/$authority.${Dataset.TABLE_NAME}"
             DATASET_ID -> "$VND_TYPE_ITEM_PREFIX/$authority.${Dataset.TABLE_NAME}"
             INPUT_OBSERVERS, INPUT_OBSERVERS_IDS -> "$VND_TYPE_DIR_PREFIX/$authority.${InputObserver.TABLE_NAME}"
@@ -218,11 +194,6 @@ class MainContentProvider : ContentProvider() {
             ?: throw IllegalStateException()
 
         return when (uriMatcher.match(uri)) {
-            APP_SYNC_ID -> appSyncByPackageIdQuery(
-                appContext,
-                uri
-            )
-
             DATASET, DATASET_ACTIVE -> datasetQuery(
                 appContext,
                 uri,
@@ -289,92 +260,11 @@ class MainContentProvider : ContentProvider() {
         }
     }
 
-    override fun openFile(
-        uri: Uri,
-        mode: String
-    ): ParcelFileDescriptor? {
-        val context = context
-            ?: return null
-
-        return when (uriMatcher.match(uri)) {
-            SETTINGS -> {
-                val filename = uri.lastPathSegment
-
-                if (filename.isNullOrEmpty()) {
-                    throw IllegalArgumentException("Missing filename")
-                }
-
-                val file = File(
-                    FileUtils.getRootFolder(
-                        context,
-                        MountPoint.StorageType.INTERNAL
-                    ),
-                    filename
-                )
-
-                if (!file.exists()) {
-                    throw FileNotFoundException("No file found at $uri")
-                }
-
-                ParcelFileDescriptor.open(
-                    file,
-                    ParcelFileDescriptor.MODE_READ_ONLY
-                )
-            }
-
-            INPUT_ID -> {
-                val packageId = uri.pathSegments
-                    .drop(uri.pathSegments.indexOf("inputs") + 1)
-                    .take(1)
-                    .firstOrNull()
-
-                if (packageId.isNullOrEmpty()) {
-                    throw IllegalArgumentException("Missing package ID from URI '$uri'")
-                }
-
-                val inputId = uri.lastPathSegment?.toLongOrNull()
-                    ?: throw IllegalArgumentException("Missing input ID from URI '$uri'")
-
-                val file = InputDao(context).getExportedInput(
-                    packageId,
-                    inputId
-                )
-
-                if (!file.exists()) {
-                    throw FileNotFoundException("No input file found at $uri")
-                }
-
-                ParcelFileDescriptor.open(
-                    file,
-                    ParcelFileDescriptor.MODE_READ_ONLY
-                )
-            }
-
-            else -> throw IllegalArgumentException("Unknown URI (openFile): $uri")
-        }
-    }
-
     override fun insert(
         uri: Uri,
         values: ContentValues?
     ): Uri? {
-        val context = context
-            ?: return null
-
-        return when (uriMatcher.match(uri)) {
-            INPUTS_EXPORT -> {
-                if (values == null) {
-                    throw IllegalArgumentException("Missing ContentValues")
-                }
-
-                InputDao(context).exportInput(
-                    authority,
-                    values
-                )
-            }
-
-            else -> throw IllegalArgumentException("Unknown URI (insert): $uri")
-        }
+        throw NotImplementedError("'insert' operation not implemented")
     }
 
     override fun update(
@@ -392,13 +282,6 @@ class MainContentProvider : ContentProvider() {
         selectionArgs: Array<String>?
     ): Int {
         throw NotImplementedError("'delete' operation not implemented")
-    }
-
-    private fun appSyncByPackageIdQuery(
-        appContext: Context,
-        uri: Uri
-    ): Cursor {
-        return getAppSyncDao(appContext).findByPackageId(uri.lastPathSegment)
     }
 
     private fun datasetQuery(
@@ -613,11 +496,7 @@ class MainContentProvider : ContentProvider() {
         uri: Uri
     ): Cursor {
         val filterOnArea = uri.lastPathSegment?.toLongOrNull()
-        val taxonId = uri.pathSegments
-            .asSequence()
-            .map { it.toLongOrNull() }
-            .filterNotNull()
-            .firstOrNull()
+        val taxonId = uri.pathSegments.firstNotNullOfOrNull { it.toLongOrNull() }
 
         return getTaxonDao(context)
             .QB()
@@ -668,16 +547,6 @@ class MainContentProvider : ContentProvider() {
                 lastPathSegments.getOrNull(1)
             )
             .cursor()
-    }
-
-    /**
-     * Gets a [AppSyncDao] instance provided by Hilt using the @EntryPoint annotated interface.
-     */
-    private fun getAppSyncDao(appContext: Context): AppSyncDao {
-        return fromApplication(
-            appContext,
-            MainContentProviderEntryPoint::class.java
-        ).appSyncDao()
     }
 
     /**
@@ -763,9 +632,6 @@ class MainContentProvider : ContentProvider() {
         const val NOMENCLATURE_TYPES_DEFAULT = 51
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM = 52
         const val NOMENCLATURE_ITEMS_TAXONOMY_KINGDOM_GROUP = 53
-        const val SETTINGS = 60
-        const val INPUTS_EXPORT = 70
-        const val INPUT_ID = 71
 
         const val VND_TYPE_DIR_PREFIX = "vnd.android.cursor.dir"
         const val VND_TYPE_ITEM_PREFIX = "vnd.android.cursor.item"

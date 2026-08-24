@@ -34,12 +34,6 @@ interface IPackageInfoRepository {
     suspend fun getPackageInfo(packageName: String): PackageInfo?
 
     /**
-     * Fetch all available inputs to synchronize from given [PackageInfo].
-     */
-    @Deprecated("use directly getInputsToSynchronize() from PackageInfo")
-    suspend fun getInputsToSynchronize(packageInfo: PackageInfo): List<SyncInput>
-
-    /**
      * Updates local settings from given [PackageInfo].
      */
     suspend fun updateAppSettings(packageInfo: PackageInfo)

@@ -1,19 +1,87 @@
-= Developer guide
+= Developer Guide
+:authors: Sebastien Grimault
+:source-highlighter: pygments
+:pygments-style: github
+:toc: left
+:toc-title: Table of Contents
+:toclevels: 3
+:icons: font
+:sectnums:
+:gitplant: http://www.plantuml.com/plantuml/proxy?cache=no&fmt=svg&src=https://raw.githubusercontent.com/PnX-SI/gn_mobile_core/develop/docs/uml/
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
 
 == Prerequisites
 
-* https://www.oracle.com/fr/java/technologies/javase/jdk11-archive-downloads.html[JDK 11] or https://jdk.java.net/archive/[OpenJDK 11]
-* https://developer.android.com/studio#command-line-tools-only[Android SDK with command line tools] or https://developer.android.com/studio#android-studio-downloads[Android Studio]
+* https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html[JDK 17] or https://openjdk.org/projects/jdk/17/[OpenJDK 17]
+* https://developer.android.com/studio#command-line-tools-only[Android SDK with command line tools]
+  or https://developer.android.com/studio#android-studio-downloads[Android Studio]
+* Android SDK with API level 29+ installed
+* A https://github.com[GitHub] account (required to access GitHub Packages dependencies)
 
 == Presentation
 
 The project is organized around 3 distinct git repositories:
 
-* https://github.com/PnX-SI/gn_mobile_core[gn_mobile_core], this current repository which carries "common" and transverse modules (the initial idea was to mutualize common bricks between potentially several applications relying on GeoNature APIs).
-* https://github.com/PnX-SI/gn_mobile_maps[gn_mobile_maps], a "generic" cartographic module that has no functional dependency on the "Occtax" application. This module is based on the https://github.com/osmdroid/osmdroid[osmdroid] Android library.
-* https://github.com/PnX-SI/gn_mobile_occtax[gn_mobile_occtax], the functional module for the "Occtax" application, supported by the national parks. This module is based on the two above-mentioned modules via git sub-modules.
+* https://github.com/PnX-SI/gn_mobile_core[gn_mobile_core], this current repository which carries "common"
+  and transverse modules (the initial idea was to mutualize common bricks between potentially several applications relying on GeoNature APIs).
+* https://github.com/PnX-SI/gn_mobile_maps[gn_mobile_maps], a "generic" cartographic module that has
+  no functional dependency on the "Occtax" application. This module is based on the https://github.com/osmdroid/osmdroid[osmdroid] Android library.
+* https://github.com/PnX-SI/gn_mobile_occtax[gn_mobile_occtax], the functional module for the "Occtax" application, supported by the national parks. This module is based on the two above-mentioned modules
+  via git submodules.
 
-== Getting started
+=== Project Modules
+
+This repository exposes 4 distinct Android library modules. Each module is published as an independent
+Maven artifact to https://github.com/orgs/PnX-SI/packages[GitHub Packages].
+
+[cols="1,3,1,1",options="header"]
+|===
+| Module | Description | Min SDK | Latest version
+
+| `commons`
+| Core library managing local SQLite data (taxa, datasets, nomenclatures, observers) and exposing it
+through a Content Provider.
+| 21
+| 1.5.2
+
+| `compat`
+| Compatibility wrappers for new Android platform APIs on older SDK versions.
+| 19
+| 0.0.2
+
+| `datasync`
+| Handles authentication against GeoNature, background data synchronization via `WorkManager`, and _GeoNature_/_TaxHub_ API clients.
+| 23
+| 0.6.6
+
+| `viewpager`
+| Reusable ViewPager2-based multistep activity/form component with navigation, validation, and progress
+indicators.
+| 21
+| 0.3.2
+|===
+
+=== Architecture Overview
+
+The project follows a layered architecture:
+
+image::{gitplant}/arch.puml[Architecture Overview]
+
+* **`compat`** has no dependencies on other modules and provides platform-level utilities.
+* **`commons`** manages the local Room database and Content Provider, it is the foundation layer.
+* **`datasync`** depends on `commons` and handles network access, authentication and local data
+synchronization.
+* **`viewpager`** is independent of `commons` and `datasync`; it is a standalone UI component.
+
+== Getting Started
+
+=== Fork & Clone
 
 We need to clone at least the git repository of the "Occtax" module:
 
@@ -24,7 +92,8 @@ cd gn_mobile_occtax
 git checkout develop
 ----
 
-As it relies on https://git-scm.com/book/en/v2/Git-Tools-Submodules[git submodules], we also need to retrieve them with the following command:
+As it relies on https://git-scm.com/book/en/v2/Git-Tools-Submodules[git submodules], we also need to
+retrieve them with the following command:
 
 [source,bash]
 ----
@@ -32,6 +101,29 @@ git submodule update --init --recursive
 ----
 
 Symbolic links are automatically resolved.
+
+If you only want to work on `gn_mobile_core` directly:
+
+[source,bash]
+----
+git clone git@github.com:PnX-SI/gn_mobile_core.git
+cd gn_mobile_core
+git checkout develop
+----
+
+=== Configure GitHub Packages Access
+
+Some dependencies are published to GitHub Packages. Add your credentials to your global
+`local.properties` file located at `~/local.properties` (or at the project root):
+
+[source,properties]
+----
+gpr.user=YOUR_GITHUB_USERNAME
+gpr.key=YOUR_PERSONAL_ACCESS_TOKEN
+----
+
+TIP: Generate a Personal Access Token (PAT) with `read:packages` scope in _GitHub Settings -> Developer
+settings -> Personal access tokens_.
 
 == Full Build
 
@@ -41,3 +133,509 @@ A full build can be executed with the following command from project root dir:
 ----
 ./gradlew clean assembleDebug
 ----
+
+== Module Reference
+
+=== `commons` - Local Data & Content Provider
+
+==== Purpose
+
+The `commons` module manages the local SQLite database (via https://developer.android.com/training/data-storage/room[Room]) that stores all GeoNature data synchronized to the device.
+It exposes this data to consumer applications through a standard Android https://developer.android.com/guide/topics/providers/content-providers[Content Provider].
+
+==== Key Entities
+
+[cols="1,3",options="header"]
+|===
+| Entity | Description
+
+| `Dataset` | A GeoNature dataset with active status, module and description.
+| `AbstractTaxon` / `Taxon` | A taxon record from the _TaxRef_ reference taxonomy.
+| `TaxonArea` | Additional area-based coloring data for taxa.
+| `Nomenclature` | A nomenclature item belonging to a `NomenclatureType`.
+| `DefaultNomenclature` | Default nomenclature value per module.
+| `NomenclatureType` | A nomenclature type (mnemonic, label).
+| `NomenclatureTaxonomy` | Taxonomy-scoped nomenclature entries.
+| `Taxonomy` | Taxonomy kingdom and group.
+| `User` | An observer registered in GeoNature.
+| `AdditionalField` | An additional field definition from GeoNature.
+|===
+
+==== Content Provider
+
+All synchronized data is exposed through a content provider. The authority of this content provider
+is `<application_package>.provider`.
+
+*Base URI:* `content://<application_package>.provider`
+
+[cols="2,1,3",options="header"]
+|===
+| URI | Parameter(s) | Description
+
+| `<Base URI>/dataset` | String | Fetch all datasets
+| `<Base URI>/dataset/active` | String | Fetch all active datasets
+| `<Base URI>/dataset/#` | Number | Fetch a dataset by ID
+| `<Base URI>/observers` | n/a | Fetch all registered observers
+| `<Base URI>/observers/*` | String (comma-separated IDs) | Fetch observers matching a list of IDs
+| `<Base URI>/observers/#` | Number | Fetch an observer by ID
+| `<Base URI>/taxonomy` | n/a | Fetch all taxonomy entries
+| `<Base URI>/taxonomy/*` | String | Fetch taxonomy by kingdom
+| `<Base URI>/taxonomy/*/*` | String, String | Fetch taxonomy by kingdom and group
+| `<Base URI>/taxa` | n/a | Fetch all taxa
+| `<Base URI>/taxa/list/#` | Number | Fetch all taxa for a given list ID
+| `<Base URI>/taxa/area/#` | Number | Fetch all taxa for a given area ID
+| `<Base URI>/taxa/list/#/area/#` | Number, Number | Fetch all taxa for a given list ID and area ID
+| `<Base URI>/taxa/#` | Number | Fetch a taxon by ID
+| `<Base URI>/taxa/#/area/#` | Number, Number | Fetch a taxon by ID and area ID
+| `<Base URI>/nomenclature_types` | n/a | Fetch all nomenclature types
+| `<Base URI>/nomenclature_types/*/default` | String | Fetch default nomenclature for a module (e.g. `occtax`)
+| `<Base URI>/nomenclature_types/*/items/*` | String, String | Fetch nomenclature items by type and kingdom
+| `<Base URI>/nomenclature_types/*/items/*/*` | String, String, String | Fetch nomenclature items by
+  type, kingdom and group
+|===
+
+==== Architecture Patterns
+
+The `commons` module provides base classes to be extended by consumer modules:
+
+* `BaseViewModel` - base `ViewModel` integrating coroutine scope and error handling.
+* `BaseUseCase` - base use case abstraction for business logic.
+
+==== Dependencies
+
+[cols="1,1",options="header"]
+|===
+| Library | Version
+
+| AndroidX Room | 2.6.1
+| Hilt (DI) | 2.55
+| TinyLog | 2.7.0
+| AndroidX Lifecycle | -
+| AndroidX AppCompat | -
+| AndroidX Preferences | -
+|===
+
+'''
+
+=== `compat` - Backward Compatibility
+
+==== Purpose
+
+The `compat` module provides type-safe wrappers around Android platform APIs that changed their
+signatures across API levels, particularly around `Bundle`, `Intent`, and `Parcelable` handling which
+became stricter starting with API 33.
+
+==== Key Classes
+
+[cols="1,3",options="header"]
+|===
+| Class | Description
+
+| `BundleCompat`
+| Extension functions on `Bundle` for safely retrieving `Parcelable`, `ParcelableArray`, and `Serializable`
+  values regardless of the API level.
+
+| `ParcelCompat`
+| Compatibility utilities for `Parcel` operations.
+
+| `IntentCompat`
+| Extension functions on `Intent` for safely retrieving `Parcelable` and `Serializable` extras.
+|===
+
+==== Usage Example
+
+[source,kotlin]
+----
+// Instead of bundle.getParcelable("key") which is deprecated on API 33+
+val myParcelable = bundle.getParcelable("key", MyParcelable::class.java)
+----
+
+==== Dependencies
+
+This module has no runtime dependencies on other `gn_mobile_core` modules and has minimal third-party
+dependencies (test only).
+
+'''
+
+=== `datasync` - Network & Data Synchronization
+
+==== Purpose
+
+The `datasync` module handles:
+
+* Authentication against a _GeoNature_ server (login/logout, session persistence).
+* Fetching and synchronizing reference data (taxa, datasets, nomenclatures, observers, additional fields)
+  from _GeoNature_ and _TaxHub_ REST APIs.
+* Managing periodic background synchronization via https://developer.android.com/topic/libraries/architecture/workmanager[WorkManager].
+* Managing available _GeoNature_ applications registered for mobile use.
+
+==== _GeoNature_ API Endpoints
+
+The module consumes the following API routes via https://square.github.io/retrofit/[Retrofit] clients
+(`IGeoNatureService` and `ITaxHubService`):
+
+[cols="2,1,3",options="header"]
+|===
+| Route | HTTP Method | Description
+
+| `/api/auth/login` | `POST` | Performs user authentication.
+| `/api/gn_commons/t_mobile_apps` | `GET` | Fetches available mobile applications with their configuration.
+| `/api/meta/datasets` | `POST` | Fetches datasets.
+| `/api/users/menu/+{observers_list_id}+` | `GET` | Fetches the list of observers.
+| `/api/taxref/regnewithgroupe2` | `GET` | Fetches taxonomic ranks (kingdoms & groups).
+| `/api/nomenclatures/nomenclatures/taxonomy` | `GET` | Fetches the nomenclature with taxonomy.
+| `/api/+{module}+/defaultNomenclatures` | `GET` | Fetches default nomenclature values for a given module.
+| `/api/taxref/version` | `GET` | Fetches the current version of the taxa database.
+| `/api/taxref` | `GET` | Fetches all taxa (paginated).
+| `/api/synthese/color_taxon` | `GET` | Fetches area-based color data for taxa.
+| `/api/gn_commons/additional_fields?module_name=+{module}+` | `GET` | Fetches additional fields for
+a given module.
+|===
+
+A https://www.postman.com[Postman] collection is available at
+`docs/postman/gn_mobile_core.postman_collection.json` showing all routes consumed by this module.
+
+A convenient helper function `createServiceClient()` is provided to create a compliant HTTP client
+with _GeoNature_ APIs. It automatically handles authentication, session persistence, and error handling.
+
+==== Authentication
+
+Authentication is managed by `IAuthManager` / `AuthManagerImpl`. It provides:
+
+* `login(login, password)` - authenticates and persists the session.
+* `logout()` - clears the local session.
+* `getAuthLogin()` - returns the current authenticated user if any.
+* `isSessionExpired()` - checks whether the current session has expired.
+
+The authentication flow is exposed to the UI through `AuthLoginViewModel` and a ready-to-use `LoginActivity`.
+
+==== Data Synchronization
+
+Synchronization is managed by `IDataSyncManager` / `DataSyncManagerImpl` and runs as a `WorkManager` `CoroutineWorker` (`DataSyncWorker`).
+
+Two synchronization modes are supported:
+
+[cols="1,3",options="header"]
+|===
+| Mode | Description
+
+| *Essential* | Synchronizes core data: observers, datasets, nomenclatures, taxonomy. Excludes taxa color data by area (faster).
+| *Full* | Performs a complete synchronization including taxa color data by geographic area (potentially slow on large datasets).
+|===
+
+Synchronization status is observable via `DataSyncViewModel` which exposes `LiveData` streams for
+current synchronization state, last synchronization date, and periodic synchronization configuration.
+
+==== Settings
+
+Module settings can be loaded from JSON (either nested under a `sync` key or inlined at root level):
+
+[source,json]
+----
+{
+  "sync": {
+    "geonature_url": "https://demo.geonature/geonature",
+    "taxhub_url": "https://demo.geonature.fr/geonature/api/taxhub",
+    "gn_application_id": 3,
+    "observers_list_id": 1,
+    "taxa_list_id": 100,
+    "code_area_type": "M1",
+    "page_size": 10000
+  }
+}
+----
+
+[cols="2,1,3,1",options="header"]
+|===
+| Parameter | Editable in UI | Description | Default value
+
+| `geonature_url` | ✅ | GeoNature server URL | -
+| `taxhub_url` | ❌ | TaxHub server URL | -
+| `gn_application_id` | ❌ | GeoNature application ID in UsersHub | -
+| `observers_list_id` | ❌ | Observer list ID in UsersHub | -
+| `taxa_list_id` | ❌ | Selected taxa list ID | -
+| `code_area_type` | ❌ | Selected geographic area type | -
+| `page_size` | ❌ | Page size for paginated API calls | `10000`
+| `sync_periodicity_data_essential` | ❌ | Periodicity for essential data sync | `null`
+| `sync_periodicity_data` | ❌ | Periodicity for full data sync | `7d`
+|===
+
+==== Data Synchronization Periodicity
+
+Data synchronization can be triggered manually through the app interface. By default, a full synchronization
+is performed every 7 days.
+
+If `sync_periodicity_data_essential` or `sync_periodicity_data` are set, synchronization is also triggered
+automatically at the defined interval.
+
+The periodicity pattern follows `DdHhMmSs` where each time unit is optional:
+
+[cols="1,3",options="header"]
+|===
+| Unit | Meaning
+
+| `d` | Days (24 hours)
+| `h` | Hours (60 minutes)
+| `m` | Minutes (60 seconds)
+| `s` | Seconds
+|===
+
+*Valid duration examples:*
+
+* `1d12h` -> 36 hours (1.5 days)
+* `1d` -> 24 hours
+* `4h30m` -> 4.5 hours
+* `15m` -> 15 minutes
+
+IMPORTANT: A periodicity lower than 15 minutes is invalid and will be silently ignored.
+If both `sync_periodicity_data_essential` and `sync_periodicity_data` are set, the value of
+`sync_periodicity_data` must be strictly greater than `sync_periodicity_data_essential`.
+
+==== Dependencies
+
+[cols="1,1",options="header"]
+|===
+| Library | Version
+
+| Retrofit | 2.9.0
+| OkHttp | 4.9.3
+| Gson | -
+| Hilt (DI) | 2.55
+| AndroidX WorkManager | 2.9.1
+| Material Components | 1.12.0
+| TinyLog | 2.7.0
+| `commons` module | -
+|===
+
+'''
+
+=== `viewpager` - Multi-Step Fragment Navigation
+
+==== Purpose
+
+The `viewpager` module provides a ready-to-use multistep (wizard-style) UI component built on top of
+https://developer.android.com/training/animation/vp2-migration[ViewPager2]. It manages navigation
+buttons (Previous / Next / Finish), per-page validation, and a customizable underline page indicator.
+
+==== Key Classes
+
+[cols="1,3",options="header"]
+|===
+| Class / Interface | Description
+
+| `AbstractPagerFragmentActivity`
+| Base `AppCompatActivity` to extend. Embeds a `ViewPager2`, navigation buttons and indicator.
+Manages button states automatically.
+
+| `IPageFragment`
+| Interface to implement in each page `Fragment`. Provides lifecycle callbacks (`onShow`, `onHidden`).
+
+| `IPageWithValidationFragment`
+| Extends `IPageFragment` with a `validate(): Boolean` method. The *Next/Finish* button is disabled
+while the page returns `false`.
+
+| `PageFragmentViewModel`
+| Internal `ViewModel` maintaining the ordered list of page fragments and the current position.
+
+| `OnPageFragmentListener`
+| Callback interface notified when the last page's *Finish* action is triggered.
+
+| `IPagerIndicator` / `UnderlinePagerIndicator`
+| Indicator component drawn as an underline below the active page tab.
+|===
+
+==== Usage
+
+. Extend `AbstractPagerFragmentActivity` in your activity.
+. Override `buildPagerFragments()` to return the ordered list of page `Fragment` instances (each implementing `IPageFragment`).
+. Optionally implement `IPageWithValidationFragment` on pages that require user input validation before navigation.
+. Set `OnPageFragmentListener` to react to the final *Finish* action.
+
+[source,kotlin]
+----
+class MyWizardActivity : AbstractPagerFragmentActivity() {
+
+    override fun buildPagerFragments(): List<Fragment> = listOf(
+        StepOneFragment(),
+        StepTwoFragment(),
+        StepThreeFragment()
+    )
+}
+----
+
+==== Dependencies
+
+[cols="1,1",options="header"]
+|===
+| Library | Version
+
+| AndroidX ViewPager2 | 1.1.0
+| AndroidX AppCompat | -
+| AndroidX ConstraintLayout | -
+| AndroidX Fragment | -
+| AndroidX Lifecycle | -
+| AndroidX Activity | -
+|===
+
+== Build Configuration
+
+=== Gradle & Kotlin Version
+
+[cols="1,1",options="header"]
+|===
+| Tool | Version
+
+| Gradle Wrapper | 8.7.1
+| Kotlin | 2.0.21
+| AGP (Android Gradle Plugin) | -
+| Java source compatibility | 17
+| Compile SDK | 34
+| Target SDK | 34
+|===
+
+=== Annotation Processing
+
+All annotation processing (Hilt, Room) uses https://kotlinlang.org/docs/ksp-overview.html[KSP]
+(Kotlin Symbol Processing) instead of KAPT for improved build performance.
+
+KSP incremental processing is disabled to support multi-round processing:
+
+[source,properties]
+----
+ksp.incremental=false
+----
+
+=== Publishing
+
+Each module is published as a Maven artifact to https://github.com/orgs/PnX-SI/packages[GitHub Packages].
+Each publication includes:
+
+* The compiled AAR artifact.
+* A sources JAR.
+* A Javadoc JAR (generated via https://kotlinlang.org/docs/dokka-introduction.html[Dokka]).
+* An HTML documentation JAR.
+
+Publishing is configured in the root `build.gradle` and triggered via:
+
+[source,bash]
+----
+./gradlew publish
+----
+
+Credentials are read from `gpr.user` and `gpr.key` in `local.properties`.
+
+== Development Workflow
+
+=== Branching Strategy
+
+[cols="1,3",options="header"]
+|===
+| Branch | Purpose
+
+| `master` | Latest stable release
+| `develop` | Integration branch - base all new work here
+| `feat/<short-name>` | New feature (e.g. `feat/additional-fields`)
+| `fix/<short-name>` | Bug fix (e.g. `fix/data-sync`)
+| `docs/<short-name>` | Documentation updates
+| `chore/<short-name>` | Build tooling or dependency updates
+|===
+
+Always branch off `develop` (or `master` for hotfixes):
+
+[source,bash]
+----
+git fetch upstream
+git checkout -b feat/my-feature upstream/develop
+----
+
+=== Coding Standards
+
+This project is written in **Kotlin** and follows the official
+https://kotlinlang.org/docs/coding-conventions.html[Kotlin coding conventions].
+
+* Use **4-space indentation** (no tabs).
+* Keep lines under **120 characters**.
+* Write self-documenting code: use meaningful names for variables, functions, and classes.
+* Add https://kotlinlang.org/docs/kotlin-doc.html[KDoc] comments to all public API elements.
+* Avoid introducing new dependencies unless strictly necessary; discuss in an issue first.
+* Dependency injection is handled via https://dagger.dev/hilt/[Hilt]; follow existing patterns.
+* Prefer **coroutines** to callbacks or `RxJava` for all asynchronous operations.
+
+=== Commit Message Guidelines
+
+This project follows the https://www.conventionalcommits.org/[Conventional Commits] specification:
+
+[source]
+----
+<type>(<scope>): <short description>
+
+[optional body]
+
+[optional footer: Closes #<issue-number>]
+----
+
+[cols="1,3",options="header"]
+|===
+| Type | When to use
+
+| `feat` | A new feature
+| `fix` | A bug fix
+| `docs` | Documentation changes only
+| `style` | Code style changes (formatting, missing semicolons…)
+| `refactor` | Code refactoring without feature change or bug fix
+| `perf` | Performance improvements
+| `test` | Adding or updating tests
+| `chore` | Build process, tooling, or dependency updates
+|===
+
+*Examples:*
+
+[source]
+----
+feat(commons): add support for additional fields
+
+Closes #122
+
+docs: update local data synchronization workflow in README.md
+----
+
+== Testing
+
+=== Overview
+
+All modules include unit tests located in `src/test/`. The following test libraries are used across
+all modules:
+
+[cols="1,1",options="header"]
+|===
+| Library | Version
+
+| JUnit 4 | 4.13.2
+| MockK | 1.13.13
+| Robolectric | 4.13
+| AndroidX Test Core | -
+| AndroidX Arch Core Testing | -
+| kotlinx-coroutines-test | 1.9.0
+| Hilt Android Testing | 2.55
+|===
+
+=== Running Tests
+
+Run all tests across all modules:
+
+[source,bash]
+----
+./gradlew test
+----
+
+Run tests for a specific module:
+
+[source,bash]
+----
+./gradlew :commons:test
+./gradlew :compat:test
+./gradlew :datasync:test
+./gradlew :viewpager:test
+----
+
+NOTE: All new features and bug fixes *must* include corresponding unit tests.
