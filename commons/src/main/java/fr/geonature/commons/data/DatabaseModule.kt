@@ -67,12 +67,12 @@ object DatabaseModule {
         Logger.info { "loading local database '${localDatabase.absolutePath}'..." }
 
         return Room
-            .databaseBuilder(
-                appContext,
-                LocalDatabase::class.java,
-                localDatabase.absolutePath
-            )
-            .fallbackToDestructiveMigration()
+                    .databaseBuilder(
+                        appContext,
+                        LocalDatabase::class.java,
+                        localDatabase.absolutePath
+                    )
+            .fallbackToDestructiveMigration(true)
             .addCallback(onCreateTaxaFtsCallback)
             .build()
     }

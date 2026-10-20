@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.dagger.hilt.android)
@@ -6,24 +8,27 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-version = "1.5.2"
+version = "1.6.0"
+description = "GeoNature Android core library to manage local database for GeoNature mobile applications"
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
+}
 
 android {
     namespace 'fr.geonature.commons'
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
-        compileSdk 34
-        minSdkVersion 21
-        targetSdkVersion 34
+        minSdk 21
+        targetSdk 36
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -35,7 +40,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -69,6 +74,7 @@ dependencies {
     // Hilt dependencies
     implementation libs.hilt.android
     ksp libs.hilt.android.compiler
+    ksp libs.kotlin.metadata.jvm
 
     // Logging
     implementation libs.tinylog.api.kotlin
@@ -79,7 +85,9 @@ dependencies {
     testImplementation libs.androidx.core
     testImplementation libs.androidx.junit.ktx
     testImplementation libs.hilt.android.testing
+    kspTest libs.androidx.room.compiler
     kspTest libs.hilt.android.compiler
+    kspTest libs.kotlin.metadata.jvm
     testImplementation libs.mockk
     testImplementation libs.mockk.agent.jvm
     testImplementation libs.junit

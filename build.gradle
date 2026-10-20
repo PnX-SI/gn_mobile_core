@@ -83,8 +83,8 @@ subprojects {
                     version = project.findProperty('version') ?: '0.0.1'
 
                     pom {
-                        name = 'GeoNature Android core libraries'
-                        description = 'Some libraries for GeoNature Android applications'
+                        name = project.name
+                        description = project.description
                         url = 'https://github.com/PnX-SI/gn_mobile_core'
 
                         licenses {

@@ -31,7 +31,7 @@ abstract class BaseDao<T> {
                 return clazz.genericSuperclass as ParameterizedType
             }
 
-            return parameterizedType(clazz.superclass as Class<Any>?)
+            return parameterizedType(clazz.superclass)
         }
 
         @Suppress("UNCHECKED_CAST")
