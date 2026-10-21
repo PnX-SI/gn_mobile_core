@@ -4,6 +4,9 @@ import android.app.Application
 import android.text.TextUtils
 import androidx.room.withTransaction
 import androidx.work.WorkInfo
+import fr.geonature.api.IGeoNatureAPIClient
+import fr.geonature.api.error.BaseApiException
+import fr.geonature.api.model.DatasetQuery
 import fr.geonature.commons.data.GeoNatureModuleName
 import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.entity.DefaultNomenclature
@@ -14,9 +17,6 @@ import fr.geonature.commons.data.entity.NomenclatureType
 import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.interactor.BaseFlowUseCase
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.datasync.api.error.BaseApiException
-import fr.geonature.datasync.api.model.DatasetQuery
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.ServerStatus
@@ -34,6 +34,7 @@ import org.tinylog.Logger
 import retrofit2.await
 import java.io.BufferedReader
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Synchronize all local data from _GeoNature_ APIs.
@@ -412,7 +413,7 @@ class DataSyncUseCase @Inject constructor(
                 .filter { it.id > 0 }
                 .map { nomenclature ->
                     (if (nomenclature.taxref.isEmpty()) arrayOf(
-                        fr.geonature.datasync.api.model.NomenclatureTaxonomy(
+                        fr.geonature.api.model.NomenclatureTaxonomy(
                             Taxonomy.ANY,
                             Taxonomy.ANY
                         )
@@ -642,7 +643,7 @@ class DataSyncUseCase @Inject constructor(
         channel.send(dataSyncStatus)
 
         if (dataSyncStatus.state == WorkInfo.State.FAILED) {
-            delay(500)
+            delay(500.milliseconds)
             throw java.lang.Exception(dataSyncStatus.syncMessage)
         }
     }

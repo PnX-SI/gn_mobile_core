@@ -10,29 +10,6 @@
 * Synchronize observers inputs from synchronized apps (e.g. "Occtax").
 * Manage available applications registered from _GeoNature_ and installed ones.
 
-## _GeoNature_ APIs
-
-See [IGeoNatureService](./src/main/java/fr/geonature/datasync/api/IGeoNatureService.kt)
-and [ITaxHubService](./src/main/java/fr/geonature/datasync/api/ITaxHubService.kt) interfaces
-definition about _GeoNature_ and _TaxHub_ APIs endpoints consumed:
-
-| Route                                                      | Method | Description                                          |
-|------------------------------------------------------------|--------|------------------------------------------------------|
-| `/api/auth/login`                                          | `POST` | Performs authentication.                             |
-| `/api/gn_commons/t_mobile_apps`                            | `GET`  | Fetch available applications with its configuration. |
-| `/api/meta/datasets`                                       | `POST` | Fetch datasets.                                      |
-| `/api/users/menu/{{observers_list_id}}`                    | `GET`  | Fetch observers.                                     |
-| `/api/taxref/regnewithgroupe2`                             | `GET`  | Fetch taxonomic ranks.                               |
-| `/api/nomenclatures/nomenclatures/taxonomy`                | `GET`  | Fetch the nomenclature.                              |
-| `/api/{{module}}/defaultNomenclatures`                     | `GET`  | Fetch default nomenclature values.                   |
-| `/api/taxref/version`                                      | `GET`  | Fetch the current version of the taxa database.      |
-| `/api/taxref`                                              | `GET`  | Fetch all taxa.                                      |
-| `/api/synthese/color_taxon`                                | `GET`  | Fetch additional data for taxa.                      |
-| `/api/gn_commons/additional_fields?module_name={{module}}` | `GET`  | Fetch additional fields.                             |
-
-A [Postman collection](../docs/postman/gn_mobile_core.postman_collection.json)
-is available showing all the routes consumed by this module.
-
 ## Settings
 
 Module settings can be loaded from JSON as follows:

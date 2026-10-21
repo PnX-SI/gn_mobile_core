@@ -1,9 +1,9 @@
 package fr.geonature.datasync.auth
 
 import androidx.lifecycle.LiveData
+import fr.geonature.api.model.AuthLogin
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import fr.geonature.datasync.api.model.AuthLogin
 
 /**
  * [AuthLogin] manager.

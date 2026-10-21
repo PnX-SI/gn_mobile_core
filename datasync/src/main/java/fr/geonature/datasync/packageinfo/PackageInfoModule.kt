@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.datasync.settings.AppSettingsFilename
 import javax.inject.Qualifier
 import javax.inject.Singleton

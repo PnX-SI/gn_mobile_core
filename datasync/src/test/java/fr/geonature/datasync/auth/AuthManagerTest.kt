@@ -4,6 +4,10 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import fr.geonature.api.IGeoNatureAPIClient
+import fr.geonature.api.model.AuthLogin
+import fr.geonature.api.model.AuthLoginError
+import fr.geonature.api.model.AuthUser
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.identity
 import fr.geonature.commons.fp.orNull
@@ -11,10 +15,6 @@ import fr.geonature.commons.util.NetworkHandler
 import fr.geonature.commons.util.add
 import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.datasync.CoroutineTestRule
-import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.datasync.api.model.AuthLogin
-import fr.geonature.datasync.api.model.AuthLoginError
-import fr.geonature.datasync.api.model.AuthUser
 import fr.geonature.datasync.auth.error.AuthFailure
 import io.mockk.MockKAnnotations.init
 import io.mockk.every

@@ -3,21 +3,22 @@ package fr.geonature.datasync.auth
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.edit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import fr.geonature.api.GeoNatureMissingConfigurationFailure
+import fr.geonature.api.IGeoNatureAPIClient
+import fr.geonature.api.model.AuthCredentials
+import fr.geonature.api.model.AuthLogin
+import fr.geonature.api.model.AuthLoginError
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.orNull
 import fr.geonature.commons.util.NetworkHandler
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
-import fr.geonature.datasync.api.IGeoNatureAPIClient
-import fr.geonature.datasync.api.model.AuthCredentials
-import fr.geonature.datasync.api.model.AuthLogin
-import fr.geonature.datasync.api.model.AuthLoginError
 import fr.geonature.datasync.auth.error.AuthFailure
 import fr.geonature.datasync.auth.io.AuthLoginJsonReader
 import fr.geonature.datasync.auth.io.AuthLoginJsonWriter
@@ -147,12 +148,12 @@ class AuthManagerImpl(
 
         return withContext(Dispatchers.Default) {
             preferenceManager
-                .edit()
-                .putString(
-                    KEY_PREFERENCE_AUTH_LOGIN,
-                    authLoginAsJson
-                )
-                .commit()
+                .edit(commit = true) {
+                    putString(
+                        KEY_PREFERENCE_AUTH_LOGIN,
+                        authLoginAsJson
+                    )
+                }
                 .let {
                     authLoginResponse
                 }

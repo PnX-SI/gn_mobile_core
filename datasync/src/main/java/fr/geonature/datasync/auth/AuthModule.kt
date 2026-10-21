@@ -6,8 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.util.NetworkHandler
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import javax.inject.Singleton
 
 /**
@@ -25,11 +25,6 @@ object AuthModule {
         return NetworkHandler(appContext)
     }
 
-    @Singleton
-    @Provides
-    fun provideCookieManager(@ApplicationContext appContext: Context): ICookieManager {
-        return CookieManagerImpl(appContext)
-    }
 
     @Singleton
     @Provides

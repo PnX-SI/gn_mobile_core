@@ -53,6 +53,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    api project(':api')
     implementation project(':commons')
 
     implementation libs.androidx.appcompat
@@ -73,11 +74,6 @@ dependencies {
     // Logging
     implementation libs.tinylog.api.kotlin
     runtimeOnly libs.tinylog.impl
-
-    // Networking dependencies
-    implementation libs.logging.interceptor
-    api libs.converter.gson
-    api libs.retrofit
 
     // Testing dependencies
     testImplementation libs.androidx.core.testing

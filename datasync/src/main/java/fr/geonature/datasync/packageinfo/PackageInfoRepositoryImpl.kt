@@ -2,14 +2,14 @@ package fr.geonature.datasync.packageinfo
 
 import android.annotation.SuppressLint
 import android.content.Context
+import fr.geonature.api.error.BaseApiException
+import fr.geonature.api.error.NetworkException
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
 import fr.geonature.commons.util.getFile
 import fr.geonature.commons.util.getPrimaryExternalStorage
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.error.BaseApiException
-import fr.geonature.datasync.api.error.NetworkException
 import fr.geonature.datasync.packageinfo.error.NoPackageInfoFoundFromRemoteFailure
 import fr.geonature.datasync.packageinfo.io.AppSettingsJsonWriter
 import kotlinx.coroutines.Dispatchers.IO

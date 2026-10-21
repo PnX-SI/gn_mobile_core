@@ -3,11 +3,11 @@ package fr.geonature.datasync.packageinfo
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
+import fr.geonature.api.error.BaseApiException
+import fr.geonature.api.error.NetworkException
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.identity
 import fr.geonature.commons.fp.orNull
-import fr.geonature.datasync.api.error.BaseApiException
-import fr.geonature.datasync.api.error.NetworkException
 import fr.geonature.datasync.packageinfo.error.NoPackageInfoFoundFromRemoteFailure
 import io.mockk.MockKAnnotations.init
 import io.mockk.coEvery

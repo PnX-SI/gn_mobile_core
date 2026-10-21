@@ -1,7 +1,7 @@
 package fr.geonature.datasync.packageinfo.io
 
+import fr.geonature.api.model.AppPackage
 import fr.geonature.datasync.FixtureHelper
-import fr.geonature.datasync.api.model.AppPackage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue

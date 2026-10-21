@@ -2,8 +2,8 @@ package fr.geonature.datasync.sync
 
 import android.content.Context
 import androidx.work.WorkInfo
+import fr.geonature.api.error.BaseApiException
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.error.BaseApiException
 
 /**
  * Describes a data synchronization status message.

@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import androidx.work.WorkInfo
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.entity.Taxon
 import fr.geonature.commons.data.entity.TaxonArea
@@ -12,7 +13,6 @@ import fr.geonature.commons.data.entity.TaxonList
 import fr.geonature.commons.data.entity.Taxonomy
 import fr.geonature.commons.util.toIsoDateString
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.repository.ISynchronizeLocalDataRepository.Companion.sendOrThrow
