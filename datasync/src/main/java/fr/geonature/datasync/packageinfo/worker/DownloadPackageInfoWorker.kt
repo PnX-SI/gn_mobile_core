@@ -8,7 +8,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
 import fr.geonature.datasync.packageinfo.PackageInfo
 import okhttp3.ResponseBody

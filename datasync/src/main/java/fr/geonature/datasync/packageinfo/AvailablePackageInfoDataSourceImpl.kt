@@ -1,6 +1,6 @@
 package fr.geonature.datasync.packageinfo
 
-import fr.geonature.datasync.api.IGeoNatureAPIClient
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.datasync.packageinfo.io.AppPackageJsonReader
 import retrofit2.awaitResponse
 import java.util.Locale

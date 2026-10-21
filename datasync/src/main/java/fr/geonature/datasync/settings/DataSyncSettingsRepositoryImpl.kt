@@ -6,14 +6,14 @@ import androidx.core.content.edit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
+import fr.geonature.api.GeoNatureMissingConfigurationFailure
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
 import fr.geonature.commons.fp.Either.Right
 import fr.geonature.commons.fp.orNull
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.settings.error.DataSyncSettingsJsonParseFailure
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundException
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure

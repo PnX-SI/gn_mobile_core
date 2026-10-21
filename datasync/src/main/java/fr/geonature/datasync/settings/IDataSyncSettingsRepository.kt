@@ -1,9 +1,9 @@
 package fr.geonature.datasync.settings
 
 import androidx.lifecycle.LiveData
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 
 /**
  * Manage [DataSyncSettings]:

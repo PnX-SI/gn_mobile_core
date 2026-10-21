@@ -2,10 +2,10 @@ package fr.geonature.datasync.sync.repository
 
 import android.content.Context
 import androidx.work.WorkInfo
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.features.dataset.data.IDatasetLocalDataSource
 import fr.geonature.commons.features.nomenclature.data.IAdditionalFieldLocalDataSource
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.io.AdditionalFieldJsonReader
 import kotlinx.coroutines.flow.Flow

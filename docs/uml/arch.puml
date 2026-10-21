@@ -1,0 +1,16 @@
+@startuml
+
+!theme bluegray
+
+skinparam componentStyle uml2
+skinparam backgroundColor transparent
+
+title **Architecture Overview**
+
+package "gn_mobile_core" {
+  [compat] --> [commons] : n/a
+  [datasync] --> [commons] : depends on
+  [viewpager] --> [commons] : n/a
+}
+
+@enduml

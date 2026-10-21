@@ -4,10 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.orNull
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
 import javax.inject.Inject
 

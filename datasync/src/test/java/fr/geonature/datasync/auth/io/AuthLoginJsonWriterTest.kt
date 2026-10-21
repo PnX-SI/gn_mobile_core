@@ -1,9 +1,9 @@
 package fr.geonature.datasync.auth.io
 
+import fr.geonature.api.model.AuthLogin
+import fr.geonature.api.model.AuthUser
 import fr.geonature.commons.util.toDate
 import fr.geonature.datasync.FixtureHelper.getFixture
-import fr.geonature.datasync.api.model.AuthLogin
-import fr.geonature.datasync.api.model.AuthUser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test

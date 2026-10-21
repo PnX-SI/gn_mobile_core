@@ -5,6 +5,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import fr.geonature.commons.data.helper.EntityHelper.column
 import fr.geonature.commons.data.helper.get
 import org.tinylog.Logger
@@ -27,17 +28,19 @@ class Taxonomy : Parcelable {
     @ColumnInfo(name = COLUMN_GROUP)
     var group: String
 
-    constructor(
-        kingdom: String,
-        group: String? = ANY
-    ) {
+    // default constructor for Room (KSP)
+    constructor(kingdom: String, group: String) {
         this.kingdom = sanitizeValue(kingdom)
         this.group = sanitizeValue(group)
     }
 
+    // constructor with default value ignored by Room
+    @Ignore
+    constructor(kingdom: String) : this(kingdom, ANY)
+
     private constructor(source: Parcel) : this(
-        source.readString()!!,
-        source.readString()
+        sanitizeValue(source.readString()),
+        sanitizeValue(source.readString())
     )
 
     override fun equals(other: Any?): Boolean {

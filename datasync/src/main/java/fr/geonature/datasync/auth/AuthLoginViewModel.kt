@@ -7,10 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.geonature.api.GeoNatureMissingConfigurationFailure
+import fr.geonature.api.model.AuthLogin
 import fr.geonature.commons.error.Failure
 import fr.geonature.datasync.R
-import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
-import fr.geonature.datasync.api.model.AuthLogin
 import fr.geonature.datasync.auth.error.AuthFailure
 import kotlinx.coroutines.launch
 import javax.inject.Inject

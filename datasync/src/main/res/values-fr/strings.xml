@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <string name="login_login_hint">Identifiant</string>
     <string name="login_password_hint">Mot de passe</string>
@@ -54,12 +54,6 @@
     <string name="sync_data_succeeded">Terminée.</string>
 
     <string name="notification_data_synchronization_title">Synchronisation des données…</string>
-    <string name="notification_inputs_to_synchronize_title">Relevés à synchroniser</string>
-    <plurals name="notification_inputs_to_synchronize_description" tools:ignore="MissingQuantity">
-        <item quantity="one" tools:ignore="ImpliedQuantity">Un relevé est prêt à être synchronisé</item>
-        <item quantity="other">%d relevés sont prêts à être synchronisés</item>
-        <item quantity="many">%d relevés sont prêts à être synchronisés</item>
-    </plurals>
 
     <string name="error_network_lost">Vous n\'êtes pas connecté à Internet</string>
     <string name="error_server_unreachable">Impossible de joindre le serveur GeoNature</string>

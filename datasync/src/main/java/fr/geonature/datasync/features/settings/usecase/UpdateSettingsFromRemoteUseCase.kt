@@ -1,6 +1,7 @@
 package fr.geonature.datasync.features.settings.usecase
 
 import android.app.Application
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
@@ -8,7 +9,6 @@ import fr.geonature.commons.fp.Either.Right
 import fr.geonature.commons.fp.getOrHandle
 import fr.geonature.commons.fp.orNull
 import fr.geonature.commons.interactor.BaseUseCase
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
 import fr.geonature.datasync.packageinfo.PackageInfo
 import fr.geonature.datasync.packageinfo.error.PackageInfoNotFoundFailure

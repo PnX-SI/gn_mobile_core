@@ -1,7 +1,8 @@
 package fr.geonature.datasync.features.settings.usecase
 
 import android.app.Application
-import android.net.Uri
+import androidx.core.net.toUri
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Left
@@ -10,7 +11,6 @@ import fr.geonature.commons.fp.getOrHandle
 import fr.geonature.commons.fp.map
 import fr.geonature.commons.fp.orNull
 import fr.geonature.commons.interactor.BaseUseCase
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
 import fr.geonature.datasync.packageinfo.error.PackageInfoNotFoundFromRemoteFailure
 import fr.geonature.datasync.settings.DataSyncSettings
@@ -32,7 +32,7 @@ class GetAppSettingsFromRemoteUseCase @Inject constructor(
 ) : BaseUseCase<DataSyncSettings, String>() {
 
     override suspend fun run(params: String): Either<Failure, DataSyncSettings> {
-        val serverUrl = "${Uri.parse(params).scheme?.run { "" } ?: "https://"}$params"
+        val serverUrl = "${params.toUri().scheme?.run { "" } ?: "https://"}$params"
 
         Logger.info { "loading app configuration from '$serverUrl'..." }
 

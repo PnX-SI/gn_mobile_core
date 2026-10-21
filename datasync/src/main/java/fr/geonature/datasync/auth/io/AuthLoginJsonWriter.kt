@@ -1,9 +1,9 @@
 package fr.geonature.datasync.auth.io
 
 import android.util.JsonWriter
+import fr.geonature.api.model.AuthLogin
+import fr.geonature.api.model.AuthUser
 import fr.geonature.commons.util.toIsoDateString
-import fr.geonature.datasync.api.model.AuthLogin
-import fr.geonature.datasync.api.model.AuthUser
 import org.tinylog.Logger
 import java.io.IOException
 import java.io.StringWriter

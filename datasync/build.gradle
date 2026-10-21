@@ -1,37 +1,40 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.dagger.hilt.android)
-    alias(libs.plugins.kapt)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
-version = "0.6.5"
+version = "0.7.0"
+description = "GeoNature Android library to manage local data synchronization for GeoNature mobile applications"
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
+}
 
 android {
     namespace 'fr.geonature.datasync'
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
-        compileSdk 34
-        minSdkVersion 21
-        targetSdkVersion 34
-        versionCode updateVersionCode(project.name)
-        versionName version
+        minSdk 23
+        targetSdk 36
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -41,11 +44,16 @@ android {
             includeAndroidResources = true
         }
     }
+
+    publishing {
+        singleVariant("release")
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    api project(':api')
     implementation project(':commons')
 
     implementation libs.androidx.appcompat
@@ -59,17 +67,13 @@ dependencies {
     // Hilt dependencies
     implementation libs.androidx.hilt.work
     implementation libs.hilt.android
-    kapt libs.androidx.hilt.compiler
-    kapt libs.hilt.android.compiler
+    ksp libs.androidx.hilt.compiler
+    ksp libs.hilt.android.compiler
+    ksp libs.kotlin.metadata.jvm
 
     // Logging
     implementation libs.tinylog.api.kotlin
     runtimeOnly libs.tinylog.impl
-
-    // Networking dependencies
-    implementation libs.logging.interceptor
-    api libs.converter.gson
-    api libs.retrofit
 
     // Testing dependencies
     testImplementation libs.androidx.core.testing
