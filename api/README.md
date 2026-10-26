@@ -31,6 +31,24 @@ definition about _GeoNature_ and _TaxHub_ APIs endpoints consumed:
 A [Postman collection](../docs/postman/gn_mobile_core.postman_collection.json) is available showing
 all the routes consumed by this module.
 
+## Authentication cookie security
+
+The authentication cookie is stored encrypted (AES-256-GCM, [Tink](https://github.com/tink-crypto/tink-java))
+by [SecureCookieStore](./src/main/java/fr/geonature/api/auth/SecureCookieStore.kt). The Tink keyset
+is wrapped by a non-exportable Android Keystore key. A cookie stored by a previous version in the
+default `SharedPreferences` is migrated and removed on first access.
+
+The encrypted files (`gn_secure_auth.xml` and `gn_secure_auth_keyset.xml`) **must be excluded from
+backups**. This module provides ready-to-use rules to reference from the application manifest:
+
+```xml
+<application
+    android:dataExtractionRules="@xml/gn_api_data_extraction_rules"
+    android:fullBackupContent="@xml/gn_api_backup_rules" />
+```
+
+If the application already defines its own rules, merge the `exclude` entries into them.
+
 ## Usage
 
 ```groovy

@@ -57,6 +57,9 @@ dependencies {
 
     implementation libs.androidx.preference.ktx
 
+    // Encryption of sensitive data (Android Keystore backed)
+    implementation libs.tink.android
+
     // Hilt dependencies
     implementation libs.hilt.android
     ksp libs.hilt.android.compiler

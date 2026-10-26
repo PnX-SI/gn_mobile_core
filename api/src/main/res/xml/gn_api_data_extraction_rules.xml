@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--+
+    | Data extraction rules (android:dataExtractionRules, Android 12+) excluding the encrypted
+    | authentication cookie and its Tink keyset from cloud backup and device transfer.
+    | Merge these rules into the application's own rules if it already defines some.
+    +-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude
+            domain="sharedpref"
+            path="gn_secure_auth.xml" />
+        <exclude
+            domain="sharedpref"
+            path="gn_secure_auth_keyset.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude
+            domain="sharedpref"
+            path="gn_secure_auth.xml" />
+        <exclude
+            domain="sharedpref"
+            path="gn_secure_auth_keyset.xml" />
+    </device-transfer>
+</data-extraction-rules>
+

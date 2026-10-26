@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--+
+    | Backup rules (android:fullBackupContent, Android 6 to 11) excluding the encrypted
+    | authentication cookie and its Tink keyset.
+    | Merge these rules into the application's own rules if it already defines some.
+    +-->
+<full-backup-content>
+    <exclude
+        domain="sharedpref"
+        path="gn_secure_auth.xml" />
+    <exclude
+        domain="sharedpref"
+        path="gn_secure_auth_keyset.xml" />
+</full-backup-content>
+

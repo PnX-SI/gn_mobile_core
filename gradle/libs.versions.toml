@@ -23,6 +23,7 @@ preferenceKtx = "1.2.1"
 retrofit = "2.9.0"
 robolectric = "4.13"
 room = "2.7.2"
+tink = "1.18.0"
 tinylog = "2.7.0"
 viewpager2 = "1.1.0"
 workRuntimeKtx = "2.9.1"
@@ -61,6 +62,7 @@ mockk-agent-jvm = { module = "io.mockk:mockk-agent-jvm", version.ref = "mockk" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 slf4j-tinylog = { module = "org.tinylog:slf4j-tinylog", version.ref = "tinylog" }
+tink-android = { module = "com.google.crypto.tink:tink-android", version.ref = "tink" }
 tinylog-api-kotlin = { group = "org.tinylog", name = "tinylog-api-kotlin", version.ref = "tinylog" }
 tinylog-impl = { group = "org.tinylog", name = "tinylog-impl", version.ref = "tinylog" }
 
