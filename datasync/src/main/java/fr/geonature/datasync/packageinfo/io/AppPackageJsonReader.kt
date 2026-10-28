@@ -1,7 +1,7 @@
 package fr.geonature.datasync.packageinfo.io
 
 import com.google.gson.Gson
-import fr.geonature.datasync.api.model.AppPackage
+import fr.geonature.api.model.AppPackage
 import org.json.JSONArray
 import org.json.JSONTokener
 

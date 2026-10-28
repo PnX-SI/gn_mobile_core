@@ -3,11 +3,11 @@ package fr.geonature.datasync.features.settings.usecase
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.identity
 import fr.geonature.commons.fp.orNull
 import fr.geonature.commons.interactor.BaseUseCase
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.packageinfo.IPackageInfoRepository
 import fr.geonature.datasync.packageinfo.PackageInfo
 import fr.geonature.datasync.packageinfo.error.PackageInfoNotFoundFailure
@@ -102,7 +102,6 @@ class UpdateSettingsFromRemoteUseCaseTest {
         val expectedDataSyncSettings = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10",
@@ -110,7 +109,6 @@ class UpdateSettingsFromRemoteUseCaseTest {
         val expectedDataSyncSettingsAfterUpdate = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature2",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub2",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10",
@@ -174,7 +172,6 @@ class UpdateSettingsFromRemoteUseCaseTest {
             val expectedDataSyncSettings = DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",

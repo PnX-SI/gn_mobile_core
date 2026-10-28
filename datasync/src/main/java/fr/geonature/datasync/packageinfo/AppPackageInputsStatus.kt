@@ -1,7 +1,7 @@
 package fr.geonature.datasync.packageinfo
 
 import androidx.work.WorkInfo
-import fr.geonature.datasync.api.model.AppPackage
+import fr.geonature.api.model.AppPackage
 
 /**
  * Describes [AppPackage] inputs status.
@@ -10,6 +10,5 @@ import fr.geonature.datasync.api.model.AppPackage
  */
 data class AppPackageInputsStatus(
     val packageName: String,
-    val state: WorkInfo.State = WorkInfo.State.ENQUEUED,
-    val inputs: Int = 0
+    val state: WorkInfo.State = WorkInfo.State.ENQUEUED
 )

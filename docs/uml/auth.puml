@@ -1,0 +1,45 @@
+@startuml
+
+!theme bluegray
+
+skinparam componentStyle uml2
+skinparam backgroundColor transparent
+
+title **Authentication**
+
+participant "auth" as auth << module >>
+participant "//GeoNature//" as gn
+
+activate auth
+
+group Check for login
+    auth -> auth : set login and password
+    auth -> gn ++ : <font color="goldenrod">**POST**</font> ""/api/auth/login""
+     note left
+        <code>
+        {
+            "login": <user login>,
+            "password": <user password>,
+            "id_application": <gn_application_id from auth settings>
+        }
+        </code>
+    end note
+    gn -> auth -- : <font color=green">**200**</font>: ""AuthLogin""
+    note left
+        **""AuthLogin"":**
+        </code>
+        {
+            "user": {
+                "id_application": <number>,
+                "id_organisme": <number>,
+                "identifiant": <user login>
+            },
+            "expires": <Date>
+        }
+        </code>
+    end note
+
+    auth -> auth : set cookie
+end
+
+@enduml

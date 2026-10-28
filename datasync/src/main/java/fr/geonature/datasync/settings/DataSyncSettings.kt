@@ -9,26 +9,58 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 /**
- * Default settings for synchronization module.
+ * Default settings for data synchronization module.
  *
  * @author S. Grimault
  */
 data class DataSyncSettings(
+
+    /**
+     * _GeoNature_ server URL.
+     */
     val geoNatureServerUrl: String,
+
+    /**
+     * _TaxHub_ server URL.
+     */
     val taxHubServerUrl: String,
-    val applicationId: Int = 0,
+
+    /**
+     * _GeoNature_ selected observer list ID in _UsersHub_.
+     */
     val usersListId: Int = 0,
+
+    /**
+     * _GeoNature_ selected taxa list ID.
+     */
     val taxrefListId: Int = -1,
+
+    /**
+     * _GeoNature_ selected area type.
+     */
     val codeAreaType: String? = null,
+
+    /**
+     * Default page size while fetching paginated values (default: [Builder.DEFAULT_PAGE_SIZE]).
+     */
     val pageSize: Int = Builder.DEFAULT_PAGE_SIZE,
+
+    /**
+     * Configure all data synchronization periodicity (default: [Builder.DEFAULT_DATA_SYNC_PERIODICITY]).
+     * Sets to `null` to disable it.
+     */
     val dataSyncPeriodicity: Duration? = Builder.DEFAULT_DATA_SYNC_PERIODICITY,
+
+    /**
+     * Configure essential data synchronization periodicity.
+     * Sets to `null` to disable it.
+     */
     val essentialDataSyncPeriodicity: Duration? = null
 ) : Parcelable {
 
     private constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         parcel.readString()!!,
-        parcel.readInt(),
         parcel.readInt(),
         parcel.readInt(),
         parcel.readString(),
@@ -48,7 +80,6 @@ data class DataSyncSettings(
         parcel.apply {
             writeString(geoNatureServerUrl)
             writeString(taxHubServerUrl)
-            writeInt(applicationId)
             writeInt(usersListId)
             writeInt(taxrefListId)
             writeString(codeAreaType)
@@ -73,11 +104,6 @@ data class DataSyncSettings(
          * TaxHub URL.
          */
         private lateinit var taxHubServerUrl: String
-
-        /**
-         * GeoNature application ID in UsersHub.
-         */
-        private var applicationId: Int = 0
 
         /**
          * GeoNature selected observer list ID in UsersHub.
@@ -120,7 +146,6 @@ data class DataSyncSettings(
 
                 geoNatureServerUrl = dataSyncSettings.geoNatureServerUrl
                 taxHubServerUrl = dataSyncSettings.taxHubServerUrl
-                applicationId = dataSyncSettings.applicationId
                 usersListId = dataSyncSettings.usersListId
                 taxrefListId = dataSyncSettings.taxrefListId
                 codeAreaType = dataSyncSettings.codeAreaType
@@ -140,14 +165,6 @@ data class DataSyncSettings(
             apply {
                 this.geoNatureServerUrl = geoNatureServerUrl
                 this.taxHubServerUrl = taxHubServerUrl
-            }
-
-        /**
-         * Sets GeoNature application ID in UsersHub.
-         */
-        fun applicationId(applicationId: Int) =
-            apply {
-                this.applicationId = applicationId
             }
 
         /**
@@ -185,7 +202,7 @@ data class DataSyncSettings(
         /**
          * Sets the data synchronization periodicity (default to `null`).
          *
-         * The expected format describing a periodic synchronization must following the pattern
+         * The expected format describing a periodic synchronization must follow the pattern
          * `DdHhMmSs` where `d`, `h`, `m`, `s` represents the time unit of the duration.
          * Each part (duration value and its time unit) of the duration is optional.
          * A time unit represents time durations at a given unit of granularity:
@@ -287,7 +304,6 @@ data class DataSyncSettings(
             return DataSyncSettings(
                 geoNatureServerUrl,
                 taxHubServerUrl,
-                applicationId,
                 usersListId,
                 taxrefListId,
                 codeAreaType,

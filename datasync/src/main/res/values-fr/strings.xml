@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
-
-    <string name="login_login_hint">Identifiant</string>
-    <string name="login_password_hint">Mot de passe</string>
-    <string name="login_action_sign_in">Se connecter</string>
-
-    <string name="login_form_username_invalid">Identifiant invalide</string>
-    <string name="login_form_password_invalid">Mot de passe invalide</string>
-    <string name="login_failed">Echec lors de l\'authentification</string>
-    <string name="login_failed_login">Utilisateur inconnu</string>
-    <string name="login_failed_password">Mot de passe invalide</string>
-    <string name="login_failed_invalid_user">Utilisateur invalide, veuillez contacter votre administrateur.</string>
-    <string name="login_failed_server_url_configuration">L\'URL du serveur GeoNature n\'est pas configuré</string>
-    <string name="login_success">Authentification réussie</string>
+<resources>
 
     <string name="activity_configure_server_settings_title">Configuration</string>
     <string name="dialog_edit_server_settings_title">URL du serveur GeoNature</string>
@@ -54,12 +41,6 @@
     <string name="sync_data_succeeded">Terminée.</string>
 
     <string name="notification_data_synchronization_title">Synchronisation des données…</string>
-    <string name="notification_inputs_to_synchronize_title">Relevés à synchroniser</string>
-    <plurals name="notification_inputs_to_synchronize_description" tools:ignore="MissingQuantity">
-        <item quantity="one" tools:ignore="ImpliedQuantity">Un relevé est prêt à être synchronisé</item>
-        <item quantity="other">%d relevés sont prêts à être synchronisés</item>
-        <item quantity="many">%d relevés sont prêts à être synchronisés</item>
-    </plurals>
 
     <string name="error_network_lost">Vous n\'êtes pas connecté à Internet</string>
     <string name="error_server_unreachable">Impossible de joindre le serveur GeoNature</string>

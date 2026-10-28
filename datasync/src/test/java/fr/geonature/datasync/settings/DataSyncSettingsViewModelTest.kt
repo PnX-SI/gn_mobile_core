@@ -4,9 +4,9 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import io.mockk.MockKAnnotations.init
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
@@ -62,7 +62,6 @@ class DataSyncSettingsViewModelTest {
             val expectedDataSyncSettings = DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10"
@@ -89,7 +88,6 @@ class DataSyncSettingsViewModelTest {
         val expectedDataSyncSettings = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10"

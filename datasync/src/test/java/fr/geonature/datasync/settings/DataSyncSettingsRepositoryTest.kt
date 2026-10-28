@@ -4,12 +4,12 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider
+import fr.geonature.api.GeoNatureMissingConfigurationFailure
 import fr.geonature.commons.error.Failure
 import fr.geonature.commons.fp.Either
 import fr.geonature.commons.fp.Either.Right
 import fr.geonature.commons.fp.identity
 import fr.geonature.commons.fp.orNull
-import fr.geonature.datasync.api.GeoNatureMissingConfigurationFailure
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundException
 import fr.geonature.datasync.settings.error.DataSyncSettingsNotFoundFailure
 import io.mockk.MockKAnnotations.init
@@ -107,7 +107,6 @@ class DataSyncSettingsRepositoryTest {
             val expectedDataSyncSettings = DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10"
@@ -132,7 +131,6 @@ class DataSyncSettingsRepositoryTest {
             val expectedDataSyncSettings = DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10"
@@ -180,7 +178,6 @@ class DataSyncSettingsRepositoryTest {
             val expectedDataSyncSettings = DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10"

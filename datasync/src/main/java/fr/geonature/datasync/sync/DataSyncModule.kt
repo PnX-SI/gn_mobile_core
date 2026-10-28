@@ -6,12 +6,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import fr.geonature.api.IGeoNatureAPIClient
 import fr.geonature.commons.data.GeoNatureModuleName
 import fr.geonature.commons.data.LocalDatabase
 import fr.geonature.commons.data.dao.AppSyncDao
 import fr.geonature.commons.features.dataset.data.IDatasetLocalDataSource
 import fr.geonature.commons.features.nomenclature.data.IAdditionalFieldLocalDataSource
-import fr.geonature.datasync.api.IGeoNatureAPIClient
 import fr.geonature.datasync.sync.repository.ISynchronizeAdditionalFieldsRepository
 import fr.geonature.datasync.sync.repository.ISynchronizeTaxaRepository
 import fr.geonature.datasync.sync.repository.SynchronizeAdditionalFieldsRepositoryImpl

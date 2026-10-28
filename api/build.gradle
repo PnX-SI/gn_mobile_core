@@ -1,0 +1,77 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+}
+
+version = "0.1.0"
+description = "GeoNature Android library describing GeoNature and TaxHub APIs (Retrofit services, models and HTTP client helpers)"
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
+}
+
+android {
+    namespace 'fr.geonature.api'
+    compileSdk 36
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        minSdk 23
+        targetSdk 36
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
+    publishing {
+        singleVariant("release")
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    api project(':commons')
+
+    // Hilt dependencies
+    implementation libs.hilt.android
+    ksp libs.hilt.android.compiler
+    ksp libs.kotlin.metadata.jvm
+
+    // Logging
+    implementation libs.tinylog.api.kotlin
+    runtimeOnly libs.tinylog.impl
+
+    // Networking dependencies
+    implementation libs.logging.interceptor
+    api libs.converter.gson
+    api libs.retrofit
+
+    // Testing dependencies
+    testImplementation libs.androidx.core
+    testImplementation libs.junit
+    testImplementation libs.robolectric
+    testImplementation libs.slf4j.tinylog
+}
