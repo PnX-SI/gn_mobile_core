@@ -37,7 +37,7 @@ The project is organized around 3 distinct git repositories:
 
 === Project Modules
 
-This repository exposes 4 distinct Android library modules. Each module is published as an independent
+This repository exposes 6 distinct Android library modules. Each module is published as an independent
 Maven artifact to https://github.com/orgs/PnX-SI/packages[GitHub Packages].
 
 [cols="1,3,1,1",options="header"]

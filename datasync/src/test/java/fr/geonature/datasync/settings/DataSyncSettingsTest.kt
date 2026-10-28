@@ -25,7 +25,6 @@ class DataSyncSettingsTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10"
@@ -36,7 +35,6 @@ class DataSyncSettingsTest {
                     geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                     taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                 )
-                .applicationId(3)
                 .usersListId(1)
                 .taxrefListId(100)
                 .codeAreaType("M10")
@@ -50,7 +48,6 @@ class DataSyncSettingsTest {
         val expectedDataSyncSettings = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10",
@@ -127,7 +124,6 @@ class DataSyncSettingsTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -141,7 +137,6 @@ class DataSyncSettingsTest {
                     geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                     taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                 )
-                .applicationId(3)
                 .usersListId(1)
                 .taxrefListId(100)
                 .codeAreaType("M10")
@@ -157,7 +152,6 @@ class DataSyncSettingsTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -170,7 +164,6 @@ class DataSyncSettingsTest {
                     geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                     taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                 )
-                .applicationId(3)
                 .usersListId(1)
                 .taxrefListId(100)
                 .codeAreaType("M10")
@@ -183,7 +176,6 @@ class DataSyncSettingsTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -196,7 +188,6 @@ class DataSyncSettingsTest {
                     geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                     taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                 )
-                .applicationId(3)
                 .usersListId(1)
                 .taxrefListId(100)
                 .codeAreaType("M10")
@@ -209,7 +200,6 @@ class DataSyncSettingsTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -222,7 +212,6 @@ class DataSyncSettingsTest {
                     geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                     taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                 )
-                .applicationId(3)
                 .usersListId(1)
                 .taxrefListId(100)
                 .codeAreaType("M10")
@@ -235,7 +224,6 @@ class DataSyncSettingsTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -248,7 +236,6 @@ class DataSyncSettingsTest {
                     geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                     taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                 )
-                .applicationId(3)
                 .usersListId(1)
                 .taxrefListId(100)
                 .codeAreaType("M10")
@@ -264,7 +251,6 @@ class DataSyncSettingsTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -277,7 +263,6 @@ class DataSyncSettingsTest {
                     geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                     taxHubServerUrl = "https://demo.geonature.fr/taxhub"
                 )
-                .applicationId(3)
                 .usersListId(1)
                 .taxrefListId(100)
                 .codeAreaType("M10")
@@ -295,7 +280,6 @@ class DataSyncSettingsTest {
         val dataASyncSettings = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10",

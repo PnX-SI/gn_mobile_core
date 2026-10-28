@@ -81,6 +81,7 @@ Add the following dependency to your module's `build.gradle` (or `build.gradle.k
 ```groovy
 dependencies {
     implementation 'fr.geonature:api:<version>'
+    implementation 'fr.geonature:auth:<version>'
     implementation 'fr.geonature:commons:<version>'
     implementation 'fr.geonature:compat:<version>'
     implementation 'fr.geonature:datasync:<version>'
@@ -93,6 +94,7 @@ dependencies {
 ```kotlin
 dependencies {
     implementation("fr.geonature:api:<version>")
+    implementation("fr.geonature:auth:<version>")
     implementation("fr.geonature:commons:<version>")
     implementation("fr.geonature:compat:<version>")
     implementation("fr.geonature:datasync:<version>")
@@ -127,5 +129,5 @@ Run the following command in the terminal:
 ./gradlew clean assembleRelease publish
 ```
 
-This command will build the release version of all libraries (`api`, `commons`, `compat`, `datasync`, `viewpager`)
+This command will build the release version of all libraries (`api`, `auth`, `commons`, `compat`, `datasync`, `viewpager`)
 and upload the artifacts (AARs, POMs) to the configured repository.

@@ -24,13 +24,13 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import fr.geonature.auth.login.ui.LoginActivity
 import fr.geonature.datasync.R
 import fr.geonature.datasync.settings.DataSyncSettings
 import fr.geonature.datasync.sync.DataSyncStatus
 import fr.geonature.datasync.sync.IDataSyncManager
 import fr.geonature.datasync.sync.ServerStatus
 import fr.geonature.datasync.sync.usecase.DataSyncUseCase
-import fr.geonature.datasync.ui.login.LoginActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.lastOrNull
@@ -259,7 +259,6 @@ class DataSyncWorker @AssistedInject constructor(
         const val DATA_SYNC_WORKER_TAG = "data_sync_worker_tag"
 
         const val SYNC_NOTIFICATION_ID = 3
-        const val AUTH_NOTIFICATION_ID = 4
 
         private const val INPUT_USERS_MENU_ID = "usersMenuId"
         private const val INPUT_CODE_AREA_TYPE = "codeAreaType"

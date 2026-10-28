@@ -26,11 +26,6 @@ data class DataSyncSettings(
     val taxHubServerUrl: String,
 
     /**
-     * _GeoNature_ application ID in _UsersHub_.
-     */
-    val applicationId: Int = 0,
-
-    /**
      * _GeoNature_ selected observer list ID in _UsersHub_.
      */
     val usersListId: Int = 0,
@@ -68,7 +63,6 @@ data class DataSyncSettings(
         parcel.readString()!!,
         parcel.readInt(),
         parcel.readInt(),
-        parcel.readInt(),
         parcel.readString(),
         parcel.readInt(),
         parcel
@@ -86,7 +80,6 @@ data class DataSyncSettings(
         parcel.apply {
             writeString(geoNatureServerUrl)
             writeString(taxHubServerUrl)
-            writeInt(applicationId)
             writeInt(usersListId)
             writeInt(taxrefListId)
             writeString(codeAreaType)
@@ -111,11 +104,6 @@ data class DataSyncSettings(
          * TaxHub URL.
          */
         private lateinit var taxHubServerUrl: String
-
-        /**
-         * GeoNature application ID in UsersHub.
-         */
-        private var applicationId: Int = 0
 
         /**
          * GeoNature selected observer list ID in UsersHub.
@@ -158,7 +146,6 @@ data class DataSyncSettings(
 
                 geoNatureServerUrl = dataSyncSettings.geoNatureServerUrl
                 taxHubServerUrl = dataSyncSettings.taxHubServerUrl
-                applicationId = dataSyncSettings.applicationId
                 usersListId = dataSyncSettings.usersListId
                 taxrefListId = dataSyncSettings.taxrefListId
                 codeAreaType = dataSyncSettings.codeAreaType
@@ -178,14 +165,6 @@ data class DataSyncSettings(
             apply {
                 this.geoNatureServerUrl = geoNatureServerUrl
                 this.taxHubServerUrl = taxHubServerUrl
-            }
-
-        /**
-         * Sets GeoNature application ID in UsersHub.
-         */
-        fun applicationId(applicationId: Int) =
-            apply {
-                this.applicationId = applicationId
             }
 
         /**
@@ -325,7 +304,6 @@ data class DataSyncSettings(
             return DataSyncSettings(
                 geoNatureServerUrl,
                 taxHubServerUrl,
-                applicationId,
                 usersListId,
                 taxrefListId,
                 codeAreaType,

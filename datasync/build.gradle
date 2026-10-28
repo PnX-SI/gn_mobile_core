@@ -54,6 +54,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     api project(':api')
+    api project(':auth')
     implementation project(':commons')
 
     implementation libs.androidx.appcompat

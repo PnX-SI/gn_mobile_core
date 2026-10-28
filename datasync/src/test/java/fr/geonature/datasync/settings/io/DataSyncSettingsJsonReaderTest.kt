@@ -38,7 +38,6 @@ class DataSyncSettingsJsonReaderTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/geonature/api/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -64,7 +63,6 @@ class DataSyncSettingsJsonReaderTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/geonature/api/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -90,7 +88,6 @@ class DataSyncSettingsJsonReaderTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/geonature/api/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -115,7 +112,6 @@ class DataSyncSettingsJsonReaderTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/geonature/api/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -140,7 +136,6 @@ class DataSyncSettingsJsonReaderTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/geonature/api/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
@@ -158,7 +153,6 @@ class DataSyncSettingsJsonReaderTest {
         val existingDataSyncSettings = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature",
             taxHubServerUrl = "https://demo.geonature.fr/geonature/api/taxhub",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10",
@@ -179,7 +173,6 @@ class DataSyncSettingsJsonReaderTest {
             DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/geonature/api/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M20",

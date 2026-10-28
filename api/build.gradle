@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-version = "0.0.1"
+version = "0.1.0"
 description = "GeoNature Android library describing GeoNature and TaxHub APIs (Retrofit services, models and HTTP client helpers)"
 
 kotlin {
@@ -54,11 +54,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     api project(':commons')
-
-    implementation libs.androidx.preference.ktx
-
-    // Encryption of sensitive data (Android Keystore backed)
-    implementation libs.tink.android
 
     // Hilt dependencies
     implementation libs.hilt.android

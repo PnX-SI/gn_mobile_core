@@ -1,6 +1,5 @@
 # DataSync module
 
-* Authenticate _GeoNature_ user.
 * Synchronize local database through _GeoNature_ APIs:
   * Users (i.e. Observers)
   * Taxa (with additional data like "color" by areas and taxonomy)
@@ -19,7 +18,6 @@ Module settings can be loaded from JSON as follows:
   "sync": {
     "geonature_url": "https://demo.geonature/geonature",
     "taxhub_url": "https://demo.geonature.fr/geonature/api/taxhub",
-    "gn_application_id": 3,
     "observers_list_id": 1,
     "taxa_list_id": 100,
     "code_area_type": "M1",
@@ -34,7 +32,6 @@ or as inlined:
 {
   "geonature_url": "https://demo.geonature/geonature",
   "taxhub_url": "https://demo.geonature.fr/geonature/api/taxhub",
-  "gn_application_id": 3,
   "observers_list_id": 1,
   "taxa_list_id": 100,
   "code_area_type": "M1",
@@ -48,7 +45,6 @@ or as inlined:
 |-----------------------------------|---------|--------------------------------------------------------|---------------|
 | `geonature_url`                   | &#9745; | _GeoNature_ URL                                        |               |
 | `taxhub_url`                      | &#9744; | _TaxHub_ URL                                           |               |
-| `gn_application_id`               | &#9744; | _GeoNature_ application ID in _UsersHub_               |               |
 | `observers_list_id`               | &#9744; | _GeoNature_ selected observer list ID in _UsersHub_    |               |
 | `taxa_list_id`                    | &#9744; | _GeoNature_ selected taxa list ID                      |               |
 | `code_area_type`                  | &#9744; | _GeoNature_ selected area type                         |               |

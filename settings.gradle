@@ -35,4 +35,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "GeoNature Android core libraries"
-include ':api', ':commons', ':compat', ':datasync', ':viewpager'
+include ':api', ':auth', ':commons', ':compat', ':datasync', ':viewpager'

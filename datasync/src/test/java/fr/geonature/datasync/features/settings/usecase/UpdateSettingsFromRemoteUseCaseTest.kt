@@ -102,7 +102,6 @@ class UpdateSettingsFromRemoteUseCaseTest {
         val expectedDataSyncSettings = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10",
@@ -110,7 +109,6 @@ class UpdateSettingsFromRemoteUseCaseTest {
         val expectedDataSyncSettingsAfterUpdate = DataSyncSettings(
             geoNatureServerUrl = "https://demo.geonature.fr/geonature2",
             taxHubServerUrl = "https://demo.geonature.fr/taxhub2",
-            applicationId = 3,
             usersListId = 1,
             taxrefListId = 100,
             codeAreaType = "M10",
@@ -174,7 +172,6 @@ class UpdateSettingsFromRemoteUseCaseTest {
             val expectedDataSyncSettings = DataSyncSettings(
                 geoNatureServerUrl = "https://demo.geonature.fr/geonature",
                 taxHubServerUrl = "https://demo.geonature.fr/taxhub",
-                applicationId = 3,
                 usersListId = 1,
                 taxrefListId = 100,
                 codeAreaType = "M10",
