@@ -14,7 +14,7 @@ data class AuthSettings(
     /**
      * _GeoNature_ application ID in _UsersHub_.
      */
-    val applicationId: Int = 0
+    val applicationId: Int
 ) : Parcelable {
 
     class Builder {
@@ -22,7 +22,7 @@ data class AuthSettings(
         /**
          * GeoNature application ID in UsersHub.
          */
-        private var applicationId: Int = 0
+        private var applicationId: Int? = null
 
         /**
          * Makes a copy of given [AuthSettings].
@@ -46,8 +46,14 @@ data class AuthSettings(
          * Builds a new instance of [AuthSettings].
          */
         fun build(): AuthSettings {
+            val applicationId = applicationId
+                ?: throw IllegalArgumentException("applicationId must be set")
+
+            if (applicationId < 0) {
+                throw IllegalArgumentException("applicationId must be >= 0")
+            }
+
             return AuthSettings(applicationId)
         }
     }
-
 }

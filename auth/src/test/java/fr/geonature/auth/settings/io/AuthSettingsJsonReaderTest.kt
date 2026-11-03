@@ -69,11 +69,18 @@ class AuthSettingsJsonReaderTest {
     }
 
     @Test
-    fun `should return default settings from empty object`() {
-        assertEquals(
-            AuthSettings(),
-            authSettingsJsonReader.read("{}")
-        )
+    fun `should return null from empty object without existing settings`() {
+        assertNull(authSettingsJsonReader.read("{}"))
+    }
+
+    @Test(expected = AuthSettingsException.AuthSettingsJsonParseException::class)
+    fun `should throw AuthSettingsJsonParseException from empty object without existing settings`() {
+        authSettingsJsonReader.read(StringReader("{}"))
+    }
+
+    @Test(expected = AuthSettingsException.AuthSettingsJsonParseException::class)
+    fun `should throw AuthSettingsJsonParseException from negative application ID`() {
+        authSettingsJsonReader.read(StringReader("""{"gn_application_id": -1}"""))
     }
 
     @Test
