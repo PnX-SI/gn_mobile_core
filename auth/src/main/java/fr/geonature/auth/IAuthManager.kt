@@ -2,8 +2,6 @@ package fr.geonature.auth
 
 import androidx.lifecycle.LiveData
 import fr.geonature.api.model.AuthLogin
-import fr.geonature.commons.error.Failure
-import fr.geonature.commons.fp.Either
 
 /**
  * [AuthLogin] manager.
@@ -29,7 +27,7 @@ interface IAuthManager {
         username: String,
         password: String,
         applicationId: Int
-    ): Either<Failure, AuthLogin>
+    ): Result<AuthLogin>
 
     /**
      * Clears the current session.

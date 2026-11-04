@@ -5,16 +5,15 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import fr.geonature.api.IGeoNatureAPIClient
+import fr.geonature.api.error.BaseApiException
+import fr.geonature.api.error.NetworkException
 import fr.geonature.api.model.AuthLogin
 import fr.geonature.api.model.AuthLoginError
 import fr.geonature.api.model.AuthUser
-import fr.geonature.commons.error.Failure
-import fr.geonature.commons.fp.identity
-import fr.geonature.commons.fp.orNull
 import fr.geonature.commons.util.NetworkHandler
 import fr.geonature.commons.util.add
 import fr.geonature.commons.util.toIsoDateString
-import fr.geonature.auth.error.AuthFailure
+import fr.geonature.auth.error.AuthException
 import io.mockk.MockKAnnotations.init
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -132,10 +131,10 @@ class AuthManagerTest {
             )
 
             // then
-            assertTrue(auth.isRight)
+            assertTrue(auth.isSuccess)
             assertEquals(
                 authLogin,
-                auth.orNull()
+                auth.getOrNull()
             )
             verify(atLeast = 1) { isLoggedInObserver.onChanged(authLogin) }
 
@@ -154,7 +153,7 @@ class AuthManagerTest {
         }
 
     @Test
-    fun `should return a network failure when no connection while trying to login`() =
+    fun `should return a NetworkException when no connection while trying to login`() =
         runTest {
             every { networkHandler.isNetworkAvailable() } returns false
 
@@ -166,13 +165,12 @@ class AuthManagerTest {
             )
 
             // then
-            assertTrue(auth.isLeft)
-            auth.fold({ assertTrue(it is Failure.NetworkFailure) }, {})
+            assertTrue(auth.exceptionOrNull() is NetworkException)
             verify(exactly = 0) { geoNatureAPIClient.authLogin(any()) }
         }
 
     @Test
-    fun `should return AuthLoginFailure if no successful response while trying to login`() =
+    fun `should return AuthLoginException if no successful response while trying to login`() =
         runTest {
             every { networkHandler.isNetworkAvailable() } returns true
             every { (geoNatureAPIClient.authLogin(any())) } returns authResponseCall
@@ -189,23 +187,19 @@ class AuthManagerTest {
             )
 
             // then
-            assertTrue(auth.isLeft)
-            auth.fold({
-                assertEquals(
-                    AuthFailure.AuthLoginFailure(
-                        AuthLoginError(
-                            "login",
-                            "No user found with the username 'sgr' for the application with id 2"
-                        )
-                    ),
-                    it
-                )
-            },
-                {})
+            assertEquals(
+                AuthException.AuthLoginException(
+                    AuthLoginError(
+                        "login",
+                        "No user found with the username 'sgr' for the application with id 2"
+                    )
+                ),
+                auth.exceptionOrNull()
+            )
         }
 
     @Test
-    fun `should return InvalidUserFailure if receiving a non valid user after login`() =
+    fun `should return InvalidUserException if receiving a non valid user after login`() =
         runTest {
             // given an invalid user from backend
             val authLogin = AuthLogin(
@@ -239,12 +233,11 @@ class AuthManagerTest {
             )
 
             // then
-            assertTrue(auth.isLeft)
-            assertTrue(auth.fold(::identity) {} is AuthFailure.InvalidUserFailure)
+            assertTrue(auth.exceptionOrNull() is AuthException.InvalidUserException)
         }
 
     @Test
-    fun `should return ServerFailure if no successful response with no body while trying to login`() =
+    fun `should return InternalServerException if no successful response with no body while trying to login`() =
         runTest {
             every { networkHandler.isNetworkAvailable() } returns true
             every { geoNatureAPIClient.authLogin(any()) } returns authResponseCall
@@ -260,11 +253,7 @@ class AuthManagerTest {
             )
 
             // then
-            assertTrue(auth.isLeft)
-            auth.fold({
-                assertTrue(it is Failure.ServerFailure)
-            },
-                {})
+            assertTrue(auth.exceptionOrNull() is BaseApiException.InternalServerException)
         }
 
     @Test
@@ -301,10 +290,10 @@ class AuthManagerTest {
             )
 
             // then
-            assertTrue(auth.isRight)
+            assertTrue(auth.isSuccess)
             assertEquals(
                 authLogin,
-                auth.orNull()
+                auth.getOrNull()
             )
 
             // when perform logout
@@ -352,10 +341,10 @@ class AuthManagerTest {
             )
 
             // then
-            assertTrue(auth.isRight)
+            assertTrue(auth.isSuccess)
             assertEquals(
                 authLogin,
-                auth.orNull()
+                auth.getOrNull()
             )
 
             // when checking AuthLogin from manager

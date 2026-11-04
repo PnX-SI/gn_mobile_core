@@ -1,6 +1,7 @@
 package fr.geonature.api
 
 import android.webkit.MimeTypeMap
+import fr.geonature.api.auth.ICookieManager
 import fr.geonature.api.error.MissingConfigurationException
 import fr.geonature.api.model.AuthCredentials
 import fr.geonature.api.model.AuthLogin
@@ -12,7 +13,6 @@ import fr.geonature.api.model.TaxrefListListResult
 import fr.geonature.api.model.TaxrefListResult
 import fr.geonature.api.model.TaxrefVersion
 import fr.geonature.api.model.User
-import fr.geonature.api.auth.ICookieManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -90,7 +90,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
         mediaFile: File
     ): Call<Media> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.sendMediaFile(
             mediaType,
@@ -121,7 +121,7 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
 
     override fun deleteMediaFile(mediaId: Int): Call<ResponseBody> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.deleteMediaFile(mediaId)
     }
@@ -214,14 +214,14 @@ class GeoNatureAPIClientImpl(private val cookieManager: ICookieManager) : IGeoNa
 
     override fun getIdTableLocation(): Call<Long> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getIdTableLocation()
     }
 
     override fun getAdditionalFields(module: String): Call<ResponseBody> {
         val geoNatureService = geoNatureService
-            ?: throw IllegalStateException("missing GeoNature base URL")
+            ?: throw MissingConfigurationException.MissingGeoNatureBaseURLException
 
         return geoNatureService.getAdditionalFields(module)
     }

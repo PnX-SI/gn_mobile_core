@@ -7,12 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.geonature.api.GeoNatureMissingConfigurationFailure
+import fr.geonature.api.error.MissingConfigurationException
+import fr.geonature.api.error.NetworkException
 import fr.geonature.api.model.AuthLogin
 import fr.geonature.auth.IAuthManager
 import fr.geonature.auth.R
-import fr.geonature.auth.error.AuthFailure
-import fr.geonature.commons.error.Failure
+import fr.geonature.auth.error.AuthException
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -55,34 +55,34 @@ class AuthLoginViewModel @Inject constructor(private val authManager: IAuthManag
                 applicationId
             )
 
-            _loginResult.value = authLogin.fold({
-                when (it) {
-                    is GeoNatureMissingConfigurationFailure -> {
-                        LoginResult(error = R.string.login_failed_server_url_configuration)
-                    }
-
-                    is AuthFailure.AuthLoginFailure -> {
-                        when (it.authLoginError.type) {
-                            "login" -> LoginResult(error = R.string.login_failed_login)
-                            "password" -> LoginResult(error = R.string.login_failed_password)
-                            else -> LoginResult(error = R.string.login_failed)
+            _loginResult.value = authLogin.fold(
+                onSuccess = { LoginResult(success = it) },
+                onFailure = {
+                    when (it) {
+                        is MissingConfigurationException -> {
+                            LoginResult(error = R.string.login_failed_server_url_configuration)
                         }
-                    }
 
-                    is AuthFailure.InvalidUserFailure -> {
-                        LoginResult(error = R.string.login_failed_invalid_user)
-                    }
+                        is AuthException.AuthLoginException -> {
+                            when (it.authLoginError.type) {
+                                "login" -> LoginResult(error = R.string.login_failed_login)
+                                "password" -> LoginResult(error = R.string.login_failed_password)
+                                else -> LoginResult(error = R.string.login_failed)
+                            }
+                        }
 
-                    is Failure.NetworkFailure -> {
-                        LoginResult(error = R.string.error_network_lost)
-                    }
+                        is AuthException.InvalidUserException -> {
+                            LoginResult(error = R.string.login_failed_invalid_user)
+                        }
 
-                    else -> LoginResult(error = R.string.login_failed)
+                        is NetworkException -> {
+                            LoginResult(error = R.string.error_network_lost)
+                        }
+
+                        else -> LoginResult(error = R.string.login_failed)
+                    }
                 }
-            },
-                {
-                    LoginResult(success = it)
-                })
+            )
         }
     }
 

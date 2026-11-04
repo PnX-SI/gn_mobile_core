@@ -1,5 +1,7 @@
 package fr.geonature.auth.error
 
+import fr.geonature.api.model.AuthLoginError
+
 /**
  * Base exception about authentication errors.
  *
@@ -16,5 +18,16 @@ sealed class AuthException(
     /**
      * Handles not connected error.
      */
-    object NotConnectedException : AuthException("not connected")
+    class NotConnectedException : AuthException("not connected")
+
+    /**
+     * Handles authentication errors returned by the backend.
+     */
+    data class AuthLoginException(val authLoginError: AuthLoginError) :
+        AuthException(authLoginError.message)
+
+    /**
+     * Handles invalid user received after authentication.
+     */
+    class InvalidUserException : AuthException("invalid user")
 }
